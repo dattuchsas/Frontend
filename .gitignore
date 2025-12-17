@@ -1,0 +1,60 @@
+##Ignore Visual Studio temparory files
+
+# User-specific files
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+*.pubxml
+*.orig
+
+# User-specific files
+*.userprefs
+
+# Build results
+[Dd]ebug/
+[Dd]ebugPublic/
+[Rr]elease/
+[Rr]eleases/
+[Xx]64/
+[Xx]86/
+[Bb]uild/
+out/
+bld/
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+
+# Visual Studio cache/options directory
+.vs/
+
+# DNX
+project.lock.json
+project.fragment.lock.json
+artifacts/
+
+*_i.c
+*_p.c
+*_i.h
+*ilk
+*.meta
+*.obj
+*.pch
+*.pdb
+*.pgc
+*.pgd
+*.rsp
+*.sbr
+*.tlb
+*.tli
+*.tlh
+*.tmp
+*.tmp_proj
+*.log
+*.binlog
+*.vspscc
+*.vssscc
+.builds
+*.pidb
+*.svclog
+*.ssc
