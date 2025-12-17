@@ -11,6 +11,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Banking.APIService\Banking.APIService.csproj" />
     <ProjectReference Include="..\Banking.Models\Banking.Models.csproj" />
   </ItemGroup>
 

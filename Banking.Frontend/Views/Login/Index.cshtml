@@ -33,23 +33,28 @@
 	</div>
 	<div class="col-md-3">
 		<div class="wrap-login100">
-			<form class="login100-form validate-form" asp-area="" asp-controller="Login" asp-action="Submit" asp-antiforgery="true">
+			<form class="login100-form validate-form" asp-area="" asp-controller="Login" asp-action="Index" asp-antiforgery="true">
 				<span class="login100-form-title p-b-34 p-t-27">
 					Sign in
 				</span>
+				<div asp-validation-summary="ModelOnly" class="text-danger"></div>
 				<div class="wrap-input100 validate-input">
-					<input asp-validation-for="Username" class="input100" />
+					<input asp-for="Username" type="text" class="input100" />
 					<label class="focus-input100 text-left" data-placeholder="Username"></label>
 				</div>
-				<div class="wrap-input100 validate-input" >
-					<input type="password" class="input100" />
-					<label class="focus-input100 text-left" data-placeholder="Password 1"></label>
+				<span asp-validation-for="Username" class="text-white"></span>
+				<div class="wrap-input100 validate-input m-t-25">
+					<input asp-for="Password1" type="password" class="input100" />
+					<label class="focus-input100 text-left" data-placeholder="Password1"></label>
 				</div>
-				<div class="wrap-input100 validate-input" data-validate="Enter password">
-					<input class="input100" type="password" name="pass">
-					<label class="focus-input100 text-left" data-placeholder="Password 2"></label>	
+				<span asp-validation-for="Password1" class="text-white"></span>
+				<div class="wrap-input100 validate-input m-t-25">
+					<input asp-for="Password2" type="password" class="input100">
+					<label class="focus-input100 text-left" data-placeholder="Password2"></label>	
 				</div>
-				<div class="text-left p-b-40">
+				<span asp-validation-for="Password2" class="text-white"></span>
+
+				<div class="text-left p-b-40 p-t-40">
 					<strong>
 						<a class="txt1 pe-4" href="#">
 							Alter Password
@@ -67,7 +72,6 @@
 					</strong>
 				</div>
 				<div class="container-login100-form-btn">
-					
 					<button class="login100-form-btn" type="submit">
 						Login
 					</button>
@@ -76,3 +80,9 @@
 		</div>
 	</div>
 </div>
+
+@section Scripts {
+	@{
+		await Html.RenderPartialAsync("_ValidationScriptsPartial");
+	}
+}

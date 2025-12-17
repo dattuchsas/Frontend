@@ -279,7 +279,7 @@ iframe {
   width: 100%;
   position: relative;
   border-bottom: 2px solid rgba(255,255,255,0.24);
-  margin-bottom: 40px;
+  /*margin-bottom: 40px;*/
 }
 
 .input100 {

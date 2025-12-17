@@ -14,11 +14,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "K:\\Banking\\Core_Banking\\Banking.Frontend\\Banking.Models\\Banking.Models.csproj",
+      "projectUniqueName": "K:\\Banking\\Github\\Banking.Frontend\\Frontend\\Banking.Models\\Banking.Models.csproj",
       "projectName": "Banking.Models",
-      "projectPath": "K:\\Banking\\Core_Banking\\Banking.Frontend\\Banking.Models\\Banking.Models.csproj",
+      "projectPath": "K:\\Banking\\Github\\Banking.Frontend\\Frontend\\Banking.Models\\Banking.Models.csproj",
       "packagesPath": "C:\\Users\\Kasyap\\.nuget\\packages\\",
-      "outputPath": "K:\\Banking\\Core_Banking\\Banking.Frontend\\Banking.Models\\obj\\",
+      "outputPath": "K:\\Banking\\Github\\Banking.Frontend\\Frontend\\Banking.Models\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"

@@ -18,7 +18,9 @@
         </nav>
     </header>
     <main role="main" class="container-fluid pb-3">
-        @RenderBody()
+        <div class="row" style="height: inherit;">
+            @RenderBody()
+        </div>
     </main>
     <footer class="footer mt-auto py-3 bg-maharaja">
         <div class="container">
@@ -29,6 +31,8 @@
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js" asp-append-version="true"></script>
     <script src="~/js/sidebars.js" asp-append-version="true"></script>
     <script src="~/js/main.js" asp-append-version="true"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.3/jquery.validate.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validation-unobtrusive/3.2.12/jquery.validate.unobtrusive.js"></script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

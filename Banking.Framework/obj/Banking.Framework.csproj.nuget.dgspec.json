@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "K:\\Banking\\Core_Banking\\Banking.Frontend\\Banking.Framework\\Banking.Framework.csproj": {}
+    "K:\\Banking\\Github\\Banking.Frontend\\Frontend\\Banking.Framework\\Banking.Framework.csproj": {}
   },
   "projects": {
-    "K:\\Banking\\Core_Banking\\Banking.Frontend\\Banking.Framework\\Banking.Framework.csproj": {
+    "K:\\Banking\\Github\\Banking.Frontend\\Frontend\\Banking.Framework\\Banking.Framework.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "K:\\Banking\\Core_Banking\\Banking.Frontend\\Banking.Framework\\Banking.Framework.csproj",
+        "projectUniqueName": "K:\\Banking\\Github\\Banking.Frontend\\Frontend\\Banking.Framework\\Banking.Framework.csproj",
         "projectName": "Banking.Framework",
-        "projectPath": "K:\\Banking\\Core_Banking\\Banking.Frontend\\Banking.Framework\\Banking.Framework.csproj",
+        "projectPath": "K:\\Banking\\Github\\Banking.Frontend\\Frontend\\Banking.Framework\\Banking.Framework.csproj",
         "packagesPath": "C:\\Users\\Kasyap\\.nuget\\packages\\",
-        "outputPath": "K:\\Banking\\Core_Banking\\Banking.Frontend\\Banking.Framework\\obj\\",
+        "outputPath": "K:\\Banking\\Github\\Banking.Frontend\\Frontend\\Banking.Framework\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
@@ -49,6 +49,12 @@
       "frameworks": {
         "net8.0": {
           "targetAlias": "net8.0",
+          "dependencies": {
+            "Microsoft.Extensions.Logging.Abstractions": {
+              "target": "Package",
+              "version": "[10.0.1, )"
+            }
+          },
           "imports": [
             "net461",
             "net462",
