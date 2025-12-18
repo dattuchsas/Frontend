@@ -20,7 +20,7 @@ namespace Banking.APIService
         /// </summary>
         protected virtual void PrepareRequest()
         {
-            this._httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", "");
+            //this._httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", "");
         }
 
         /// <summary>

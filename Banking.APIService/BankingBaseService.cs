@@ -35,7 +35,8 @@ namespace Banking.APIService
         {
             if (_httpClient.DefaultRequestHeaders.Authorization == null)
             {
-                string headerApiKey = SendAPIKey ? "" : string.Empty;
+                string headerApiKey = SendAPIKey ? ApiKey : string.Empty;
+                _httpClient.DefaultRequestHeaders.Add("X-API-KEY", headerApiKey);
                 _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("X-API-KEY", headerApiKey);
                 _httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
             }

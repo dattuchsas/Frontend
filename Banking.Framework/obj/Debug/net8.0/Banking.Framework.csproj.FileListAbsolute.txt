@@ -1,6 +1,7 @@
 K:\Banking\Github\Banking.Frontend\Frontend\Banking.Framework\bin\Debug\net8.0\Banking.Framework.deps.json
 K:\Banking\Github\Banking.Frontend\Frontend\Banking.Framework\bin\Debug\net8.0\Banking.Framework.dll
 K:\Banking\Github\Banking.Frontend\Frontend\Banking.Framework\bin\Debug\net8.0\Banking.Framework.pdb
+K:\Banking\Github\Banking.Frontend\Frontend\Banking.Framework\obj\Debug\net8.0\Banking.Framework.csproj.AssemblyReference.cache
 K:\Banking\Github\Banking.Frontend\Frontend\Banking.Framework\obj\Debug\net8.0\Banking.Framework.GeneratedMSBuildEditorConfig.editorconfig
 K:\Banking\Github\Banking.Frontend\Frontend\Banking.Framework\obj\Debug\net8.0\Banking.Framework.AssemblyInfoInputs.cache
 K:\Banking\Github\Banking.Frontend\Frontend\Banking.Framework\obj\Debug\net8.0\Banking.Framework.AssemblyInfo.cs
@@ -10,4 +11,3 @@ K:\Banking\Github\Banking.Frontend\Frontend\Banking.Framework\obj\Debug\net8.0\B
 K:\Banking\Github\Banking.Frontend\Frontend\Banking.Framework\obj\Debug\net8.0\refint\Banking.Framework.dll
 K:\Banking\Github\Banking.Frontend\Frontend\Banking.Framework\obj\Debug\net8.0\Banking.Framework.pdb
 K:\Banking\Github\Banking.Frontend\Frontend\Banking.Framework\obj\Debug\net8.0\ref\Banking.Framework.dll
-K:\Banking\Github\Banking.Frontend\Frontend\Banking.Framework\obj\Debug\net8.0\Banking.Framework.csproj.AssemblyReference.cache

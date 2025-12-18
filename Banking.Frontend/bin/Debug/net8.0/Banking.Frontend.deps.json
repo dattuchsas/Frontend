@@ -9,6 +9,7 @@
       "Banking.Frontend/1.0.0": {
         "dependencies": {
           "Banking.APIService": "1.0.0",
+          "Banking.Framework": "1.0.0",
           "Banking.Models": "1.0.0",
           "Microsoft.VisualStudio.Web.CodeGeneration.Design": "8.0.22"
         },
