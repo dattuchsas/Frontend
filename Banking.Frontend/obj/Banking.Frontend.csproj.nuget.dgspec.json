@@ -1,23 +1,23 @@
 {
   "format": 1,
   "restore": {
-    "K:\\Banking\\Github\\Banking.Frontend\\Frontend\\Banking.Frontend\\Banking.Frontend.csproj": {}
+    "E:\\dattuprojects\\BankingFrontend\\Banking.Frontend\\Banking.Frontend.csproj": {}
   },
   "projects": {
-    "K:\\Banking\\Github\\Banking.Frontend\\Frontend\\Banking.APIService\\Banking.APIService.csproj": {
+    "E:\\dattuprojects\\BankingFrontend\\Banking.APIService\\Banking.APIService.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "K:\\Banking\\Github\\Banking.Frontend\\Frontend\\Banking.APIService\\Banking.APIService.csproj",
+        "projectUniqueName": "E:\\dattuprojects\\BankingFrontend\\Banking.APIService\\Banking.APIService.csproj",
         "projectName": "Banking.APIService",
-        "projectPath": "K:\\Banking\\Github\\Banking.Frontend\\Frontend\\Banking.APIService\\Banking.APIService.csproj",
-        "packagesPath": "C:\\Users\\Kasyap\\.nuget\\packages\\",
-        "outputPath": "K:\\Banking\\Github\\Banking.Frontend\\Frontend\\Banking.APIService\\obj\\",
+        "projectPath": "E:\\dattuprojects\\BankingFrontend\\Banking.APIService\\Banking.APIService.csproj",
+        "packagesPath": "C:\\Users\\laptop\\.nuget\\packages\\",
+        "outputPath": "E:\\dattuprojects\\BankingFrontend\\Banking.APIService\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
         ],
         "configFilePaths": [
-          "C:\\Users\\Kasyap\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Users\\laptop\\AppData\\Roaming\\NuGet\\NuGet.Config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
@@ -25,7 +25,8 @@
           "net8.0"
         ],
         "sources": {
-          "C:\\Users\\Kasyap\\Downloads": {},
+          "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
+          "C:\\Program Files\\dotnet\\library-packs": {},
           "https://api.nuget.org/v3/index.json": {}
         },
         "frameworks": {
@@ -79,20 +80,20 @@
         }
       }
     },
-    "K:\\Banking\\Github\\Banking.Frontend\\Frontend\\Banking.Frontend\\Banking.Frontend.csproj": {
+    "E:\\dattuprojects\\BankingFrontend\\Banking.Frontend\\Banking.Frontend.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "K:\\Banking\\Github\\Banking.Frontend\\Frontend\\Banking.Frontend\\Banking.Frontend.csproj",
+        "projectUniqueName": "E:\\dattuprojects\\BankingFrontend\\Banking.Frontend\\Banking.Frontend.csproj",
         "projectName": "Banking.Frontend",
-        "projectPath": "K:\\Banking\\Github\\Banking.Frontend\\Frontend\\Banking.Frontend\\Banking.Frontend.csproj",
-        "packagesPath": "C:\\Users\\Kasyap\\.nuget\\packages\\",
-        "outputPath": "K:\\Banking\\Github\\Banking.Frontend\\Frontend\\Banking.Frontend\\obj\\",
+        "projectPath": "E:\\dattuprojects\\BankingFrontend\\Banking.Frontend\\Banking.Frontend.csproj",
+        "packagesPath": "C:\\Users\\laptop\\.nuget\\packages\\",
+        "outputPath": "E:\\dattuprojects\\BankingFrontend\\Banking.Frontend\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
         ],
         "configFilePaths": [
-          "C:\\Users\\Kasyap\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Users\\laptop\\AppData\\Roaming\\NuGet\\NuGet.Config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
@@ -100,18 +101,19 @@
           "net8.0"
         ],
         "sources": {
-          "C:\\Users\\Kasyap\\Downloads": {},
+          "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
+          "C:\\Program Files\\dotnet\\library-packs": {},
           "https://api.nuget.org/v3/index.json": {}
         },
         "frameworks": {
           "net8.0": {
             "targetAlias": "net8.0",
             "projectReferences": {
-              "K:\\Banking\\Github\\Banking.Frontend\\Frontend\\Banking.APIService\\Banking.APIService.csproj": {
-                "projectPath": "K:\\Banking\\Github\\Banking.Frontend\\Frontend\\Banking.APIService\\Banking.APIService.csproj"
+              "E:\\dattuprojects\\BankingFrontend\\Banking.APIService\\Banking.APIService.csproj": {
+                "projectPath": "E:\\dattuprojects\\BankingFrontend\\Banking.APIService\\Banking.APIService.csproj"
               },
-              "K:\\Banking\\Github\\Banking.Frontend\\Frontend\\Banking.Models\\Banking.Models.csproj": {
-                "projectPath": "K:\\Banking\\Github\\Banking.Frontend\\Frontend\\Banking.Models\\Banking.Models.csproj"
+              "E:\\dattuprojects\\BankingFrontend\\Banking.Models\\Banking.Models.csproj": {
+                "projectPath": "E:\\dattuprojects\\BankingFrontend\\Banking.Models\\Banking.Models.csproj"
               }
             }
           }
@@ -160,20 +162,20 @@
         }
       }
     },
-    "K:\\Banking\\Github\\Banking.Frontend\\Frontend\\Banking.Models\\Banking.Models.csproj": {
+    "E:\\dattuprojects\\BankingFrontend\\Banking.Models\\Banking.Models.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "K:\\Banking\\Github\\Banking.Frontend\\Frontend\\Banking.Models\\Banking.Models.csproj",
+        "projectUniqueName": "E:\\dattuprojects\\BankingFrontend\\Banking.Models\\Banking.Models.csproj",
         "projectName": "Banking.Models",
-        "projectPath": "K:\\Banking\\Github\\Banking.Frontend\\Frontend\\Banking.Models\\Banking.Models.csproj",
-        "packagesPath": "C:\\Users\\Kasyap\\.nuget\\packages\\",
-        "outputPath": "K:\\Banking\\Github\\Banking.Frontend\\Frontend\\Banking.Models\\obj\\",
+        "projectPath": "E:\\dattuprojects\\BankingFrontend\\Banking.Models\\Banking.Models.csproj",
+        "packagesPath": "C:\\Users\\laptop\\.nuget\\packages\\",
+        "outputPath": "E:\\dattuprojects\\BankingFrontend\\Banking.Models\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
         ],
         "configFilePaths": [
-          "C:\\Users\\Kasyap\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Users\\laptop\\AppData\\Roaming\\NuGet\\NuGet.Config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
@@ -181,7 +183,8 @@
           "net8.0"
         ],
         "sources": {
-          "C:\\Users\\Kasyap\\Downloads": {},
+          "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
+          "C:\\Program Files\\dotnet\\library-packs": {},
           "https://api.nuget.org/v3/index.json": {}
         },
         "frameworks": {
