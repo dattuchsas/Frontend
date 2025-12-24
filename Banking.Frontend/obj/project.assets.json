@@ -6336,8 +6336,8 @@
     },
     "Banking.Interfaces/1.0.0": {
       "type": "project",
-      "path": "../../../Banking.Backend/Codebase/Banking.Interfaces/Banking.Interfaces.csproj",
-      "msbuildProject": "../../../Banking.Backend/Codebase/Banking.Interfaces/Banking.Interfaces.csproj"
+      "path": "../Banking.Interfaces/Banking.Interfaces.csproj",
+      "msbuildProject": "../Banking.Interfaces/Banking.Interfaces.csproj"
     },
     "Banking.Models/1.0.0": {
       "type": "project",

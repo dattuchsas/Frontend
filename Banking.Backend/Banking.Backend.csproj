@@ -11,8 +11,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\Banking.Backend\Codebase\Banking.Interfaces\Banking.Interfaces.csproj" />
     <ProjectReference Include="..\Banking.Framework\Banking.Framework.csproj" />
+    <ProjectReference Include="..\Banking.Interfaces\Banking.Interfaces.csproj" />
     <ProjectReference Include="..\Banking.Models\Banking.Models.csproj" />
   </ItemGroup>
 

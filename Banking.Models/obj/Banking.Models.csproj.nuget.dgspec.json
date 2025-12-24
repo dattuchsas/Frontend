@@ -1,23 +1,23 @@
 {
   "format": 1,
   "restore": {
-    "E:\\dattuprojects\\BankingFrontend\\Banking.Models\\Banking.Models.csproj": {}
+    "K:\\Banking\\Github\\Banking.Frontend\\Frontend\\Banking.Models\\Banking.Models.csproj": {}
   },
   "projects": {
-    "E:\\dattuprojects\\BankingFrontend\\Banking.Models\\Banking.Models.csproj": {
+    "K:\\Banking\\Github\\Banking.Frontend\\Frontend\\Banking.Models\\Banking.Models.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "E:\\dattuprojects\\BankingFrontend\\Banking.Models\\Banking.Models.csproj",
+        "projectUniqueName": "K:\\Banking\\Github\\Banking.Frontend\\Frontend\\Banking.Models\\Banking.Models.csproj",
         "projectName": "Banking.Models",
-        "projectPath": "E:\\dattuprojects\\BankingFrontend\\Banking.Models\\Banking.Models.csproj",
-        "packagesPath": "C:\\Users\\laptop\\.nuget\\packages\\",
-        "outputPath": "E:\\dattuprojects\\BankingFrontend\\Banking.Models\\obj\\",
+        "projectPath": "K:\\Banking\\Github\\Banking.Frontend\\Frontend\\Banking.Models\\Banking.Models.csproj",
+        "packagesPath": "C:\\Users\\Kasyap\\.nuget\\packages\\",
+        "outputPath": "K:\\Banking\\Github\\Banking.Frontend\\Frontend\\Banking.Models\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
         ],
         "configFilePaths": [
-          "C:\\Users\\laptop\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Users\\Kasyap\\AppData\\Roaming\\NuGet\\NuGet.Config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
@@ -25,8 +25,7 @@
           "net8.0"
         ],
         "sources": {
-          "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
-          "C:\\Program Files\\dotnet\\library-packs": {},
+          "C:\\Users\\Kasyap\\Downloads": {},
           "https://api.nuget.org/v3/index.json": {}
         },
         "frameworks": {
