@@ -1,11 +1,12 @@
 {
   "version": 2,
-  "dgSpecHash": "fLTjegOI56Y=",
+  "dgSpecHash": "DJHHa++TRiA=",
   "success": true,
   "projectFilePath": "K:\\Banking\\Github\\Banking.Frontend\\Frontend\\Banking.Framework\\Banking.Framework.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\Kasyap\\.nuget\\packages\\microsoft.extensions.dependencyinjection.abstractions\\10.0.1\\microsoft.extensions.dependencyinjection.abstractions.10.0.1.nupkg.sha512",
     "C:\\Users\\Kasyap\\.nuget\\packages\\microsoft.extensions.logging.abstractions\\10.0.1\\microsoft.extensions.logging.abstractions.10.0.1.nupkg.sha512",
+    "C:\\Users\\Kasyap\\.nuget\\packages\\newtonsoft.json\\13.0.4\\newtonsoft.json.13.0.4.nupkg.sha512",
     "C:\\Users\\Kasyap\\.nuget\\packages\\system.diagnostics.diagnosticsource\\10.0.1\\system.diagnostics.diagnosticsource.10.0.1.nupkg.sha512"
   ],
   "logs": []

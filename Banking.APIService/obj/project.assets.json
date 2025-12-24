@@ -66,6 +66,20 @@
         "build": {
           "buildTransitive/net8.0/_._": {}
         }
+      },
+      "Banking.Framework/1.0.0": {
+        "type": "project",
+        "framework": ".NETCoreApp,Version=v8.0",
+        "dependencies": {
+          "Microsoft.Extensions.Logging.Abstractions": "10.0.1",
+          "Newtonsoft.Json": "13.0.4"
+        },
+        "compile": {
+          "bin/placeholder/Banking.Framework.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/Banking.Framework.dll": {}
+        }
       }
     }
   },
@@ -230,10 +244,16 @@
         "system.diagnostics.diagnosticsource.nuspec",
         "useSharedDesignerContext.txt"
       ]
+    },
+    "Banking.Framework/1.0.0": {
+      "type": "project",
+      "path": "../Banking.Framework/Banking.Framework.csproj",
+      "msbuildProject": "../Banking.Framework/Banking.Framework.csproj"
     }
   },
   "projectFileDependencyGroups": {
     "net8.0": [
+      "Banking.Framework >= 1.0.0",
       "Microsoft.Extensions.Logging.Abstractions >= 10.0.1",
       "Newtonsoft.Json >= 13.0.4"
     ]
@@ -269,7 +289,11 @@
       "frameworks": {
         "net8.0": {
           "targetAlias": "net8.0",
-          "projectReferences": {}
+          "projectReferences": {
+            "K:\\Banking\\Github\\Banking.Frontend\\Frontend\\Banking.Framework\\Banking.Framework.csproj": {
+              "projectPath": "K:\\Banking\\Github\\Banking.Frontend\\Frontend\\Banking.Framework\\Banking.Framework.csproj"
+            }
+          }
         }
       },
       "warningProperties": {

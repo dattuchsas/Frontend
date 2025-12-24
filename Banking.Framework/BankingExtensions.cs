@@ -1,73 +1,94 @@
-﻿using Microsoft.VisualBasic;
-
-namespace Banking.Framework
+﻿namespace Banking.Framework
 {
-    public static class Extensions
+    public static class DictionaryExtensions
     {
-        //public static string EncodePWD(object strPwd, object stUserid)
-        //{
-        //    object EncodePWDRet = default;
-        //    object intcnt, strNpwd = default, strNuser = default;
-
-        //    // stUserid = UCase(Left(stUserid, 3))
-        //    var loopTo = Strings.Len(strPwd);
-        //    for (intcnt = 1; intcnt <= loopTo; intcnt++)
-        //        strNpwd = Operators.ConcatenateObject(strNpwd, ChartoNum(Strings.Mid(Conversions.ToString(strPwd), Conversions.ToInteger(intcnt), 1)));
-        //    var loopTo1 = Strings.Len(Strings.UCase(Strings.Left(Conversions.ToString(stUserid), 3)));
-        //    for (intcnt = 1; intcnt <= loopTo1; intcnt++)
-        //        strNuser = Operators.ConcatenateObject(strNuser, ChartoNum(Strings.Mid(Strings.UCase(Strings.Left(Conversions.ToString(stUserid), 3)), Conversions.ToInteger(intcnt), 1)));
-        //    EncodePWDRet = Operators.ConcatenateObject(Operators.ConcatenateObject(strNuser, Strings.StrReverse(Strings.Mid(Conversions.ToString(strNpwd), 1, (int)Math.Round(Strings.Len(strNpwd) / 2d)))), Strings.Mid(Conversions.ToString(strNpwd), (int)Math.Round(Strings.Len(strNpwd) / 2d + 1d)));
-        //    return EncodePWDRet;
-        //}
-
-        public static string DecodePassword(string strPwd, string stUserid)
+        public static IDictionary<TKey, TValue> AddAndReturn<TKey, TValue>(
+            this IDictionary<TKey, TValue> dict,
+            TKey key,
+            TValue value)
         {
-            string strNpwd = string.Empty, strNuser, strSUser = string.Empty;
+            dict.Add(key, value);
+            return dict;
+        }
+    }
 
-            // First 6 characters
+    public static class BankingExtensions
+    {
+        public static string EncodePassword(string strPwd, string stUserid)
+        {
+            string EncPassword = string.Empty;
+            string strNpwd = string.Empty, strNuser = string.Empty;
+
+            for (int intcnt = 0; intcnt < strPwd.Length; intcnt++)
+            {
+                strNpwd += CharToNumber(strPwd.Substring(intcnt, 1));
+            }
+
+            var loopTo = stUserid.Substring(0, 3).ToUpper().Length;
+
+            string userPart = stUserid.Substring(0, Math.Min(3, stUserid.Length)).ToUpper();
+
+            for (int intcnt = 0; intcnt < loopTo; intcnt++)
+            {
+                strNuser += CharToNumber(userPart.Substring(intcnt, 1));
+            }
+
+            EncPassword = strNuser + new string(strNpwd.Substring(0, strNpwd.Length / 2).Reverse().ToArray()) + strNpwd.Substring(strNpwd.Length / 2);
+
+            return EncPassword;
+        }
+
+        public static string DecodePassword(string strPwd, ref string stUserid)
+        {
+            string strNpwd = string.Empty, strNuser = string.Empty, strSUser = string.Empty;
+
             strNuser = strPwd.Substring(0, 6);
 
-            // Remove first 6 characters
             strPwd = strPwd.Substring(6);
 
-            // Reverse first half and append second half
-            int halfLength = (int)Math.Round(strPwd.Length / 2.0);
+            int halfLen = strPwd.Length / 2;
+            char[] reversed = strPwd.Substring(0, halfLen).ToCharArray();
+            Array.Reverse(reversed);
 
-            string firstHalf = strPwd.Substring(0, halfLength);
-            char[] chars = firstHalf.ToCharArray();
-            Array.Reverse(chars);
-
-            strPwd = new string(chars) + strPwd.Substring(halfLength);
+            strPwd = new string(reversed) + strPwd.Substring(halfLen);
 
             stUserid = stUserid.Substring(0, 3);
 
-            int loopTo = strPwd.Length;
-
-            for (int cnt = 0; cnt < strPwd.Length; cnt += 2) // Step by 2
+            for (int i = 0; i < strPwd.Length; i += 2)
             {
-                string twoChars = strPwd.Substring(cnt, Math.Min(2, strPwd.Length - cnt));
-                strNpwd += CharToNumber(twoChars);
+                strNpwd += NumberToChar(Convert.ToInt32(strPwd.Substring(i, 2)));
             }
 
-            int loopTo1 = strNuser.Length;
-
-            for (int cnt = 0; cnt < loopTo1; cnt += 2) // Step by 2
+            for (int i = 0; i < strNuser.Length; i += 2)
             {
-                string twoChars = strNuser.Substring(cnt, Math.Min(2, strNuser.Length - cnt));
-                strSUser += CharToNumber(twoChars);
+                strSUser += NumberToChar(Convert.ToInt32(strNuser.Substring(i, 2)));
             }
 
-            return string.Concat(strSUser, strNpwd);
+            return strSUser + strNpwd;
+        }
+
+        public static DateTime ToDate(this string input)
+        {
+            DateTime date = DateTime.Parse(input);
+            return DateTime.ParseExact(date.ToString("dd-MM-yyyy"), "dd-MM-yyyy", null);
+        }
+
+        public static int DateDifference<T>(string type, T fromDate, T toDate)
+        {
+            if (type.ToUpper().Equals('D'))
+                return (Convert.ToDateTime(fromDate) - Convert.ToDateTime(toDate)).Days;
+            else
+                return (Convert.ToDateTime(fromDate) - Convert.ToDateTime(toDate)).Days;
         }
 
         private static int CharToNumber(string str)
         {
-            return Extensions.CharacterMap.TryGetValue(Convert.ToChar(str.Substring(0, 1)), out var result) ? result : '\0';
+            return CharacterMap.TryGetValue(Convert.ToChar(str.Substring(0, 1)), out var result) ? result : '\0';
         }
 
         private static char NumberToChar(int intNumber)
         {
-            return Extensions.NumberMap.TryGetValue(intNumber, out var result) ? result : '\0';
+            return NumberMap.TryGetValue(intNumber, out var result) ? result : '\0';
         }
 
         private static readonly Dictionary<int, char> NumberMap = new()

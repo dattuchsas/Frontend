@@ -1,14 +1,26 @@
-using Banking.APIService;
+using Banking.Interfaces;
+using Banking.Models;
+using Banking.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Logging.ClearProviders();
 builder.Logging.AddConsole();
 
+builder.Services.AddDistributedMemoryCache(); // Required to store session data
+builder.Services.AddSession(options =>
+{
+    options.IdleTimeout = TimeSpan.FromMinutes(2); // Set session timeout
+    options.Cookie.HttpOnly = true; // Make the session cookie inaccessible to client-side script
+    options.Cookie.IsEssential = true; // Make the session cookie essential
+});
+
 // Add services to the container.
 builder.Services.AddControllersWithViews();
 
-builder.Services.AddHttpClient<BankingBaseService>();
+builder.Services.Configure<DatabaseSettings>(builder.Configuration.GetSection("OracleSettings"));
+
+builder.Services.AddScoped<ILoginService, LoginService>();
 
 var baseAddress = builder.Configuration.GetValue<string>("APIURL");
 
@@ -30,6 +42,8 @@ app.UseStaticFiles();
 app.UseRouting();
 
 app.UseAuthorization();
+
+app.UseSession(); // Enable session middleware
 
 app.MapControllerRoute(
     name: "default",

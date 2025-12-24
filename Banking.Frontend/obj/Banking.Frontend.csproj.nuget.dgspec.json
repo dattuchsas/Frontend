@@ -4,14 +4,170 @@
     "K:\\Banking\\Github\\Banking.Frontend\\Frontend\\Banking.Frontend\\Banking.Frontend.csproj": {}
   },
   "projects": {
-    "K:\\Banking\\Github\\Banking.Frontend\\Frontend\\Banking.APIService\\Banking.APIService.csproj": {
+    "K:\\Banking\\Github\\Banking.Backend\\Codebase\\Banking.Interfaces\\Banking.Interfaces.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "K:\\Banking\\Github\\Banking.Frontend\\Frontend\\Banking.APIService\\Banking.APIService.csproj",
-        "projectName": "Banking.APIService",
-        "projectPath": "K:\\Banking\\Github\\Banking.Frontend\\Frontend\\Banking.APIService\\Banking.APIService.csproj",
+        "projectUniqueName": "K:\\Banking\\Github\\Banking.Backend\\Codebase\\Banking.Interfaces\\Banking.Interfaces.csproj",
+        "projectName": "Banking.Interfaces",
+        "projectPath": "K:\\Banking\\Github\\Banking.Backend\\Codebase\\Banking.Interfaces\\Banking.Interfaces.csproj",
         "packagesPath": "C:\\Users\\Kasyap\\.nuget\\packages\\",
-        "outputPath": "K:\\Banking\\Github\\Banking.Frontend\\Frontend\\Banking.APIService\\obj\\",
+        "outputPath": "K:\\Banking\\Github\\Banking.Backend\\Codebase\\Banking.Interfaces\\obj\\",
+        "projectStyle": "PackageReference",
+        "fallbackFolders": [
+          "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
+        ],
+        "configFilePaths": [
+          "C:\\Users\\Kasyap\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+        ],
+        "originalTargetFrameworks": [
+          "net8.0"
+        ],
+        "sources": {
+          "C:\\Users\\Kasyap\\Downloads": {},
+          "https://api.nuget.org/v3/index.json": {}
+        },
+        "frameworks": {
+          "net8.0": {
+            "targetAlias": "net8.0",
+            "projectReferences": {}
+          }
+        },
+        "warningProperties": {
+          "warnAsError": [
+            "NU1605"
+          ]
+        },
+        "restoreAuditProperties": {
+          "enableAudit": "true",
+          "auditLevel": "low",
+          "auditMode": "direct"
+        },
+        "SdkAnalysisLevel": "9.0.300"
+      },
+      "frameworks": {
+        "net8.0": {
+          "targetAlias": "net8.0",
+          "dependencies": {
+            "Microsoft.AspNetCore.Http.Features": {
+              "target": "Package",
+              "version": "[5.0.17, )"
+            },
+            "Oracle.ManagedDataAccess.Core": {
+              "target": "Package",
+              "version": "[23.26.0, )"
+            }
+          },
+          "imports": [
+            "net461",
+            "net462",
+            "net47",
+            "net471",
+            "net472",
+            "net48",
+            "net481"
+          ],
+          "assetTargetFallback": true,
+          "warn": true,
+          "frameworkReferences": {
+            "Microsoft.NETCore.App": {
+              "privateAssets": "all"
+            }
+          },
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.308/PortableRuntimeIdentifierGraph.json"
+        }
+      }
+    },
+    "K:\\Banking\\Github\\Banking.Frontend\\Frontend\\Banking.Backend\\Banking.Backend.csproj": {
+      "version": "1.0.0",
+      "restore": {
+        "projectUniqueName": "K:\\Banking\\Github\\Banking.Frontend\\Frontend\\Banking.Backend\\Banking.Backend.csproj",
+        "projectName": "Banking.Backend",
+        "projectPath": "K:\\Banking\\Github\\Banking.Frontend\\Frontend\\Banking.Backend\\Banking.Backend.csproj",
+        "packagesPath": "C:\\Users\\Kasyap\\.nuget\\packages\\",
+        "outputPath": "K:\\Banking\\Github\\Banking.Frontend\\Frontend\\Banking.Backend\\obj\\",
+        "projectStyle": "PackageReference",
+        "fallbackFolders": [
+          "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
+        ],
+        "configFilePaths": [
+          "C:\\Users\\Kasyap\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+        ],
+        "originalTargetFrameworks": [
+          "net8.0"
+        ],
+        "sources": {
+          "C:\\Users\\Kasyap\\Downloads": {},
+          "https://api.nuget.org/v3/index.json": {}
+        },
+        "frameworks": {
+          "net8.0": {
+            "targetAlias": "net8.0",
+            "projectReferences": {
+              "K:\\Banking\\Github\\Banking.Backend\\Codebase\\Banking.Interfaces\\Banking.Interfaces.csproj": {
+                "projectPath": "K:\\Banking\\Github\\Banking.Backend\\Codebase\\Banking.Interfaces\\Banking.Interfaces.csproj"
+              },
+              "K:\\Banking\\Github\\Banking.Frontend\\Frontend\\Banking.Framework\\Banking.Framework.csproj": {
+                "projectPath": "K:\\Banking\\Github\\Banking.Frontend\\Frontend\\Banking.Framework\\Banking.Framework.csproj"
+              },
+              "K:\\Banking\\Github\\Banking.Frontend\\Frontend\\Banking.Models\\Banking.Models.csproj": {
+                "projectPath": "K:\\Banking\\Github\\Banking.Frontend\\Frontend\\Banking.Models\\Banking.Models.csproj"
+              }
+            }
+          }
+        },
+        "warningProperties": {
+          "warnAsError": [
+            "NU1605"
+          ]
+        },
+        "restoreAuditProperties": {
+          "enableAudit": "true",
+          "auditLevel": "low",
+          "auditMode": "direct"
+        },
+        "SdkAnalysisLevel": "9.0.300"
+      },
+      "frameworks": {
+        "net8.0": {
+          "targetAlias": "net8.0",
+          "dependencies": {
+            "Oracle.ManagedDataAccess.Core": {
+              "target": "Package",
+              "version": "[23.26.0, )"
+            }
+          },
+          "imports": [
+            "net461",
+            "net462",
+            "net47",
+            "net471",
+            "net472",
+            "net48",
+            "net481"
+          ],
+          "assetTargetFallback": true,
+          "warn": true,
+          "frameworkReferences": {
+            "Microsoft.NETCore.App": {
+              "privateAssets": "all"
+            }
+          },
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.308/PortableRuntimeIdentifierGraph.json"
+        }
+      }
+    },
+    "K:\\Banking\\Github\\Banking.Frontend\\Frontend\\Banking.Framework\\Banking.Framework.csproj": {
+      "version": "1.0.0",
+      "restore": {
+        "projectUniqueName": "K:\\Banking\\Github\\Banking.Frontend\\Frontend\\Banking.Framework\\Banking.Framework.csproj",
+        "projectName": "Banking.Framework",
+        "projectPath": "K:\\Banking\\Github\\Banking.Frontend\\Frontend\\Banking.Framework\\Banking.Framework.csproj",
+        "packagesPath": "C:\\Users\\Kasyap\\.nuget\\packages\\",
+        "outputPath": "K:\\Banking\\Github\\Banking.Frontend\\Frontend\\Banking.Framework\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
@@ -107,11 +263,11 @@
           "net8.0": {
             "targetAlias": "net8.0",
             "projectReferences": {
-              "K:\\Banking\\Github\\Banking.Frontend\\Frontend\\Banking.APIService\\Banking.APIService.csproj": {
-                "projectPath": "K:\\Banking\\Github\\Banking.Frontend\\Frontend\\Banking.APIService\\Banking.APIService.csproj"
-              },
               "K:\\Banking\\Github\\Banking.Frontend\\Frontend\\Banking.Models\\Banking.Models.csproj": {
                 "projectPath": "K:\\Banking\\Github\\Banking.Frontend\\Frontend\\Banking.Models\\Banking.Models.csproj"
+              },
+              "K:\\Banking\\Github\\Banking.Frontend\\Frontend\\Banking.Services\\Banking.Services.csproj": {
+                "projectPath": "K:\\Banking\\Github\\Banking.Frontend\\Frontend\\Banking.Services\\Banking.Services.csproj"
               }
             }
           }
@@ -205,6 +361,95 @@
       "frameworks": {
         "net8.0": {
           "targetAlias": "net8.0",
+          "imports": [
+            "net461",
+            "net462",
+            "net47",
+            "net471",
+            "net472",
+            "net48",
+            "net481"
+          ],
+          "assetTargetFallback": true,
+          "warn": true,
+          "frameworkReferences": {
+            "Microsoft.NETCore.App": {
+              "privateAssets": "all"
+            }
+          },
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.308/PortableRuntimeIdentifierGraph.json"
+        }
+      }
+    },
+    "K:\\Banking\\Github\\Banking.Frontend\\Frontend\\Banking.Services\\Banking.Services.csproj": {
+      "version": "1.0.0",
+      "restore": {
+        "projectUniqueName": "K:\\Banking\\Github\\Banking.Frontend\\Frontend\\Banking.Services\\Banking.Services.csproj",
+        "projectName": "Banking.Services",
+        "projectPath": "K:\\Banking\\Github\\Banking.Frontend\\Frontend\\Banking.Services\\Banking.Services.csproj",
+        "packagesPath": "C:\\Users\\Kasyap\\.nuget\\packages\\",
+        "outputPath": "K:\\Banking\\Github\\Banking.Frontend\\Frontend\\Banking.Services\\obj\\",
+        "projectStyle": "PackageReference",
+        "fallbackFolders": [
+          "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
+        ],
+        "configFilePaths": [
+          "C:\\Users\\Kasyap\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+        ],
+        "originalTargetFrameworks": [
+          "net8.0"
+        ],
+        "sources": {
+          "C:\\Users\\Kasyap\\Downloads": {},
+          "https://api.nuget.org/v3/index.json": {}
+        },
+        "frameworks": {
+          "net8.0": {
+            "targetAlias": "net8.0",
+            "projectReferences": {
+              "K:\\Banking\\Github\\Banking.Frontend\\Frontend\\Banking.Backend\\Banking.Backend.csproj": {
+                "projectPath": "K:\\Banking\\Github\\Banking.Frontend\\Frontend\\Banking.Backend\\Banking.Backend.csproj"
+              },
+              "K:\\Banking\\Github\\Banking.Frontend\\Frontend\\Banking.Framework\\Banking.Framework.csproj": {
+                "projectPath": "K:\\Banking\\Github\\Banking.Frontend\\Frontend\\Banking.Framework\\Banking.Framework.csproj"
+              },
+              "K:\\Banking\\Github\\Banking.Frontend\\Frontend\\Banking.Models\\Banking.Models.csproj": {
+                "projectPath": "K:\\Banking\\Github\\Banking.Frontend\\Frontend\\Banking.Models\\Banking.Models.csproj"
+              }
+            }
+          }
+        },
+        "warningProperties": {
+          "warnAsError": [
+            "NU1605"
+          ]
+        },
+        "restoreAuditProperties": {
+          "enableAudit": "true",
+          "auditLevel": "low",
+          "auditMode": "direct"
+        },
+        "SdkAnalysisLevel": "9.0.300"
+      },
+      "frameworks": {
+        "net8.0": {
+          "targetAlias": "net8.0",
+          "dependencies": {
+            "Microsoft.AspNetCore.Http.Abstractions": {
+              "target": "Package",
+              "version": "[2.3.0, )"
+            },
+            "Microsoft.AspNetCore.Http.Extensions": {
+              "target": "Package",
+              "version": "[2.3.0, )"
+            },
+            "Microsoft.Extensions.Options": {
+              "target": "Package",
+              "version": "[10.0.1, )"
+            }
+          },
           "imports": [
             "net461",
             "net462",
