@@ -1,17 +1,20 @@
-﻿using Banking.Interfaces;
-using Banking.Models;
+﻿using Banking.Models;
+using Banking.Interfaces;
 using Oracle.ManagedDataAccess.Client;
 
 namespace Banking.Backend
 {
     public class DatabaseFactory : IDatabaseService
     {
+        private string DataLink = ""; // "@DBLINK"; // TODO: Move to settings if needed
         private readonly DatabaseSettings _databaseSettings;
+        private readonly TransactionalFactory _transactionalFactory;
 
         public DatabaseFactory(DatabaseSettings databaseSettings)
         {
             _databaseSettings = databaseSettings;
             OracleRetryHelper.Initialize(_databaseSettings.ConnectionString);
+            _transactionalFactory = new TransactionalFactory(databaseSettings);
         }
 
         public async Task<OracleDataReader> ProcessQuery(string query)
@@ -171,383 +174,458 @@ namespace Banking.Backend
             return oracleDataReader;
         }
 
-        public string ProcessDataTransactions(string[,] TransDataArray, string BranchCode = "", string UserCode = "",
+        public async Task<string> ProcessDataTransactions(string[,] TransDataArray, string BranchCode = "", string UserCode = "",
             string MachineID = "", string ApplicationDate = "", string DayBeginEndStatusCheckYN = "",
             string glcode = "", string moduleid = "")
         {
             string DataTransactionsRet = string.Empty;
+
+            string[,] DataArray;
+            string[] ArrRowValues = new string[1];
+            string TabFldValues;
+            string StrFld;
+            string StrTabName;
+            string TabWhereCondition;
+            string TransResult = string.Empty;
+            string AutoCondition;
+            string AutoConditioninit = string.Empty;
+            string Autoflds;
+            string AutoNumValue = string.Empty;
+            string AutoNumValueInit = string.Empty;
+            string AccNoPrefix;
+            string AccNoSuffix;
+            string ActualAccNo;
+            string AutoFldNames;
+            string[] AutoType;
+            string AutoPmtCond;
+            OracleDataReader Rsnfts;
+            OracleDataReader RsAutoPmt;
+            OracleDataReader Rstemp;
+            int intaccnolen, transcount;
+
+            try
+            {
+                string BRCode = string.IsNullOrWhiteSpace(BranchCode.Trim().ToUpper()) ? "" : BranchCode.Trim().ToUpper();
+                string UserId = string.IsNullOrWhiteSpace(UserCode.Trim().ToUpper()) ? "" : UserCode.Trim().ToUpper();
+                string MachID = string.IsNullOrWhiteSpace(MachineID.Trim().ToUpper()) ? "" : MachineID.Trim().ToUpper();
+                string applicationDate = string.Format(string.IsNullOrWhiteSpace(ApplicationDate) ? DateTime.Now.ToString() : ApplicationDate, "dd-MMM-yyyy");
+
+                //glcode = Conversions.ToString(Interaction.IIf(IsNull(Strings.UCase(Strings.Trim(glcode))), "", Strings.UCase(Strings.Trim(glcode))));
+                //moduleid = Conversions.ToString(Interaction.IIf(IsNull(Strings.UCase(Strings.Trim(moduleid))), "", Strings.UCase(Strings.Trim(moduleid))));
+                //objQuery = ObjContext.CreateInstance("QueryRecordsets.FetchRecordsets");
+                //ObjTrans = ObjContext.CreateInstance("DataBaseTransactions.TransactionMethods");
+
+                //Rstemp = Interaction.CreateObject("ADODB.Recordset");
+                //Rsnfts = Interaction.CreateObject("adodb.recordset");
+
+                Autoflds = "";
+                AutoNumValue = "";
+                AutoNumValueInit = "";
+                AutoFldNames = "";
+                AccNoPrefix = "";
+                AccNoSuffix = "";
+                ActualAccNo = "";
+                DataArray = TransDataArray;
+
+                var loopTo = DataArray.Length - 1;
+                for (transcount = 0; transcount <= loopTo; transcount++)
+                {
+                    if (DataArray[transcount, 0] == "A")
+                    {
+                        AutoType = DataArray[transcount, 1].Split("|");
+
+                        // Aquireing all the parameters for Auto number generation from GENAUTONUMBERPMT table
+                        AutoPmtCond = AutoType[1];
+                        RsAutoPmt = await SingleRecordSet("GENAUTONUMBERPMT", "*", AutoPmtCond);
+
+                        if (!RsAutoPmt.HasRows)
+                        {
+                            DataTransactionsRet = "Parameters for the AccountNo to be specified";
+                            return DataTransactionsRet;
+                        }
+
+                        AutoCondition = DataArray[transcount, 4] + " FOR UPDATE";
+                        Rstemp = await SingleRecordSet("GENAUTONUMMAX", "*", AutoCondition);
+                        if (Rstemp.HasRows)
+                        {
+                            AutoNumValueInit = Rstemp.GetString(Rstemp.GetOrdinal("MAXAUTONUM"));
+                            AutoConditioninit = DataArray[transcount, 4];
+                        }
+
+                        AutoCondition = DataArray[transcount, 4];
+
+                        int cnt = Rstemp.GetOrdinal("InitialValue");
+                        if (AutoType[0].Trim().ToUpper() == "GETAUTONUMBER")
+                        {
+                            AutoNumValue = GetAutoNumberAsync("GENAUTONUMMAX", "MAXAUTONUM", AutoCondition, RsAutoPmt.GetString(cnt)).Result;
+                        }
+                        else if (AutoType[0].Trim().ToUpper() == "GETAUTOTEXT")
+                        {
+                            AutoNumValue = GetAutoTextAsync("GENAUTONUMMAX", "MAXAUTONUM", RsAutoPmt.GetString(cnt), AutoCondition).Result;
+                        }
+                        else if (AutoType[0].Trim().ToUpper() == "GETMAXACCOUNTNO")
+                        {
+                            AutoNumValue = GetMaxAccountNoAsync("GENAUTONUMMAX", "MAXAUTONUM", AutoCondition, RsAutoPmt.GetString(cnt)).Result;
+                        }
+
+                        if (AutoNumValue.Substring(1, 5) == "ERROR")
+                        {
+                            AutoNumValue = AutoNumValue.Replace("\n", "");
+                            AutoNumValue = AutoNumValue.Replace("\r", "");
+                            DataTransactionsRet = AutoNumValue;
+                            return DataTransactionsRet;
+                        }
+
+                        // If ((AutoNumValue = CStr(RsAutoPmt!InitialValue)) Or (AutoNumValue = Val(Rstemp!maxautonum) + 1)) Then
+
+                        cnt = Rstemp.GetOrdinal("InitialValue");
+                        if ((AutoNumValue ?? "") == (RsAutoPmt.GetString(cnt) ?? ""))
+                        {
+                            Autoflds = DataArray[transcount, 2] + ",MAXAUTONUM";
+                            ArrRowValues[0] = DataArray[transcount, 3] + "," + AutoNumValue;
+
+                            TransResult = "";
+                            TransResult = await _transactionalFactory.InsertRecord("GENAUTONUMMAX", Autoflds, ArrRowValues, BRCode, UserId, MachID, applicationDate, "N");
+
+                            if (TransResult != "Transaction Completed")
+                            {
+                                DataTransactionsRet = TransResult.Replace("\n", "").Replace("\r", "");
+                                return DataTransactionsRet;
+                            }
+                        }
+                        else
+                        {
+                            ArrRowValues[0] = AutoNumValue ?? string.Empty;
+
+                            Autoflds = "MAXAUTONUM";
+                            AutoCondition = DataArray[transcount, 4];
+
+                            TransResult = await ModifyQueriedTrans("GENAUTONUMMAX", Autoflds, ArrRowValues, AutoCondition, BRCode, UserId, MachID);
+
+                            if (TransResult != "Trans Completed")
+                            {
+                                DataTransactionsRet = TransResult.Replace("\n", "").Replace("\r", "");
+                                return DataTransactionsRet;
+                            }
+                        }
+
+                        Rsnfts = await SingleRecordSet("genbankparm", "NFTSCONVYN", "");
+
+                        if (Rsnfts.HasRows)
+                        {
+                            if (Rsnfts.GetString(Rsnfts.GetOrdinal("NFTSCONVYN")) == "Y")  // nfts conversion 16 digits
+                            {
+                                if (moduleid == "SB" | moduleid == "CA" | moduleid == "CC" | moduleid == "DEP" | moduleid == "LOAN" | moduleid == "LOCKER" | moduleid == "SHARES")
+                                {
+                                    intaccnolen = (AutoNumValue ?? string.Empty).Length; // 'vinod
+                                    if (intaccnolen == 16)
+                                    {
+                                        AutoNumValue = AutoNumValue ?? string.Empty;
+                                    }
+                                    else
+                                    {
+                                        if (intaccnolen == 1)
+                                        {
+                                            AutoNumValue = "000000" + AutoNumValue;
+                                        }
+                                        else if (intaccnolen == 2)
+                                        {
+                                            AutoNumValue = "00000" + AutoNumValue;
+                                        }
+                                        else if (intaccnolen == 3)
+                                        {
+                                            AutoNumValue = "0000" + AutoNumValue;
+                                        }
+                                        else if (intaccnolen == 4)
+                                        {
+                                            AutoNumValue = "000" + AutoNumValue;
+                                        }
+                                        else if (intaccnolen == 5)
+                                        {
+                                            AutoNumValue = "00" + AutoNumValue;
+                                        }
+                                        else if (intaccnolen == 6)
+                                        {
+                                            AutoNumValue = "0" + AutoNumValue;
+                                        }
+                                        else if (intaccnolen == 7)
+                                        {
+                                            AutoNumValue = AutoNumValue ?? string.Empty;
+                                        }
+                                        AutoNumValue = BRCode + glcode + AutoNumValue;
+                                    }
+                                }
+                            } // MODULE ID END
+                        } // NFTS CONV END
+
+                        AccNoPrefix = RsAutoPmt.GetString(RsAutoPmt.GetOrdinal("Prefixvalue")).Trim() + "";
+                        AccNoSuffix = RsAutoPmt.GetString(RsAutoPmt.GetOrdinal("suffixvalue")).Trim() + "";
+                        ActualAccNo = AutoNumValue ?? string.Empty;
+                        AutoNumValue = RsAutoPmt.GetString(RsAutoPmt.GetOrdinal("Prefixvalue")).Trim() + AutoNumValue + RsAutoPmt.GetString(RsAutoPmt.GetOrdinal("suffixvalue")).Trim();
+                    }
+                }
+
+                // *************Transaction Started***************
+                var loopTo1 = DataArray.Length - 1;
+                for (transcount = 0; transcount <= loopTo1; transcount++)
+                {
+                    StrTabName = DataArray[transcount, 1];
+                    StrFld = DataArray[transcount, 2];
+                    TabFldValues = DataArray[transcount, 3];
+                    ArrRowValues = TabFldValues.Split("|");
+
+                    TabWhereCondition = DataArray[transcount, 4];
+
+                    if (DataArray[transcount, 0].Trim().ToUpper() == "I")
+                    {
+                        /// ************For Insert****************
+                        if (!string.IsNullOrEmpty(Autoflds.Trim()))
+                        {
+                            // StrFld = StrFld & "," & Autoflds
+                            AutoFldNames = "";
+                            StrTabName = StrTabName.Trim().ToUpper();
+
+                            if (StrTabName == "SBMST" | StrTabName == "CAMST" | StrTabName == "LOANMST" | StrTabName == "DEPMST" | StrTabName == "LGMST" | StrTabName == "LOCKERMST" | StrTabName == "FXLGMST" | StrTabName == "FXBILLSMST" | StrTabName == "FXDEPMST" | StrTabName == "CCMST" | StrTabName == "LCMST" | StrTabName == "FXLOANSMST" | StrTabName == "FXLCMST" | StrTabName == "FXFCMST")
+                            {
+                                AutoFldNames = ",PREFIXVALUE, SUFFIXVALUE, ActualAccNo";
+                                StrFld = StrFld + AutoFldNames;
+                            }
+
+                            var loopTo2 = ArrRowValues.Length - 1;
+                            for (int RowCnt = 0; RowCnt <= loopTo2; RowCnt++)
+                            {
+                                ArrRowValues[RowCnt] = ArrRowValues[RowCnt] + ",'" + AutoNumValue + "'";
+                                if (!string.IsNullOrEmpty(AutoFldNames))
+                                {
+                                    ArrRowValues[RowCnt] = ArrRowValues[RowCnt] + ",'" + AccNoPrefix + "','" + AccNoSuffix + "','" + ActualAccNo + "'";
+                                }
+                            }
+                        }
+                        TransResult = "";
+                        TransResult = await _transactionalFactory.InsertRecord(StrTabName, StrFld, ArrRowValues, BRCode, UserId, MachID, applicationDate, DayBeginEndStatusCheckYN);
+                    }
+                    else if (DataArray[transcount, 0].Trim().ToUpper() == "BI")
+                    {
+                        /// ************For Bulk Insertion****************
+                        TransResult = "";
+                        TransResult = await _transactionalFactory.BulkInsert(StrTabName, StrFld, DataArray[transcount, 3], BRCode, UserId, MachID, applicationDate, DayBeginEndStatusCheckYN);
+                    }
+                    else if (DataArray[transcount, 0].Trim().ToUpper() == "U")
+                    {
+                        /// ************For Update****************
+                        if (!string.IsNullOrEmpty(Autoflds.Trim()))
+                        {
+                            // StrFld = StrFld & "," & Autoflds
+                            var loopTo3 = ArrRowValues.Length - 1;
+                            for (int RowCnt = 0; RowCnt <= loopTo3; RowCnt++)
+                                ArrRowValues[RowCnt] = ArrRowValues.ElementAtOrDefault(RowCnt) + "~'" + AutoNumValue + "'";
+                        }
+                        TransResult = await _transactionalFactory.UpdateRecord(StrTabName, StrFld, ArrRowValues, TabWhereCondition, BRCode, UserId, MachID, applicationDate, DayBeginEndStatusCheckYN);
+                    }
+                    else if (DataArray[transcount, 0].Trim().ToUpper() == "D")
+                    {
+                        /// ************For Delete****************
+                        TransResult = await _transactionalFactory.DeleteRecord(StrTabName, TabWhereCondition, BRCode, UserId, MachID, applicationDate, DayBeginEndStatusCheckYN);
+                    }
+                    else if (DataArray[transcount, 0].Trim().ToUpper() == "R")
+                    {
+                        /// ************For Rejection****************
+                        TransResult = await _transactionalFactory.RejectRecord(StrTabName, TabWhereCondition, BRCode, UserId, MachID, applicationDate, DayBeginEndStatusCheckYN);
+                    }
+                    else if (DataArray[transcount, 0].Trim().ToUpper() == "SI")
+                    {
+                        /// ************For Insertion using a Select statement ****************
+                        TransResult = await _transactionalFactory.InsertUsingSelect(StrTabName, StrFld, ArrRowValues, TabWhereCondition, BRCode, UserId, MachID, applicationDate, DayBeginEndStatusCheckYN);
+                    }
+
+                    // TransResult = "trans1"
+                    if (TransResult.Trim() != "Transaction Completed")
+                        throw new Exception();
+                }
+
+                DataTransactionsRet = (!string.IsNullOrEmpty(AutoNumValue)) ? "Transaction Sucessful.|" + AutoNumValue : "Transaction Sucessful.";
+            }
+            catch(Exception ex)
+            {
+                if (!string.IsNullOrEmpty(AutoNumValueInit))
+                {
+                    string[] ArrRowValuesInit = [AutoNumValueInit];
+                    string TransResult2 = await ModifyQueriedTrans("GENAUTONUMMAX", "MAXAUTONUM", ArrRowValuesInit, AutoConditioninit, BranchCode, UserCode, MachineID);
+                }
+
+                if (!string.IsNullOrEmpty(TransResult.Trim()))
+                {
+                    // *************Connection Failed************
+                    DataTransactionsRet = TransResult.Replace("\n", "").Replace("\r", "");
+                }
+                else
+                {
+                    //DataTransactionsRet = Information.Err().Number + Information.Err().Description;
+                    DataTransactionsRet = DataTransactionsRet.Replace("\n", "").Replace("\r", "");
+                }
+            }
+
             return DataTransactionsRet;
-
-            //string[,] DataArray;
-            //string[,] ArrRowValues;
-            ////var ArrRowValuesinit = null!;
-            //string TabFldValues;
-            //string StrFld;
-            //string StrTabName;
-            //string TabWhereCondition;
-            //int transcount;
-            //var TransResult = default(string);
-            //string TransResult2;
-            //string AutoCondition;
-            //var AutoConditioninit = default(string);
-            //string Autoflds;
-            //string Autofldsinit;
-            //string AutoNumValue;
-            //string AutoNumValueinit;
-            //string AccNoPrefix;
-            //string AccNoSuffix;
-            //string ActualAccNo;
-            //string AutoFldNames;
-            //string[] AutoType;
-            //Variant AutoPmt;
-            //string AutoPmtCond;
-            //OracleDataReader RsBankPmt;
-            //OracleDataReader Rsnfts; // 'vinod
-            //string strnfts; // 'vinod
-            //int RowCnt;
-            //OracleDataReader RsAutoPmt;
-            //OracleDataReader Rstemp;
-            //string startDate;
-            //string InitialiseDate;
-            //string InitialValue;
-            //object ObjDate;
-            //string strDateRes;
-            //int intaccnolen;  // 'VINOD
-
-            //try
-            //{
-            //    //ObjContext = GetObjectContext;
-            //    //DataArray = TransDataArray;
-            //    //BRCode = Conversions.ToString(Interaction.IIf(IsNull(Strings.UCase(Strings.Trim(BranchCode))), "", Strings.UCase(Strings.Trim(BranchCode))));
-            //    //UserId = Conversions.ToString(Interaction.IIf(IsNull(Strings.UCase(Strings.Trim(UserCode))), "", Strings.UCase(Strings.Trim(UserCode))));
-            //    //MachID = Conversions.ToString(Interaction.IIf(IsNull(Strings.UCase(Strings.Trim(MachineID))), "", Strings.UCase(Strings.Trim(MachineID))));
-            //    //AppDate = Conversions.ToString(Interaction.IIf(IsNull(Strings.Trim(AppDate)), Strings.Format(DateTime.Now, "dd-MMM-yyyy"), Strings.Format(ApplicationDate, "dd-MMM-yyyy")));
-            //    //glcode = Conversions.ToString(Interaction.IIf(IsNull(Strings.UCase(Strings.Trim(glcode))), "", Strings.UCase(Strings.Trim(glcode))));
-            //    //moduleid = Conversions.ToString(Interaction.IIf(IsNull(Strings.UCase(Strings.Trim(moduleid))), "", Strings.UCase(Strings.Trim(moduleid))));
-            //    //objQuery = ObjContext.CreateInstance("QueryRecordsets.FetchRecordsets");
-            //    //ObjTrans = ObjContext.CreateInstance("DataBaseTransactions.TransactionMethods");
-
-            //    //Rstemp = Interaction.CreateObject("ADODB.Recordset");
-            //    //Rsnfts = Interaction.CreateObject("adodb.recordset");
-
-            //    Autoflds = "";
-            //    AutoNumValue = "";
-            //    AutoNumValueinit = "";
-            //    AutoFldNames = "";
-            //    AccNoPrefix = "";
-            //    AccNoSuffix = "";
-            //    ActualAccNo = "";
-
-            //    var loopTo = Information.UBound(DataArray);
-            //    for (transcount = 0; transcount <= loopTo; transcount++)
-            //    {
-            //        if (DataArray[transcount, 0] == "A")
-            //        {
-            //            AutoType = DataArray[transcount, 1].Split("|");
-
-            //            // Aquireing all the parameters for Auto number generation from GENAUTONUMBERPMT table
-
-            //            AutoPmtCond = AutoType[1];
-            //            RsAutoPmt = SingleRecordSet("GENAUTONUMBERPMT", "*", AutoPmtCond).Result;
-
-            //            // '''' MsgBox objQuery.ConnError
-
-            //            if (!RsAutoPmt.HasRows)
-            //            {
-            //                DataTransactionsRet = "Parameters for the AccountNo to be specified";
-            //                return DataTransactionsRet;
-            //            }
-            //            InitialValue = "";
-            //            strDateRes = "";
-
-            //            AutoCondition = DataArray[transcount, 4] + " FOR UPDATE";
-            //            Rstemp = SingleRecordSet("GENAUTONUMMAX", "*", AutoCondition).Result;
-            //            if (Rstemp.HasRows)
-            //            {
-            //                int cnt = Rstemp.GetOrdinal("MAXAUTONUM");
-            //                AutoNumValueinit = Rstemp.GetString(cnt);
-            //                AutoConditioninit = DataArray[transcount, 4];
-            //            }
-
-            //            TransResult = "";
-            //            AutoCondition = DataArray[transcount, 4];
-
-            //            if (AutoType[0].Trim().ToUpper() == "GETAUTONUMBER")
-            //            {
-            //                int cnt = Rstemp.GetOrdinal("InitialValue");
-            //                AutoNumValue = GetAutoNumberAsync("GENAUTONUMMAX", "MAXAUTONUM", AutoCondition, RsAutoPmt.GetString(cnt)).Result;
-            //            }
-            //            else if (AutoType[0].Trim().ToUpper() == "GETAUTOTEXT")
-            //            {
-            //                int cnt = Rstemp.GetOrdinal("InitialValue");
-            //                AutoNumValue = GetAutoTextAsync("GENAUTONUMMAX", "MAXAUTONUM", RsAutoPmt.GetString(cnt), AutoCondition).Result;
-            //            }
-            //            else if (AutoType[0].Trim().ToUpper() == "GETMAXACCOUNTNO")
-            //            {
-            //                int cnt = Rstemp.GetOrdinal("InitialValue");
-            //                AutoNumValue = GetMaxAccountNoAsync("GENAUTONUMMAX", "MAXAUTONUM", AutoCondition, RsAutoPmt.GetString(cnt)).Result;
-            //            }
-
-            //            if (AutoNumValue.Substring(1, 5) == "ERROR")
-            //            {
-            //                AutoNumValue = AutoNumValue.Replace( "\n", "");
-            //                AutoNumValue = AutoNumValue.Replace( "\r", "");
-            //                DataTransactionsRet = AutoNumValue;
-            //                return DataTransactionsRet;
-            //            }
-
-            //            // ReDim ArrRowValues(0) As Variant
-
-            //            // If ((AutoNumValue = CStr(RsAutoPmt!InitialValue)) Or (AutoNumValue = Val(Rstemp!maxautonum) + 1)) Then
-
-            //            // ReDim ArrRowValuesinit(0) As Variant
-
-            //            int cnt = Rstemp.GetOrdinal("InitialValue");
-            //            if ((AutoNumValue ?? "") == (RsAutoPmt.GetString(cnt) ?? ""))
-            //            {
-            //                Autoflds = DataArray[transcount, 2] + ",MAXAUTONUM";
-            //                ArrRowValues.ElementAtOrDefault(0) = DataArray(transcount, 3) + "," + AutoNumValue;
-
-            //                TransResult = "";
-            //                TransResult = Conversions.ToString(((dynamic)ObjTrans).InsertRecord("GENAUTONUMMAX", Autoflds, ArrRowValues, BRCode, UserId, MachID, AppDate, "N"));
-
-            //                if (TransResult != "Trans Completed")
-            //                {
-            //                    ObjContext.SetAbort();
-            //                    objQuery = null;
-            //                    ObjContext = (object)null;
-            //                    ObjTrans = null;
-            //                    TransResult = Strings.Replace(TransResult, "\n", "");
-            //                    TransResult = Strings.Replace(TransResult, "\r", "");
-            //                    DataTransactionsRet = TransResult;
-            //                    return DataTransactionsRet;
-            //                }
-            //            }
-            //            else
-            //            {
-            //                ArrRowValues.ElementAtOrDefault(0) = AutoNumValue;
-
-            //                Autoflds = "MAXAUTONUM";
-            //                AutoCondition = DataArray(transcount, 4);
-
-            //                TransResult = Conversions.ToString(((dynamic)objQuery).ModifyQueriedTrans("GENAUTONUMMAX", Autoflds, ArrRowValues, AutoCondition, BRCode, UserId, MachID));
-            //                // objQuery = Nothing
-            //                if (TransResult != "Trans Completed")
-            //                {
-            //                    ObjContext.SetAbort();
-            //                    ObjContext = (object)null;
-            //                    TransResult = Strings.Replace(TransResult, "\n", "");
-            //                    TransResult = Strings.Replace(TransResult, "\r", "");
-            //                    DataTransactionsRet = TransResult;
-            //                    return DataTransactionsRet;
-            //                }
-            //            }
-
-            //            Rsnfts = ((dynamic)objQuery).singlerecordset("genbankparm", "NFTSCONVYN", "");
-
-            //            if (!Rsnfts.EOF & !Rsnfts.BOF)
-            //            {
-
-            //                if (Rsnfts["NFTSCONVYN"] == "Y")  // nfts conversion 16 digits
-            //                {
-
-            //                    if (moduleid == "SB" | moduleid == "CA" | moduleid == "CC" | moduleid == "DEP" | moduleid == "LOAN" | moduleid == "LOCKER" | moduleid == "SHARES")
-            //                    {
-
-            //                        intaccnolen = Strings.Len(AutoNumValue); // 'vinod
-            //                        if (intaccnolen == 16)
-            //                        {
-            //                            AutoNumValue = AutoNumValue;
-            //                        }
-            //                        else
-            //                        {
-            //                            if (intaccnolen == 1)
-            //                            {
-            //                                AutoNumValue = "000000" + AutoNumValue;
-            //                            }
-            //                            else if (intaccnolen == 2)
-            //                            {
-            //                                AutoNumValue = "00000" + AutoNumValue;
-            //                            }
-            //                            else if (intaccnolen == 3)
-            //                            {
-            //                                AutoNumValue = "0000" + AutoNumValue;
-            //                            }
-            //                            else if (intaccnolen == 4)
-            //                            {
-            //                                AutoNumValue = "000" + AutoNumValue;
-            //                            }
-            //                            else if (intaccnolen == 5)
-            //                            {
-            //                                AutoNumValue = "00" + AutoNumValue;
-            //                            }
-            //                            else if (intaccnolen == 6)
-            //                            {
-            //                                AutoNumValue = "0" + AutoNumValue;
-            //                            }
-            //                            else if (intaccnolen == 7)
-            //                            {
-            //                                AutoNumValue = AutoNumValue;
-            //                            }
-            //                            AutoNumValue = BRCode + glcode + AutoNumValue;
-            //                        }
-            //                    }
-            //                } // MODULE ID END
-            //            } // NFTS CONV END
-
-            //            AccNoPrefix = Strings.Trim(RsAutoPmt["Prefixvalue"]) + "";
-            //            AccNoSuffix = Strings.Trim(RsAutoPmt["suffixvalue"]) + "";
-            //            ActualAccNo = AutoNumValue;
-            //            AutoNumValue = Strings.Trim(RsAutoPmt["Prefixvalue"]) + AutoNumValue + Strings.Trim(RsAutoPmt["suffixvalue"]);
-
-            //        }
-
-            //    }
-
-
-            //    // *************Transaction Started***************
-            //    var loopTo1 = Information.UBound(DataArray);
-            //    for (transcount = 0; transcount <= loopTo1; transcount++)
-            //    {
-            //        StrTabName = DataArray(transcount, 1);
-            //        StrFld = DataArray(transcount, 2);
-            //        TabFldValues = DataArray(transcount, 3);
-            //        ArrRowValues = Strings.Split(TabFldValues, "|", -1);
-
-            //        TabWhereCondition = DataArray(transcount, 4);
-
-            //        if (UCase(Strings.Trim(DataArray(transcount, 0))) == "I")
-            //        {
-            //            /// ************For Insert****************
-            //            if (!string.IsNullOrEmpty(Strings.Trim(Autoflds)))
-            //            {
-            //                // StrFld = StrFld & "," & Autoflds
-            //                AutoFldNames = "";
-            //                StrTabName = Strings.UCase(Strings.Trim(StrTabName));
-
-            //                if (StrTabName == "SBMST" | StrTabName == "CAMST" | StrTabName == "LOANMST" | StrTabName == "DEPMST" | StrTabName == "LGMST" | StrTabName == "LOCKERMST" | StrTabName == "FXLGMST" | StrTabName == "FXBILLSMST" | StrTabName == "FXDEPMST" | StrTabName == "CCMST" | StrTabName == "LCMST" | StrTabName == "FXLOANSMST" | StrTabName == "FXLCMST" | StrTabName == "FXFCMST")
-            //                {
-
-            //                    AutoFldNames = ",PREFIXVALUE, SUFFIXVALUE, ActualAccNo";
-            //                    StrFld = StrFld + AutoFldNames;
-
-            //                }
-
-            //                var loopTo2 = Information.UBound(ArrRowValues);
-            //                for (RowCnt = 0; RowCnt <= loopTo2; RowCnt++)
-            //                {
-            //                    ArrRowValues.ElementAtOrDefault(RowCnt) = ArrRowValues.ElementAtOrDefault(RowCnt) + ",'" + AutoNumValue + "'";
-
-            //                    if (!string.IsNullOrEmpty(AutoFldNames))
-            //                    {
-            //                        ArrRowValues.ElementAtOrDefault(RowCnt) = ArrRowValues.ElementAtOrDefault(RowCnt) + ",'" + AccNoPrefix + "','" + AccNoSuffix + "','" + ActualAccNo + "'";
-            //                    }
-
-            //                }
-            //            }
-            //            TransResult = "";
-            //            TransResult = Conversions.ToString(((dynamic)ObjTrans).InsertRecord(StrTabName, StrFld, ArrRowValues, BRCode, UserId, MachID, AppDate, DayBeginEndStatusCheckYN));
-            //        }
-
-            //        else if (UCase(Strings.Trim(DataArray(transcount, 0))) == "BI")
-            //        {
-
-            //            /// ************For Bulk Insertion****************
-            //            TransResult = "";
-            //            TransResult = Conversions.ToString(((dynamic)ObjTrans).BulkInsert(StrTabName, StrFld, (string)DataArray(transcount, 3), BRCode, UserId, MachID, AppDate, DayBeginEndStatusCheckYN));
-            //        }
-
-
-            //        else if (UCase(Strings.Trim(DataArray(transcount, 0))) == "U")
-            //        {
-
-            //            /// ************For Update****************
-            //            if (!string.IsNullOrEmpty(Strings.Trim(Autoflds)))
-            //            {
-            //                // StrFld = StrFld & "," & Autoflds
-            //                var loopTo3 = Information.UBound(ArrRowValues);
-            //                for (RowCnt = 0; RowCnt <= loopTo3; RowCnt++)
-            //                    ArrRowValues.ElementAtOrDefault(RowCnt) = ArrRowValues.ElementAtOrDefault(RowCnt) + "~'" + AutoNumValue + "'";
-            //            }
-            //            TransResult = Conversions.ToString(((dynamic)ObjTrans).UpdateRecord(StrTabName, StrFld, ArrRowValues, TabWhereCondition, BRCode, UserId, MachID, AppDate, DayBeginEndStatusCheckYN));
-            //        }
-
-            //        else if (UCase(Strings.Trim(DataArray(transcount, 0))) == "D")
-            //        {
-            //            /// ************For Delete****************
-            //            TransResult = Conversions.ToString(((dynamic)ObjTrans).DeleteRecord(StrTabName, TabWhereCondition, BRCode, UserId, MachID, AppDate, DayBeginEndStatusCheckYN));
-            //        }
-
-            //        else if (UCase(Strings.Trim(DataArray(transcount, 0))) == "R")
-            //        {
-            //            /// ************For Rejection****************
-            //            TransResult = Conversions.ToString(((dynamic)ObjTrans).RejectRecord(StrTabName, TabWhereCondition, BRCode, UserId, MachID, AppDate, DayBeginEndStatusCheckYN));
-            //        }
-
-            //        else if (UCase(Strings.Trim(DataArray(transcount, 0))) == "SI")
-            //        {
-            //            /// ************For Insertion using a Select statement ****************
-            //            TransResult = Conversions.ToString(((dynamic)ObjTrans).InsertUsingSelect(StrTabName, StrFld, ArrRowValues, TabWhereCondition, BRCode, UserId, MachID, AppDate, DayBeginEndStatusCheckYN));
-
-            //        }
-
-            //        // TransResult = "trans1"
-            //        if (Strings.Trim(TransResult) != "Trans Completed")
-            //            goto ErrHand;
-
-            //    }
-
-
-            //    ObjContext.SetComplete();
-            //    ObjTrans = null;
-            //    ObjContext = (object)null;
-            //    objQuery = null;
-            //    if (!string.IsNullOrEmpty(AutoNumValue))
-            //    {
-            //        DataTransactionsRet = "Transaction Sucessful.|" + AutoNumValue;
-            //    }
-            //    else
-            //    {
-            //        DataTransactionsRet = "Transaction Sucessful.";
-            //    }
-
-            //    return DataTransactionsRet;
-            //}
-            //catch
-            //{
-
-
-            //    if (!string.IsNullOrEmpty(AutoNumValueinit))
-            //    {
-            //        ArrRowValuesinit.ElementAtOrDefault(0) = AutoNumValueinit;
-            //        Autofldsinit = "MAXAUTONUM";
-            //        TransResult2 = Conversions.ToString(((dynamic)objQuery).ModifyQueriedTrans("GENAUTONUMMAX", Autofldsinit, ArrRowValuesinit, AutoConditioninit, BRCode, UserId, MachID));
-            //    }
-
-            //    ObjContext.SetAbort();
-            //    ObjTrans = null;
-            //    ObjContext = (object)null;
-            //    objQuery = null;
-
-            //    if (!string.IsNullOrEmpty(Strings.Trim(TransResult)))
-            //    {
-
-            //        // *************Connection Failed************
-            //        TransResult = Strings.Replace(TransResult, "\n", "");
-            //        TransResult = Strings.Replace(TransResult, "\r", "");
-            //        DataTransactionsRet = TransResult;
-            //    }
-            //    else
-            //    {
-            //        DataTransactionsRet = Information.Err().Number + Information.Err().Description;
-            //        DataTransactionsRet = Strings.Replace(DataTransactionsRet, "\n", "");
-            //        DataTransactionsRet = Strings.Replace(DataTransactionsRet, "\r", "");
-            //    }
-            //}
-
-            //return DataTransactionsRet;
         }
-        
+
+        public async Task<string> ModifyQueriedTrans(string TableName, string FldNames, string[] ArrValues, string wherecondition = "", string BranchCode = "", 
+            string UserCode = "", string MachineID = "")
+        {
+            string ModifyQueriedTransRet = "";
+
+            string[] ArrTempValues, ArrRowValue, ArrFlds;
+            string strquery;
+            string Strupdate;
+            string StrInsert;
+
+            var strUpdateRow = "";
+            string[] StrCondition;
+            string StrTabName;
+            string StrFields;
+
+            try
+            {
+                ArrTempValues = ArrValues;
+                StrTabName = TableName.Trim().ToUpper();
+                StrFields = FldNames;
+
+                string BRCode = string.IsNullOrWhiteSpace(BranchCode.Trim().ToUpper()) ? "" : BranchCode.Trim().ToUpper();
+                string UserId = string.IsNullOrWhiteSpace(UserCode.Trim().ToUpper()) ? "" : UserCode.Trim().ToUpper();
+                string MachID = string.IsNullOrWhiteSpace(MachineID.Trim().ToUpper()) ? "" : MachineID.Trim().ToUpper();
+
+                // Spliting the conditions For Different Rows
+                StrCondition = wherecondition.Split("|");
+
+                if (string.IsNullOrEmpty(wherecondition.Trim()))
+                {
+                    StrCondition[0] = "";
+                }
+
+                var loopTo = ArrTempValues.Length - 1;
+                for (int RowCnt = 0; RowCnt <= loopTo; RowCnt++)
+                {
+                    // First passing the data into history tables based on the type of tables.
+                    if ((StrCondition.Length - 1) == (ArrTempValues.Length - 1))
+                    {
+                        if (StrTabName.Substring(0, StrTabName.Length - 3) == "MST" || StrTabName.Substring(0, StrTabName.Length - 3) == "TRN")
+                            StrInsert = "Insert into " + StrTabName.Trim() + "HIST" + DataLink + " select * from " + StrTabName + "" + DataLink + " Where " + StrCondition[RowCnt];
+                        else if (StrTabName.Substring(0, StrTabName.Length - 3) == "LOG")
+                            StrInsert = "Insert into " + StrTabName.Trim() + "DEM" + DataLink + " select * from " + StrTabName + "" + DataLink + " Where " + StrCondition[RowCnt];
+                        else
+                            StrInsert = "";
+                        strquery = "select " + StrFields + " from " + StrTabName.Trim() + DataLink + " where " + StrCondition[RowCnt] + " for update";
+                    }
+                    else
+                    {
+                        if (StrTabName.Substring(0, StrTabName.Length - 3) == "MST" || StrTabName.Substring(0, StrTabName.Length - 3) == "TRN")
+                            StrInsert = "Insert into " + StrTabName.Trim() + "HIST" + DataLink + " select * from " + StrTabName + "" + DataLink + "";
+                        else if (StrTabName.Substring(0, StrTabName.Length - 3) == "LOG")
+                            StrInsert = "Insert into " + StrTabName.Trim() + "DEM" + DataLink + " select * from " + StrTabName + "" + DataLink + "";
+                        else
+                            StrInsert = "";
+                        strquery = "select " + StrFields + " from " + StrTabName.Trim() + DataLink + " for update";
+                    }
+
+                    if (!string.IsNullOrEmpty(StrInsert.Trim()))
+                        await ProcessQuery(StrInsert);
+
+                    // AdoConnObj.Execute strquery
+                    // Spliting the Collumn Names (Fields) to build the Update Statement
+
+                    ArrFlds = StrFields.Split(",");
+
+                    // Spliting the Collumn Values (Fields Values) to build the Update Statement
+                    ArrRowValue = ArrTempValues[RowCnt].Split("~");
+
+                    // First concantinating the values for update
+                    var loopTo1 = ArrFlds.Length - 1;
+                    for (int ColCnt = 0; ColCnt <= loopTo1; ColCnt++)
+                        strUpdateRow = strUpdateRow + ArrFlds[ColCnt] + "=" + ArrRowValue[ColCnt] + ",";
+
+                    // Now building the The Update statement
+                    // If StrCondition(RowCnt) <> "" Then
+                    if ((StrCondition.Length - 1) == (ArrTempValues.Length - 1))
+                    {
+                        Strupdate = "update " + StrTabName + "" + DataLink + " set " + strUpdateRow.Substring(0, strUpdateRow.Length - 1) + " where " + StrCondition[RowCnt];
+                    }
+                    else
+                    {
+                        Strupdate = "update " + StrTabName + "" + DataLink + " set " + strUpdateRow.Substring(0, strUpdateRow.Length - 1);
+                    }
+
+                    // Executing the update statement Based On Number of Rows
+                    var result = await ProcessQuery(Strupdate);
+
+                    Strupdate = "";
+                    strUpdateRow = "";
+
+                    if (result.RecordsAffected == 0)
+                    {
+                        ModifyQueriedTransRet = "Update Failed due to False Condition !";
+                        return ModifyQueriedTransRet;
+                    }
+                }
+                ModifyQueriedTransRet = "Transaction Completed";
+                return ModifyQueriedTransRet;
+            }
+            catch
+            {
+                //strstack = "Error Number: " + Information.Err().Number + " Error Description: " + Information.Err().Description + " Source: " + Information.Err().Source + " Last Dll Error: " + Information.Err().LastDllError + " Help Context: " + Information.Err().HelpContext + " Help File: " + Information.Err().HelpFile;
+                //LogError("QueryRecordsets", "ModifyQueriedTrans", Information.Err().Number, Information.Err().Description + " : Stack : " + strstack + " : SQL Query : " + strquery + " : Insert : " + StrInsert + " : Update : " + Strupdate);
+                //ModifyQueriedTransRet = "Records Could Not Be Updated Due to : " + Information.Err().Number + " : " + Information.Err().Description + " ! " + StrTabName;
+                ModifyQueriedTransRet = ModifyQueriedTransRet.Replace("\n", "").Replace("\r", "");
+            }
+
+            return ModifyQueriedTransRet;
+        }
+
+        public async Task<string> Modify(bool BlnModify, string[] arrTabDetails = null!)
+        {
+            string ModifyRet = string.Empty;
+            string[] arrTran;
+            string strquery;
+
+            try
+            {
+                if (BlnModify == true)
+                {
+                    arrTran = arrTabDetails;
+                    if ((arrTran.Length - 1) > 1)
+                    {
+                        strquery = " update " + arrTran[0].Trim() + DataLink + " set " + arrTran[1].Trim() + " where " + arrTran[2];
+                    }
+                    else
+                    {
+                        strquery = " update " + arrTran[0].Trim() + DataLink + " set " + arrTran[1].Trim();
+                    }
+
+                    var result = await ProcessQuery(strquery);
+
+                    if (result.RecordsAffected > 0)
+                    {
+                        ModifyRet = "Modification Completed";
+                    }
+                    else
+                    {
+                        ModifyRet = " Modification Aborted due to false condition.";
+                    }
+                }
+                else
+                {
+                    ModifyRet = "Modification Canceled";
+                }
+            }
+            catch
+            {
+                //strstack = "Error Number: " + Information.Err().Number + " Error Description: " + Information.Err().Description + " Source: " + Information.Err().Source + " Last Dll Error: " + Information.Err().LastDllError + " Help Context: " + Information.Err().HelpContext + " Help File: " + Information.Err().HelpFile;
+                //LogError("QueryRecordsets", "Modify", Information.Err().Number, Information.Err().Description + " : Stack : " + strstack + " :  Update : " + strquery);
+                // ModifyRet = Information.Err().Number + Information.Err().Description;
+
+                ModifyRet = ModifyRet.Replace("\n", "").Replace("\r", "");
+            }
+            return ModifyRet;
+        }
+
         public async Task<string> GetAutoNumberAsync(string TabName, string AutoNumFldName, string WhereCondition = "", string InitialNum = "")
         {
             OracleDataReader Rstemp = null!;
@@ -680,7 +758,7 @@ namespace Banking.Backend
         {
             OracleDataReader Rstemp = null!;
             string GetMaxAccountNoRet = string.Empty;
-            string StrQuery, AutoFieldName, StrTabName, strCondition, strPrevAccno;
+            string AutoFieldName, StrTabName, strCondition, strPrevAccno;
 
             try
             {
@@ -688,8 +766,7 @@ namespace Banking.Backend
                 AutoFieldName = AccFldName.Trim();
                 strCondition = WhereCondition.Trim();
 
-                StrQuery = "";
-                StrQuery = "accno";
+                // string StrQuery = "accno";
                 if (!string.IsNullOrEmpty(WhereCondition.Trim()))
                     Rstemp = await SingleRecordSet(StrTabName.Trim(), AutoFieldName, WhereCondition, AutoFieldName);
                 else
@@ -730,5 +807,47 @@ namespace Banking.Backend
             }
             return GetMaxAccountNoRet;
         }
+
+        //public Variant RecordsetCollection(string[] ArrRecRS)
+        //{
+        //    Variant RecordsetCollectionRet = default;
+        //    string[] TempArr;
+        //    string strquery;
+        //    int recAff;
+        //    try
+        //    {
+        //        // Fetching the multiple Recordsets.
+        //        TempArr = ArrRecRS;
+
+        //        AdoRs = new ADODB.Recordset[Information.UBound(TempArr) + 1];
+
+        //        var loopTo = TempArr.Length - 1;
+        //        for (int i = 0; i <= loopTo; i++)
+        //        {
+        //            strquery = "";
+        //            OracleDataReader AdoRs[i];
+        //            strquery = "Select " + TempArr(i, 1) + " from  " + TempArr(i, 0) + DataLink + " where " + TempArr(i, 2);
+        //            AdoRs[i].Open(strquery, AdoConnObj, adOpenDynamic, adLockOptimistic);
+        //        }
+
+        //        RecordsetCollectionRet = AdoRs;
+
+        //        var loopTo1 = Information.UBound(TempArr);
+        //        for (int i = 0; i <= loopTo1; i++)
+        //            AdoRs[ICount].ActiveConnection = null!;
+
+        //        return RecordsetCollectionRet;
+        //    }
+        //    catch
+        //    {
+        //        //if (string.IsNullOrEmpty(ConnError))
+        //        //    ConnError = "Connection Failed Due to : " + Information.Err().Number + " : " + Information.Err().Description;
+        //        //else
+        //        //    ConnError = "Records Could Not Be Retrieved Due to : " + Information.Err().Number + " : " + Information.Err().Description;
+        //        //LogError("QueryRecordsets", "RecordsetCollection", Information.Err().Number, Information.Err().Description);
+        //    }
+
+        //    return RecordsetCollectionRet;
+        //}
     }
 }

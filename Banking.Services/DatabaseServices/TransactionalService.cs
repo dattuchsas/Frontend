@@ -12,7 +12,5 @@
 //        {
 //            _databaseFactory = new DatabaseService(databaseSettings.Value);
 //        }
-
-
 //    }
 //}

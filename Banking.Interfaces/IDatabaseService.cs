@@ -9,14 +9,19 @@ namespace Banking.Interfaces
         Task<OracleDataReader> SingleRecordSet(string TabName, string FldNames, string wherecondition = "", string OrderClause = "",
             string BranchCode = "", string UserCode = "", string MachineID = "", string CompName = "");
 
-        public string ProcessDataTransactions(string[,] TransDataArray, string BranchCode = "", string UserCode = "",
+        Task<string> ProcessDataTransactions(string[,] TransDataArray, string BranchCode = "", string UserCode = "",
             string MachineID = "", string ApplicationDate = "", string DayBeginEndStatusCheckYN = "",
             string glcode = "", string moduleid = "");
 
-        public Task<string> GetAutoNumberAsync(string TabName, string AutoNumFldName, string WhereCondition = "", string InitialNum = "");
+        Task<string> ModifyQueriedTrans(string TableName, string FldNames, string[] ArrValues, string wherecondition = "", string BranchCode = "",
+            string UserCode = "", string MachineID = "");
 
-        public Task<string> GetAutoTextAsync(string TabName, string AutoNumFldName, string InitialAutoText, string WhereCondition = "");
+        Task<string> Modify(bool BlnModify, string[] arrTabDetails = null!);
 
-        public Task<string> GetMaxAccountNoAsync(string TabName, string AccFldName, string WhereCondition = "", string InitialAutoText = "");
+        Task<string> GetAutoNumberAsync(string TabName, string AutoNumFldName, string WhereCondition = "", string InitialNum = "");
+
+        Task<string> GetAutoTextAsync(string TabName, string AutoNumFldName, string InitialAutoText, string WhereCondition = "");
+
+        Task<string> GetMaxAccountNoAsync(string TabName, string AccFldName, string WhereCondition = "", string InitialAutoText = "");
     }
 }

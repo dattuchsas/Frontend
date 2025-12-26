@@ -54,12 +54,13 @@ namespace Banking.Frontend.Controllers
                 string compPass1, compPass2;
                 compPass1 = string.Concat(loginModel.Username, "1");
                 compPass2 = string.Concat(loginModel.Username, "2");
+                loginModel.Status = "Login";
 
                 List<string> notOverList = new List<string> { "NoA", "NoL", "NoP", "Noo" };
 
                 if (notOverList.Contains(data.Substring(0, 3)))
                 {
-                    loginModel.HiddenStatus = "notover";
+                    loginModel.HdnDayBegin = "notover";
                     if (loginModel.Password1 == compPass1 && loginModel.Password2 == compPass2)
                     {
                         loginModel.ErrorMessage = "Change Your Default Passwords Then Login";
@@ -68,7 +69,7 @@ namespace Banking.Frontend.Controllers
                 }
                 else if (data.Substring(0, 3).Equals("Mes"))
                 {
-                    loginModel.HiddenStatus = "over";
+                    loginModel.HdnDayBegin = "over";
                     if (loginModel.Password1 == compPass1 && loginModel.Password2 == compPass2)
                     {
                         loginModel.ErrorMessage = "Change Your Default Passwords Then Login";
@@ -81,7 +82,7 @@ namespace Banking.Frontend.Controllers
                 }
                 else
                 {
-                    loginModel.HiddenStatus = "over";
+                    loginModel.HdnDayBegin = "over";
                     if (loginModel.Password1 == compPass1 && loginModel.Password2 == compPass2)
                     {
                         loginModel.ErrorMessage = "Change Your Default Passwords Then Login";
@@ -89,7 +90,7 @@ namespace Banking.Frontend.Controllers
                     }
                 }
 
-                IDictionary<string, string> commDict = await _loginService.LoginCheckProcess(HttpContext.Session, loginModel.Username, loginModel.Password1, loginModel.Password2, loginModel.HdnDayBegin, loginModel.HiddenStatus);
+                IDictionary<string, string> commDict = await _loginService.LoginCheckProcess(HttpContext.Session, loginModel.Username, loginModel.Password1, loginModel.Password2, loginModel.HdnDayBegin, loginModel.Status);
 
                 if (commDict != null)
                 {

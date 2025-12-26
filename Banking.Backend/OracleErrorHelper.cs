@@ -1,177 +1,172 @@
-﻿//using Banking.Models;
-//using Microsoft.VisualBasic;
-//using Oracle.ManagedDataAccess.Client;
-//using System.Runtime.Intrinsics.Arm;
+﻿using Banking.Models;
+using Oracle.ManagedDataAccess.Client;
 
-//namespace Banking.Backend
-//{
-//    public class OracleErrorHelper
-//    {
-//        private readonly DatabaseSettings _databaseSettings;
+namespace Banking.Backend
+{
+    public class OracleErrorHelper
+    {
+        private const bool blnDebug = true;
+        private readonly DatabaseSettings _databaseSettings;
 
-//        public OracleErrorHelper(DatabaseSettings databaseSettings)
-//        {
-//            _databaseSettings = databaseSettings;
-//            OracleRetryHelper.Initialize(_databaseSettings.ConnectionString);
-//        }
+        public OracleErrorHelper(DatabaseSettings databaseSettings)
+        {
+            _databaseSettings = databaseSettings;
+            OracleRetryHelper.Initialize(_databaseSettings.ConnectionString);
+        }
 
-//        public async Task<OracleDataReader> ProcessQuery(string query)
-//        {
-//            return await OracleRetryHelper.ProcessQueryAsync(query);
-//        }
+        public async Task<OracleDataReader> ProcessQuery(string query)
+        {
+            return await OracleRetryHelper.ProcessQueryAsync(query);
+        }
 
-//        public async Task ErrorProcess(string ErrNumber, string ErrDesc, string ErrClientDesc, string ComponentName = "",
-//            string Branchode = "", string UserId = "", string MachineID = "")
-//        {
-//            string ErrorProcessRet = "";
+        public async Task<string[,]> ErrorProcess(string ErrNumber, string ErrDesc, string ErrClientDesc, string ComponentName = "",
+            string Branchode = "", string UserId = "", string MachineID = "")
+        {
+            OracleDataReader RSError;
+            string[,] InsValues;
+            string FldNames;
+            string Condition;
+            string strquery;
+            string strErrNo;
+            string strErrDesc;
+            string StrUserID;
+            string StrMachineID;
+            string StrBranchCode;
+            string[,] ArrError = new string[0, 2];
+            string OriginalOracleError;
 
-//            OracleDataReader RSError;
-//            string[,] InsValues;
-//            var strResult = "";
-//            string FldNames;
-//            string TabName;
-//            string Condition;
-//            string StrComponent;
-//            string strquery;
-//            string strErrNo;
-//            string strErrDesc;
-//            string StrClientDesc;
-//            string Compname;
-//            string StrUserID;
-//            string StrMachineID;
-//            string StrBranchCode;
-//            string[,] ArrError;
-//            var resaff = default(int);
-//            string OriginalOracleError;
+            try
+            {
+                OriginalOracleError = ErrDesc.Replace("\n", "").Replace("\r", "").Replace("'", "");
 
-//            try
-//            {
-//                OriginalOracleError = ErrDesc.Replace("\n", "").Replace("\r", "").Replace("'", "");
+                strquery = "";
 
-//                strquery = "";
+                if (ErrNumber.Trim()[^1].ToString() == ":")
+                {
+                    strErrNo = ErrNumber.Trim().Split(':')[0].ToUpper();
+                }
+                else
+                {
+                    strErrNo = ErrNumber.Trim().ToUpper();
+                }
 
-//                if (Strings.Right(Strings.Trim(ErrNumber), 1) == ":")
-//                {
-//                    strErrNo = Strings.UCase(Strings.Trim(Strings.Mid(ErrNumber, 1, Strings.InStr(1, Strings.UCase(Strings.Trim(ErrNumber)), ":") - 1)));
-//                }
-//                else
-//                {
-//                    strErrNo = Strings.UCase(Strings.Trim(ErrNumber));
-//                }
+                strErrDesc = ErrDesc;
+                StrUserID = UserId;
+                StrMachineID = MachineID;
+                StrBranchCode = Branchode.Trim().ToUpper();
+                Condition = " upper(trim(errornumber))='" + strErrNo.Trim().ToUpper() + "' and upper(trim(oranarration))='" + strErrDesc.Trim().ToUpper() + "'";
+                ArrError = new string[0, 2];
+                strquery = "Select ErrorNumber,OraNarration,ClientNarration from GENERRORMST where upper(trim(errornumber))='" + strErrNo.Trim().ToUpper() + "'";
 
-//                strErrDesc = ErrDesc;
-//                StrClientDesc = ErrClientDesc;
-//                StrComponent = ComponentName;
-//                StrUserID = UserId;
-//                StrMachineID = MachineID;
-//                StrBranchCode = Strings.UCase(Strings.Trim(Branchode));
-//                Condition = " upper(trim(errornumber))='" + Strings.UCase(Strings.Trim(strErrNo)) + "' and upper(trim(oranarration))='" + Strings.UCase(Strings.Trim(strErrDesc)) + "'";
-//                ArrError = new string[0, 2];
-//                strquery = "Select ErrorNumber,OraNarration,ClientNarration from GENERRORMST where upper(trim(errornumber))='" + Strings.UCase(Strings.Trim(strErrNo)) + "'";
-//                RSError = await ProcessQuery(strquery);
-//                InsValues = new string[1, 1];
-//                ArrError = new string[0, 2];
-//                if (!RSError.IsClosed)
-//                {
-//                    if (!RSError.HasRows)
-//                    {
-//                        // Insert a new record to the generrormst if the error was generated for the first time
-//                        TabName = "GenErrorMst";
-//                        FldNames = "ErrorNumber,OraNarration,ClientNarration";
-//                        InsValues[0, 0] = "'" + strErrNo + "','" + strErrDesc + "','" + strErrDesc + "'";
-//                        strquery = "Insert into GENERRORMST (" + FldNames + ") values (" + InsValues[0, 0] + ")";
-//                        RSError = await ProcessQuery(strquery);
-//                        if (RSError.RecordsAffected < 1)
-//                        {
-//                            ArrError[0, 0] = "";
-//                            ArrError[0, 1] = strResult;
-//                            ArrError[0, 2] = "Data Base Problem.";
-//                            return ArrError;
-//                        }
+                RSError = await ProcessQuery(strquery);
 
-//                        if (!RSError.IsClosed)
-//                            RSError.Close();
+                InsValues = new string[1, 1];
+                ArrError = new string[0, 2];
+                if (!RSError.IsClosed)
+                {
+                    if (!RSError.HasRows)
+                    {
+                        // Insert a new record to the generrormst if the error was generated for the first time
+                        FldNames = "ErrorNumber,OraNarration,ClientNarration";
+                        InsValues[0, 0] = "'" + strErrNo + "','" + strErrDesc + "','" + strErrDesc + "'";
+                        strquery = "Insert into GENERRORMST (" + FldNames + ") values (" + InsValues[0, 0] + ")";
+                        RSError = await ProcessQuery(strquery);
+                        if (RSError.RecordsAffected < 1)
+                        {
+                            ArrError[0, 0] = "";
+                            ArrError[0, 1] = "";
+                            ArrError[0, 2] = "Data Base Problem.";
+                            return ArrError;
+                        }
 
-//                        strquery = "Select ErrorNumber,OraNarration,ClientNarration from GENERRORMST where " + " upper(trim(errornumber))='" + Strings.UCase(Strings.Trim(strErrNo)) + "'";
+                        if (!RSError.IsClosed)
+                            RSError.Close();
 
-//                        RSError = await ProcessQuery(strquery);
-//                    }
+                        strquery = "Select ErrorNumber,OraNarration,ClientNarration from GENERRORMST where " + " upper(trim(errornumber))='" + strErrNo.Trim().ToUpper() + "'";
 
-//                    // now inserting the error details into th errorlog table
-//                    strErrNo = RSError.GetString(RSError.GetOrdinal("errornumber")).ToUpper();
-//                    strErrDesc = RSError.GetString(RSError.GetOrdinal("oranarration")).ToUpper();
-//                    StrClientDesc = ErrClientDesc;
-//                    FldNames = "ErrorNumber,ClientNarration,Branchcode, userid,machineid,systemdate,errordate,ErrorComponent,ORACLENARRATION";
+                        RSError = await ProcessQuery(strquery);
+                    }
 
-//                    InsValues[0, 0] = "'" + strErrNo + "', '" + StrClientDesc + "','" + StrBranchCode + "','" + StrUserID + "','" + StrMachineID + "', sysdate, to_date('" + Strings.Format(DateTime.Now, "dd-mmm-yy HH:MM:SS") + "','dd-mon-yy HH24:mi:ss'), '" + StrComponent + "','" + OriginalOracleError + "'";
+                    // now inserting the error details into th errorlog table
+                    strErrNo = RSError.GetString(RSError.GetOrdinal("errornumber")).ToUpper();
+                    strErrDesc = RSError.GetString(RSError.GetOrdinal("oranarration")).ToUpper();
+                    FldNames = "ErrorNumber,ClientNarration,Branchcode, userid,machineid,systemdate,errordate,ErrorComponent,ORACLENARRATION";
 
-//                    strquery = "insert into GenErrorlog (" + FldNames + ") values (" + InsValues[0, 0] + ")";
+                    InsValues[0, 0] = "'" + strErrNo + "', '" + ErrClientDesc + "','" + StrBranchCode + "','" + StrUserID + "','" + StrMachineID + 
+                        "', sysdate, to_date('" + string.Format(DateTime.Now.ToString(), "dd-mmm-yy HH:MM:SS") + "','dd-mon-yy HH24:mi:ss'), '" + 
+                        ComponentName + "','" + OriginalOracleError + "'";
 
-//                    RSError = await ProcessQuery(strquery);
-//                    if (RSError.RecordsAffected < 1)
-//                    {
-//                        ArrError[0, 0] = "";
-//                        ArrError[0, 1] = strResult;
-//                        ArrError[0, 2] = "Data Base Problem. " + strResult;
-//                        return ArrError;
-//                    }
+                    strquery = "insert into GenErrorlog (" + FldNames + ") values (" + InsValues[0, 0] + ")";
 
-//                    ArrError[0, 0] = RSError.GetString(RSError.GetOrdinal("errornumber"));
-//                    ArrError[0, 1] = RSError.GetString(RSError.GetOrdinal("oranarration"));
-//                    ArrError[0, 2] = StrClientDesc;
-//                    return ArrError;
-//                }
-//                else
-//                {
-//                    goto ErrHand;
-//                }
-//            }
-//            catch(OracleException ex)
-//            {
-//                ArrError[0, 0] = Information.Err().Number;
-//                ArrError[0, 1] = Information.Err().Description;
-//                ArrError[0, 2] = Information.Err().Description + ". Error from GenErrorLog and the error occured at client transaction is " + StrClientDesc;
-//                return ArrError;
-//            }
-//        }
+                    RSError = await ProcessQuery(strquery);
+                    if (RSError.RecordsAffected < 1)
+                    {
+                        ArrError[0, 0] = "";
+                        ArrError[0, 1] = "";
+                        ArrError[0, 2] = "Data Base Problem. " + "";
+                        return ArrError;
+                    }
 
-//        public void LogError(string ApplName, string ProcName, long ErrNum, string ErrorMsg)
-//        {
-//            try
-//            {
-//                string strErrLogPaht;
-//                strErrLogPaht = @"C:\Inetpub\wwwroot\eSmartdotnet\errorlog";
+                    ArrError[0, 0] = RSError.GetString(RSError.GetOrdinal("errornumber"));
+                    ArrError[0, 1] = RSError.GetString(RSError.GetOrdinal("oranarration"));
+                    ArrError[0, 2] = ErrClientDesc;
+                    return ArrError;
+                }
+                else
+                {
+                    throw new Exception();
+                }
+            }
+            catch (OracleException ex)
+            {
+                ArrError[0, 0] = ex.Errors[0]?.Number.ToString() ?? string.Empty;
+                ArrError[0, 1] = ex.Errors[0]?.Message ?? string.Empty;
+                ArrError[0, 2] = ex.Errors[0]?.Message + ". Error from GenErrorLog and the error occured at client transaction is " + ErrClientDesc;
+                return ArrError;
+            }
+        }
 
-//                if (blnDebug == true)
-//                {
-//                    var fso = new FileSystemObject();
+        public async Task LogError(string ApplName, string ProcName, long ErrNum, string ErrorMsg)
+        {
+            try
+            {
+                if (blnDebug == true)
+                {
+                    string logDir = @"C:\Inetpub\wwwroot\eSmartdotnet\errorlog";
+                    string logFile = Path.Combine(logDir, string.Concat(ApplName, "_", DateTime.Now.ToString("dd_MM_yyyy")) + ".log");
 
-//                    int nUnit;
-//                    nUnit = FileSystem.FreeFile();
+                    // Ensure directory exists
+                    if (!Directory.Exists(logDir))
+                        Directory.CreateDirectory(logDir);
 
-//                    if (fso.FolderExists(strErrLogPaht) == false)
-//                    {
-//                        fso.CreateFolder(strErrLogPaht);
-//                    }
+                    if (!File.Exists(logFile))
+                        File.Create(logFile).Dispose();
 
-//                    // This assumes write access to the directory containing the program '
-//                    // You will need to choose another directory if this is not possible '
-//                    Open(@"C:\Inetpub\wwwroot\eSmartdotnet\errorlog\" + ApplName + ".log");
-//                    FileSystem.Print(default #nUnit, "Error in " + ProcName);
-//                    FileSystem.Print(default #nUnit, "  " + ErrNum + ", " + ErrorMsg);
-//                    FileSystem.Print(default #nUnit, "  " + Strings.Format(DateTime.Now));
-//                    FileSystem.Print(default #nUnit, "");
-//                    Close[nUnit];
-//                }
-//                return;
-//            }
-//            catch
-//            {
-//                // Failed to write log for some reason.'
-//                // Show MsgBox so error does not go unreported '
-//                // 'MsgBox "Error in " & ProcName & vbNewLine & _
-//                ErrNum(default + ", " + ErrorMsg);
-//            }
-//        }
-//    }
-//}
+                    // Open file with async support
+                    using (var stream = new FileStream(
+                        logFile,
+                        FileMode.Append,
+                        FileAccess.Write,
+                        FileShare.Read,
+                        bufferSize: 4096,
+                        useAsync: true))
+                    using (var writer = new StreamWriter(stream))
+                    {
+                        await writer.WriteLineAsync($"Error in {ProcName}");
+                        await writer.WriteLineAsync($"  {ErrNum}, {ErrorMsg}");
+                        await writer.WriteLineAsync($"  {DateTime.Now}");
+                        await writer.WriteLineAsync();
+                        await writer.FlushAsync();
+                    }
+                }
+            }
+            catch
+            {
+                // Failed to write log for some reason.'
+                // Show MsgBox so error does not go unreported '
+                // 'MsgBox "Error in " & ProcName & vbNewLine & _
+                // ErrNum(default + ", " + ErrorMsg);
+            }
+        }
+    }
+}

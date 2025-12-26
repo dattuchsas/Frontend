@@ -15,5 +15,7 @@ namespace Banking.Models
         [StringLength(20, ErrorMessage = "Password 2 lenght should not exceed 20 characters")]
         [Display(Name = "Password 2")]
         public required string Password2 { get; set; }
+        public string? HdnDayBegin { get; set; }
+        public string? Status { get; set; }
     }
 }

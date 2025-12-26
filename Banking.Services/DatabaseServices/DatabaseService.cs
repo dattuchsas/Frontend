@@ -2,6 +2,7 @@
 using Banking.Interfaces;
 using Banking.Models;
 using Oracle.ManagedDataAccess.Client;
+using System.Reflection.PortableExecutable;
 
 namespace Banking.Services
 {
@@ -25,11 +26,22 @@ namespace Banking.Services
             return await _databaseFactory.SingleRecordSet(TabName, FldNames, wherecondition, OrderClause, BranchCode, UserCode, MachineID, CompName);
         }
 
-        public string ProcessDataTransactions(string[,] TransDataArray, string BranchCode = "", string UserCode = "",
+        public async Task<string> ProcessDataTransactions(string[,] TransDataArray, string BranchCode = "", string UserCode = "",
             string MachineID = "", string ApplicationDate = "", string DayBeginEndStatusCheckYN = "",
             string glcode = "", string moduleid = "")
         {
-            return string.Empty;
+            return await _databaseFactory.ProcessDataTransactions(TransDataArray, BranchCode, UserCode, MachineID, ApplicationDate, DayBeginEndStatusCheckYN, glcode, moduleid);
+        }
+
+        public async Task<string> ModifyQueriedTrans(string TableName, string FldNames, string[] ArrValues, string wherecondition = "", string BranchCode = "",
+            string UserCode = "", string MachineID = "")
+        {
+            return await _databaseFactory.ModifyQueriedTrans(TableName, FldNames, ArrValues, wherecondition, BranchCode, UserCode, MachineID);
+        }
+
+        public async Task<string> Modify(bool BlnModify, string[] arrTabDetails = null!)
+        {
+            return await _databaseFactory.Modify(BlnModify, arrTabDetails);
         }
 
         public async Task<string> GetAutoNumberAsync(string TabName, string AutoNumFldName, string WhereCondition = "", string InitialNum = "")
