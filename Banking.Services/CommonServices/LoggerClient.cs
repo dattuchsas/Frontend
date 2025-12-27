@@ -14,15 +14,15 @@ namespace Banking.Services.CommonServices
             _errorHelper = new OracleErrorHelper(_databaseSettings);
         }
 
-        public async Task<string[,]> ErrorProcess(string ErrNumber, string ErrDesc, string ErrClientDesc, string ComponentName = "",
-            string Branchode = "", string UserId = "", string MachineID = "")
-        {
-            return await _errorHelper.ErrorProcess(ErrNumber, ErrDesc, ErrClientDesc, ComponentName, Branchode, UserId, MachineID);
-        }
+        //public async Task<string[,]> ErrorProcess(string ErrNumber, string ErrDesc, string ErrClientDesc, string ComponentName = "",
+        //    string Branchode = "", string UserId = "", string MachineID = "")
+        //{
+        //    return await _errorHelper.ErrorProcess(ErrNumber, ErrDesc, ErrClientDesc, ComponentName, Branchode, UserId, MachineID);
+        //}
 
-        public async Task LogError(string ApplName, string ProcName, long ErrNum, string ErrorMsg)
-        {
-            await _errorHelper.LogError(ApplName, ProcName, ErrNum, ErrorMsg);
-        }
+        //public async Task LogError(string ApplName, string ProcName, long ErrNum, string ErrorMsg)
+        //{
+        //    await _errorHelper.LogError(ApplName, ProcName, ErrNum, ErrorMsg);
+        //}
     }
 }

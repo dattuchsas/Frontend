@@ -1,4 +1,6 @@
-﻿namespace Banking.Framework
+﻿using Microsoft.AspNetCore.Http;
+
+namespace Banking.Framework
 {
     public static class DictionaryExtensions
     {
@@ -14,6 +16,11 @@
 
     public static class BankingExtensions
     {
+        public static string GetSessionId(this ISession session)
+        {
+            return session.Id.Replace("-", "").Substring(0, 30);
+        }
+
         public static string EncodePassword(string strPwd, string stUserid)
         {
             string EncPassword = string.Empty;

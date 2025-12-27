@@ -90,14 +90,19 @@ namespace Banking.Frontend.Controllers
                     }
                 }
 
-                IDictionary<string, string> commDict = await _loginService.LoginCheckProcess(HttpContext.Session, loginModel.Username, loginModel.Password1, loginModel.Password2, loginModel.HdnDayBegin, loginModel.Status);
+                string remoteHost = HttpContext.Connection.RemoteIpAddress?.ToString() ?? string.Empty;
+
+                remoteHost = remoteHost.Equals("::1") ? "127.0.0.1" : remoteHost;
+
+                IDictionary<string, string> commDict = await _loginService.LoginCheckProcess(HttpContext.Session, loginModel.Username, loginModel.Password1, 
+                    loginModel.Password2, loginModel.HdnDayBegin, loginModel.Status, remoteHost);
 
                 if (commDict != null)
                 {
                     string controller = commDict.Keys.FirstOrDefault() ?? string.Empty;
 
                     loginModel.ErrorMessage = commDict[controller];
-                
+
                     return RedirectToAction(nameof(Index), controller);
                 }
 

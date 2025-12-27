@@ -4,10 +4,10 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>FinXPro - @ViewData["Title"]</title>
-    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" asp-append-version="true" />
-    <link href="~/css/main.css" rel="stylesheet" asp-append-version="true" />
-    <link href="~/css/utilities.css" rel="stylesheet" asp-append-version="true" />
-    <link href="~/css/sidebars.css" rel="stylesheet" asp-append-version="true" />
+    <link asp-append-version="true" rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link asp-append-version="true" href="~/css/main.css" rel="stylesheet" />
+    <link asp-append-version="true" href="~/css/utilities.css" rel="stylesheet" />
+    <link asp-append-version="true" href="~/css/sidebars.css" rel="stylesheet" />
 </head>
 <body>
     <header>
@@ -27,12 +27,14 @@
             <span class="bg-text-maharaja">&copy; @DateTime.Now.Year</span>
         </div>
     </footer>
-    <script src="~/lib/jquery/dist/jquery.min.js" asp-append-version="true"></script>
-    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js" asp-append-version="true"></script>
-    <script src="~/js/sidebars.js" asp-append-version="true"></script>
-    <script src="~/js/main.js" asp-append-version="true"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.3/jquery.validate.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validation-unobtrusive/3.2.12/jquery.validate.unobtrusive.js"></script>
+    <script asp-append-version="true" src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script asp-append-version="true" src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
+    <script asp-append-version="true" src="~/lib/jquery-validation/dist/jquery.validate.js"></script>
+    <script asp-append-version="true" src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"></script>
+    <script asp-append-version="true" src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.js"></script>
+    <script asp-append-version="true" src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script asp-append-version="true" src="~/js/sidebars.js"></script>
+    <script asp-append-version="true" src="~/js/main.js"></script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

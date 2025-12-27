@@ -1,88 +1,61 @@
-﻿using Oracle.ManagedDataAccess.Client;
+﻿using Banking.Models;
+using Oracle.ManagedDataAccess.Client;
+using System.Data;
 
 namespace Banking.Backend
 {
-    public static class OracleRetryHelper
+    public class OracleRetryHelper
     {
-        private static string _connectionString { get; set; } = null!;
-        private static OracleConnection connection = null!;
-        static OracleDataReader result = null!;
+        private string _connectionString { get; set; } = null!;
+        private int _maxRetries { get; set; }
+        private int _initialDelayMs { get; set; }
 
-        public static void Initialize(string connectionString)
+        public OracleRetryHelper(DatabaseSettings databaseSettings)
         {
-            _connectionString = connectionString;
+            _connectionString = databaseSettings.ConnectionString;
+            _maxRetries = databaseSettings.MaxRetries;
+            _initialDelayMs = databaseSettings.InitialDelayMs;
         }
 
-        public static async Task<OracleDataReader> ProcessQueryAsync(string query)
-        {
-            string strResult = string.Empty;
-            try
-            {
-                OracleCommand cmd = await CommandAsync(query);
-                return await cmd.ExecuteReaderAsync();
-            }
-            catch (OracleException ex)
-            {
-                string friendlyMessage = OracleErrorMapper.GetFriendlyMessage(ex);
-                throw new Exception($"Error Details: {friendlyMessage}");
-            }
-        }
-
-        public static async Task<OracleCommand> CommandAsync(string query)
-        {
-            try
-            {
-                return await CreateCommandAsync(query);
-            }
-            catch (OracleException ex)
-            {
-                string friendlyMessage = OracleErrorMapper.GetFriendlyMessage(ex);
-                throw new Exception($"Error Details: {friendlyMessage}");
-            }
-        }
-
-        private static async Task<OracleCommand> CreateCommandAsync(string sql)
-        {
-            try
-            {
-                var conn = await OpenConnectionWithRetryAsync(_connectionString);
-                var cmd = conn.CreateCommand();
-                cmd.CommandText = sql;
-                cmd.CommandTimeout = 5;
-                return cmd;
-            }
-            catch (OracleException ex)
-            {
-                string friendlyMessage = OracleErrorMapper.GetFriendlyMessage(ex);
-                throw new Exception($"Error Details: {friendlyMessage}");
-            }
-        }
-
-        private static async Task<OracleConnection> OpenConnectionWithRetryAsync(
-            string connectionString,
-            int maxRetries = 5,
-            int initialDelayMs = 500)
+        public async Task<DataTable> ProcessQueryWithRetryAsync(string query)
         {
             int attempt = 0;
             Exception lastException = null!;
+            DataTable dataTable = new DataTable();
 
-            while (attempt < maxRetries)
+            while (attempt < _maxRetries)
             {
                 try
                 {
-                    connection = new OracleConnection(connectionString);
+                    using var connection = new OracleConnection(_connectionString);
                     await connection.OpenAsync(CancellationToken.None);
-                    return connection;
+
+                    using var cmd = connection.CreateCommand();
+                    cmd.CommandText = query;
+
+                    using (OracleDataReader reader = cmd.ExecuteReader())
+                    {
+                        dataTable.Load(reader);
+                    }
+
+                    if (connection.State == ConnectionState.Open)
+                    {
+                        cmd.Dispose();
+                        connection.Close();
+                        connection.Dispose();
+                    }
+
+                    return dataTable;
                 }
                 catch (OracleException ex) when (IsTransient(ex))
                 {
                     lastException = ex;
                     attempt++;
 
-                    if (attempt >= maxRetries)
+                    if (attempt >= _maxRetries)
                         break;
 
-                    int delay = initialDelayMs * (int)Math.Pow(2, attempt - 1);
+                    int delay = _initialDelayMs * (int)Math.Pow(2, attempt - 1);
                     await Task.Delay(delay, CancellationToken.None);
                 }
                 catch (OracleException ex)
@@ -92,7 +65,56 @@ namespace Banking.Backend
             }
 
             throw new InvalidOperationException(
-                $"Failed to open Oracle connection after {maxRetries} attempts.",
+                $"Failed to open Oracle connection after {_maxRetries} attempts.",
+                lastException);
+        }
+
+        public async Task<int> ProcessNonQueryWithRetryAsync(string query)
+        {
+            int attempt = 0;
+            Exception lastException = null!;
+            DataTable dataTable = new DataTable();
+
+            while (attempt < _maxRetries)
+            {
+                try
+                {
+                    using var connection = new OracleConnection(_connectionString);
+                    await connection.OpenAsync(CancellationToken.None);
+
+                    using var cmd = connection.CreateCommand();
+                    cmd.CommandText = query;
+
+                    var result = cmd.ExecuteNonQuery();
+
+                    if (connection.State == ConnectionState.Open)
+                    {
+                        cmd.Dispose();
+                        connection.Close();
+                        connection.Dispose();
+                    }
+
+                    return result;
+                }
+                catch (OracleException ex) when (IsTransient(ex))
+                {
+                    lastException = ex;
+                    attempt++;
+
+                    if (attempt >= _maxRetries)
+                        break;
+
+                    int delay = _initialDelayMs * (int)Math.Pow(2, attempt - 1);
+                    await Task.Delay(delay, CancellationToken.None);
+                }
+                catch (OracleException ex)
+                {
+                    throw new Exception(OracleErrorMapper.GetFriendlyMessage(ex));
+                }
+            }
+
+            throw new InvalidOperationException(
+                $"Failed to open Oracle connection after {_maxRetries} attempts.",
                 lastException);
         }
 
@@ -110,6 +132,19 @@ namespace Banking.Backend
                 _ => false
             };
         }
+
+        //static OracleDataReader result = null!;
+        //public static async Task<OracleDataReader> ProcessQuery()
+        //{
+        //    await using var conn = await OpenConnectionWithRetryAsync(_connectionString);
+        //    await using var cmd = conn.CreateCommand();
+        //    await using var reader = await cmd.ExecuteReaderAsync();
+
+        //    if (!reader.IsClosed)
+        //        result = reader;
+
+        //    return result;
+        //}
 
         //public void DBConnection()
         //{

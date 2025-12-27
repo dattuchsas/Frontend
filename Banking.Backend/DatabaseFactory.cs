@@ -1,31 +1,30 @@
 ﻿using Banking.Models;
 using Banking.Interfaces;
-using Oracle.ManagedDataAccess.Client;
+using System.Data;
 
 namespace Banking.Backend
 {
     public class DatabaseFactory : IDatabaseService
     {
-        private string DataLink = ""; // "@DBLINK"; // TODO: Move to settings if needed
-        private readonly DatabaseSettings _databaseSettings;
+        private string _dataLink = ""; // "@DBLINK"; // TODO: Move to settings if needed
+        private readonly OracleRetryHelper _oracleRetryHelper;
         private readonly TransactionalFactory _transactionalFactory;
 
         public DatabaseFactory(DatabaseSettings databaseSettings)
         {
-            _databaseSettings = databaseSettings;
-            OracleRetryHelper.Initialize(_databaseSettings.ConnectionString);
+            _oracleRetryHelper = new OracleRetryHelper(databaseSettings);
             _transactionalFactory = new TransactionalFactory(databaseSettings);
         }
 
-        public async Task<OracleDataReader> ProcessQuery(string query)
+        public async Task<DataTable> ProcessQueryAsync(string query)
         {
-            return await OracleRetryHelper.ProcessQueryAsync(query);
+            return await _oracleRetryHelper.ProcessQueryWithRetryAsync(query);
         }
 
-        public async Task<OracleDataReader> SingleRecordSet(string TabName, string FldNames, string wherecondition = "", string OrderClause = "", 
+        public async Task<DataTable> SingleRecordSet(string TabName, string FldNames, string wherecondition = "", string OrderClause = "", 
             string BranchCode = "", string UserCode = "", string MachineID = "", string CompName = "")
         {
-            OracleDataReader oracleDataReader = null!;
+            DataTable dataTable = null!;
 
             int subCnt;
 
@@ -111,12 +110,12 @@ namespace Banking.Backend
                 else if (string.IsNullOrEmpty(wherecondition.Trim()) & string.IsNullOrEmpty(OrderClause.Trim()))
                     strquery = "Select " + FldNames + " from  " + strTables;
 
-                oracleDataReader = await OracleRetryHelper.ProcessQueryAsync(strquery);
+                dataTable = await ProcessQueryAsync(strquery);
 
-                if (oracleDataReader.IsClosed)
+                if (dataTable.Rows.Count == 0)
                     throw new Exception("Records Could Not Be Retrieved For your Query");
 
-                return oracleDataReader;
+                return dataTable;
             }
             catch (Exception ex)
             {
@@ -171,7 +170,7 @@ namespace Banking.Backend
                 //}
             }
 
-            return oracleDataReader;
+            return dataTable;
         }
 
         public async Task<string> ProcessDataTransactions(string[,] TransDataArray, string BranchCode = "", string UserCode = "",
@@ -198,9 +197,9 @@ namespace Banking.Backend
             string AutoFldNames;
             string[] AutoType;
             string AutoPmtCond;
-            OracleDataReader Rsnfts;
-            OracleDataReader RsAutoPmt;
-            OracleDataReader Rstemp;
+            DataTable Rsnfts;
+            DataTable RsAutoPmt;
+            DataTable Rstemp;
             int intaccnolen, transcount;
 
             try
@@ -227,8 +226,7 @@ namespace Banking.Backend
                 ActualAccNo = "";
                 DataArray = TransDataArray;
 
-                var loopTo = DataArray.Length - 1;
-                for (transcount = 0; transcount <= loopTo; transcount++)
+                for (transcount = 0; transcount < DataArray.GetLength(0); transcount++)
                 {
                     if (DataArray[transcount, 0] == "A")
                     {
@@ -238,7 +236,7 @@ namespace Banking.Backend
                         AutoPmtCond = AutoType[1];
                         RsAutoPmt = await SingleRecordSet("GENAUTONUMBERPMT", "*", AutoPmtCond);
 
-                        if (!RsAutoPmt.HasRows)
+                        if (RsAutoPmt.Rows.Count == 0)
                         {
                             DataTransactionsRet = "Parameters for the AccountNo to be specified";
                             return DataTransactionsRet;
@@ -246,26 +244,25 @@ namespace Banking.Backend
 
                         AutoCondition = DataArray[transcount, 4] + " FOR UPDATE";
                         Rstemp = await SingleRecordSet("GENAUTONUMMAX", "*", AutoCondition);
-                        if (Rstemp.HasRows)
+                        if (Rstemp.Rows.Count != 0)
                         {
-                            AutoNumValueInit = Rstemp.GetString(Rstemp.GetOrdinal("MAXAUTONUM"));
+                            AutoNumValueInit = Convert.ToString(Rstemp.Rows[0]["MAXAUTONUM"]) ?? string.Empty;
                             AutoConditioninit = DataArray[transcount, 4];
                         }
 
                         AutoCondition = DataArray[transcount, 4];
 
-                        int cnt = Rstemp.GetOrdinal("InitialValue");
                         if (AutoType[0].Trim().ToUpper() == "GETAUTONUMBER")
                         {
-                            AutoNumValue = GetAutoNumberAsync("GENAUTONUMMAX", "MAXAUTONUM", AutoCondition, RsAutoPmt.GetString(cnt)).Result;
+                            AutoNumValue = await GetAutoNumberAsync("GENAUTONUMMAX", "MAXAUTONUM", AutoCondition, Convert.ToString(RsAutoPmt.Rows[0]["InitialValue"]) ?? string.Empty);
                         }
                         else if (AutoType[0].Trim().ToUpper() == "GETAUTOTEXT")
                         {
-                            AutoNumValue = GetAutoTextAsync("GENAUTONUMMAX", "MAXAUTONUM", RsAutoPmt.GetString(cnt), AutoCondition).Result;
+                            AutoNumValue = await GetAutoTextAsync("GENAUTONUMMAX", "MAXAUTONUM", Convert.ToString(RsAutoPmt.Rows[0]["InitialValue"]) ?? string.Empty, AutoCondition);
                         }
                         else if (AutoType[0].Trim().ToUpper() == "GETMAXACCOUNTNO")
                         {
-                            AutoNumValue = GetMaxAccountNoAsync("GENAUTONUMMAX", "MAXAUTONUM", AutoCondition, RsAutoPmt.GetString(cnt)).Result;
+                            AutoNumValue = await GetMaxAccountNoAsync("GENAUTONUMMAX", "MAXAUTONUM", AutoCondition, Convert.ToString(RsAutoPmt.Rows[0]["InitialValue"]) ?? string.Empty);
                         }
 
                         if (AutoNumValue.Substring(1, 5) == "ERROR")
@@ -278,8 +275,7 @@ namespace Banking.Backend
 
                         // If ((AutoNumValue = CStr(RsAutoPmt!InitialValue)) Or (AutoNumValue = Val(Rstemp!maxautonum) + 1)) Then
 
-                        cnt = Rstemp.GetOrdinal("InitialValue");
-                        if ((AutoNumValue ?? "") == (RsAutoPmt.GetString(cnt) ?? ""))
+                        if ((AutoNumValue ?? "") == (Convert.ToString(RsAutoPmt.Rows[0]["InitialValue"]) ?? string.Empty))
                         {
                             Autoflds = DataArray[transcount, 2] + ",MAXAUTONUM";
                             ArrRowValues[0] = DataArray[transcount, 3] + "," + AutoNumValue;
@@ -300,7 +296,7 @@ namespace Banking.Backend
                             Autoflds = "MAXAUTONUM";
                             AutoCondition = DataArray[transcount, 4];
 
-                            TransResult = await ModifyQueriedTrans("GENAUTONUMMAX", Autoflds, ArrRowValues, AutoCondition, BRCode, UserId, MachID);
+                            // TransResult = await ModifyQueriedTrans("GENAUTONUMMAX", Autoflds, ArrRowValues, AutoCondition, BRCode, UserId, MachID);
 
                             if (TransResult != "Trans Completed")
                             {
@@ -311,9 +307,9 @@ namespace Banking.Backend
 
                         Rsnfts = await SingleRecordSet("genbankparm", "NFTSCONVYN", "");
 
-                        if (Rsnfts.HasRows)
+                        if (Rsnfts.Rows.Count != 0)
                         {
-                            if (Rsnfts.GetString(Rsnfts.GetOrdinal("NFTSCONVYN")) == "Y")  // nfts conversion 16 digits
+                            if (Convert.ToString(Rsnfts.Rows[0]["NFTSCONVYN"]) == "Y")  // nfts conversion 16 digits
                             {
                                 if (moduleid == "SB" | moduleid == "CA" | moduleid == "CC" | moduleid == "DEP" | moduleid == "LOAN" | moduleid == "LOCKER" | moduleid == "SHARES")
                                 {
@@ -358,16 +354,15 @@ namespace Banking.Backend
                             } // MODULE ID END
                         } // NFTS CONV END
 
-                        AccNoPrefix = RsAutoPmt.GetString(RsAutoPmt.GetOrdinal("Prefixvalue")).Trim() + "";
-                        AccNoSuffix = RsAutoPmt.GetString(RsAutoPmt.GetOrdinal("suffixvalue")).Trim() + "";
+                        AccNoPrefix = Convert.ToString(RsAutoPmt.Rows[0]["Prefixvalue"]) + "";
+                        AccNoSuffix = Convert.ToString(RsAutoPmt.Rows[0]["suffixvalue"]) + "";
                         ActualAccNo = AutoNumValue ?? string.Empty;
-                        AutoNumValue = RsAutoPmt.GetString(RsAutoPmt.GetOrdinal("Prefixvalue")).Trim() + AutoNumValue + RsAutoPmt.GetString(RsAutoPmt.GetOrdinal("suffixvalue")).Trim();
+                        AutoNumValue = Convert.ToString(RsAutoPmt.Rows[0]["Prefixvalue"]) + AutoNumValue + Convert.ToString(RsAutoPmt.Rows[0]["suffixvalue"]);
                     }
                 }
 
                 // *************Transaction Started***************
-                var loopTo1 = DataArray.Length - 1;
-                for (transcount = 0; transcount <= loopTo1; transcount++)
+                for (transcount = 0; transcount < DataArray.GetLength(0); transcount++)
                 {
                     StrTabName = DataArray[transcount, 1];
                     StrFld = DataArray[transcount, 2];
@@ -404,39 +399,39 @@ namespace Banking.Backend
                         TransResult = "";
                         TransResult = await _transactionalFactory.InsertRecord(StrTabName, StrFld, ArrRowValues, BRCode, UserId, MachID, applicationDate, DayBeginEndStatusCheckYN);
                     }
-                    else if (DataArray[transcount, 0].Trim().ToUpper() == "BI")
-                    {
-                        /// ************For Bulk Insertion****************
-                        TransResult = "";
-                        TransResult = await _transactionalFactory.BulkInsert(StrTabName, StrFld, DataArray[transcount, 3], BRCode, UserId, MachID, applicationDate, DayBeginEndStatusCheckYN);
-                    }
-                    else if (DataArray[transcount, 0].Trim().ToUpper() == "U")
-                    {
-                        /// ************For Update****************
-                        if (!string.IsNullOrEmpty(Autoflds.Trim()))
-                        {
-                            // StrFld = StrFld & "," & Autoflds
-                            var loopTo3 = ArrRowValues.Length - 1;
-                            for (int RowCnt = 0; RowCnt <= loopTo3; RowCnt++)
-                                ArrRowValues[RowCnt] = ArrRowValues.ElementAtOrDefault(RowCnt) + "~'" + AutoNumValue + "'";
-                        }
-                        TransResult = await _transactionalFactory.UpdateRecord(StrTabName, StrFld, ArrRowValues, TabWhereCondition, BRCode, UserId, MachID, applicationDate, DayBeginEndStatusCheckYN);
-                    }
-                    else if (DataArray[transcount, 0].Trim().ToUpper() == "D")
-                    {
-                        /// ************For Delete****************
-                        TransResult = await _transactionalFactory.DeleteRecord(StrTabName, TabWhereCondition, BRCode, UserId, MachID, applicationDate, DayBeginEndStatusCheckYN);
-                    }
-                    else if (DataArray[transcount, 0].Trim().ToUpper() == "R")
-                    {
-                        /// ************For Rejection****************
-                        TransResult = await _transactionalFactory.RejectRecord(StrTabName, TabWhereCondition, BRCode, UserId, MachID, applicationDate, DayBeginEndStatusCheckYN);
-                    }
-                    else if (DataArray[transcount, 0].Trim().ToUpper() == "SI")
-                    {
-                        /// ************For Insertion using a Select statement ****************
-                        TransResult = await _transactionalFactory.InsertUsingSelect(StrTabName, StrFld, ArrRowValues, TabWhereCondition, BRCode, UserId, MachID, applicationDate, DayBeginEndStatusCheckYN);
-                    }
+                    //else if (DataArray[transcount, 0].Trim().ToUpper() == "BI")
+                    //{
+                    //    /// ************For Bulk Insertion****************
+                    //    TransResult = "";
+                    //    TransResult = await _transactionalFactory.BulkInsert(StrTabName, StrFld, DataArray[transcount, 3], BRCode, UserId, MachID, applicationDate, DayBeginEndStatusCheckYN);
+                    //}
+                    //else if (DataArray[transcount, 0].Trim().ToUpper() == "U")
+                    //{
+                    //    /// ************For Update****************
+                    //    if (!string.IsNullOrEmpty(Autoflds.Trim()))
+                    //    {
+                    //        // StrFld = StrFld & "," & Autoflds
+                    //        var loopTo3 = ArrRowValues.Length - 1;
+                    //        for (int RowCnt = 0; RowCnt <= loopTo3; RowCnt++)
+                    //            ArrRowValues[RowCnt] = ArrRowValues.ElementAtOrDefault(RowCnt) + "~'" + AutoNumValue + "'";
+                    //    }
+                    //    TransResult = await _transactionalFactory.UpdateRecord(StrTabName, StrFld, ArrRowValues, TabWhereCondition, BRCode, UserId, MachID, applicationDate, DayBeginEndStatusCheckYN);
+                    //}
+                    //else if (DataArray[transcount, 0].Trim().ToUpper() == "D")
+                    //{
+                    //    /// ************For Delete****************
+                    //    TransResult = await _transactionalFactory.DeleteRecord(StrTabName, TabWhereCondition, BRCode, UserId, MachID, applicationDate, DayBeginEndStatusCheckYN);
+                    //}
+                    //else if (DataArray[transcount, 0].Trim().ToUpper() == "R")
+                    //{
+                    //    /// ************For Rejection****************
+                    //    TransResult = await _transactionalFactory.RejectRecord(StrTabName, TabWhereCondition, BRCode, UserId, MachID, applicationDate, DayBeginEndStatusCheckYN);
+                    //}
+                    //else if (DataArray[transcount, 0].Trim().ToUpper() == "SI")
+                    //{
+                    //    /// ************For Insertion using a Select statement ****************
+                    //    TransResult = await _transactionalFactory.InsertUsingSelect(StrTabName, StrFld, ArrRowValues, TabWhereCondition, BRCode, UserId, MachID, applicationDate, DayBeginEndStatusCheckYN);
+                    //}
 
                     // TransResult = "trans1"
                     if (TransResult.Trim() != "Transaction Completed")
@@ -445,12 +440,12 @@ namespace Banking.Backend
 
                 DataTransactionsRet = (!string.IsNullOrEmpty(AutoNumValue)) ? "Transaction Sucessful.|" + AutoNumValue : "Transaction Sucessful.";
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 if (!string.IsNullOrEmpty(AutoNumValueInit))
                 {
                     string[] ArrRowValuesInit = [AutoNumValueInit];
-                    string TransResult2 = await ModifyQueriedTrans("GENAUTONUMMAX", "MAXAUTONUM", ArrRowValuesInit, AutoConditioninit, BranchCode, UserCode, MachineID);
+                    //string TransResult2 = await ModifyQueriedTrans("GENAUTONUMMAX", "MAXAUTONUM", ArrRowValuesInit, AutoConditioninit, BranchCode, UserCode, MachineID);
                 }
 
                 if (!string.IsNullOrEmpty(TransResult.Trim()))
@@ -468,172 +463,172 @@ namespace Banking.Backend
             return DataTransactionsRet;
         }
 
-        public async Task<string> ModifyQueriedTrans(string TableName, string FldNames, string[] ArrValues, string wherecondition = "", string BranchCode = "", 
-            string UserCode = "", string MachineID = "")
-        {
-            string ModifyQueriedTransRet = "";
+        //public async Task<string> ModifyQueriedTrans(string TableName, string FldNames, string[] ArrValues, string wherecondition = "", string BranchCode = "",
+        //    string UserCode = "", string MachineID = "")
+        //{
+        //    string ModifyQueriedTransRet = "";
 
-            string[] ArrTempValues, ArrRowValue, ArrFlds;
-            string strquery;
-            string Strupdate;
-            string StrInsert;
+        //    string[] ArrTempValues, ArrRowValue, ArrFlds;
+        //    string strquery;
+        //    string Strupdate;
+        //    string StrInsert;
 
-            var strUpdateRow = "";
-            string[] StrCondition;
-            string StrTabName;
-            string StrFields;
+        //    var strUpdateRow = "";
+        //    string[] StrCondition;
+        //    string StrTabName;
+        //    string StrFields;
 
-            try
-            {
-                ArrTempValues = ArrValues;
-                StrTabName = TableName.Trim().ToUpper();
-                StrFields = FldNames;
+        //    try
+        //    {
+        //        ArrTempValues = ArrValues;
+        //        StrTabName = TableName.Trim().ToUpper();
+        //        StrFields = FldNames;
 
-                string BRCode = string.IsNullOrWhiteSpace(BranchCode.Trim().ToUpper()) ? "" : BranchCode.Trim().ToUpper();
-                string UserId = string.IsNullOrWhiteSpace(UserCode.Trim().ToUpper()) ? "" : UserCode.Trim().ToUpper();
-                string MachID = string.IsNullOrWhiteSpace(MachineID.Trim().ToUpper()) ? "" : MachineID.Trim().ToUpper();
+        //        string BRCode = string.IsNullOrWhiteSpace(BranchCode.Trim().ToUpper()) ? "" : BranchCode.Trim().ToUpper();
+        //        string UserId = string.IsNullOrWhiteSpace(UserCode.Trim().ToUpper()) ? "" : UserCode.Trim().ToUpper();
+        //        string MachID = string.IsNullOrWhiteSpace(MachineID.Trim().ToUpper()) ? "" : MachineID.Trim().ToUpper();
 
-                // Spliting the conditions For Different Rows
-                StrCondition = wherecondition.Split("|");
+        //        // Spliting the conditions For Different Rows
+        //        StrCondition = wherecondition.Split("|");
 
-                if (string.IsNullOrEmpty(wherecondition.Trim()))
-                {
-                    StrCondition[0] = "";
-                }
+        //        if (string.IsNullOrEmpty(wherecondition.Trim()))
+        //        {
+        //            StrCondition[0] = "";
+        //        }
 
-                var loopTo = ArrTempValues.Length - 1;
-                for (int RowCnt = 0; RowCnt <= loopTo; RowCnt++)
-                {
-                    // First passing the data into history tables based on the type of tables.
-                    if ((StrCondition.Length - 1) == (ArrTempValues.Length - 1))
-                    {
-                        if (StrTabName.Substring(0, StrTabName.Length - 3) == "MST" || StrTabName.Substring(0, StrTabName.Length - 3) == "TRN")
-                            StrInsert = "Insert into " + StrTabName.Trim() + "HIST" + DataLink + " select * from " + StrTabName + "" + DataLink + " Where " + StrCondition[RowCnt];
-                        else if (StrTabName.Substring(0, StrTabName.Length - 3) == "LOG")
-                            StrInsert = "Insert into " + StrTabName.Trim() + "DEM" + DataLink + " select * from " + StrTabName + "" + DataLink + " Where " + StrCondition[RowCnt];
-                        else
-                            StrInsert = "";
-                        strquery = "select " + StrFields + " from " + StrTabName.Trim() + DataLink + " where " + StrCondition[RowCnt] + " for update";
-                    }
-                    else
-                    {
-                        if (StrTabName.Substring(0, StrTabName.Length - 3) == "MST" || StrTabName.Substring(0, StrTabName.Length - 3) == "TRN")
-                            StrInsert = "Insert into " + StrTabName.Trim() + "HIST" + DataLink + " select * from " + StrTabName + "" + DataLink + "";
-                        else if (StrTabName.Substring(0, StrTabName.Length - 3) == "LOG")
-                            StrInsert = "Insert into " + StrTabName.Trim() + "DEM" + DataLink + " select * from " + StrTabName + "" + DataLink + "";
-                        else
-                            StrInsert = "";
-                        strquery = "select " + StrFields + " from " + StrTabName.Trim() + DataLink + " for update";
-                    }
+        //        var loopTo = ArrTempValues.Length - 1;
+        //        for (int RowCnt = 0; RowCnt <= loopTo; RowCnt++)
+        //        {
+        //            // First passing the data into history tables based on the type of tables.
+        //            if ((StrCondition.Length - 1) == (ArrTempValues.Length - 1))
+        //            {
+        //                if (StrTabName.Substring(0, StrTabName.Length - 3) == "MST" || StrTabName.Substring(0, StrTabName.Length - 3) == "TRN")
+        //                    StrInsert = "Insert into " + StrTabName.Trim() + "HIST" + DataLink + " select * from " + StrTabName + "" + DataLink + " Where " + StrCondition[RowCnt];
+        //                else if (StrTabName.Substring(0, StrTabName.Length - 3) == "LOG")
+        //                    StrInsert = "Insert into " + StrTabName.Trim() + "DEM" + DataLink + " select * from " + StrTabName + "" + DataLink + " Where " + StrCondition[RowCnt];
+        //                else
+        //                    StrInsert = "";
+        //                strquery = "select " + StrFields + " from " + StrTabName.Trim() + DataLink + " where " + StrCondition[RowCnt] + " for update";
+        //            }
+        //            else
+        //            {
+        //                if (StrTabName.Substring(0, StrTabName.Length - 3) == "MST" || StrTabName.Substring(0, StrTabName.Length - 3) == "TRN")
+        //                    StrInsert = "Insert into " + StrTabName.Trim() + "HIST" + DataLink + " select * from " + StrTabName + "" + DataLink + "";
+        //                else if (StrTabName.Substring(0, StrTabName.Length - 3) == "LOG")
+        //                    StrInsert = "Insert into " + StrTabName.Trim() + "DEM" + DataLink + " select * from " + StrTabName + "" + DataLink + "";
+        //                else
+        //                    StrInsert = "";
+        //                strquery = "select " + StrFields + " from " + StrTabName.Trim() + DataLink + " for update";
+        //            }
 
-                    if (!string.IsNullOrEmpty(StrInsert.Trim()))
-                        await ProcessQuery(StrInsert);
+        //            if (!string.IsNullOrEmpty(StrInsert.Trim()))
+        //                await ProcessQuery(StrInsert);
 
-                    // AdoConnObj.Execute strquery
-                    // Spliting the Collumn Names (Fields) to build the Update Statement
+        //            // AdoConnObj.Execute strquery
+        //            // Spliting the Collumn Names (Fields) to build the Update Statement
 
-                    ArrFlds = StrFields.Split(",");
+        //            ArrFlds = StrFields.Split(",");
 
-                    // Spliting the Collumn Values (Fields Values) to build the Update Statement
-                    ArrRowValue = ArrTempValues[RowCnt].Split("~");
+        //            // Spliting the Collumn Values (Fields Values) to build the Update Statement
+        //            ArrRowValue = ArrTempValues[RowCnt].Split("~");
 
-                    // First concantinating the values for update
-                    var loopTo1 = ArrFlds.Length - 1;
-                    for (int ColCnt = 0; ColCnt <= loopTo1; ColCnt++)
-                        strUpdateRow = strUpdateRow + ArrFlds[ColCnt] + "=" + ArrRowValue[ColCnt] + ",";
+        //            // First concantinating the values for update
+        //            var loopTo1 = ArrFlds.Length - 1;
+        //            for (int ColCnt = 0; ColCnt <= loopTo1; ColCnt++)
+        //                strUpdateRow = strUpdateRow + ArrFlds[ColCnt] + "=" + ArrRowValue[ColCnt] + ",";
 
-                    // Now building the The Update statement
-                    // If StrCondition(RowCnt) <> "" Then
-                    if ((StrCondition.Length - 1) == (ArrTempValues.Length - 1))
-                    {
-                        Strupdate = "update " + StrTabName + "" + DataLink + " set " + strUpdateRow.Substring(0, strUpdateRow.Length - 1) + " where " + StrCondition[RowCnt];
-                    }
-                    else
-                    {
-                        Strupdate = "update " + StrTabName + "" + DataLink + " set " + strUpdateRow.Substring(0, strUpdateRow.Length - 1);
-                    }
+        //            // Now building the The Update statement
+        //            // If StrCondition(RowCnt) <> "" Then
+        //            if ((StrCondition.Length - 1) == (ArrTempValues.Length - 1))
+        //            {
+        //                Strupdate = "update " + StrTabName + "" + DataLink + " set " + strUpdateRow.Substring(0, strUpdateRow.Length - 1) + " where " + StrCondition[RowCnt];
+        //            }
+        //            else
+        //            {
+        //                Strupdate = "update " + StrTabName + "" + DataLink + " set " + strUpdateRow.Substring(0, strUpdateRow.Length - 1);
+        //            }
 
-                    // Executing the update statement Based On Number of Rows
-                    var result = await ProcessQuery(Strupdate);
+        //            // Executing the update statement Based On Number of Rows
+        //            var result = await ProcessQuery(Strupdate);
 
-                    Strupdate = "";
-                    strUpdateRow = "";
+        //            Strupdate = "";
+        //            strUpdateRow = "";
 
-                    if (result.RecordsAffected == 0)
-                    {
-                        ModifyQueriedTransRet = "Update Failed due to False Condition !";
-                        return ModifyQueriedTransRet;
-                    }
-                }
-                ModifyQueriedTransRet = "Transaction Completed";
-                return ModifyQueriedTransRet;
-            }
-            catch
-            {
-                //strstack = "Error Number: " + Information.Err().Number + " Error Description: " + Information.Err().Description + " Source: " + Information.Err().Source + " Last Dll Error: " + Information.Err().LastDllError + " Help Context: " + Information.Err().HelpContext + " Help File: " + Information.Err().HelpFile;
-                //LogError("QueryRecordsets", "ModifyQueriedTrans", Information.Err().Number, Information.Err().Description + " : Stack : " + strstack + " : SQL Query : " + strquery + " : Insert : " + StrInsert + " : Update : " + Strupdate);
-                //ModifyQueriedTransRet = "Records Could Not Be Updated Due to : " + Information.Err().Number + " : " + Information.Err().Description + " ! " + StrTabName;
-                ModifyQueriedTransRet = ModifyQueriedTransRet.Replace("\n", "").Replace("\r", "");
-            }
+        //            if (result.Count == 0)
+        //            {
+        //                ModifyQueriedTransRet = "Update Failed due to False Condition !";
+        //                return ModifyQueriedTransRet;
+        //            }
+        //        }
+        //        ModifyQueriedTransRet = "Transaction Completed";
+        //        return ModifyQueriedTransRet;
+        //    }
+        //    catch
+        //    {
+        //        //strstack = "Error Number: " + Information.Err().Number + " Error Description: " + Information.Err().Description + " Source: " + Information.Err().Source + " Last Dll Error: " + Information.Err().LastDllError + " Help Context: " + Information.Err().HelpContext + " Help File: " + Information.Err().HelpFile;
+        //        //LogError("QueryRecordsets", "ModifyQueriedTrans", Information.Err().Number, Information.Err().Description + " : Stack : " + strstack + " : SQL Query : " + strquery + " : Insert : " + StrInsert + " : Update : " + Strupdate);
+        //        //ModifyQueriedTransRet = "Records Could Not Be Updated Due to : " + Information.Err().Number + " : " + Information.Err().Description + " ! " + StrTabName;
+        //        ModifyQueriedTransRet = ModifyQueriedTransRet.Replace("\n", "").Replace("\r", "");
+        //    }
 
-            return ModifyQueriedTransRet;
-        }
+        //    return ModifyQueriedTransRet;
+        //}
 
-        public async Task<string> Modify(bool BlnModify, string[] arrTabDetails = null!)
-        {
-            string ModifyRet = string.Empty;
-            string[] arrTran;
-            string strquery;
+        //public async Task<string> Modify(bool BlnModify, string[] arrTabDetails = null!)
+        //{
+        //    string ModifyRet = string.Empty;
+        //    string[] arrTran;
+        //    string strquery;
 
-            try
-            {
-                if (BlnModify == true)
-                {
-                    arrTran = arrTabDetails;
-                    if ((arrTran.Length - 1) > 1)
-                    {
-                        strquery = " update " + arrTran[0].Trim() + DataLink + " set " + arrTran[1].Trim() + " where " + arrTran[2];
-                    }
-                    else
-                    {
-                        strquery = " update " + arrTran[0].Trim() + DataLink + " set " + arrTran[1].Trim();
-                    }
+        //    try
+        //    {
+        //        if (BlnModify == true)
+        //        {
+        //            arrTran = arrTabDetails;
+        //            if ((arrTran.Length - 1) > 1)
+        //            {
+        //                strquery = " update " + arrTran[0].Trim() + DataLink + " set " + arrTran[1].Trim() + " where " + arrTran[2];
+        //            }
+        //            else
+        //            {
+        //                strquery = " update " + arrTran[0].Trim() + DataLink + " set " + arrTran[1].Trim();
+        //            }
 
-                    var result = await ProcessQuery(strquery);
+        //            var result = await ProcessQuery(strquery);
 
-                    if (result.RecordsAffected > 0)
-                    {
-                        ModifyRet = "Modification Completed";
-                    }
-                    else
-                    {
-                        ModifyRet = " Modification Aborted due to false condition.";
-                    }
-                }
-                else
-                {
-                    ModifyRet = "Modification Canceled";
-                }
-            }
-            catch
-            {
-                //strstack = "Error Number: " + Information.Err().Number + " Error Description: " + Information.Err().Description + " Source: " + Information.Err().Source + " Last Dll Error: " + Information.Err().LastDllError + " Help Context: " + Information.Err().HelpContext + " Help File: " + Information.Err().HelpFile;
-                //LogError("QueryRecordsets", "Modify", Information.Err().Number, Information.Err().Description + " : Stack : " + strstack + " :  Update : " + strquery);
-                // ModifyRet = Information.Err().Number + Information.Err().Description;
+        //            if (result.Count > 0)
+        //            {
+        //                ModifyRet = "Modification Completed";
+        //            }
+        //            else
+        //            {
+        //                ModifyRet = " Modification Aborted due to false condition.";
+        //            }
+        //        }
+        //        else
+        //        {
+        //            ModifyRet = "Modification Canceled";
+        //        }
+        //    }
+        //    catch
+        //    {
+        //        //strstack = "Error Number: " + Information.Err().Number + " Error Description: " + Information.Err().Description + " Source: " + Information.Err().Source + " Last Dll Error: " + Information.Err().LastDllError + " Help Context: " + Information.Err().HelpContext + " Help File: " + Information.Err().HelpFile;
+        //        //LogError("QueryRecordsets", "Modify", Information.Err().Number, Information.Err().Description + " : Stack : " + strstack + " :  Update : " + strquery);
+        //        // ModifyRet = Information.Err().Number + Information.Err().Description;
 
-                ModifyRet = ModifyRet.Replace("\n", "").Replace("\r", "");
-            }
-            return ModifyRet;
-        }
+        //        ModifyRet = ModifyRet.Replace("\n", "").Replace("\r", "");
+        //    }
+        //    return ModifyRet;
+        //}
 
         public async Task<string> GetAutoNumberAsync(string TabName, string AutoNumFldName, string WhereCondition = "", string InitialNum = "")
         {
-            OracleDataReader Rstemp = null!;
+            DataTable Rstemp = null!;
 
             int IntLen, IntFldLen;
             string GetAutoNumberRet = string.Empty;
             string strQuery, AutoFieldName, StrTabName, strCondition, strPrefix;
-            
+
             try
             {
                 StrTabName = TabName.Trim();
@@ -647,29 +642,29 @@ namespace Banking.Backend
                 else
                     Rstemp = await SingleRecordSet(StrTabName.Trim(), strQuery);
 
-                if (Rstemp.IsClosed)
+                if (Rstemp.Rows.Count == 0)
                     return GetAutoNumberRet;
 
-                if (Rstemp.HasRows)
+                if (Rstemp.Rows.Count != 0)
                 {
-                    if (string.IsNullOrEmpty(InitialNum.Trim()))
-                        GetAutoNumberRet = Convert.ToString(Rstemp.GetInt32(0) + 1);
-                    else if (Rstemp.GetInt32(0) == 0)
-                        GetAutoNumberRet = InitialNum;
-                    else
-                    {
-                        IntLen = InitialNum.Length;
-                        IntFldLen = Rstemp.GetString(0).Length + 1;
-                        strPrefix = "";
-                        if (IntFldLen < IntLen)
-                        {
-                            var loopTo = IntLen - IntFldLen;
-                            for (int i = 1; i <= loopTo; i++)
-                                strPrefix = strPrefix + "0";
-                        }
+                    //if (string.IsNullOrEmpty(InitialNum.Trim()))
+                    //    GetAutoNumberRet = Convert.ToString(Rstemp.GetInt32(0) + 1);
+                    //else if (Rstemp.GetInt32(0) == 0)
+                    //    GetAutoNumberRet = InitialNum;
+                    //else
+                    //{
+                    //    IntLen = InitialNum.Length;
+                    //    IntFldLen = Rstemp.GetString(0).Length + 1;
+                    //    strPrefix = "";
+                    //    if (IntFldLen < IntLen)
+                    //    {
+                    //        var loopTo = IntLen - IntFldLen;
+                    //        for (int i = 1; i <= loopTo; i++)
+                    //            strPrefix = strPrefix + "0";
+                    //    }
 
-                        GetAutoNumberRet = strPrefix + Convert.ToString(Rstemp.GetInt32(0) + 1);
-                    }
+                    //    GetAutoNumberRet = strPrefix + Convert.ToString(Rstemp.GetInt32(0) + 1);
+                    //}
                 }
                 else if (string.IsNullOrEmpty(InitialNum.Trim()))
                     GetAutoNumberRet = 1.ToString();
@@ -688,7 +683,7 @@ namespace Banking.Backend
 
         public async Task<string> GetAutoTextAsync(string TabName, string AutoNumFldName, string InitialAutoText, string WhereCondition = "")
         {
-            OracleDataReader Rstemp = null!;
+            DataTable Rstemp = null!;
 
             int Txtlen;
             string GetAutoTextRet = string.Empty;
@@ -698,7 +693,7 @@ namespace Banking.Backend
             {
                 StrTabName = TabName.Trim();
                 AutoFieldName = AutoNumFldName.Trim();
-                strCondition =  string.IsNullOrWhiteSpace(WhereCondition.Trim()) ? "" : WhereCondition.Trim();
+                strCondition = string.IsNullOrWhiteSpace(WhereCondition.Trim()) ? "" : WhereCondition.Trim();
                 StrAlfhaText = InitialAutoText.Trim().ToUpper();
                 Txtlen = StrAlfhaText.Length;
 
@@ -714,34 +709,34 @@ namespace Banking.Backend
                     Rstemp = await SingleRecordSet(StrTabName.Trim(), StrQuery);
                 }
 
-                if (Rstemp.IsClosed)
+                if (Rstemp.Rows.Count == 0)
                 {
                     return GetAutoTextRet;
                 }
 
                 StrAutoText = "";
-                if (!Rstemp.HasRows || Rstemp.FieldCount == 0)
+                if (Rstemp.Rows.Count != 0)
                 {
                     StrAutoText = StrAlfhaText;
                 }
                 else
                 {
-                    StrInitialChar = StrAlfhaText.Substring(0, 1);
-                    StrAlfhaText = Rstemp.GetString(0).Trim().ToUpper();
-                    for (int i = Txtlen; i >= 1; i -= 1)
-                    {
-                        if (StrAlfhaText[i - 1] < 'Z')
-                        {
-                            StrAutoText = StrAlfhaText.Substring(0, i - 1) + (char)(StrAlfhaText[i - 1] + 1);
-                            if (StrAutoText.Length < Txtlen)
-                            {
-                                var loopTo = Txtlen - StrAutoText.Length;
-                                for (int j = 1; j <= loopTo; j++)
-                                    StrAutoText = StrAutoText + StrInitialChar;
-                            }
-                            break;
-                        }
-                    }
+                    //StrInitialChar = StrAlfhaText.Substring(0, 1);
+                    //StrAlfhaText = Rstemp.GetString(0).Trim().ToUpper();
+                    //for (int i = Txtlen; i >= 1; i -= 1)
+                    //{
+                    //    if (StrAlfhaText[i - 1] < 'Z')
+                    //    {
+                    //        StrAutoText = StrAlfhaText.Substring(0, i - 1) + (char)(StrAlfhaText[i - 1] + 1);
+                    //        if (StrAutoText.Length < Txtlen)
+                    //        {
+                    //            var loopTo = Txtlen - StrAutoText.Length;
+                    //            for (int j = 1; j <= loopTo; j++)
+                    //                StrAutoText = StrAutoText + StrInitialChar;
+                    //        }
+                    //        break;
+                    //    }
+                    //}
                 }
                 GetAutoTextRet = StrAutoText;
             }
@@ -756,7 +751,7 @@ namespace Banking.Backend
 
         public async Task<string> GetMaxAccountNoAsync(string TabName, string AccFldName, string WhereCondition = "", string InitialAutoText = "")
         {
-            OracleDataReader Rstemp = null!;
+            DataTable Rstemp = null!;
             string GetMaxAccountNoRet = string.Empty;
             string AutoFieldName, StrTabName, strCondition, strPrevAccno;
 
@@ -772,32 +767,27 @@ namespace Banking.Backend
                 else
                     Rstemp = await SingleRecordSet(StrTabName.Trim(), AutoFieldName, string.Empty, AutoFieldName);
 
-                if (Rstemp.IsClosed)
-                {
-                    // GetMaxAccountNoRet = Conversions.ToString(((dynamic)Objquery).ConnError);
-                    return GetMaxAccountNoRet;
-                }
-                else if (!Rstemp.HasRows)
+                if (Rstemp.Rows.Count == 0)
                 {
                     return string.IsNullOrEmpty(InitialAutoText) ? 1.ToString() : InitialAutoText;
                 }
 
-                Rstemp.NextResult();
-                strPrevAccno = Rstemp.GetString(0) + 1;
-                Rstemp.NextResult();
-                while (Rstemp.HasRows)
-                {
-                    if (Rstemp.GetString(0) == strPrevAccno)
-                    {
-                        strPrevAccno = Rstemp.GetString(0) + 1;
-                        Rstemp.NextResult();
-                    }
-                    else
-                    {
-                        break;
-                    }
-                }
-                GetMaxAccountNoRet = strPrevAccno;
+                //Rstemp.NextResult();
+                //strPrevAccno = Rstemp.GetString(0) + 1;
+                //Rstemp.NextResult();
+                //while (Rstemp.HasRows)
+                //{
+                //    if (Rstemp.GetString(0) == strPrevAccno)
+                //    {
+                //        strPrevAccno = Rstemp.GetString(0) + 1;
+                //        Rstemp.NextResult();
+                //    }
+                //    else
+                //    {
+                //        break;
+                //    }
+                //}
+                //GetMaxAccountNoRet = strPrevAccno;
             }
             catch
             {

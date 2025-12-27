@@ -19,7 +19,7 @@
         // Screen Names
         public const string Screen_Login = "Login";
         public const string Screen_ConfirmUserId = "ConfirmUserId";
-        public const string Screen_ModuleSCR = "Module";
+        public const string Screen_ModuleSCR = "Dashboard";
 
         // Transaction Types
         public const string DBTrans_Insert = "DATABASETRANSACTIONS.TRANSACTIONS / INSERTRECORD";

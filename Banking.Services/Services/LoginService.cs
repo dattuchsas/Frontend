@@ -1,15 +1,9 @@
-﻿using Banking.Backend;
-using Banking.Framework;
+﻿using Banking.Framework;
 using Banking.Interfaces;
 using Banking.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
-using Newtonsoft.Json.Linq;
-using Oracle.ManagedDataAccess.Client;
-using System;
-using System.Collections.Concurrent;
-using System.Net.Http;
-using static System.Runtime.InteropServices.JavaScript.JSType;
+using System.Data;
 
 namespace Banking.Services
 {
@@ -49,35 +43,34 @@ namespace Banking.Services
 
         public async Task<string> LoginValidate(string userId)
         {
-            OracleDataReader reader;
+            DataTable reader;
 
             try
             {
                 // Query to convert
                 query = $"select distinct a.branchcode,a.GROUPID from genusermst a, genbankbranchmst b where a.branchcode=b.branchcode and upper(a.userid) = \'{userId.ToUpper()}\'";
 
-                reader = await _databaseFactory.ProcessQuery(query);
+                reader = await _databaseFactory.ProcessQueryAsync(query);
 
-                if (reader != null && !reader.IsClosed && reader.HasRows)
+                if (reader.Rows.Count != 0)
                 {
-                    while (await reader.ReadAsync())
+                    foreach (DataRow item in reader.Rows)
                     {
-                        branchCode = reader.GetString(0);
-                        userMode = reader.GetString(1);
+                        branchCode = Convert.ToString(item["branchcode"]) ?? string.Empty;
+                        userMode = Convert.ToString(item["GROUPID"]) ?? string.Empty;
                     }
                 }
 
                 // Query to convert
                 query = "SELECT DEPCERTIFICATE FROM genbankparm";
 
-                reader = await _databaseFactory.ProcessQuery(query);
+                reader = await _databaseFactory.ProcessQueryAsync(query);
 
-                if (reader != null && !reader.IsClosed && reader.HasRows)
+                if (reader.Rows.Count != 0)
                 {
-                    while (await reader.ReadAsync())
+                    foreach (DataRow item in reader.Rows)
                     {
-                        int depCertIndex = reader.GetOrdinal("DEPCERTIFICATE");
-                        bankName = reader.IsDBNull(depCertIndex) ? string.Empty : reader.GetString(depCertIndex);
+                        bankName = Convert.ToString(item["DEPCERTIFICATE"]) ?? string.Empty;
                     }
                 }
 
@@ -102,14 +95,13 @@ namespace Banking.Services
                 // Query to convert
                 query = $"SELECT to_char(applicationdate,'dd-Mon-yyyy') appdate FROM genapplicationdatemst where branchcode = \'{branchCode}\'";
 
-                reader = await _databaseFactory.ProcessQuery(query);
+                reader = await _databaseFactory.ProcessQueryAsync(query);
 
-                if (reader != null && !reader.IsClosed && reader.HasRows)
+                if (reader.Rows.Count != 0)
                 {
-                    while (await reader.ReadAsync())
+                    foreach (DataRow item in reader.Rows)
                     {
-                        int depCertIndex = reader.GetOrdinal("appdate");
-                        dtAppDt = Convert.ToDateTime(reader.GetValue(depCertIndex));
+                        dtAppDt = Convert.ToDateTime(Convert.ToString(item["appdate"]));
                     }
                 }
 
@@ -155,7 +147,7 @@ namespace Banking.Services
                     }
                 }
 
-                // 'after license or AMC is expired - start appdate is greater than expiry date
+                // After license or AMC is expired - start appdate is greater than expiry date
                 if (dtAppDt >= dtToDt)
                 {
                     dblDiffDays = BankingExtensions.DateDifference("d", dtToDt, dtAppDt);
@@ -277,41 +269,28 @@ namespace Banking.Services
 
         public async Task<string> GetEODProgress(string userId)
         {
-            OracleDataReader reader;
-
             string GetEODProgressRet = string.Empty;
-            string query;
-            //string strSMSBankName = "";
-            string strDayBeginStatus = "";
-            string strDayEndStatus = "";
-            string strHOdayBeginStatus = "";
-            string strHODayEndStatus = "";
+            DataTable reader = null!;
+            string query, strDayBeginStatus, strDayEndStatus, strHOdayBeginStatus, strHODayEndStatus;
+
             try
             {
                 query = "SELECT DAYBEGINSTATUS, DAYENDSTATUS, HODAYBEGINSTATUS, HODAYENDSTATUS FROM genapplicationdatemst  where branchcode != '999'";
 
-                reader = await _databaseFactory.ProcessQuery(query);
+                reader = await _databaseFactory.ProcessQueryAsync(query);
 
-                if (reader != null && !reader.IsClosed && reader.HasRows)
+                if (reader.Rows.Count != 0)
                 {
-                    while (await reader.ReadAsync())
+                    foreach (DataRow item in reader.Rows)
                     {
-                        int one = reader.GetOrdinal("DAYBEGINSTATUS");
-                        strDayBeginStatus = reader.IsDBNull(one) ? string.Empty : reader.GetString(one);
+                        strDayBeginStatus = Convert.ToString(item["DAYBEGINSTATUS"]) ?? string.Empty;
+                        strDayEndStatus = Convert.ToString(item["DAYENDSTATUS"]) ?? string.Empty;
+                        strHOdayBeginStatus = Convert.ToString(item["HODAYBEGINSTATUS"]) ?? string.Empty;
+                        strHODayEndStatus = Convert.ToString(item["HODAYENDSTATUS"]) ?? string.Empty;
 
-                        int two = reader.GetOrdinal("DAYENDSTATUS");
-                        strDayEndStatus = reader.IsDBNull(two) ? string.Empty : reader.GetString(two);
-
-                        int three = reader.GetOrdinal("HODAYBEGINSTATUS");
-                        strHOdayBeginStatus = reader.IsDBNull(three) ? string.Empty : reader.GetString(three);
-
-                        int four = reader.GetOrdinal("HODAYENDSTATUS");
-                        strHODayEndStatus = reader.IsDBNull(four) ? string.Empty : reader.GetString(four);
-
-                        if (strDayBeginStatus == "O" & strDayEndStatus == "N" & strHOdayBeginStatus == "O" & strHODayEndStatus == "N" | strDayBeginStatus == "O" & strDayEndStatus == "O" & strHOdayBeginStatus == "O" & strHODayEndStatus == "N")
-                        {
+                        if (strDayBeginStatus == "O" && strDayEndStatus == "N" && strHOdayBeginStatus == "O" && strHODayEndStatus == "N" ||
+                            strDayBeginStatus == "O" && strDayEndStatus == "O" && strHOdayBeginStatus == "O" && strHODayEndStatus == "N")
                             GetEODProgressRet = "YES";
-                        }
                         else
                         {
                             GetEODProgressRet = "906";
@@ -320,9 +299,7 @@ namespace Banking.Services
                     }
                 }
                 else
-                {
                     GetEODProgressRet = "906";
-                }
 
                 return GetEODProgressRet;
             }
@@ -334,32 +311,25 @@ namespace Banking.Services
             return GetEODProgressRet;
         }
 
-        public async Task<IDictionary<string, string>> LoginCheckProcess(ISession session, string userId, string firstPass, string secPass, string hdndaybegin,string status)
+        public async Task<IDictionary<string, string>> LoginCheckProcess(ISession session, string userId, string firstPass, string secPass, string hdndaybegin, string status, string remoteHost)
         {
             Dictionary<string, string> commDict = [];
             string[,] trans = new string[1, 5];
             string queryString = string.Empty, strMessage = string.Empty, message = string.Empty, strQuery = string.Empty;
 
-            //dim ObjLogin, ObjWorkAllotment
-            //Dim objchk
-            //Dim objcnt
-            //dim objfetch, Decodepswd
-            //dim objErrlog
-            //dim strerror
-
             // objErrlog.LogError("LoginCheck", "genmodulemst", 9, objchk.ConnError & " : SQL Query : " & strquery)
             // strerror = objErrlog.ErrorProcess(9, "genmodulemst: " & objchk.ConnError, objchk.ConnError & " : SQL Query : " & strquery, "LoginCheck",, UsrId, session("machineid"))
 
-            OracleDataReader rs;
-            OracleDataReader rs1;
-            OracleDataReader rs2;
-            OracleDataReader rscust;
-            OracleDataReader rscnt;
-            OracleDataReader rsdate;
-            OracleDataReader rsLogChk;
-            OracleDataReader rsBioChk;
-            OracleDataReader recdaybegin = null!;
-            OracleDataReader rsValid = null!;
+            DataTable rs;
+            DataTable rs1;
+            DataTable rs2;
+            DataTable rscust;
+            DataTable rscnt;
+            DataTable rsdate;
+            DataTable rsLogChk;
+            DataTable rsBioChk;
+            DataTable recdaybegin = null!;
+            DataTable rsValid = null!;
 
             try
             {
@@ -369,7 +339,7 @@ namespace Banking.Services
 
                 if (!string.IsNullOrWhiteSpace(userId.Trim().ToUpper()))
                 {
-                    session.SetString("userid", userId); 
+                    session.SetString("userid", userId);
                     session.SetString("daybegin", "");
                 }
                 else
@@ -377,7 +347,9 @@ namespace Banking.Services
                     userId = session.GetString("userid") ?? string.Empty;
                 }
 
-                string sessionId = session.Id;
+                string sessionId = session.GetSessionId();
+
+                session.SetString("machineid", remoteHost);
 
                 try
                 {
@@ -393,18 +365,17 @@ namespace Banking.Services
                     return commDict.AddAndReturn(BankingConstants.Screen_Login, "Connection Failed: " + ex.Message);
                 }
 
-                if (rs.HasRows)
+                if (rs.Rows.Count != 0)
                 {
-                    rs.Read();
-                    session.SetString("branchcode", rs.GetString(0));
-                    session.SetString("branchnarration", rs.GetString(2));
-                    session.SetString("groupcode", rs.GetString(3));
-                    session.SetString("Abbuser", rs.GetString(4) == null ? "" : rs.GetString(4));
-                    session.SetString("userName", rs.GetString(5));
+                    session.SetString("branchcode", Convert.ToString(rs.Rows[0].ItemArray[0]));
+                    session.SetString("branchnarration", Convert.ToString(rs.Rows[0].ItemArray[2]));
+                    session.SetString("groupcode", Convert.ToString(rs.Rows[0].ItemArray[3]));
+                    session.SetString("Abbuser", Convert.ToString(rs.Rows[0].ItemArray[4]));
+                    session.SetString("userName", Convert.ToString(rs.Rows[0].ItemArray[5]));
 
                     try
                     {
-                        rsdate = await _databaseFactory.SingleRecordSet("GENAPPLICATIONDATEMST", "to_char(applicationdate,'dd-Mon-yyyy')", " branchcode='" + rs.GetString(0) + "'");
+                        rsdate = await _databaseFactory.SingleRecordSet("GENAPPLICATIONDATEMST", "to_char(applicationdate,'dd-Mon-yyyy')", " branchcode='" + Convert.ToString(rs.Rows[0].ItemArray[0]) + "'");
                     }
                     catch (Exception ex)
                     {
@@ -416,16 +387,18 @@ namespace Banking.Services
                         return commDict.AddAndReturn(BankingConstants.Screen_Login, "Connection Failed: " + ex.Message);
                     }
 
-                    if (rsdate.HasRows)
+                    if (rsdate.Rows.Count != 0)
                     {
-                        rsdate.Read();
-                        session.SetString("applicationdate", rsdate.GetString(0));
+                        //TODO: Set application date back once testing done.
+                        //session.SetString("applicationdate", Convert.ToString(rsdate.Rows[0].ItemArray[0]));
+                        
+                        session.SetString("applicationdate", "11-Jan-2050");
 
                         try
                         {
                             rs1 = await _databaseFactory.SingleRecordSet("genbranchpmt a, gencurrencytypemst b",
                                 "distinct(a.currencycode),b.narration,b.PRECISION,a.CHEQUEVALIDPERIOD,a.CHEQUELENGTH",
-                                "a.branchcode='" + rs.GetString(0) + "' and a.currencycode=b.currencycode");
+                                "a.branchcode='" + Convert.ToString(rs.Rows[0].ItemArray[0]) + "' and a.currencycode=b.currencycode");
                         }
                         catch (Exception ex)
                         {
@@ -437,24 +410,22 @@ namespace Banking.Services
                             return commDict.AddAndReturn(BankingConstants.Screen_Login, "Connection Failed: " + ex.Message);
                         }
 
-                        rs.Close();
                         rs = null!;
 
-                        if (rs1.HasRows)
+                        if (rs1.Rows.Count != 0)
                         {
-                            rs1.Read();
-                            session.SetString("currencycode", rs1.GetString(0));
-                            session.SetString("currencynarration", rs1.GetString(1));
-                            session.SetInt32("PRECISION", rs1.GetString(2).Length - 1);
+                            string precision = Convert.ToString(rs1.Rows[0].ItemArray[2]) ?? string.Empty;
+                            session.SetString("currencycode", Convert.ToString(rs1.Rows[0].ItemArray[0]));
+                            session.SetString("currencynarration", Convert.ToString(rs1.Rows[0].ItemArray[1]));
+                            session.SetInt32("PRECISION", precision.Length - 1);
 
                             // Cheque Validity Period
-                            session.SetString("ChequeValidPeriod", rs1.IsDBNull(3).Equals(false) ? rs1.GetString(2) : string.Empty);
+                            session.SetString("ChequeValidPeriod", !string.IsNullOrWhiteSpace(Convert.ToString(rs1.Rows[0].ItemArray[3])) ? Convert.ToString(rs1.Rows[0].ItemArray[3]) : "");
 
                             // Cheque Length
-                            session.SetString("ChequeLength", rs1.GetString(4).Equals(false) ? rs1.GetString(3) : string.Empty);
+                            session.SetString("ChequeLength", !string.IsNullOrWhiteSpace(Convert.ToString(rs1.Rows[0].ItemArray[4])) ? Convert.ToString(rs1.Rows[0].ItemArray[4]) : "");
                         }
 
-                        rs1.Close();
                         rs1 = null!;
 
                         try
@@ -471,43 +442,37 @@ namespace Banking.Services
                             return commDict.AddAndReturn(BankingConstants.Screen_Login, "Connection Failed: " + ex.Message);
                         }
 
-                        if (rscnt.HasRows)
+                        if (rscnt.Rows.Count != 0)
                         {
-                            rscnt.Read();
-                            session.SetString("counterno", rscnt.GetString(0));
+                            session.SetString("counterno", Convert.ToString(rscnt.Rows[0].ItemArray[0]));
                         }
 
-                        rscnt.Close();
                         rscnt = null!;
                     }
 
                     rscust = await _databaseFactory.SingleRecordSet("genbankparm", "NONCUSTOMERID");
 
-                    if (rscust.HasRows)
+                    if (rscust.Rows.Count != 0)
                     {
-                        rscust.Read();
-                        session.SetString("noncustomer", rscust.GetString(0));
+                        session.SetString("noncustomer", Convert.ToString(rscust.Rows[0].ItemArray[0]));
                     }
 
-                    rscust.Close();
                     rscust = null!;
 
                     rs2 = await _databaseFactory.SingleRecordSet("genbankparm", "bankcode,bankname", "");
 
-                    if (rs2.HasRows)
+                    if (rs2.Rows.Count != 0)
                     {
-                        rs2.Read();
-                        session.SetString("bankcode", rs2.GetString(0));
-                        session.SetString("bankname", rs2.GetString(1));
+                        session.SetString("bankcode", Convert.ToString(rs2.Rows[0].ItemArray[0]));
+                        session.SetString("bankname", Convert.ToString(rs2.Rows[0].ItemArray[1]));
                     }
 
-                    rs2.Close();
                     rs2 = null!;
 
                     if (session.GetString("daybegin") == "")
                     {
                         var moduleId = session.GetString("moduleid") ?? string.Empty;
-                        if (userId.Length != 0 && firstPass.Length != 0 && secPass.Length != 0 || moduleId == "xxxx")
+                        if (userId.Length != 0 && firstPass.Length != 0 && secPass.Length != 0 || moduleId == "")
                         {
                             // New code
 
@@ -526,12 +491,12 @@ namespace Banking.Services
                                 return commDict.AddAndReturn(BankingConstants.Screen_Login, "Connection Failed: " + ex.Message);
                             }
 
-                            if (!rsValid.HasRows)
+                            if (rsValid.Rows.Count == 0)
                             {
                                 return commDict.AddAndReturn(BankingConstants.Screen_Login, $"{userId.ToUpper()} Your account is temporarly disabled. Please contact your Administrator...");
                             }
 
-                            rsValid.Close();
+                            rsValid = null!;
 
                             // 1.1 Password checking for default password
                             // (i) check the password without encrypting for default passwords
@@ -546,17 +511,15 @@ namespace Banking.Services
                                 rsLogChk = await _databaseFactory.SingleRecordSet("GENPROMOTIONSMST", "EMPPWD", "upper(EMPID)='" + userId.ToUpper() + "'");
                                 rsBioChk = await _databaseFactory.SingleRecordSet("GENUSERMST", "BIOMETRICS,status", "upper(USERID)='" + userId.ToUpper() + "'");
 
-                                if (rsLogChk.HasRows)
+                                if (rsLogChk.Rows.Count != 0)
                                 {
-                                    rsLogChk.Read();
-                                    if (firstPass == rsLogChk.GetString(0) || Paswd1 == rsLogChk.GetString(0))
+                                    if (firstPass == Convert.ToString(rsLogChk.Rows[0].ItemArray[0]) || Paswd1 == Convert.ToString(rsLogChk.Rows[0].ItemArray[0]))
                                     {
-                                        rsBioChk.Read();
-                                        if (rsBioChk.HasRows)
+                                        if (rsBioChk.Rows.Count != 0)
                                         {
-                                            if (secPass == rsBioChk.GetString(0) || chkBio1 == rsBioChk.GetString(0))
+                                            if (secPass == Convert.ToString(rsBioChk.Rows[0].ItemArray[0]) || chkBio1 == Convert.ToString(rsBioChk.Rows[0].ItemArray[0]))
                                             {
-                                                if (rsBioChk.GetString(1) == "A")
+                                                if (Convert.ToString(rsBioChk.Rows[0].ItemArray[1]) == "A")
                                                     strMessage = "Successfully Loged in";
                                                 else
                                                 {
@@ -599,17 +562,15 @@ namespace Banking.Services
                             rsLogChk = await _databaseFactory.SingleRecordSet("GENPROMOTIONSMST", "EMPPWD", "upper(EMPID)='" + userId.ToUpper() + "'");
                             rsBioChk = await _databaseFactory.SingleRecordSet("GENUSERMST", "BIOMETRICS,status", "upper(USERID)='" + userId.ToUpper() + "'");
 
-                            if (rsLogChk.HasRows)
+                            if (rsLogChk.Rows.Count != 0)
                             {
-                                rsLogChk.Read();
-                                if (chkPwd == rsLogChk.GetString(0))
+                                if (chkPwd == Convert.ToString(rsLogChk.Rows[0].ItemArray[0]))
                                 {
-                                    if (rsBioChk.HasRows)
+                                    if (rsBioChk.Rows.Count != 0)
                                     {
-                                        rsBioChk.Read();
-                                        if (chkBio == rsBioChk.GetString(0))
+                                        if (chkBio == Convert.ToString(rsBioChk.Rows[0].ItemArray[0]))
                                         {
-                                            if (rsBioChk.GetString(1) == "A")
+                                            if (Convert.ToString(rsBioChk.Rows[0].ItemArray[1]) == "A")
                                                 strMessage = "Successfully Loged in";
                                             else
                                             {
@@ -641,34 +602,29 @@ namespace Banking.Services
                                 return commDict.AddAndReturn(BankingConstants.Screen_Login, strMessage);
                             }
 
-                            rsLogChk.Close();
                             rsLogChk = null!;
-                            rsBioChk.Close();
                             rsBioChk = null!;
 
                             // 3.Checking whether UserId Locked OR Not
-                            OracleDataReader rsLock = await _databaseFactory.SingleRecordSet("GENUSERMST", "LOCKEDDATE", "upper(userid)='" + userId.ToUpper() + "'");
-                            if (rsLock.HasRows)
+                            DataTable rsLock = await _databaseFactory.SingleRecordSet("GENUSERMST", "LOCKEDDATE", "upper(userid)='" + userId.ToUpper() + "'");
+                            if (rsLock.Rows.Count != 0)
                             {
-                                rsLock.Read();
-                                if (rsLock.IsDBNull(0).Equals(false))
+                                if (!string.IsNullOrWhiteSpace(Convert.ToString(rsLock.Rows[0].ItemArray[0])))
                                 {
                                     strMessage = "UserId Locked";
                                     return commDict.AddAndReturn(BankingConstants.Screen_Login, strMessage);
                                 }
-                                rsLock.Close();
                                 rsLock = null!;
                             }
 
                             // 4.Checking whether User Expirydate is crossed the Applicationdate
-                            OracleDataReader rsExpDt = await _databaseFactory.SingleRecordSet("GENUSERMST", "EXPIRYDATE,sysdate", "upper(userid)='" + userId.ToUpper() + "'");
+                            DataTable rsExpDt = await _databaseFactory.SingleRecordSet("GENUSERMST", "EXPIRYDATE,sysdate", "upper(userid)='" + userId.ToUpper() + "'");
                             session.SetString("ExpiryUserid", "");
-                            if (rsExpDt.HasRows)
+                            if (rsExpDt.Rows.Count != 0)
                             {
-                                rsExpDt.Read();
-                                if (rsExpDt.IsDBNull(0).Equals(false))
+                                if (!string.IsNullOrWhiteSpace(Convert.ToString(rsExpDt.Rows[0].ItemArray[0])))
                                 {
-                                    double days = BankingExtensions.DateDifference("d", Convert.ToDateTime(session.GetString("applicationdate")), Convert.ToDateTime(rsExpDt.GetValue(0)));
+                                    double days = BankingExtensions.DateDifference("d", Convert.ToDateTime(session.GetString("applicationdate")), Convert.ToDateTime(rsExpDt.Rows[0].ItemArray[0]));
                                     if (Convert.ToInt32(days) <= 10)
                                     {
                                         message = "UserId Will Be Expired WithIn " + days + " day(s)";
@@ -682,24 +638,21 @@ namespace Banking.Services
                                             return commDict.AddAndReturn(BankingConstants.Screen_Login, message);
                                         }
                                         session.SetString("ExpiryUserid", message);
-                                        return commDict.AddAndReturn(BankingConstants.Screen_Login, strMessage);
                                     }
                                 }
                             }
 
-                            rsExpDt.Close();
                             rsExpDt = null!;
 
                             // 5.Checking Password ExpiryDate
-                            OracleDataReader rsPwdDt = await _databaseFactory.SingleRecordSet("GENPROMOTIONSMST", "PWDEXPIRYDT,sysdate,GRACETIME", "upper(EMPID)='" + userId.ToUpper() + "'");
+                            DataTable rsPwdDt = await _databaseFactory.SingleRecordSet("GENPROMOTIONSMST", "PWDEXPIRYDT,sysdate,GRACETIME", "upper(EMPID)='" + userId.ToUpper() + "'");
                             session.SetString("Expirypwd", "");
-                            if (rsPwdDt.HasRows)
+                            if (rsPwdDt.Rows.Count != 0)
                             {
-                                rsPwdDt.Read();
-                                if (rsPwdDt.IsDBNull(0).Equals(false))
+                                if (!string.IsNullOrWhiteSpace(Convert.ToString(rsPwdDt.Rows[0].ItemArray[0])))
                                 {
-                                    double days = BankingExtensions.DateDifference("D", Convert.ToDateTime(session.GetString("applicationdate")), Convert.ToDateTime(rsExpDt.GetValue(0)));
-                                    if (Convert.ToInt32(days) <= Convert.ToInt32(rsPwdDt.GetString(2)))
+                                    double days = BankingExtensions.DateDifference("D", Convert.ToDateTime(session.GetString("applicationdate")), Convert.ToDateTime(rsPwdDt.Rows[0].ItemArray[0]));
+                                    if (Convert.ToInt32(days) <= Convert.ToInt32(rsPwdDt.Rows[0].ItemArray[2]))
                                     {
                                         message = "Your Password Will Be Expired WithIn " + days + " day(s)";
                                         if (Convert.ToInt32(days) == 0)
@@ -713,11 +666,11 @@ namespace Banking.Services
                                     }
                                 }
                             }
-                            rsPwdDt.Close();
+
                             rsPwdDt = null!;
 
                             // End of New code
-                            if (session.GetString("").Equals("xxxx"))
+                            if (string.IsNullOrWhiteSpace(session.GetString("moduleid")))
                             {
                                 strMessage = "Successfully Loged in";
                                 status = "Login";
@@ -725,11 +678,11 @@ namespace Banking.Services
 
                             if (status == "Login")
                             {
-                                if (strMessage.Equals("Successfully Loged in") || strMessage.Equals("Trans Completed"))
+                                if (strMessage.Equals("Successfully Loged in") || strMessage.Equals("Transaction Completed"))
                                 {
                                     string group1 = string.Empty, macid = string.Empty;
                                     int sessions = 0;
-                                    OracleDataReader reccheck;
+                                    DataTable reccheck;
 
                                     try
                                     {
@@ -747,12 +700,11 @@ namespace Banking.Services
                                         return commDict.AddAndReturn(BankingConstants.Screen_Login, "Connection Failed: " + ex.Message);
                                     }
 
-                                    if (reccheck.HasRows)
+                                    if (reccheck.Rows.Count != 0)
                                     {
-                                        reccheck.Read();
-                                        sessions = Convert.ToInt32(reccheck.GetValue(0));
-                                        macid = reccheck.GetString(1);
-                                        group1 = reccheck.GetString(2);
+                                        sessions = Convert.ToInt32(reccheck.Rows[0].ItemArray[0]);
+                                        macid = Convert.ToString(reccheck.Rows[0].ItemArray[1]) ?? string.Empty;
+                                        group1 = Convert.ToString(reccheck.Rows[0].ItemArray[2]) ?? string.Empty;
                                     }
                                     else
                                     {
@@ -777,7 +729,7 @@ namespace Banking.Services
                                             return commDict.AddAndReturn(BankingConstants.Screen_Login, "Connection Failed: " + ex.Message);
                                         }
 
-                                        if (reccheck.HasRows)
+                                        if (reccheck.Rows.Count != 0)
                                         {
                                             if (!macid.Equals("")) // Request.ServerVariables("REMOTE_HOST")))
                                             {
@@ -798,7 +750,7 @@ namespace Banking.Services
                                             {
                                                 macid = ""; // Request.ServerVariables("REMOTE_HOST")
                                                 reccheck = await _databaseFactory.SingleRecordSet("genmachinedtls", "machineid", "upper(branchcode)='" + session.GetString("branchcode").ToUpper() + "' and machineipaddress='" + macid + "'");
-                                                if (reccheck.HasRows)
+                                                if (reccheck.Rows.Count != 0)
                                                 {
                                                     //x = 0;   todo
                                                 }
@@ -824,39 +776,40 @@ namespace Banking.Services
                                         return commDict.AddAndReturn(BankingConstants.Screen_Login, "Connection Failed: " + ex.Message);
                                     }
 
-                                    if (reccheck.HasRows)
+                                    if (reccheck.Rows.Count != 0)
                                     {
-                                        if (reccheck.FieldCount >= Convert.ToInt32(sessions) && group1.Equals("ADMIN"))
+                                        if (reccheck.Rows.Count >= Convert.ToInt32(sessions) && group1.Equals("ADMIN"))
                                         {
                                             if (sessions == 0)
                                                 sessions = 1;
                                             return commDict.AddAndReturn(BankingConstants.Screen_Login, $"{userId.ToUpper()} You have already opened {sessions} browsers. Please logout from some browsers and try again...");
                                         }
-                                        else
+                                        else if (group1 != "ADMIN" && Convert.ToString(reccheck.Rows[0].ItemArray[0]) != Convert.ToString(session.GetString("machineid")))
                                         {
                                             return commDict.AddAndReturn(BankingConstants.Screen_Login, $"{userId.ToUpper()} You have already opened one browser. Please logout that and try again...");
                                         }
                                     }
 
-                                    reccheck.Close();
                                     reccheck = null!;
 
-                                    trans[0, 0] = "U";
-                                    trans[0, 1] = "Genuserlogindtls";
-                                    trans[0, 2] = "userid,machineid,branchcode,loginsysdate,adminyn,sessionid";
-                                    trans[0, 3] = "'" + userId + "','" + session.GetString("machineid") + "','" + session.GetString("branchcode") + "',sysdate,'admin','" + sessionId + "'";
-                                    trans[0, 4] = "";
+                                    char admin = group1.ToUpper().Equals("ADMIN") ? 'Y' : 'N';
+
+                                    //trans[0, 0] = "U";
+                                    //trans[0, 1] = "Genuserlogindtls";
+                                    //trans[0, 2] = "userid,machineid,branchcode,loginsysdate,adminyn,sessionid";
+                                    //trans[0, 3] = "'" + userId + "','" + session.GetString("machineid") + "','" + session.GetString("branchcode") + "',sysdate,admin,'" + sessionId + "'";
+                                    //trans[0, 4] = "";
                                     trans[0, 0] = "I";
                                     trans[0, 1] = "Genuserlogindtls";
                                     trans[0, 2] = "userid,machineid,branchcode,loginsysdate,adminyn,sessionid";
-                                    trans[0, 3] = "'" + userId + "','" + session.GetString("machineid") + "','" + session.GetString("branchcode") + "',sysdate,'admin','" + sessionId + "'";
+                                    trans[0, 3] = "'" + userId + "','" + session.GetString("machineid") + "','" + session.GetString("branchcode") + "',sysdate,'" + admin + "','" + sessionId + "'";
                                     trans[0, 4] = "";
 
-                                    strMessage = await _databaseFactory.ProcessDataTransactions(trans, "", "", "", "", "N");
+                                    strMessage = await _databaseFactory.ProcessDataTransactions(trans, "", "", "", appdate, "N");
                                     // Response.Write(strmsg)
                                     // Response.Write(trans(0, 3))
 
-                                    if (strMessage.Length >= 11 && strMessage.Substring(0, 11).Equals(""))
+                                    if (strMessage.Length >= 11 && strMessage.Substring(0, 11).Equals("Transaction"))
                                     {
                                         string stx = "";
                                         string stn = "";
@@ -865,7 +818,10 @@ namespace Banking.Services
                                         {
                                             recdaybegin = await _databaseFactory.SingleRecordSet("genmodulemst c, genmoduletypesmst d",
                                                 "distinct(c.moduleid),initcap(c.narration),moduleorder",
-                                                "c.moduleid in(select moduleid from gengroupformsmst where groupcode= (select groupid from genusermst where upper(userid)='" + userId.ToUpper() + "') union select distinct moduleid from genuseridformsmst where addoreliminate='A' and upper(userid)='" + userId.ToUpper() + "'" + ") and d.implementedyn='Y' and d.moduleid=c.moduleid and d.branchcode='" + session.GetString("branchcode") + "' and c.parentmoduleid is null order by moduleorder");
+                                                "c.moduleid in(select moduleid from gengroupformsmst where groupcode= (select groupid from genusermst where upper(userid)='" + 
+                                                userId.ToUpper() + "') union select distinct moduleid from genuseridformsmst where addoreliminate='A' and upper(userid)='" + 
+                                                userId.ToUpper() + "'" + ") and d.implementedyn='Y' and d.moduleid=c.moduleid and d.branchcode='" + session.GetString("branchcode") + 
+                                                "' and c.parentmoduleid is null order by moduleorder");
                                         }
                                         catch (Exception ex)
                                         {
@@ -878,18 +834,17 @@ namespace Banking.Services
                                             return commDict.AddAndReturn(BankingConstants.Screen_Login, "Connection Failed: " + ex.Message);
                                         }
 
-                                        if (recdaybegin.FieldCount == 0)
+                                        if (recdaybegin.Rows.Count == 0)
                                         {
                                             string strm = "Workallotment is not done to this user..";
                                             return commDict.AddAndReturn(BankingConstants.Screen_Login, strm);
                                         }
 
-                                        do
+                                        foreach (DataRow row in recdaybegin.Rows)
                                         {
-                                            recdaybegin.Read();
-                                            stx = stx + recdaybegin.GetString(0) + ":F" + "|";
-                                            stn = stn + "," + recdaybegin.GetString(1);
-                                        } while (recdaybegin.HasRows);
+                                            stx += row[0].ToString() + ":F|";
+                                            stn += "," + row[1].ToString();
+                                        }
 
                                         stx = stx + "$";
 
@@ -936,76 +891,76 @@ namespace Banking.Services
                 }
                 else
                 {
-                    // RecWorkAllotment = nothing
+                    //// RecWorkAllotment = nothing
 
-                    OracleDataReader recdaybegin1 = null!;
-                    OracleDataReader recdaybegin2 = null!;
+                    //OracleDataReader recdaybegin1 = null!;
+                    //OracleDataReader recdaybegin2 = null!;
 
-                    // rsdate.Close();
-                    // rsdate = null!;
+                    //// rsdate.Close();
+                    //// rsdate = null!;
 
-                    string stn = "";
-                    string stx = "";
+                    //string stn = "";
+                    //string stx = "";
 
-                    //if db not connected 
-                    //Redirect to useridscreen.aspx. with error message.
-                    // return DictionaryExtensions.AddAndReturn(commDict, BankingConstants.Screen_Login, "Connection Failed.");
+                    ////if db not connected 
+                    ////Redirect to useridscreen.aspx. with error message.
+                    //// return DictionaryExtensions.AddAndReturn(commDict, BankingConstants.Screen_Login, "Connection Failed.");
 
-                    do
-                    {
-                        if (recdaybegin.GetString(1) == "0")
-                            stx = stx + recdaybegin.GetString(0) + ":F" + "|";
-                        else
-                            stx = stx + recdaybegin.GetString(0) + ":T" + "|";
+                    //do
+                    //{
+                    //    if (recdaybegin.GetString(1) == "0")
+                    //        stx = stx + recdaybegin.GetString(0) + ":F" + "|";
+                    //    else
+                    //        stx = stx + recdaybegin.GetString(0) + ":T" + "|";
 
-                        stn = stn + "," + recdaybegin.GetString(2);
+                    //    stn = stn + "," + recdaybegin.GetString(2);
 
-                    } while (recdaybegin.HasRows);
+                    //} while (recdaybegin.HasRows);
 
-                    recdaybegin.Close();
-                    recdaybegin = null!;
+                    //recdaybegin.Close();
+                    //recdaybegin = null!;
 
-                    stx = stx + "$";
+                    //stx = stx + "$";
 
-                    if (stn.Length == 0)
-                    {
-                        stn = stn + "$";
+                    //if (stn.Length == 0)
+                    //{
+                    //    stn = stn + "$";
 
-                        // if db not connected.
-                        // Redirect to useridscreen.aspx with message - ConnError
-                        // return DictionaryExtensions.AddAndReturn(commDict, BankingConstants.Screen_Login, "Connection Failed.");
+                    //    // if db not connected.
+                    //    // Redirect to useridscreen.aspx with message - ConnError
+                    //    // return DictionaryExtensions.AddAndReturn(commDict, BankingConstants.Screen_Login, "Connection Failed.");
 
 
-                        do
-                        {
-                            stx = stx + recdaybegin1.GetString(0) + ":F" + "|";
-                            stn = stn + "," + recdaybegin1.GetString(1);
-                        } while (recdaybegin1.HasRows);
+                    //    do
+                    //    {
+                    //        stx = stx + recdaybegin1.GetString(0) + ":F" + "|";
+                    //        stn = stn + "," + recdaybegin1.GetString(1);
+                    //    } while (recdaybegin1.HasRows);
 
-                        recdaybegin1.Close();
-                        recdaybegin1 = null!;
+                    //    recdaybegin1.Close();
+                    //    recdaybegin1 = null!;
 
-                        // if DB not connected.
-                        // Redirect to useridscreen.aspx with message - ConnError
-                        // return DictionaryExtensions.AddAndReturn(commDict, BankingConstants.Screen_Login, "Connection Failed.");
+                    //    // if DB not connected.
+                    //    // Redirect to useridscreen.aspx with message - ConnError
+                    //    // return DictionaryExtensions.AddAndReturn(commDict, BankingConstants.Screen_Login, "Connection Failed.");
 
-                        do
-                        {
-                            stx = stx + recdaybegin2.GetString(0) + ":F" + "|";
-                            stn = stn + "," + recdaybegin2.GetString(1);
-                            // Response.Write(recdaybegin2(1).value)
-                        } while (recdaybegin2.HasRows);
+                    //    do
+                    //    {
+                    //        stx = stx + recdaybegin2.GetString(0) + ":F" + "|";
+                    //        stn = stn + "," + recdaybegin2.GetString(1);
+                    //        // Response.Write(recdaybegin2(1).value)
+                    //    } while (recdaybegin2.HasRows);
 
-                        recdaybegin2.Close();
-                        recdaybegin2 = null!;
+                    //    recdaybegin2.Close();
+                    //    recdaybegin2 = null!;
 
-                        session.SetString("modnar", stn);
-                        session.SetString("mod", stx);
+                    //    session.SetString("modnar", stn);
+                    //    session.SetString("mod", stx);
 
-                        // 'stx="genworkallotmentmst a,genmoduleactivitylog b" & " a.moduleid,nvl(b.daybeginstatus,'N')" & "a.moduleid=b.moduleid(+) and upper(a.userid)='" & ucase(usrid) & "' and to_char(daybegindate(+),'dd - Mon - yyyy')='" & rsdate(0) &"'"
-                        // Response.Redirect("Modulescr.aspx?record=" & stx)
-                        return commDict.AddAndReturn(BankingConstants.Screen_ModuleSCR, stx);
-                    }
+                    //    // 'stx="genworkallotmentmst a,genmoduleactivitylog b" & " a.moduleid,nvl(b.daybeginstatus,'N')" & "a.moduleid=b.moduleid(+) and upper(a.userid)='" & ucase(usrid) & "' and to_char(daybegindate(+),'dd - Mon - yyyy')='" & rsdate(0) &"'"
+                    //    // Response.Redirect("Modulescr.aspx?record=" & stx)
+                    //    return commDict.AddAndReturn(BankingConstants.Screen_ModuleSCR, stx);
+                    //}
                 }
 
                 return commDict.AddAndReturn(BankingConstants.Screen_Login, "");

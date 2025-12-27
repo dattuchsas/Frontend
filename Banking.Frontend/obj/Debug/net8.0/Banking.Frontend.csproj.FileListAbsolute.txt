@@ -37,6 +37,7 @@ K:\Banking\Github\Banking.Frontend\Frontend\Banking.Frontend\bin\Debug\net8.0\Mi
 K:\Banking\Github\Banking.Frontend\Frontend\Banking.Frontend\bin\Debug\net8.0\Microsoft.Extensions.Logging.dll
 K:\Banking\Github\Banking.Frontend\Frontend\Banking.Frontend\bin\Debug\net8.0\Microsoft.Extensions.Logging.Abstractions.dll
 K:\Banking\Github\Banking.Frontend\Frontend\Banking.Frontend\bin\Debug\net8.0\Microsoft.Extensions.Options.dll
+K:\Banking\Github\Banking.Frontend\Frontend\Banking.Frontend\bin\Debug\net8.0\Microsoft.Extensions.Primitives.dll
 K:\Banking\Github\Banking.Frontend\Frontend\Banking.Frontend\bin\Debug\net8.0\Microsoft.NET.StringTools.dll
 K:\Banking\Github\Banking.Frontend\Frontend\Banking.Frontend\bin\Debug\net8.0\Microsoft.VisualStudio.Web.CodeGeneration.dll
 K:\Banking\Github\Banking.Frontend\Frontend\Banking.Frontend\bin\Debug\net8.0\Microsoft.VisualStudio.Web.CodeGeneration.Core.dll
@@ -56,6 +57,7 @@ K:\Banking\Github\Banking.Frontend\Frontend\Banking.Frontend\bin\Debug\net8.0\Nu
 K:\Banking\Github\Banking.Frontend\Frontend\Banking.Frontend\bin\Debug\net8.0\NuGet.ProjectModel.dll
 K:\Banking\Github\Banking.Frontend\Frontend\Banking.Frontend\bin\Debug\net8.0\NuGet.Protocol.dll
 K:\Banking\Github\Banking.Frontend\Frontend\Banking.Frontend\bin\Debug\net8.0\NuGet.Versioning.dll
+K:\Banking\Github\Banking.Frontend\Frontend\Banking.Frontend\bin\Debug\net8.0\Oracle.ManagedDataAccess.dll
 K:\Banking\Github\Banking.Frontend\Frontend\Banking.Frontend\bin\Debug\net8.0\System.CodeDom.dll
 K:\Banking\Github\Banking.Frontend\Frontend\Banking.Frontend\bin\Debug\net8.0\System.Composition.AttributedModel.dll
 K:\Banking\Github\Banking.Frontend\Frontend\Banking.Frontend\bin\Debug\net8.0\System.Composition.Convention.dll
@@ -63,7 +65,11 @@ K:\Banking\Github\Banking.Frontend\Frontend\Banking.Frontend\bin\Debug\net8.0\Sy
 K:\Banking\Github\Banking.Frontend\Frontend\Banking.Frontend\bin\Debug\net8.0\System.Composition.Runtime.dll
 K:\Banking\Github\Banking.Frontend\Frontend\Banking.Frontend\bin\Debug\net8.0\System.Composition.TypedParts.dll
 K:\Banking\Github\Banking.Frontend\Frontend\Banking.Frontend\bin\Debug\net8.0\System.Configuration.ConfigurationManager.dll
+K:\Banking\Github\Banking.Frontend\Frontend\Banking.Frontend\bin\Debug\net8.0\System.Diagnostics.DiagnosticSource.dll
+K:\Banking\Github\Banking.Frontend\Frontend\Banking.Frontend\bin\Debug\net8.0\System.Diagnostics.PerformanceCounter.dll
+K:\Banking\Github\Banking.Frontend\Frontend\Banking.Frontend\bin\Debug\net8.0\System.DirectoryServices.Protocols.dll
 K:\Banking\Github\Banking.Frontend\Frontend\Banking.Frontend\bin\Debug\net8.0\System.Reflection.MetadataLoadContext.dll
+K:\Banking\Github\Banking.Frontend\Frontend\Banking.Frontend\bin\Debug\net8.0\System.Security.Cryptography.Pkcs.dll
 K:\Banking\Github\Banking.Frontend\Frontend\Banking.Frontend\bin\Debug\net8.0\System.Security.Cryptography.ProtectedData.dll
 K:\Banking\Github\Banking.Frontend\Frontend\Banking.Frontend\bin\Debug\net8.0\af\Humanizer.resources.dll
 K:\Banking\Github\Banking.Frontend\Frontend\Banking.Frontend\bin\Debug\net8.0\ar\Humanizer.resources.dll
@@ -204,8 +210,21 @@ K:\Banking\Github\Banking.Frontend\Frontend\Banking.Frontend\bin\Debug\net8.0\ru
 K:\Banking\Github\Banking.Frontend\Frontend\Banking.Frontend\bin\Debug\net8.0\tr\Microsoft.CodeAnalysis.Workspaces.resources.dll
 K:\Banking\Github\Banking.Frontend\Frontend\Banking.Frontend\bin\Debug\net8.0\zh-Hans\Microsoft.CodeAnalysis.Workspaces.resources.dll
 K:\Banking\Github\Banking.Frontend\Frontend\Banking.Frontend\bin\Debug\net8.0\zh-Hant\Microsoft.CodeAnalysis.Workspaces.resources.dll
+K:\Banking\Github\Banking.Frontend\Frontend\Banking.Frontend\bin\Debug\net8.0\runtimes\win\lib\net8.0\System.Diagnostics.PerformanceCounter.dll
+K:\Banking\Github\Banking.Frontend\Frontend\Banking.Frontend\bin\Debug\net8.0\runtimes\linux\lib\net8.0\System.DirectoryServices.Protocols.dll
+K:\Banking\Github\Banking.Frontend\Frontend\Banking.Frontend\bin\Debug\net8.0\runtimes\osx\lib\net8.0\System.DirectoryServices.Protocols.dll
+K:\Banking\Github\Banking.Frontend\Frontend\Banking.Frontend\bin\Debug\net8.0\runtimes\win\lib\net8.0\System.DirectoryServices.Protocols.dll
+K:\Banking\Github\Banking.Frontend\Frontend\Banking.Frontend\bin\Debug\net8.0\runtimes\win\lib\net8.0\System.Security.Cryptography.Pkcs.dll
+K:\Banking\Github\Banking.Frontend\Frontend\Banking.Frontend\bin\Debug\net8.0\Banking.Backend.dll
+K:\Banking\Github\Banking.Frontend\Frontend\Banking.Frontend\bin\Debug\net8.0\Banking.Framework.dll
+K:\Banking\Github\Banking.Frontend\Frontend\Banking.Frontend\bin\Debug\net8.0\Banking.Interfaces.dll
 K:\Banking\Github\Banking.Frontend\Frontend\Banking.Frontend\bin\Debug\net8.0\Banking.Models.dll
+K:\Banking\Github\Banking.Frontend\Frontend\Banking.Frontend\bin\Debug\net8.0\Banking.Services.dll
 K:\Banking\Github\Banking.Frontend\Frontend\Banking.Frontend\bin\Debug\net8.0\Banking.Models.pdb
+K:\Banking\Github\Banking.Frontend\Frontend\Banking.Frontend\bin\Debug\net8.0\Banking.Services.pdb
+K:\Banking\Github\Banking.Frontend\Frontend\Banking.Frontend\bin\Debug\net8.0\Banking.Backend.pdb
+K:\Banking\Github\Banking.Frontend\Frontend\Banking.Frontend\bin\Debug\net8.0\Banking.Framework.pdb
+K:\Banking\Github\Banking.Frontend\Frontend\Banking.Frontend\bin\Debug\net8.0\Banking.Interfaces.pdb
 K:\Banking\Github\Banking.Frontend\Frontend\Banking.Frontend\obj\Debug\net8.0\Banking.Frontend.csproj.AssemblyReference.cache
 K:\Banking\Github\Banking.Frontend\Frontend\Banking.Frontend\obj\Debug\net8.0\rpswa.dswa.cache.json
 K:\Banking\Github\Banking.Frontend\Frontend\Banking.Frontend\obj\Debug\net8.0\Banking.Frontend.GeneratedMSBuildEditorConfig.editorconfig
@@ -234,6 +253,3 @@ K:\Banking\Github\Banking.Frontend\Frontend\Banking.Frontend\obj\Debug\net8.0\re
 K:\Banking\Github\Banking.Frontend\Frontend\Banking.Frontend\obj\Debug\net8.0\Banking.Frontend.pdb
 K:\Banking\Github\Banking.Frontend\Frontend\Banking.Frontend\obj\Debug\net8.0\Banking.Frontend.genruntimeconfig.cache
 K:\Banking\Github\Banking.Frontend\Frontend\Banking.Frontend\obj\Debug\net8.0\ref\Banking.Frontend.dll
-K:\Banking\Github\Banking.Frontend\Frontend\Banking.Frontend\bin\Debug\net8.0\System.Diagnostics.DiagnosticSource.dll
-K:\Banking\Github\Banking.Frontend\Frontend\Banking.Frontend\bin\Debug\net8.0\Banking.APIService.dll
-K:\Banking\Github\Banking.Frontend\Frontend\Banking.Frontend\bin\Debug\net8.0\Banking.APIService.pdb
