@@ -25,6 +25,7 @@ namespace Banking.Frontend.Controllers
                 Password2 = string.Empty
             };
             _logger.LogInformation("Login Page");
+            HttpContext.Session.Clear();
             ViewData["Title"] = "Login Page";
             return View(loginModel);
         }
@@ -94,19 +95,42 @@ namespace Banking.Frontend.Controllers
 
                 remoteHost = remoteHost.Equals("::1") ? "127.0.0.1" : remoteHost;
 
-                IDictionary<string, string> commDict = await _loginService.LoginCheckProcess(HttpContext.Session, loginModel.Username, loginModel.Password1, 
+                RedirectModel commDict = await _loginService.LoginCheckProcess(HttpContext.Session, loginModel.Username, loginModel.Password1, 
                     loginModel.Password2, loginModel.HdnDayBegin, loginModel.Status, remoteHost);
 
                 if (commDict != null)
                 {
-                    string controller = commDict.Keys.FirstOrDefault() ?? string.Empty;
+                    string controller = commDict.ControllerName;
+                    string actionName = commDict.ActionName;
+                    string errorMessage = commDict.ErrorMessage ?? string.Empty;
+                    Dictionary<string, string>? keyValuePairs = commDict.keyValuePairs;
 
-                    loginModel.ErrorMessage = commDict[controller];
+                    if (!string.IsNullOrEmpty(errorMessage))
+                    {
+                        loginModel.ErrorMessage = errorMessage;
+                        return View(loginModel);
+                    }
 
-                    return RedirectToAction(nameof(Index), controller);
+                    if (!string.IsNullOrEmpty(actionName))
+                    {
+                        if (keyValuePairs != null && keyValuePairs.Count > 0)
+                        {
+                            string queryString = string.Join("&", keyValuePairs.Select(kvp => $"{kvp.Key}={kvp.Value}"));
+
+                            TempData["QueryString"] = queryString;
+
+                            return RedirectToAction(actionName, controller);
+                        }
+                        else
+                        {
+                            return RedirectToAction(actionName, controller, "");
+                        }
+                    }
+
+                    return RedirectToAction(nameof(Index), controller, "");
                 }
 
-                return RedirectToAction(nameof(Index), "Home");
+                return RedirectToAction(nameof(Index), "Login");
             }
             catch
             {

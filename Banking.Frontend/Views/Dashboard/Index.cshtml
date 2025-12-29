@@ -1,0 +1,25 @@
+﻿@model Banking.Models.DashboardModel
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="col-10"></div>
+<div class="col-2">
+    <div class="btn-group">
+        <button type="button" class="btn btn-white dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+            Select Action
+        </button>
+        <ul class="dropdown-menu">
+            @if (Model.AccountType.Count != 0)
+            {
+                @foreach (var item in Model.AccountType)
+                {
+                    @if (!item.Equals("$"))
+                    {
+                        <li><a class="dropdown-item" href="#">@item</a></li>
+                    }
+                }
+            }
+        </ul>
+    </div>
+</div>

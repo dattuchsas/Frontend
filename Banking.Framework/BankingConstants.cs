@@ -16,10 +16,13 @@
         //public const string AMCNotPaid = "AMC Fee Is Not Paid, Please Contact Raminfo Ltd. To extend our services.";
         //public const string AMCExpired = "Your AMC Period Is Expired, Please Contact SAS Ltd.";
 
-        // Screen Names
-        public const string Screen_Login = "Login";
-        public const string Screen_ConfirmUserId = "ConfirmUserId";
-        public const string Screen_ModuleSCR = "Dashboard";
+        // Controller Names
+        public const string Controller_Login = "Login";
+        public const string Controller_ConfirmUserId = "ConfirmUserId";
+        public const string Controller_Dashboard = "Dashboard";
+
+        // Action Names
+        public const string Action_Index = "Index";
 
         // Transaction Types
         public const string DBTrans_Insert = "DATABASETRANSACTIONS.TRANSACTIONS / INSERTRECORD";

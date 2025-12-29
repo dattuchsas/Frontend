@@ -311,25 +311,15 @@ namespace Banking.Services
             return GetEODProgressRet;
         }
 
-        public async Task<IDictionary<string, string>> LoginCheckProcess(ISession session, string userId, string firstPass, string secPass, string hdndaybegin, string status, string remoteHost)
+        public async Task<RedirectModel> LoginCheckProcess(ISession session, string userId, string firstPass, string secPass, string hdndaybegin, string status, string remoteHost)
         {
-            Dictionary<string, string> commDict = [];
             string[,] trans = new string[1, 5];
             string queryString = string.Empty, strMessage = string.Empty, message = string.Empty, strQuery = string.Empty;
 
             // objErrlog.LogError("LoginCheck", "genmodulemst", 9, objchk.ConnError & " : SQL Query : " & strquery)
             // strerror = objErrlog.ErrorProcess(9, "genmodulemst: " & objchk.ConnError, objchk.ConnError & " : SQL Query : " & strquery, "LoginCheck",, UsrId, session("machineid"))
 
-            DataTable rs;
-            DataTable rs1;
-            DataTable rs2;
-            DataTable rscust;
-            DataTable rscnt;
-            DataTable rsdate;
-            DataTable rsLogChk;
-            DataTable rsBioChk;
-            DataTable recdaybegin = null!;
-            DataTable rsValid = null!;
+            DataTable rs, rs1, rs2, rscust, rscnt, rsdate, rsLogChk, rsBioChk, recdaybegin = null!, rsValid = null!;
 
             try
             {
@@ -362,7 +352,7 @@ namespace Banking.Services
                     // 1. GENUSERMST
                     // Input - "select distinct(a.branchcode),a.accountstatus,b.branchname,a.groupid,a.abbuseryn from genusermst a, genbankbranchmst b where a.branchcode=b.branchcode and upper(a.userid)=''" & cstr(ucase(usrid)) & "''"
                     // LogError - LoginCheck, "genusermst", "ErrMessage", AboveInput
-                    return commDict.AddAndReturn(BankingConstants.Screen_Login, "Connection Failed: " + ex.Message);
+                    return new RedirectModel() { ControllerName = BankingConstants.Controller_Login, ActionName = BankingConstants.Action_Index, ErrorMessage = "Connection Failed: " + ex.Message };
                 }
 
                 if (rs.Rows.Count != 0)
@@ -384,7 +374,7 @@ namespace Banking.Services
                         // strquery = "select to_char(applicationdate,''dd-Mon-yyyy'') from GENAPPLICATIONDATEMST where branchcode=''" & rs(0).value & "''"
                         // LogError - LoginCheck, "GENAPPLICATIONDATEMST", "ErrorMessage", strquery
                         // Redirect to LoginIndex with Error Message
-                        return commDict.AddAndReturn(BankingConstants.Screen_Login, "Connection Failed: " + ex.Message);
+                        return new RedirectModel() { ControllerName = BankingConstants.Controller_Login, ActionName = BankingConstants.Action_Index, ErrorMessage = "Connection Failed: " + ex.Message };
                     }
 
                     if (rsdate.Rows.Count != 0)
@@ -407,7 +397,7 @@ namespace Banking.Services
                             // strquery = "select distinct(a.currencycode),b.narration,b.PRECISION,a.CHEQUEVALIDPERIOD,a.CHEQUELENGTH from genbranchpmt a, gencurrencytypemst b where a.branchcode=''" & rs(0).value & "'' and a.currencycode=b.currencycode"
                             // LogError - LoginCheck, "GENBRANCHPMT", ErrorMessage, strquery
                             // Redirect to LoginIndex with Error Message
-                            return commDict.AddAndReturn(BankingConstants.Screen_Login, "Connection Failed: " + ex.Message);
+                            return new RedirectModel() { ControllerName = BankingConstants.Controller_Login, ActionName = BankingConstants.Action_Index, ErrorMessage = "Connection Failed: " + ex.Message };
                         }
 
                         rs = null!;
@@ -439,7 +429,7 @@ namespace Banking.Services
                             // strquery = "select counterno from cashcountermst where cashierid=''" & session("userid") & "''"
                             // LogError - LoginCheck, "cashcountermst", "ErrMessage", AboveInput
                             // Redirect to LoginIndex with Error Message
-                            return commDict.AddAndReturn(BankingConstants.Screen_Login, "Connection Failed: " + ex.Message);
+                            return new RedirectModel() { ControllerName = BankingConstants.Controller_Login, ActionName = BankingConstants.Action_Index, ErrorMessage = "Connection Failed: " + ex.Message };
                         }
 
                         if (rscnt.Rows.Count != 0)
@@ -488,12 +478,13 @@ namespace Banking.Services
                                 // strquery = "select userid from genuserMst where upper(userid)=''" & ucase(usrid) & "'' and " & "accountstatus=''R''"
                                 // LogError - LoginCheck, "genuserMst", 5, AboveInput
                                 // Redirect to LoginIndex with Error Message
-                                return commDict.AddAndReturn(BankingConstants.Screen_Login, "Connection Failed: " + ex.Message);
+                                return new RedirectModel() { ControllerName = BankingConstants.Controller_Login, ActionName = BankingConstants.Action_Index, ErrorMessage = "Connection Failed: " + ex.Message };
                             }
 
                             if (rsValid.Rows.Count == 0)
                             {
-                                return commDict.AddAndReturn(BankingConstants.Screen_Login, $"{userId.ToUpper()} Your account is temporarly disabled. Please contact your Administrator...");
+                                return new RedirectModel() { ControllerName = BankingConstants.Controller_Login, ActionName = BankingConstants.Action_Index, 
+                                    ErrorMessage = $"{userId.ToUpper()} Your account is temporarly disabled. Please contact your Administrator..." };
                             }
 
                             rsValid = null!;
@@ -524,33 +515,39 @@ namespace Banking.Services
                                                 else
                                                 {
                                                     strMessage = "Not An Approved User...";
-                                                    return commDict.AddAndReturn(BankingConstants.Screen_Login, strMessage);
+                                                    return new RedirectModel() { ControllerName = BankingConstants.Controller_Login, ActionName = BankingConstants.Action_Index, 
+                                                        ErrorMessage = strMessage };
                                                 }
                                             }
                                             else
                                             {
                                                 strMessage = "Invalid password OR Username LogonDenied";
-                                                return commDict.AddAndReturn(BankingConstants.Screen_Login, strMessage);
+                                                return new RedirectModel() { ControllerName = BankingConstants.Controller_Login, ActionName = BankingConstants.Action_Index, 
+                                                    ErrorMessage = strMessage };
                                             }
                                         }
                                         else
                                         {
                                             strMessage = "Not An Application User";
-                                            return commDict.AddAndReturn(BankingConstants.Screen_Login, strMessage);
+                                            return new RedirectModel() { ControllerName = BankingConstants.Controller_Login, ActionName = BankingConstants.Action_Index, 
+                                                ErrorMessage = strMessage };
                                         }
                                     }
                                     else
                                     {
                                         strMessage = "Invalid Username OR password LogonDenied";
-                                        return commDict.AddAndReturn(BankingConstants.Screen_Login, strMessage);
+                                        return new RedirectModel() { ControllerName = BankingConstants.Controller_Login, ActionName = BankingConstants.Action_Index, 
+                                            ErrorMessage = strMessage };
                                     }
                                 }
                                 else
                                 {
                                     strMessage = "Invalid Username OR Password LogonDenied";
-                                    return commDict.AddAndReturn(BankingConstants.Screen_Login, strMessage);
+                                    return new RedirectModel() { ControllerName = BankingConstants.Controller_Login, ActionName = BankingConstants.Action_Index, 
+                                        ErrorMessage = strMessage };
                                 }
-                                return commDict.AddAndReturn(BankingConstants.Screen_Login, strMessage);
+                                return new RedirectModel() { ControllerName = BankingConstants.Controller_Login, ActionName = BankingConstants.Action_Index, 
+                                    ErrorMessage = strMessage };
                             }
                             // end of new code
 
@@ -575,31 +572,36 @@ namespace Banking.Services
                                             else
                                             {
                                                 strMessage = "Not An Approved User...";
-                                                return commDict.AddAndReturn(BankingConstants.Screen_Login, strMessage);
+                                                return new RedirectModel() { ControllerName = BankingConstants.Controller_Login, ActionName = BankingConstants.Action_Index, 
+                                                    ErrorMessage = strMessage };
                                             }
                                         }
                                         else
                                         {
                                             strMessage = "Invalid password OR Username LogonDenied";
-                                            return commDict.AddAndReturn(BankingConstants.Screen_Login, strMessage);
+                                            return new RedirectModel() { ControllerName = BankingConstants.Controller_Login, ActionName = BankingConstants.Action_Index, 
+                                                ErrorMessage = strMessage };
                                         }
                                     }
                                     else
                                     {
                                         strMessage = "Not An Application User";
-                                        return commDict.AddAndReturn(BankingConstants.Screen_Login, strMessage);
+                                        return new RedirectModel() { ControllerName = BankingConstants.Controller_Login, ActionName = BankingConstants.Action_Index, 
+                                            ErrorMessage = strMessage };
                                     }
                                 }
                                 else
                                 {
                                     strMessage = "Invalid Username OR password LogonDenied";
-                                    return commDict.AddAndReturn(BankingConstants.Screen_Login, strMessage);
+                                    return new RedirectModel() { ControllerName = BankingConstants.Controller_Login, ActionName = BankingConstants.Action_Index, 
+                                        ErrorMessage = strMessage };
                                 }
                             }
                             else
                             {
                                 strMessage = "Invalid Username OR password LogonDenied";
-                                return commDict.AddAndReturn(BankingConstants.Screen_Login, strMessage);
+                                return new RedirectModel() { ControllerName = BankingConstants.Controller_Login, ActionName = BankingConstants.Action_Index, 
+                                    ErrorMessage = strMessage };
                             }
 
                             rsLogChk = null!;
@@ -612,7 +614,8 @@ namespace Banking.Services
                                 if (!string.IsNullOrWhiteSpace(Convert.ToString(rsLock.Rows[0].ItemArray[0])))
                                 {
                                     strMessage = "UserId Locked";
-                                    return commDict.AddAndReturn(BankingConstants.Screen_Login, strMessage);
+                                    return new RedirectModel() { ControllerName = BankingConstants.Controller_Login, ActionName = BankingConstants.Action_Index, 
+                                        ErrorMessage = strMessage };
                                 }
                                 rsLock = null!;
                             }
@@ -635,7 +638,8 @@ namespace Banking.Services
                                         if (Convert.ToInt32(days) < 0)
                                         {
                                             message = "UserId Expired, Please Contact Administrator";
-                                            return commDict.AddAndReturn(BankingConstants.Screen_Login, message);
+                                            return new RedirectModel() { ControllerName = BankingConstants.Controller_Login, ActionName = BankingConstants.Action_Index, 
+                                                ErrorMessage = message };
                                         }
                                         session.SetString("ExpiryUserid", message);
                                     }
@@ -660,7 +664,8 @@ namespace Banking.Services
                                         if (Convert.ToInt32(days) < 0)
                                         {
                                             message = "Password Expired, Please Contact Administrator";
-                                            return commDict.AddAndReturn(BankingConstants.Screen_Login, message);
+                                            return new RedirectModel() { ControllerName = BankingConstants.Controller_Login, ActionName = BankingConstants.Action_Index, 
+                                                ErrorMessage = message };
                                         }
                                         session.SetString("Expirypwd", message);
                                     }
@@ -697,7 +702,8 @@ namespace Banking.Services
                                         // strquery = "select nvl(noofsessions,0), nvl(usermachineid,''X''),groupid from genuserMst where upper(userid)=''" & ucase(usrid) & "'' and accountstatus=''R''"
                                         // LogError - LoginCheck, "genuserMst", 6, AboveInput
                                         // Redirect to LoginIndex with Error Message
-                                        return commDict.AddAndReturn(BankingConstants.Screen_Login, "Connection Failed: " + ex.Message);
+                                        return new RedirectModel() { ControllerName = BankingConstants.Controller_Login, ActionName = BankingConstants.Action_Index, 
+                                            ErrorMessage = "Connection Failed: " + ex.Message };
                                     }
 
                                     if (reccheck.Rows.Count != 0)
@@ -708,7 +714,8 @@ namespace Banking.Services
                                     }
                                     else
                                     {
-                                        return commDict.AddAndReturn(BankingConstants.Screen_Login, $"{userId.ToUpper()} Your account is temporarly disabled. Please contact your Administrator...");
+                                        return new RedirectModel() { ControllerName = BankingConstants.Controller_Login, ActionName = BankingConstants.Action_Index, 
+                                            ErrorMessage = $"{userId.ToUpper()} Your account is temporarly disabled. Please contact your Administrator..." };
                                     }
 
                                     if (!group1.Equals("ADMIN"))
@@ -726,7 +733,8 @@ namespace Banking.Services
                                             // strquery = "select machineid from genmachinedtls where upper(branchcode)=''" & ucase(session("branchcode")) & "'' and machineipaddress=''" & macid & "''"
                                             // LogError - LoginCheck, "genmachinedtls", 7, AboveInput
                                             // Redirect to Login (useridscreen.aspx) with Error Message
-                                            return commDict.AddAndReturn(BankingConstants.Screen_Login, "Connection Failed: " + ex.Message);
+                                            return new RedirectModel() { ControllerName = BankingConstants.Controller_Login, ActionName = BankingConstants.Action_Index, 
+                                                ErrorMessage = "Connection Failed: " + ex.Message };
                                         }
 
                                         if (reccheck.Rows.Count != 0)
@@ -735,7 +743,8 @@ namespace Banking.Services
                                             {
                                                 if (!macid.Equals("X"))
                                                 {
-                                                    return commDict.AddAndReturn(BankingConstants.Screen_Login, $"{userId} Please login from the machine alloted to u..");
+                                                    return new RedirectModel() { ControllerName = BankingConstants.Controller_Login, ActionName = BankingConstants.Action_Index, 
+                                                        ErrorMessage = $"{userId} Please login from the machine alloted to u.." };
                                                 }
                                             }
                                         }
@@ -743,8 +752,8 @@ namespace Banking.Services
                                         {
                                             if (!macid.Equals("X"))
                                             {
-                                                return commDict.AddAndReturn(BankingConstants.Screen_Login, $"This Machine {macid} is not identified in {session.GetString("branchcode").ToUpper()} branch. Please check the Machine and try again..");
-                                                // Redirect to Login (useridscreen.aspx) with Message - "
+                                                return new RedirectModel() { ControllerName = BankingConstants.Controller_Login, ActionName = BankingConstants.Action_Index, 
+                                                    ErrorMessage = $"This Machine {macid} is not identified in {session.GetString("branchcode").ToUpper()} branch. Please check the Machine and try again.." };
                                             }
                                             else
                                             {
@@ -756,7 +765,8 @@ namespace Banking.Services
                                                 }
                                                 else
                                                 {
-                                                    return commDict.AddAndReturn(BankingConstants.Screen_Login, $"This Machine {macid} is not identified in {session.GetString("branchcode").ToUpper()} branch. Please check the Machine and try again..");
+                                                    return new RedirectModel() { ControllerName = BankingConstants.Controller_Login, ActionName = BankingConstants.Action_Index, 
+                                                        ErrorMessage = $"This Machine {macid} is not identified in {session.GetString("branchcode").ToUpper()} branch. Please check the Machine and try again.." };
                                                 }
                                             }
                                         }
@@ -773,7 +783,8 @@ namespace Banking.Services
                                         // strquery = "select machineid from genuserlogindtls where upperupper(userid)=''" & ucase(usrid) & "'' and upper(machineid)<>''" & ucase(session("machineid")) & "''"
                                         // LogError - LoginCheck, "genmachinedtls", 8, AboveInput
                                         // Redirect to Login (useridscreen.aspx) with Error Message
-                                        return commDict.AddAndReturn(BankingConstants.Screen_Login, "Connection Failed: " + ex.Message);
+                                        return new RedirectModel() { ControllerName = BankingConstants.Controller_Login, ActionName = BankingConstants.Action_Index, 
+                                            ErrorMessage = "Connection Failed: " + ex.Message };
                                     }
 
                                     if (reccheck.Rows.Count != 0)
@@ -782,11 +793,13 @@ namespace Banking.Services
                                         {
                                             if (sessions == 0)
                                                 sessions = 1;
-                                            return commDict.AddAndReturn(BankingConstants.Screen_Login, $"{userId.ToUpper()} You have already opened {sessions} browsers. Please logout from some browsers and try again...");
+                                            return new RedirectModel() { ControllerName = BankingConstants.Controller_Login, ActionName = BankingConstants.Action_Index, 
+                                                ErrorMessage = $"{userId.ToUpper()} You have already opened {sessions} browsers. Please logout from some browsers and try again..." };
                                         }
                                         else if (group1 != "ADMIN" && Convert.ToString(reccheck.Rows[0].ItemArray[0]) != Convert.ToString(session.GetString("machineid")))
                                         {
-                                            return commDict.AddAndReturn(BankingConstants.Screen_Login, $"{userId.ToUpper()} You have already opened one browser. Please logout that and try again...");
+                                            return new RedirectModel() { ControllerName = BankingConstants.Controller_Login, ActionName = BankingConstants.Action_Index, 
+                                                ErrorMessage = $"{userId.ToUpper()} You have already opened one browser. Please logout that and try again..." };
                                         }
                                     }
 
@@ -831,13 +844,15 @@ namespace Banking.Services
                                             // objErrlog.LogError("LoginCheck", "genmodulemst", 9, objchk.ConnError & " : SQL Query : " & strquery)
                                             // strerror = objErrlog.ErrorProcess(9, "genmodulemst: " & objchk.ConnError, objchk.ConnError & " : SQL Query : " & strquery, "LoginCheck",, UsrId, session("machineid"))
                                             // Redirect to Login (useridscreen.aspx) with Error Message
-                                            return commDict.AddAndReturn(BankingConstants.Screen_Login, "Connection Failed: " + ex.Message);
+                                            return new RedirectModel() { ControllerName = BankingConstants.Controller_Login, ActionName = BankingConstants.Action_Index, 
+                                                ErrorMessage = "Connection Failed: " + ex.Message };
                                         }
 
                                         if (recdaybegin.Rows.Count == 0)
                                         {
                                             string strm = "Workallotment is not done to this user..";
-                                            return commDict.AddAndReturn(BankingConstants.Screen_Login, strm);
+                                            return new RedirectModel() { ControllerName = BankingConstants.Controller_Login, ActionName = BankingConstants.Action_Index, 
+                                                ErrorMessage = strm };
                                         }
 
                                         foreach (DataRow row in recdaybegin.Rows)
@@ -850,11 +865,18 @@ namespace Banking.Services
 
                                         session.SetString("modnar", stn);
                                         session.SetString("mod", stx);
-                                        return commDict.AddAndReturn(BankingConstants.Screen_ModuleSCR, stx);
+                                        return new RedirectModel()
+                                        {
+                                            ControllerName = BankingConstants.Controller_Dashboard,
+                                            ActionName = BankingConstants.Action_Index,
+                                            keyValuePairs = new Dictionary<string, string> { { "record", stx } }
+                                        };
+                                        // return commDict.AddAndReturn(BankingConstants.Screen_Dashboard, stx);
                                     }
                                     else
                                     {
-                                        return commDict.AddAndReturn(BankingConstants.Screen_Login, strMessage);
+                                        return new RedirectModel() { ControllerName = BankingConstants.Controller_Login, ActionName = BankingConstants.Action_Index, 
+                                            ErrorMessage = strMessage };
                                     }
                                 }
                                 else
@@ -869,7 +891,8 @@ namespace Banking.Services
                                     strMessage.Replace(":", " ");
                                     strMessage.Replace(";", " ");
                                     strMessage.Replace(" ", "");
-                                    return commDict.AddAndReturn(BankingConstants.Screen_Login, strMessage);
+                                    return new RedirectModel() { ControllerName = BankingConstants.Controller_Login, ActionName = BankingConstants.Action_Index, 
+                                        ErrorMessage = strMessage };
                                 }
                             }
                             else if (status == "ChngPwd")
@@ -877,97 +900,104 @@ namespace Banking.Services
                                 if (strMessage.Equals("Successfully Loged in") || strMessage.Equals("Trans Completed"))
                                 {
                                     session.SetString("userid", userId);
-                                    return commDict.AddAndReturn(BankingConstants.Screen_ConfirmUserId, strMessage);
+                                    return new RedirectModel() { ControllerName = BankingConstants.Controller_ConfirmUserId, ActionName = BankingConstants.Action_Index, 
+                                        ErrorMessage = strMessage };
                                 }
-                                return commDict.AddAndReturn(BankingConstants.Screen_Login, strMessage);
+                                    return new RedirectModel() { ControllerName = BankingConstants.Controller_Login, ActionName = BankingConstants.Action_Index, 
+                                        ErrorMessage = strMessage };
                             }
                         }
                     }
                     else
                     {
                         strMessage = "not a Valid Password for " + userId.ToUpper() + "....";
-                        return commDict.AddAndReturn(BankingConstants.Screen_Login, strMessage);
+                        return new RedirectModel() { ControllerName = BankingConstants.Controller_Login, ActionName = BankingConstants.Action_Index, 
+                            ErrorMessage = strMessage };
                     }
                 }
                 else
                 {
-                    //// RecWorkAllotment = nothing
+                    // RecWorkAllotment = nothing
 
-                    //OracleDataReader recdaybegin1 = null!;
-                    //OracleDataReader recdaybegin2 = null!;
+                    DataTable recdaybegin1 = null!;
+                    DataTable recdaybegin2 = null!;
 
-                    //// rsdate.Close();
-                    //// rsdate = null!;
+                    // rsdate.Close();
+                    // rsdate = null!;
 
-                    //string stn = "";
-                    //string stx = "";
+                    string stn = "";
+                    string stx = "";
 
-                    ////if db not connected 
-                    ////Redirect to useridscreen.aspx. with error message.
-                    //// return DictionaryExtensions.AddAndReturn(commDict, BankingConstants.Screen_Login, "Connection Failed.");
+                    //if db not connected 
+                    //Redirect to useridscreen.aspx. with error message.
+                    //return new RedirectModel() { ControllerName = BankingConstants.Controller_Login, ActionName = BankingConstants.Action_Index, ErrorMessage = "Connection Failed: " + ex.Message };
+                    // return DictionaryExtensions.AddAndReturn(commDict, BankingConstants.Screen_Login, "Connection Failed.");
 
-                    //do
-                    //{
-                    //    if (recdaybegin.GetString(1) == "0")
-                    //        stx = stx + recdaybegin.GetString(0) + ":F" + "|";
-                    //    else
-                    //        stx = stx + recdaybegin.GetString(0) + ":T" + "|";
+                    do
+                    {
+                        if (Convert.ToString(recdaybegin.Rows[0].ItemArray[1]) == "0")
+                            stx = stx + Convert.ToString(recdaybegin.Rows[0].ItemArray[0]) + ":F" + "|";
+                        else
+                            stx = stx + Convert.ToString(recdaybegin.Rows[0].ItemArray[0]) + ":T" + "|";
 
-                    //    stn = stn + "," + recdaybegin.GetString(2);
+                        stn = stn + "," + Convert.ToString(recdaybegin.Rows[0].ItemArray[2]);
 
-                    //} while (recdaybegin.HasRows);
+                    } while (recdaybegin.Rows.Count > 0);
 
-                    //recdaybegin.Close();
-                    //recdaybegin = null!;
+                    recdaybegin = null!;
 
-                    //stx = stx + "$";
+                    stx = stx + "$";
 
-                    //if (stn.Length == 0)
-                    //{
-                    //    stn = stn + "$";
+                    if (stn.Length == 0)
+                    {
+                        stn = stn + "$";
 
-                    //    // if db not connected.
-                    //    // Redirect to useridscreen.aspx with message - ConnError
-                    //    // return DictionaryExtensions.AddAndReturn(commDict, BankingConstants.Screen_Login, "Connection Failed.");
+                        // if db not connected.
+                        // Redirect to useridscreen.aspx with message - ConnError
+                        // return new RedirectModel() { ControllerName = BankingConstants.Controller_Login, ActionName = BankingConstants.Action_Index, ErrorMessage = "Connection Failed: " + ex.Message };
+                        // return DictionaryExtensions.AddAndReturn(commDict, BankingConstants.Screen_Login, "Connection Failed.");
 
+                        do
+                        {
+                            stx = stx + Convert.ToString(recdaybegin.Rows[0].ItemArray[0]) + ":F" + "|";
+                            stn = stn + "," + Convert.ToString(recdaybegin.Rows[0].ItemArray[1]);
+                        } while (recdaybegin1.Rows.Count > 0);
 
-                    //    do
-                    //    {
-                    //        stx = stx + recdaybegin1.GetString(0) + ":F" + "|";
-                    //        stn = stn + "," + recdaybegin1.GetString(1);
-                    //    } while (recdaybegin1.HasRows);
+                        recdaybegin1 = null!;
 
-                    //    recdaybegin1.Close();
-                    //    recdaybegin1 = null!;
+                        // if DB not connected.
+                        // Redirect to useridscreen.aspx with message - ConnError
+                        // return new RedirectModel() { ControllerName = BankingConstants.Controller_Login, ActionName = BankingConstants.Action_Index, ErrorMessage = "Connection Failed: " + ex.Message };
+                        // return DictionaryExtensions.AddAndReturn(commDict, BankingConstants.Screen_Login, "Connection Failed.");
 
-                    //    // if DB not connected.
-                    //    // Redirect to useridscreen.aspx with message - ConnError
-                    //    // return DictionaryExtensions.AddAndReturn(commDict, BankingConstants.Screen_Login, "Connection Failed.");
+                        do
+                        {
+                            stx = stx + Convert.ToString(recdaybegin.Rows[0].ItemArray[0]) + ":F" + "|";
+                            stn = stn + "," + Convert.ToString(recdaybegin.Rows[0].ItemArray[1]);
+                            // Response.Write(recdaybegin2(1).value)
+                        } while (recdaybegin2.Rows.Count > 0);
 
-                    //    do
-                    //    {
-                    //        stx = stx + recdaybegin2.GetString(0) + ":F" + "|";
-                    //        stn = stn + "," + recdaybegin2.GetString(1);
-                    //        // Response.Write(recdaybegin2(1).value)
-                    //    } while (recdaybegin2.HasRows);
+                        recdaybegin2 = null!;
 
-                    //    recdaybegin2.Close();
-                    //    recdaybegin2 = null!;
+                        session.SetString("modnar", stn);
+                        session.SetString("mod", stx);
 
-                    //    session.SetString("modnar", stn);
-                    //    session.SetString("mod", stx);
-
-                    //    // 'stx="genworkallotmentmst a,genmoduleactivitylog b" & " a.moduleid,nvl(b.daybeginstatus,'N')" & "a.moduleid=b.moduleid(+) and upper(a.userid)='" & ucase(usrid) & "' and to_char(daybegindate(+),'dd - Mon - yyyy')='" & rsdate(0) &"'"
-                    //    // Response.Redirect("Modulescr.aspx?record=" & stx)
-                    //    return commDict.AddAndReturn(BankingConstants.Screen_ModuleSCR, stx);
-                    //}
+                        // 'stx="genworkallotmentmst a,genmoduleactivitylog b" & " a.moduleid,nvl(b.daybeginstatus,'N')" & "a.moduleid=b.moduleid(+) and upper(a.userid)='" & ucase(usrid) & "' and to_char(daybegindate(+),'dd - Mon - yyyy')='" & rsdate(0) &"'"
+                        return new RedirectModel()
+                        {
+                            ControllerName = BankingConstants.Controller_Dashboard,
+                            ActionName = BankingConstants.Action_Index,
+                            keyValuePairs = new Dictionary<string, string> { { "record", stx } }
+                        };
+                    }
                 }
 
-                return commDict.AddAndReturn(BankingConstants.Screen_Login, "");
+                return new RedirectModel() { ControllerName = BankingConstants.Controller_Login, ActionName = BankingConstants.Action_Index };
             }
             catch (Exception ex)
             {
-                return commDict.AddAndReturn(BankingConstants.Screen_Login, "Connection Failed.");
+                return new RedirectModel() { ControllerName = BankingConstants.Controller_Login, ActionName = BankingConstants.Action_Index, 
+                    ErrorMessage = "Connection Failed!" };
             }
         }
 

@@ -1668,6 +1668,7 @@
       },
       "Banking.Interfaces/1.0.0": {
         "dependencies": {
+          "Banking.Models": "1.0.0",
           "Microsoft.AspNetCore.Http.Features": "5.0.17",
           "Oracle.ManagedDataAccess.Core": "23.26.0"
         },
