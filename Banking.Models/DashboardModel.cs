@@ -1,7 +1,7 @@
 ﻿namespace Banking.Models
 {
-    public class DashboardModel
+    public class DashboardModel : ErrorModel
     {
-        public List<string> AccountType { get; set; }
+        public Dictionary<string, string> AssignedModules { get; set; }
     }
 }

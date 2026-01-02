@@ -21,6 +21,7 @@ builder.Services.AddControllersWithViews();
 builder.Services.Configure<DatabaseSettings>(builder.Configuration.GetSection("OracleSettings"));
 
 builder.Services.AddScoped<ILoginService, LoginService>();
+builder.Services.AddScoped<IDashboardService, DashboardService>();
 
 var baseAddress = builder.Configuration.GetValue<string>("APIURL");
 

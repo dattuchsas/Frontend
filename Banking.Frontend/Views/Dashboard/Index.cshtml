@@ -3,21 +3,25 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<div class="col-10"></div>
+<div class="col-10">
+    @if (!string.IsNullOrWhiteSpace(Model.ErrorMessage))
+    {
+        <div class="alert alert-danger" role="alert">
+            @Model.ErrorMessage
+        </div>
+    }
+</div>
 <div class="col-2">
     <div class="btn-group">
         <button type="button" class="btn btn-white dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
             Select Action
         </button>
         <ul class="dropdown-menu">
-            @if (Model.AccountType.Count != 0)
+            @if (Model.AssignedModules.Keys.Count != 0)
             {
-                @foreach (var item in Model.AccountType)
+                @foreach (var item in Model.AssignedModules.Keys)
                 {
-                    @if (!item.Equals("$"))
-                    {
-                        <li><a class="dropdown-item" href="#">@item</a></li>
-                    }
+                    <li><a class="dropdown-item" href="#">@Model.AssignedModules[item]</a></li>
                 }
             }
         </ul>
