@@ -1,0 +1,110 @@
+﻿@model Banking.Models.LoginModel;
+@{
+    Layout = "~/Views/Shared/_LoginLayout.cshtml";
+}
+
+<div class="row align-items-start">
+	<div class="col-md-9">
+		<div class="text-center p-3 text-black rounded border">
+			<h4><strong>FinXPro Banking System</strong></h4>
+		</div>
+		<div class="d-flex align-items-center p-3 my-3 text-white bg-dark rounded shadow-sm sub-heading">
+			<div class="lh-1">
+				<h1 class="h6 mb-0 text-white lh-1"><strong>Recent updates</strong></h1>
+			</div>
+		</div>
+		<div class="my-1 p-1 rounded shadow-sm">
+			<div class="d-flex text-body-secondary p-1">
+				<p class="mb-0 small lh-sm border-bottom">
+					Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
+				</p>
+			</div>
+			<div class="d-flex text-body-secondary p-1">
+				<p class="mb-0 small lh-sm border-bottom">
+					Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
+				</p>
+			</div>
+			<div class="d-flex text-body-secondary p-1">
+				<p class="mb-0 small lh-sm border-bottom">
+					Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
+				</p>
+			</div>
+			<div class="d-flex text-body-secondary p-1">
+				<p class="mb-0 small lh-sm border-bottom">
+					@Model.ErrorMessage
+				</p>
+			</div>
+		</div>
+	</div>
+	<div class="col-md-3">
+		<div class="wrap-login100">
+			<form class="login100-form validate-form" asp-area="" asp-controller="Login" asp-action="Index" asp-antiforgery="true">
+				<span class="login100-form-title p-b-34 p-t-27">
+					Sign in
+				</span>
+				<div asp-validation-summary="ModelOnly" class="text-danger"></div>
+				<div class="wrap-input100 validate-input">
+					<input asp-for="Username" type="text" class="input100" />
+					<label class="focus-input100 text-left" data-placeholder="Username"></label>
+				</div>
+				<span asp-validation-for="Username" class="text-white"></span>
+				<div class="wrap-input100 validate-input m-t-25">
+					<input asp-for="Password1" type="password" class="input100" />
+					<label class="focus-input100 text-left" data-placeholder="Password1"></label>
+				</div>
+				<span asp-validation-for="Password1" class="text-white"></span>
+				<div class="wrap-input100 validate-input m-t-25">
+					<input asp-for="Password2" type="password" class="input100">
+					<label class="focus-input100 text-left" data-placeholder="Password2"></label>	
+				</div>
+				<span asp-validation-for="Password2" class="text-white"></span>
+
+				<div class="text-left p-b-40 p-t-40">
+					<strong>
+						<a class="txt1 pe-4" href="#">
+							Alter Password
+						</a>
+					</strong>
+					<strong>
+						<a class="txt1 pe-4" href="#">
+							Cancel
+						</a>
+					</strong>
+					<strong>
+						<a class="txt1" href="#">
+							Exit
+						</a>
+					</strong>
+				</div>
+				<div class="container-login100-form-btn">
+					<button class="login100-form-btn" type="submit">
+						Login
+					</button>
+				</div>
+			</form>
+		</div>
+	</div>
+</div>
+
+<div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+	<div class="modal-dialog">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h1 class="modal-title fs-5" id="exampleModalLabel">Message</h1>
+				<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+			</div>
+			<div class="modal-body">
+				@Model.ErrorMessage
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+			</div>
+		</div>
+	</div>
+</div>
+
+@section Scripts {
+	@{
+		await Html.RenderPartialAsync("_ValidationScriptsPartial");
+	}
+}

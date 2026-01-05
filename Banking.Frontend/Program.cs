@@ -1,11 +1,20 @@
 using Banking.Interfaces;
 using Banking.Models;
 using Banking.Services;
+using Microsoft.AspNetCore.HttpOverrides;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Logging.ClearProviders();
 builder.Logging.AddConsole();
+
+builder.Services.Configure<ForwardedHeadersOptions>(options =>
+{
+    options.ForwardedHeaders = ForwardedHeaders.XForwardedFor;
+    options.ForwardLimit = 1;
+    options.KnownNetworks.Add(
+        new IPNetwork(System.Net.IPAddress.Parse("10.0.0.0"), 24));
+});
 
 builder.Services.AddDistributedMemoryCache(); // Required to store session data
 builder.Services.AddSession(options =>
@@ -19,6 +28,7 @@ builder.Services.AddSession(options =>
 builder.Services.AddControllersWithViews();
 
 builder.Services.Configure<DatabaseSettings>(builder.Configuration.GetSection("OracleSettings"));
+builder.Services.Configure<BaseModel>(builder.Configuration.GetSection("ApplicationColorSettings"));
 
 builder.Services.AddScoped<ILoginService, LoginService>();
 builder.Services.AddScoped<IDashboardService, DashboardService>();
@@ -43,6 +53,8 @@ app.UseStaticFiles();
 app.UseRouting();
 
 app.UseAuthorization();
+
+app.UseForwardedHeaders();
 
 app.UseSession(); // Enable session middleware
 

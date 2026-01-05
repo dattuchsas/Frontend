@@ -18,12 +18,8 @@ namespace Banking.Frontend.Controllers
 
         public ActionResult Index()
         {
-            var loginModel = new LoginModel
-            {
-                Username = string.Empty,
-                Password1 = string.Empty,
-                Password2 = string.Empty
-            };
+            var loginModel = new LoginModel();
+            //loginModel.BankName = _baseModel.BankName;
             _logger.LogInformation("Login Page");
             HttpContext.Session.Clear();
             ViewData["Title"] = "Login Page";

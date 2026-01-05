@@ -8,12 +8,23 @@ namespace Banking.Frontend.Controllers
     {
         public IOptions<DatabaseSettings> _options;
         public IConfiguration _configuration;
+        // public BaseModel _baseModel;
 
         public BaseController(IConfiguration configuration)
         {
             _configuration = configuration;
 
             _options = Options.Create(_configuration.GetSection("OracleSettings").Get<DatabaseSettings>() ?? new DatabaseSettings());
+
+            var colorOptions = _configuration.GetSection("ApplicationColorSettings").Get<List<BaseModel>>() ?? new List<BaseModel>();
+
+            //var bank = colorOptions.FirstOrDefault(x => x.IPAddress.Equals(remoteHost, StringComparison.Ordinal));
+
+            //_baseModel = new BaseModel
+            //{
+            //    BankName = bank?.BankName ?? string.Empty,
+            //    IPAddress = bank?.IPAddress ?? string.Empty
+            //};
         }
     }
 }

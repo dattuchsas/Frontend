@@ -4,93 +4,101 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>FinXPro - @ViewData["Title"]</title>
-    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" asp-append-version="true" />
-    <link href="~/css/main.css" rel="stylesheet" asp-append-version="true" />
-    <link href="~/css/utilities.css" rel="stylesheet" asp-append-version="true" />
-    <link href="~/css/sidebars.css" rel="stylesheet" asp-append-version="true" />
+    @*     <link rel="stylesheet" asp-append-version="true" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" asp-append-version="true" href="~/css/main.css" />
+    <link rel="stylesheet" asp-append-version="true" href="~/css/utilities.css" /> *@
+
+    <link asp-append-version="true" rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link asp-append-version="true" rel="stylesheet" href="~/css/style.css" />
+    <link asp-append-version="true" rel="stylesheet" href="~/css/sidebars.css" />
 </head>
 <body>
     <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light border-bottom box-shadow bg-maharaja">
+        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light border-bottom box-shadow hd-maharaja">
             <div class="container-fluid">
                 <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index"><img src="~/images/bankLogo.jpg" style="height: 55px !important; width: 423px !important" alt="Our Bank"></a>
             </div>
         </nav>
     </header>
-    <main role="main">
-        <div class="row" style="height: inherit;">
-            <div class="col-md-2 bg-light">
-                <div class="flex-shrink-0 p-3">
-                    <ul class="list-unstyled ps-0">
-                        <li class="mb-1">
-                            <button class="btn btn-toggle align-items-center rounded collapsed" data-bs-toggle="collapse" data-bs-target="#home-collapse" aria-expanded="true">
-                                Home
-                            </button>
-                        </li>
-                        <li class="mb-1">
-                            <button class="btn btn-toggle align-items-center rounded collapsed" data-bs-toggle="collapse" data-bs-target="#dashboard-collapse" aria-expanded="false">
-                                Dashboard
-                            </button>
-                            <div class="collapse" id="dashboard-collapse">
-                                <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small">
-                                    <li><a href="#" class="link-dark rounded">Overview</a></li>
-                                    <li><a href="#" class="link-dark rounded">Weekly</a></li>
-                                    <li><a href="#" class="link-dark rounded">Monthly</a></li>
-                                    <li><a href="#" class="link-dark rounded">Annually</a></li>
-                                </ul>
-                            </div>
-                        </li>
-                        <li class="mb-1">
-                            <button class="btn btn-toggle align-items-center rounded collapsed" data-bs-toggle="collapse" data-bs-target="#orders-collapse" aria-expanded="false">
-                                Orders
-                            </button>
-                            <div class="collapse" id="orders-collapse">
-                                <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small">
-                                    <li><a href="#" class="link-dark rounded">New</a></li>
-                                    <li><a href="#" class="link-dark rounded">Processed</a></li>
-                                    <li><a href="#" class="link-dark rounded">Shipped</a></li>
-                                    <li><a href="#" class="link-dark rounded">Returned</a></li>
-                                </ul>
-                            </div>
-                        </li>
-                        <li class="border-top my-3"></li>
-                        <li class="mb-1">
-                            <button class="btn btn-toggle align-items-center rounded collapsed" data-bs-toggle="collapse" data-bs-target="#account-collapse" aria-expanded="false">
-                                Account
-                            </button>
-                            <div class="collapse" id="account-collapse">
-                                <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small">
-                                    <li><a href="#" class="link-dark rounded">New...</a></li>
-                                    <li><a href="#" class="link-dark rounded">Profile</a></li>
-                                    <li><a href="#" class="link-dark rounded">Settings</a></li>
-                                    <li><a href="#" class="link-dark rounded">Sign out</a></li>
-                                </ul>
-                            </div>
-                        </li>
-                        <li>
-                            <button class="btn align-items-center rounded" data-bs-toggle="collapse">
-                                Singout
-                            </button>
-                        </li>
-                    </ul>
+    <main>
+        <div class="container-fluid">
+            <div class="row">
+                <div class="col-md-2 bg-maharaja">
+                    <div class="flex-shrink-0 p-3">
+                        <ul class="list-unstyled ps-0">
+                            <li class="mb-1">
+                                <button class="btn btn-toggle align-items-center rounded collapsed" data-bs-toggle="collapse" data-bs-target="#home-collapse" aria-expanded="true">
+                                    Home
+                                </button>
+                            </li>
+                            <li class="mb-1">
+                                <button class="btn btn-toggle align-items-center rounded collapsed" data-bs-toggle="collapse" data-bs-target="#dashboard-collapse" aria-expanded="false">
+                                    Dashboard
+                                </button>
+                                <div class="collapse" id="dashboard-collapse">
+                                    <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small">
+                                        <li><a href="#" class="link-dark rounded">Overview</a></li>
+                                        <li><a href="#" class="link-dark rounded">Weekly</a></li>
+                                        <li><a href="#" class="link-dark rounded">Monthly</a></li>
+                                        <li><a href="#" class="link-dark rounded">Annually</a></li>
+                                    </ul>
+                                </div>
+                            </li>
+                            <li class="mb-1">
+                                <button class="btn btn-toggle align-items-center rounded collapsed" data-bs-toggle="collapse" data-bs-target="#orders-collapse" aria-expanded="false">
+                                    Orders
+                                </button>
+                                <div class="collapse" id="orders-collapse">
+                                    <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small">
+                                        <li><a href="#" class="link-dark rounded">New</a></li>
+                                        <li><a href="#" class="link-dark rounded">Processed</a></li>
+                                        <li><a href="#" class="link-dark rounded">Shipped</a></li>
+                                        <li><a href="#" class="link-dark rounded">Returned</a></li>
+                                    </ul>
+                                </div>
+                            </li>
+                            <li class="border-top my-3"></li>
+                            <li class="mb-1">
+                                <button class="btn btn-toggle align-items-center rounded collapsed" data-bs-toggle="collapse" data-bs-target="#account-collapse" aria-expanded="false">
+                                    Account
+                                </button>
+                                <div class="collapse" id="account-collapse">
+                                    <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small">
+                                        <li><a href="#" class="link-dark rounded">New...</a></li>
+                                        <li><a href="#" class="link-dark rounded">Profile</a></li>
+                                        <li><a href="#" class="link-dark rounded">Settings</a></li>
+                                        <li><a href="#" class="link-dark rounded">Sign out</a></li>
+                                    </ul>
+                                </div>
+                            </li>
+                            <li>
+                                <button class="btn align-items-center rounded" data-bs-toggle="collapse">
+                                    Singout
+                                </button>
+                            </li>
+                        </ul>
+                    </div>
                 </div>
-            </div>
-            <div class="col-md-10">
-                <div class="row p-3">
-                    @RenderBody()
+                <div class="col-md-10">
+                    <div class="row p-3">
+                        @RenderBody()
+                    </div>
                 </div>
             </div>
         </div>
     </main>
-    <footer class="footer mt-auto py-3 bg-maharaja">
-        <div class="container">
+    <footer class="bd-footer py-3 hd-maharaja">
+        <div class="container text-center">
             <span class="bg-text-maharaja">&copy; @DateTime.Now.Year - FinXPro</span>
         </div>
     </footer>
-    <script src="~/lib/jquery/dist/jquery.min.js" asp-append-version="true"></script>
-    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js" asp-append-version="true"></script>
-    <script src="~/js/sidebars.js" asp-append-version="true"></script>
-    <script src="~/js/main.js" asp-append-version="true"></script>
+    @*     <script asp-append-version="true" src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script asp-append-version="true" src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script asp-append-version="true" src="~/js/sidebars.js"></script>
+    <script asp-append-version="true" src="~/js/main.js"></script>
+ *@
+    <script asp-append-version="true" src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script asp-append-version="true" src="~/js/script.js"></script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

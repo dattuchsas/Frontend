@@ -23,7 +23,10 @@ namespace Banking.Frontend.Controllers
         {
             string appdate = "";
             var model = new DashboardModel();
-            var queryString = Convert.ToString(TempData["QueryString"]);
+            
+            //var queryString = Convert.ToString(TempData["QueryString"]);
+            
+            var queryString = "record=SB:F|CA:F|DEP:F|LOAN:F|CC:F|BILLS:F|REM:F|CASH:F|CLG:F|LOCKER:F|GL:F|CUSTOMER:F|ADMIN:F|SHARES:F|HO:F|INV:F|ATM:F|PAYROLL:F|$";
 
             if (string.IsNullOrWhiteSpace(queryString) || queryString.Equals("record=$"))
             {
@@ -97,37 +100,37 @@ namespace Banking.Frontend.Controllers
                     }
                 }
 
-                session.SetString("DayBeginMod", strMod);
+                //session.SetString("DayBeginMod", strMod);
 
-                string[] vmodx = queryString.Split("~", StringSplitOptions.RemoveEmptyEntries);
+                //string[] vmodx = queryString.Split("~", StringSplitOptions.RemoveEmptyEntries);
 
-                if (vmodx.Length > 0)
-                {
-                    string vmod = vmodx[0];
-                    session.SetString("moddir", vmodx[1]);
-                }
+                //if (vmodx.Length > 0)
+                //{
+                //    string vmod = vmodx[0];
+                //    session.SetString("moddir", vmodx[1]);
+                //}
 
-                string usrid = session.GetString("userid") ?? string.Empty;
+                //string usrid = session.GetString("userid") ?? string.Empty;
 
-                string serverId = session.GetString("serverid") ?? string.Empty;
-                DataTable recdtls = await _dashboardService.GetServiceVirtualDirectoryDetails("machinename,virtualdir", "upper(trim(machinename))='" + serverId + "'");
+                //string serverId = session.GetString("serverid") ?? string.Empty;
+                //DataTable recdtls = await _dashboardService.GetServiceVirtualDirectoryDetails("machinename,virtualdir", "upper(trim(machinename))='" + serverId + "'");
 
-                if (recdtls.Rows.Count > 0)
-                {
-                    string item0 = Convert.ToString(recdtls.Rows[0].ItemArray[0]) ?? string.Empty;
-                    string item1 = Convert.ToString(recdtls.Rows[0].ItemArray[1]) ?? string.Empty;
+                //if (recdtls.Rows.Count > 0)
+                //{
+                //    string item0 = Convert.ToString(recdtls.Rows[0].ItemArray[0]) ?? string.Empty;
+                //    string item1 = Convert.ToString(recdtls.Rows[0].ItemArray[1]) ?? string.Empty;
 
-                    string mainstr = string.Concat(item0, "/", item1, "/", "~");
+                //    string mainstr = string.Concat(item0, "/", item1, "/", "~");
 
-                    session.SetString("moduledir", item0 + "/" + item1);
+                //    session.SetString("moduledir", item0 + "/" + item1);
 
-                    if (usrid == "")
-                    {
-                        Redirect("http://" + item0 + "/" + item1.Trim() + "/useridscreen.aspx?record=" + "Your session is timeout. Please login again..");
-                    }
-                }
+                //    if (usrid == "")
+                //    {
+                //        Redirect("http://" + item0 + "/" + item1.Trim() + "/useridscreen.aspx?record=" + "Your session is timeout. Please login again..");
+                //    }
+                //}
 
-                string strHOTrALWBrCode = await _dashboardService.GetHOTRALWBrCode();
+                //string strHOTrALWBrCode = await _dashboardService.GetHOTRALWBrCode();
 
                 //if (vmod.Equal("PAYROLL"))
                 //{
@@ -148,16 +151,16 @@ namespace Banking.Frontend.Controllers
                 //	session("module")=trim(vmod)
                 //	objfetch=server.CreateObject ("queryrecordsets.fetchrecordsets")
 
-                string valstr = ",";
+                //string valstr = ",";
 
-                if (session.GetString("applicationdate") != null)
-                {
-                    DateTime dt = Convert.ToDateTime(session.GetString("applicationdate"));
-                    appdate = dt.ToShortDateString();
-                }
+                //if (session.GetString("applicationdate") != null)
+                //{
+                //    DateTime dt = Convert.ToDateTime(session.GetString("applicationdate"));
+                //    appdate = dt.ToShortDateString();
+                //}
 
-                if (valstr.Length > 0)
-                {
+                //if (valstr.Length > 0)
+                //{
                     //		objfetch=server.CreateObject ("queryrecordsets.fetchrecordsets")
                     //		valstr=right(valstr, len(valstr)-1)
                     //		recdaybeg=server.CreateObject ("queryrecordsets.fetchrecordsets")
@@ -275,7 +278,7 @@ namespace Banking.Frontend.Controllers
                     //			end if
                     //		end if
                     //		rsclg=nothing
-                }
+                //}
             }
 
             return View(model);
