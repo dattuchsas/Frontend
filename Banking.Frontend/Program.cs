@@ -1,6 +1,7 @@
 using Banking.Interfaces;
 using Banking.Models;
 using Banking.Services;
+using Banking.Frontend;
 using Microsoft.AspNetCore.HttpOverrides;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -28,21 +29,10 @@ builder.Services.AddSession(options =>
 builder.Services.AddControllersWithViews();
 
 builder.Services.Configure<DatabaseSettings>(builder.Configuration.GetSection("OracleSettings"));
-builder.Services.Configure<BaseModel>(builder.Configuration.GetSection("ApplicationColorSettings"));
-
-//builder.Services.AddScoped<CustomFilterAttribute>();
 
 // Application Services
 builder.Services.AddScoped<ILoginService, LoginService>();
 builder.Services.AddScoped<IDashboardService, DashboardService>();
-
-// Database Services
-//builder.Services.AddScoped<IDatabaseService, DatabaseService>();
-// builder.Services.AddScoped<ITransactionalService, Transactional>();
-
-//// Common Services
-//builder.Services.AddScoped<IAutoNumberService, AutoNumberService>();
-//builder.Services.AddScoped<IGeneralValidationService, GeneralValidationService>();
 
 var baseAddress = builder.Configuration.GetValue<string>("APIURL");
 
