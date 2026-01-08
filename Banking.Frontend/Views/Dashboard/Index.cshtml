@@ -9,12 +9,17 @@
     @foreach (var item in Model.AssignedModules.Keys)
     {
         <div class="col-md-2">
-        <div class="card">
-            <img src="#" class="" alt="...">
-            <div class="card-body">
+
+            <button class="btn btn-success">
                 <h5 class="card-title"><a href="" class="stretched-link">@Model.AssignedModules[item]</a></h5>
+            </button>
+@* 
+            <div class="card">
+                <img src="#" class="" alt="...">
+                <div class="card-body">
+
+                </div>
             </div>
-        </div>
-        </div>
+ *@        </div>
     }
 }

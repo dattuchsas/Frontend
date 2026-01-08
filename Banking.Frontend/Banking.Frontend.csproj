@@ -7,14 +7,6 @@
     <Platforms>AnyCPU</Platforms>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <Optimize>True</Optimize>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-    <Optimize>True</Optimize>
-  </PropertyGroup>
-
   <ItemGroup>
     <ProjectReference Include="..\Banking.Models\Banking.Models.csproj" />
     <ProjectReference Include="..\Banking.Services\Banking.Services.csproj" />

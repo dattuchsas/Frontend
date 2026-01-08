@@ -1,7 +1,6 @@
 using Banking.Interfaces;
 using Banking.Models;
 using Banking.Services;
-using Banking.Frontend;
 using Microsoft.AspNetCore.HttpOverrides;
 
 var builder = WebApplication.CreateBuilder(args);
