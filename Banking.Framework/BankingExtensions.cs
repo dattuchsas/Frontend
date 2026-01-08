@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Http;
+using System.Data;
 
 namespace Banking.Framework
 {
@@ -16,6 +17,15 @@ namespace Banking.Framework
 
     public static class BankingExtensions
     {
+        public static void ReleaseMemory(DataTable source)
+        {
+            if (source != null)
+            {
+                source.Dispose();
+                source = null!;
+            }
+        }
+
         public static string GetSessionId(this ISession session)
         {
             return session.Id.Replace("-", "").Substring(0, 30);

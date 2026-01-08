@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Banking.Frontend")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Release")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+b36e3a6ad527b3d5ad578422ae6f0c3e0a7350c3")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+10bf1c2b2b26e3f4196697d73c7509c754ae5946")]
 [assembly: System.Reflection.AssemblyProductAttribute("Banking.Frontend")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Banking.Frontend")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
