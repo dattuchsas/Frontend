@@ -17,6 +17,28 @@ namespace Banking.Framework
 
     public static class BankingExtensions
     {
+        public static readonly Dictionary<string, string> GetModuleRoute = new()
+        {
+            { "SB", "" },
+            { "CA", "" },
+            { "DEP", "" },
+            { "LOAN", "" },
+            { "CC", "" },
+            { "BILLS", "" },
+            { "REM", "" },
+            { "CASH", "" },
+            { "CLG", "" },
+            { "LOCKER", "" },
+            { "GL", "" },
+            { "CUSTOMER", "Customer" },
+            { "ADMIN", "" },
+            { "SHARES", "" },
+            { "HO", "" },
+            { "INV", "" },
+            { "ATM", "" },
+            { "PAYROLL", "" }
+        };
+
         public static void ReleaseMemory(DataTable source)
         {
             if (source != null)
@@ -93,9 +115,9 @@ namespace Banking.Framework
         public static int DateDifference<T>(string type, T fromDate, T toDate)
         {
             if (type.ToUpper().Equals('D'))
-                return (Convert.ToDateTime(fromDate) - Convert.ToDateTime(toDate)).Days;
+                return (Convert.ToDateTime(toDate) - Convert.ToDateTime(fromDate)).Days;
             else
-                return (Convert.ToDateTime(fromDate) - Convert.ToDateTime(toDate)).Days;
+                return (Convert.ToDateTime(toDate) - Convert.ToDateTime(fromDate)).Days;
         }
 
         private static int CharToNumber(string str)

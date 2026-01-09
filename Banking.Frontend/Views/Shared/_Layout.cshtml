@@ -1,4 +1,13 @@
-﻿<!DOCTYPE html>
+﻿@using Microsoft.AspNetCore.Http
+@inject Microsoft.AspNetCore.Http.IHttpContextAccessor httpContextAccessor
+@{
+    ISession session = httpContextAccessor.HttpContext?.Session ?? null!;
+    string background = session.GetString("background") ?? string.Empty;
+    string header = session.GetString("header") ?? string.Empty;
+    string textColor = session.GetString("textColor") ?? string.Empty;
+}
+
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8" />
@@ -7,100 +16,12 @@
     <link asp-append-version="true" rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link asp-append-version="true" rel="stylesheet" href="~/css/dashboard.css" />
 </head>
-@* <body>
-    <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light border-bottom box-shadow hd-maharaja">
-            <div class="container-fluid">
-                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index"><img src="~/images/bankLogo.jpg" style="height: 55px !important; width: 423px !important" alt="Our Bank"></a>
-            </div>
-        </nav>
-    </header>
-    <main>
-        <div class="container-fluid">
-            <div class="row">
-                <div class="col-md-2 bg-maharaja">
-                    <div class="flex-shrink-0 p-3">
-                        <ul class="list-unstyled ps-0">
-                            <li class="mb-1">
-                                <button class="btn btn-toggle align-items-center rounded collapsed" data-bs-toggle="collapse" data-bs-target="#home-collapse" aria-expanded="true">
-                                    Home
-                                </button>
-                            </li>
-                            <li class="mb-1">
-                                <button class="btn btn-toggle align-items-center rounded collapsed" data-bs-toggle="collapse" data-bs-target="#dashboard-collapse" aria-expanded="false">
-                                    Dashboard
-                                </button>
-                                <div class="collapse" id="dashboard-collapse">
-                                    <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small">
-                                        <li><a href="#" class="link-dark rounded">Overview</a></li>
-                                        <li><a href="#" class="link-dark rounded">Weekly</a></li>
-                                        <li><a href="#" class="link-dark rounded">Monthly</a></li>
-                                        <li><a href="#" class="link-dark rounded">Annually</a></li>
-                                    </ul>
-                                </div>
-                            </li>
-                            <li class="mb-1">
-                                <button class="btn btn-toggle align-items-center rounded collapsed" data-bs-toggle="collapse" data-bs-target="#orders-collapse" aria-expanded="false">
-                                    Orders
-                                </button>
-                                <div class="collapse" id="orders-collapse">
-                                    <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small">
-                                        <li><a href="#" class="link-dark rounded">New</a></li>
-                                        <li><a href="#" class="link-dark rounded">Processed</a></li>
-                                        <li><a href="#" class="link-dark rounded">Shipped</a></li>
-                                        <li><a href="#" class="link-dark rounded">Returned</a></li>
-                                    </ul>
-                                </div>
-                            </li>
-                            <li class="border-top my-3"></li>
-                            <li class="mb-1">
-                                <button class="btn btn-toggle align-items-center rounded collapsed" data-bs-toggle="collapse" data-bs-target="#account-collapse" aria-expanded="false">
-                                    Account
-                                </button>
-                                <div class="collapse" id="account-collapse">
-                                    <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small">
-                                        <li><a href="#" class="link-dark rounded">New...</a></li>
-                                        <li><a href="#" class="link-dark rounded">Profile</a></li>
-                                        <li><a href="#" class="link-dark rounded">Settings</a></li>
-                                        <li><a href="#" class="link-dark rounded">Sign out</a></li>
-                                    </ul>
-                                </div>
-                            </li>
-                            <li>
-                                <a href="/Login/Logout" class="btn btn-success">
-                                    Singout</a>
-
-                                @* <button class="btn align-items-center rounded" data-bs-toggle="collapse">
-                                    
-                                </button> *@
-                            </li>
-                        </ul>
-                    </div>
-                </div>
-                <div class="col-md-10">
-                    <div class="row p-3">
-                        @RenderBody()
-                    </div>
-                </div>
-            </div>
-        </div>
-    </main>
-    <footer class="bd-footer py-3 hd-maharaja">
-        <div class="container text-center">
-            <span class="bg-text-maharaja">&copy; @DateTime.Now.Year - FinXPro</span>
-        </div>
-    </footer>
-    <script asp-append-version="true" src="~/lib/jquery/dist/jquery.min.js"></script>
-    <script asp-append-version="true" src="~/js/dashboard.js"></script>
-    @await RenderSectionAsync("Scripts", required: false)
-</body> *@
-
 <body>
     <div class="main-container">
         <nav id="sidebar">
             <ul>
                 <li>
-                    <span class="logo d-none">coding2go</span>
+                    <span class="logo">FinXPro</span>
                     <button onclick=toggleSidebar() id="toggle-btn">
                         <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#e8eaed">
                             <path d="m313-480 155 156q11 11 11.5 27.5T468-268q-11 11-28 11t-28-11L228-452q-6-6-8.5-13t-2.5-15q0-8 2.5-15t8.5-13l184-184q11-11 27.5-11.5T468-692q11 11 11 28t-11 28L313-480Zm264 0 155 156q11 11 11.5 27.5T732-268q-11 11-28 11t-28-11L492-452q-6-6-8.5-13t-2.5-15q0-8 2.5-15t8.5-13l184-184q11-11 27.5-11.5T732-692q11 11 11 28t-11 28L577-480Z" />
@@ -114,9 +35,9 @@
                     </a>
                 </li>
                 <li>
-                    <a href="index.html" class="active">
+                    <a asp-controller="Dashboard" asp-action="Index">
                         <img src="images/dashboard-icon.svg">
-                        <span>Dashboard</span>
+                        <span>Modules</span>
                     </a>
                 </li>
                 <li>
@@ -136,7 +57,7 @@
                 <li>
                     <a href="#">
                         <img src="images/account-icon.svg">
-                        <span>Account</span>
+                        <span>@session.GetString("Username")</span>
                     </a>
                 </li>
                 <li>
@@ -169,114 +90,6 @@
             </div>
             <div class="content-area">
                 <div class="cards-container">
-@*                     <div class="card">
-                        <img src="images/bank.svg" class="card-img-top" alt="...">
-                        <div class="card-body">
-                            <h5 class="card-title">Card title</h5>
-                        </div>
-                    </div>
-                    <div class="card">
-                        <img src="images/bank.svg" class="card-img-top" alt="...">
-                        <div class="card-body">
-                            <h5 class="card-title">Card title</h5>
-                        </div>
-                    </div>
-                    <div class="card">
-                        <img src="images/bank.svg" class="card-img-top" alt="...">
-                        <div class="card-body">
-                            <h5 class="card-title">Card title</h5>
-                        </div>
-                    </div>
-                    <div class="card">
-                        <img src="images/bank.svg" class="card-img-top" alt="...">
-                        <div class="card-body">
-                            <h5 class="card-title">Card title</h5>
-                        </div>
-                    </div>
-                    <div class="card">
-                        <img src="images/bank.svg" class="card-img-top" alt="...">
-                        <div class="card-body">
-                            <h5 class="card-title">Card title</h5>
-                        </div>
-                    </div>
-                    <div class="card">
-                        <img src="images/bank.svg" class="card-img-top" alt="...">
-                        <div class="card-body">
-                            <h5 class="card-title">Card title</h5>
-                        </div>
-                    </div>
-                    <div class="card">
-                        <img src="images/bank.svg" class="card-img-top" alt="...">
-                        <div class="card-body">
-                            <h5 class="card-title">Card title</h5>
-                        </div>
-                    </div>
-                    <div class="card">
-                        <img src="images/bank.svg" class="card-img-top" alt="...">
-                        <div class="card-body">
-                            <h5 class="card-title">Card title</h5>
-                        </div>
-                    </div>
-                    <div class="card">
-                        <img src="images/bank.svg" class="card-img-top" alt="...">
-                        <div class="card-body">
-                            <h5 class="card-title">Card title</h5>
-                        </div>
-                    </div>
-                    <div class="card">
-                        <img src="images/bank.svg" class="card-img-top" alt="...">
-                        <div class="card-body">
-                            <h5 class="card-title">Card title</h5>
-                        </div>
-                    </div>
-                    <div class="card">
-                        <img src="images/bank.svg" class="card-img-top" alt="...">
-                        <div class="card-body">
-                            <h5 class="card-title">Card title</h5>
-                        </div>
-                    </div>
-                    <div class="card">
-                        <img src="images/bank.svg" class="card-img-top" alt="...">
-                        <div class="card-body">
-                            <h5 class="card-title">Card title</h5>
-                        </div>
-                    </div>
-                    <div class="card">
-                        <img src="images/bank.svg" class="card-img-top" alt="...">
-                        <div class="card-body">
-                            <h5 class="card-title">Card title</h5>
-                        </div>
-                    </div>
-                    <div class="card">
-                        <img src="images/bank.svg" class="card-img-top" alt="...">
-                        <div class="card-body">
-                            <h5 class="card-title">Card title</h5>
-                        </div>
-                    </div>
-                    <div class="card">
-                        <img src="images/bank.svg" class="card-img-top" alt="...">
-                        <div class="card-body">
-                            <h5 class="card-title">Card title</h5>
-                        </div>
-                    </div>
-                    <div class="card">
-                        <img src="images/bank.svg" class="card-img-top" alt="...">
-                        <div class="card-body">
-                            <h5 class="card-title">Card title</h5>
-                        </div>
-                    </div>
-                    <div class="card">
-                        <img src="images/bank.svg" class="card-img-top" alt="...">
-                        <div class="card-body">
-                            <h5 class="card-title">Card title</h5>
-                        </div>
-                    </div>
-                    <div class="card">
-                        <img src="images/bank.svg" class="card-img-top" alt="...">
-                        <div class="card-body">
-                            <h5 class="card-title">Card title</h5>
-                        </div>
-                    </div> *@
                     @RenderBody()
                 </div>
             </div>

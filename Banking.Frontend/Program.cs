@@ -8,6 +8,10 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Logging.ClearProviders();
 builder.Logging.AddConsole();
 
+builder.Services.AddHttpClient();
+
+builder.Services.AddHttpContextAccessor();
+
 builder.Services.Configure<ForwardedHeadersOptions>(options =>
 {
     options.ForwardedHeaders = ForwardedHeaders.XForwardedFor;
@@ -33,7 +37,13 @@ builder.Services.Configure<DatabaseSettings>(builder.Configuration.GetSection("O
 builder.Services.AddScoped<ILoginService, LoginService>();
 builder.Services.AddScoped<IDashboardService, DashboardService>();
 
-var baseAddress = builder.Configuration.GetValue<string>("APIURL");
+// Database Services
+//builder.Services.AddScoped<IDatabaseService, DatabaseService>();
+// builder.Services.AddScoped<ITransactionalService, Transactional>();
+
+// Common Services
+builder.Services.AddScoped<IAutoNumberService, AutoNumberService>();
+builder.Services.AddScoped<IGeneralValidationService, GeneralValidationService>();
 
 builder.Services.AddSingleton(builder.Configuration);
 

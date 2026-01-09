@@ -11,10 +11,12 @@ namespace Banking.Frontend.Controllers
         private readonly ILogger<LoginController> _logger;
         private ILoginService _loginService;
 
-        public LoginController(ILogger<LoginController> logger, IConfiguration configuration) : base(configuration)
+        public LoginController(ILogger<LoginController> logger, IConfiguration configuration, 
+            IHttpContextAccessor httpContextAccessor) : base(configuration)
         {
-            _loginService = new LoginService(_options);
             _logger = logger;
+            _loginService = new LoginService(_options);
+            httpContextAccessor.HttpContext?.Session.SetString("BankColorOption", _bankName);
         }
         /// <summary>
         /// 
@@ -36,6 +38,8 @@ namespace Banking.Frontend.Controllers
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> Index(LoginModel loginModel)
         {
+            HttpContext.Session.SetString("Username", loginModel.Username);
+
             try
             {
                 if (!ModelState.IsValid)

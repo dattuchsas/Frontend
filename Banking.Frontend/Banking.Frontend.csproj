@@ -4,8 +4,12 @@
     <TargetFramework>net8.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <Platforms>AnyCPU</Platforms>
+    <PlatformTarget>AnyCPU</PlatformTarget>
   </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Humanizer" Version="3.0.1" />
+  </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Banking.Models\Banking.Models.csproj" />

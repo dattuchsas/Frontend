@@ -64,7 +64,7 @@ namespace Banking.Frontend.Controllers
                         break;
 
                     string[] moduleShortName = modules[i].Split(":");
-                    string form = moduleShortName[0].ToLower() + "module.aspx";
+                    string form = moduleShortName[0].ToLower();
 
                     if (moduleShortName[1].Equals("F"))
                     {
@@ -110,27 +110,27 @@ namespace Banking.Frontend.Controllers
                 //    session.SetString("moddir", vmodx[1]);
                 //}
 
-                //string usrid = session.GetString("userid") ?? string.Empty;
+                string usrid = session.GetString("userid") ?? string.Empty;
 
-                //string serverId = session.GetString("serverid") ?? string.Empty;
-                //DataTable recdtls = await _dashboardService.GetServiceVirtualDirectoryDetails("machinename,virtualdir", "upper(trim(machinename))='" + serverId + "'");
+                string serverId = session.GetString("serverid") ?? string.Empty;
+                DataTable recdtls = await _dashboardService.GetServiceVirtualDirectoryDetails("machinename,virtualdir", "upper(trim(machinename))='" + serverId + "'");
 
-                //if (recdtls.Rows.Count > 0)
-                //{
-                //    string item0 = Convert.ToString(recdtls.Rows[0].ItemArray[0]) ?? string.Empty;
-                //    string item1 = Convert.ToString(recdtls.Rows[0].ItemArray[1]) ?? string.Empty;
+                if (recdtls.Rows.Count > 0)
+                {
+                    string item0 = Convert.ToString(recdtls.Rows[0].ItemArray[0]) ?? string.Empty;
+                    string item1 = Convert.ToString(recdtls.Rows[0].ItemArray[1]) ?? string.Empty;
 
-                //    string mainstr = string.Concat(item0, "/", item1, "/", "~");
+                    string mainstr = string.Concat(item0, "/", item1, "/", "~");
 
-                //    session.SetString("moduledir", item0 + "/" + item1);
+                    session.SetString("moduledir", item0 + "/" + item1);
 
-                //    if (usrid == "")
-                //    {
-                //        Redirect("http://" + item0 + "/" + item1.Trim() + "/useridscreen.aspx?record=" + "Your session is timeout. Please login again..");
-                //    }
-                //}
+                    if (usrid == "")
+                    {
+                        Redirect("http://" + item0 + "/" + item1.Trim() + "/useridscreen.aspx?record=" + "Your session is timeout. Please login again..");
+                    }
+                }
 
-                //string strHOTrALWBrCode = await _dashboardService.GetHOTRALWBrCode();
+                string strHOTrALWBrCode = await _dashboardService.GetHOTRALWBrCode();
 
                 //if (vmod.Equal("PAYROLL"))
                 //{

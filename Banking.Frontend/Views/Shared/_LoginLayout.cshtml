@@ -1,4 +1,12 @@
-﻿@model Banking.Models.LoginModel
+﻿@using Microsoft.AspNetCore.Http
+@inject Microsoft.AspNetCore.Http.IHttpContextAccessor httpContextAccessor
+@{
+    ISession session = httpContextAccessor.HttpContext?.Session ?? null!;
+    string background = session.GetString("background") ?? string.Empty;
+    string header = session.GetString("header") ?? string.Empty;
+    string textColor = session.GetString("textColor") ?? string.Empty;
+}
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -8,9 +16,9 @@
     <link asp-append-version="true" rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link asp-append-version="true" rel="stylesheet" href="~/css/login.css" />
 </head>
-<body class="bg-maharaja">
+<body class="@background">
     <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-md navbar-dark hd-maharaja">
+        <nav class="navbar navbar-expand-sm navbar-toggleable-md navbar-dark @header">
             <div class="container-fluid">
                 <a class="navbar-brand" asp-area="" asp-controller="#" asp-action="#"><img src="~/images/bankLogo.jpg" style="height: 55px !important; width: 423px !important" alt="Our Bank"></a>
             </div>
@@ -23,9 +31,9 @@
             </div>
         </div>
     </main>
-    <footer class="bd-footer py-3 hd-maharaja">
+    <footer class="bd-footer py-3 @header">
         <div class="container text-center">
-            <span class="text-white">&copy; @DateTime.Now.Year - FinXPro</span>
+            <span class="@textColor">&copy; @DateTime.Now.Year - FinXPro</span>
         </div>
     </footer>
     <script asp-append-version="true" src="~/lib/jquery/dist/jquery.min.js"></script>
