@@ -476,3 +476,9 @@ FodyWeavers.xsd
 /Banking.Frontend/obj/project.assets.json
 /Banking.Frontend/obj/project.nuget.cache
 /Banking.Models/obj/Debug/net8.0/Banking.Models.csproj.CoreCompileInputs.cache
+/Banking.Framework/obj/Debug/net8.0/Banking.Framework.assets.cache
+/Banking.Framework/obj/Debug/net8.0/Banking.Framework.csproj.AssemblyReference.cache
+/Banking.Framework/obj/Debug/net8.0/Banking.Framework.GeneratedMSBuildEditorConfig.editorconfig
+/Banking.Frontend/obj/Debug/net8.0/staticwebassets.removed.txt
+/Banking.Models/obj/Debug/net8.0/Banking.Models.assets.cache
+/Banking.Models/obj/Debug/net8.0/Banking.Models.GeneratedMSBuildEditorConfig.editorconfig

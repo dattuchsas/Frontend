@@ -405,23 +405,23 @@ namespace Banking.Backend
                     //    TransResult = "";
                     //    TransResult = await _transactionalFactory.BulkInsert(StrTabName, StrFld, DataArray[transcount, 3], BRCode, UserId, MachID, applicationDate, DayBeginEndStatusCheckYN);
                     //}
-                    //else if (DataArray[transcount, 0].Trim().ToUpper() == "U")
-                    //{
-                    //    /// ************For Update****************
-                    //    if (!string.IsNullOrEmpty(Autoflds.Trim()))
-                    //    {
-                    //        // StrFld = StrFld & "," & Autoflds
-                    //        var loopTo3 = ArrRowValues.Length - 1;
-                    //        for (int RowCnt = 0; RowCnt <= loopTo3; RowCnt++)
-                    //            ArrRowValues[RowCnt] = ArrRowValues.ElementAtOrDefault(RowCnt) + "~'" + AutoNumValue + "'";
-                    //    }
-                    //    TransResult = await _transactionalFactory.UpdateRecord(StrTabName, StrFld, ArrRowValues, TabWhereCondition, BRCode, UserId, MachID, applicationDate, DayBeginEndStatusCheckYN);
-                    //}
-                    //else if (DataArray[transcount, 0].Trim().ToUpper() == "D")
-                    //{
-                    //    /// ************For Delete****************
-                    //    TransResult = await _transactionalFactory.DeleteRecord(StrTabName, TabWhereCondition, BRCode, UserId, MachID, applicationDate, DayBeginEndStatusCheckYN);
-                    //}
+                    else if (DataArray[transcount, 0].Trim().ToUpper() == "U")
+                    {
+                        /// ************For Update****************
+                        if (!string.IsNullOrEmpty(Autoflds.Trim()))
+                        {
+                            // StrFld = StrFld & "," & Autoflds
+                            var loopTo3 = ArrRowValues.Length - 1;
+                            for (int RowCnt = 0; RowCnt <= loopTo3; RowCnt++)
+                                ArrRowValues[RowCnt] = ArrRowValues.ElementAtOrDefault(RowCnt) + "~'" + AutoNumValue + "'";
+                        }
+                        TransResult = await _transactionalFactory.UpdateRecord(StrTabName, StrFld, ArrRowValues, TabWhereCondition, BRCode, UserId, MachID, applicationDate, DayBeginEndStatusCheckYN);
+                    }
+                    else if (DataArray[transcount, 0].Trim().ToUpper() == "D")
+                    {
+                        /// ************For Delete****************
+                        TransResult = await _transactionalFactory.DeleteRecord(StrTabName, TabWhereCondition, BRCode, UserId, MachID, applicationDate, DayBeginEndStatusCheckYN);
+                    }
                     //else if (DataArray[transcount, 0].Trim().ToUpper() == "R")
                     //{
                     //    /// ************For Rejection****************
