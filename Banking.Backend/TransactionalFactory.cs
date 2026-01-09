@@ -140,370 +140,368 @@ namespace Banking.Backend
         //    return BulkInsertRet;
         //}
 
-        //public async Task<string> UpdateRecord(string TableName, string FldNames, string[] Arrvalues, string WhereCondition = "", string BranchCode = "",
-        //    string UserCode = "", string MachineID = "", string ApplicationDate = "", string DayBeginEndStatusCheckYN = "")
-        //{
-        //    string UpdateRecordRet = string.Empty;
-
-        //    string[] ArrTempValues;
-        //    string[] ArrRowValue;
-        //    string[] arrflds;
-        //    string strquery;
-        //    var Strupdate = default(string);
-        //    string StrInsert;
-        //    int ColCnt;
-        //    int RowCnt;
-
-        //    var strUpdateRow = default(string);
-        //    string[] StrCondition;
-        //    string StrTabName;
-        //    string strfields;
-        //    try
-        //    {
-        //        connError = "";
-
-        //        ArrTempValues = Arrvalues;
-        //        StrTabName = TableName.Trim().ToUpper();
-        //        strfields = FldNames;
-
-        //        applicationDate = string.Format(string.IsNullOrWhiteSpace(ApplicationDate) ? DateTime.Now.ToString() : ApplicationDate, "dd-MMM-yyyy");
-
-        //        // Spliting the conditions For Different Rows
-        //        if (DayBeginEndStatusCheckYN != "N")
-        //        {
-        //            OracleQueryModel queryModel = new()
-        //            {
-        //                TableName = StrTabName,
-        //                FieldNames = FldNames,
-        //                BranchCode = string.IsNullOrWhiteSpace(BranchCode.Trim().ToUpper()) ? "" : BranchCode.Trim().ToUpper(),
-        //                UserId = string.IsNullOrWhiteSpace(UserCode.Trim().ToUpper()) ? "" : UserCode.Trim().ToUpper(),
-        //                MachineID = string.IsNullOrWhiteSpace(MachineID.Trim().ToUpper()) ? "" : MachineID.Trim().ToUpper(),
-        //                ArrValues = ArrTempValues,
-        //                Condition = WhereCondition,
-        //                QueryType = OracleQueryType.Update
-        //            };
-
-        //            // Check for day begin and day end status is required
-        //            connError = await CheckDayBeginDayEndStatus(queryModel);
-
-        //            if (connError != "CONTINUE")
-        //                throw new Exception();
-        //        }
-
-        //        connError = "Connected";
-
-        //        StrCondition = WhereCondition.Split("|");
-
-        //        // Roll back segment for large transactions
-        //        // If Right(StrTabName, 3) = "LOG" Then
-        //        //     AdoConnObj.Execute ("SET TRANSACTION USE ROLLBACK SEGMENT RBS7")
-        //        // End If
-
-        //        if (string.IsNullOrEmpty(WhereCondition.Trim()))
-        //        {
-        //            StrCondition[0] = "";
-        //        }
-
-        //        // Checking if the record is to be send to the respective history table.
-        //        bool BlnHistStatus = false;
-        //        string strHistExt = "";
-
-        //        OracleDataReader rsHistCol;
-        //        OracleDataReader rsHistExt;
-
-        //        rsHistCol = await ProcessQuery("Select * from GENHISTNOTREQUIREDCOLNAME");
-        //        rsHistExt = await ProcessQuery("Select * from GENHISTNOTREQUIREDTABEXTNS");
-
-        //        arrflds = strfields.Split(",");
-
-        //        if (rsHistExt.HasRows)
-        //        {
-        //            // Load the OracleDataReader into a DataTable
-        //            DataTable histExtTable = new DataTable();
-        //            histExtTable.Load(rsHistExt);
-
-        //            foreach (DataRow row in histExtTable.Rows)
-        //            {
-        //                string tabExtName = row["TABEXTENSIONNAME"].ToString().Trim().ToUpperInvariant() ?? string.Empty;
-        //                string tabBkPExtName = row["TABBKPEXTENSIONNAME"].ToString().Trim() ?? string.Empty;
-
-        //                if (!string.IsNullOrEmpty(tabExtName) &&
-        //                    StrTabName.Length >= tabExtName.Length &&
-        //                    StrTabName.Substring(StrTabName.Length - tabExtName.Length).ToUpperInvariant() == tabExtName)
-        //                {
-        //                    strHistExt = tabBkPExtName;
-        //                    BlnHistStatus = true;
-        //                    break; // exit loop once match is found
-        //                }
-        //            }
-        //        }
-
-        //        if (rsHistCol.HasRows)
-        //        {
-        //            DataTable histTable = new DataTable();
-        //            histTable.Load(rsHistCol);
-
-        //            if (BlnHistStatus && arrflds.Length <= histTable.Rows.Count)
-        //            {
-        //                for (int i = 0; i < arrflds.Length; i++)
-        //                {
-        //                    BlnHistStatus = false;
-
-        //                    foreach (DataRow row in histTable.Rows)
-        //                    {
-        //                        if (row[0].ToString().Trim().Equals(arrflds[i].Trim(), StringComparison.OrdinalIgnoreCase))
-        //                        {
-        //                            BlnHistStatus = true;
-        //                            break;
-        //                        }
-        //                    }
-
-        //                    if (!BlnHistStatus)
-        //                        break;
-        //                }
-        //            }
-        //            else
-        //            {
-        //                BlnHistStatus = false;
-        //            }
-        //        }
-
-        //        rsHistCol = null!;
-        //        rsHistExt = null!;
-
-        //        var loopTo3 = ArrTempValues.Length - 1;
-        //        for (RowCnt = 0; RowCnt <= loopTo3; RowCnt++)
-        //        {
-        //            // First passing the data into history tables based on the type of tables.
-        //            StrInsert = "";
-        //            if (BlnHistStatus == false & !string.IsNullOrEmpty(strHistExt))
-        //            {
-        //                if ((StrCondition.Length - 1) == (ArrTempValues.Length - 1) && !string.IsNullOrEmpty(WhereCondition.Trim()))
-        //                {
-        //                    StrInsert = "Insert into " + StrTabName.Trim() + strHistExt + dataLink + " select * from " + StrTabName + "" + dataLink + " Where " + StrCondition[RowCnt];
-        //                }
-        //                else
-        //                {
-        //                    StrInsert = "Insert into " + StrTabName.Trim() + strHistExt + dataLink + " select * from " + StrTabName + "" + dataLink + "";
-        //                }
-        //            }
-
-        //            if (!string.IsNullOrEmpty(StrInsert.Trim()))
-        //                await ProcessQuery(StrInsert);
-
-        //            // Spliting the Collumn Names (Fields) to build the Update Statement
-        //            arrflds = strfields.Split(",");
-
-        //            // ****** Spliting the Collumn Values (Fields Values) to build the Update Statement
-        //            ArrRowValue = ArrTempValues[RowCnt].Split("~");
-
-        //            /// *******  first concantinating the values for update ***********
-        //            var loopTo4 = arrflds.Length - 1;
-        //            for (ColCnt = 0; ColCnt <= loopTo4; ColCnt++)
-        //                strUpdateRow = strUpdateRow + arrflds[ColCnt] + "=" + ArrRowValue[ColCnt] + ",";
-
-        //            // Now building the The Update statement
-        //            if ((StrCondition.Length - 1) == (ArrTempValues.Length - 1) && !string.IsNullOrEmpty(WhereCondition.Trim()))
-        //            {
-        //                Strupdate = "update " + StrTabName + "" + dataLink + " set " + strUpdateRow?.Substring(0, strUpdateRow.Length - 1) + " where " + StrCondition[RowCnt];
-        //                strquery = "select " + strfields + " from " + StrTabName.Trim() + dataLink + " where " + StrCondition[RowCnt] + " for update";
-        //            }
-        //            else
-        //            {
-        //                strquery = "select " + strfields + " from " + StrTabName.Trim() + dataLink + " for update";
-        //                Strupdate = "update " + StrTabName + "" + dataLink + " set " + strUpdateRow?.Substring(0, strUpdateRow.Length - 1);
-        //            }
-
-        //            // Executing the update statement Based On Number of Rows
-
-        //            await ProcessQuery(strquery);
-
-        //            var result = await ProcessQuery(Strupdate);
-
-        //            Strupdate = "";
-        //            strUpdateRow = "";
-
-        //            if (result.RecordsAffected == 0)
-        //            {
-        //                UpdateRecordRet = "Update Failed due to False Condition ! " + StrTabName;
-
-        //                //if (blnLogErrors == true)
-        //                //    LogError("DataBaseTransactions", "UpdateRecord", "0", UpdateRecordRet + ": " + Strupdate);
-
-        //                if (!rsHistCol.IsClosed)
-        //                    rsHistCol.Close();
-        //                rsHistCol = null!;
-
-        //                if (!rsHistExt.IsClosed)
-        //                    rsHistExt.Close();
-        //                rsHistExt = null!;
-
-        //                return UpdateRecordRet;
-        //            }
-        //        }
-
-        //        UpdateRecordRet = BankingConstants.TransactionCompleted;
-
-        //        if (!rsHistCol.IsClosed)
-        //            rsHistCol.Close();
-        //        rsHistCol = null!;
-
-        //        if (!rsHistExt.IsClosed)
-        //            rsHistExt.Close();
-        //        rsHistExt = null!;
-        //    }
-        //    catch(Exception ex)
-        //    {
-        //        UpdateRecordRet = ProcessError(ex, connError, BankingConstants.DBTrans_Update);
-        //    }
-
-        //    return UpdateRecordRet;
-        //}
-
-        //public async Task<string> DeleteRecord(string TableName, string WhereCondition, string BranchCode = "", string UserCode = "", string MachineID = "",
-        //    string ApplicationDate = "", string DayBeginEndStatusCheckYN = "")
-        //{
-        //    string DeleteRecordRet = string.Empty;
-        //    string StrDelete;
-        //    string StrTabName;
-        //    string[] StrCondition;
-        //    string StrInsert;
-
-        //    try
-        //    {
-        //        connError = "";
-        //        StrDelete = "";
-        //        StrTabName = "";
-        //        StrTabName = TableName.Trim().ToUpper();
-
-        //        applicationDate = string.Format(string.IsNullOrWhiteSpace(ApplicationDate) ? DateTime.Now.ToString() : ApplicationDate, "dd-MMM-yyyy");
-
-        //        // Checking day begin status and day end status.
-        //        if (DayBeginEndStatusCheckYN != "N")
-        //        {
-        //            OracleQueryModel queryModel = new()
-        //            {
-        //                TableName = StrTabName,
-        //                BranchCode = string.IsNullOrWhiteSpace(BranchCode.Trim().ToUpper()) ? "" : BranchCode.Trim().ToUpper(),
-        //                UserId = string.IsNullOrWhiteSpace(UserCode.Trim().ToUpper()) ? "" : UserCode.Trim().ToUpper(),
-        //                MachineID = string.IsNullOrWhiteSpace(MachineID.Trim().ToUpper()) ? "" : MachineID.Trim().ToUpper(),
-        //                Condition = WhereCondition,
-        //                QueryType = OracleQueryType.Delete
-        //            };
-
-        //            connError = await CheckDayBeginDayEndStatus(queryModel);
-
-        //            if (connError != "CONTINUE")
-        //                throw new Exception();
-        //        }
-
-        //        // First passing the data into History tables before deleting the data from original tables
-        //        bool BlnHistStatus = false;
-        //        string strHistExt = "";
-
-        //        OracleDataReader rsHistExt;
-
-        //        rsHistExt = await ProcessQuery("Select * from GENHISTNOTREQUIREDTABEXTNS");
-
-        //        while (rsHistExt.Read())
-        //        {
-        //            // Get the trimmed and uppercased TABEXTENSIONNAME from the reader
-        //            string tabExtName = rsHistExt.GetString(rsHistExt.GetOrdinal("TABEXTENSIONNAME")).Trim().ToUpper();
-
-        //            // Get the rightmost part of StrTabName that matches the length of TABEXTENSIONNAME
-        //            string strTabNameRight = StrTabName.Length >= tabExtName.Length
-        //                ? StrTabName.Substring(StrTabName.Length - tabExtName.Length)
-        //                : StrTabName;
-
-        //            if (strTabNameRight.ToUpper() == tabExtName)
-        //            {
-        //                strHistExt = rsHistExt.GetString(rsHistExt.GetOrdinal("TABBKPEXTENSIONNAME"));
-        //                BlnHistStatus = false;
-        //                break; // Exit the loop when a match is found
-        //            }
-        //        }
-
-        //        StrInsert = "";
-
-        //        if (!string.IsNullOrEmpty(WhereCondition.Trim()))
-        //        {
-        //            StrCondition = WhereCondition.Split("|");
-        //            var loopTo1 = StrCondition.Length - 1;
-        //            for (int i = 0; i <= loopTo1; i++)
-        //            {
-        //                if (BlnHistStatus == false & !string.IsNullOrEmpty(strHistExt))
-        //                {
-        //                    // First passing the data into history tables based on the type of tables.
-        //                    StrInsert = "Insert into " + StrTabName.Trim() + strHistExt + dataLink + " select * from " + 
-        //                        StrTabName.Trim() + "" + dataLink + " Where " + StrCondition[i];
-        //                }
-        //                else
-        //                {
-        //                    StrInsert = "";
-        //                }
-
-        //                StrDelete = "Delete from  " + StrTabName.Trim() + dataLink + " where " + StrCondition[i];
-
-        //                if (!string.IsNullOrEmpty(StrInsert))
-        //                    await ProcessQuery(StrInsert);
-
-        //                var result = await ProcessQuery(StrDelete);
-
-        //                if (result.RecordsAffected == 0)
-        //                {
-        //                    DeleteRecordRet = "Delete Failed due to False Condition !";
-        //                    //if (blnLogErrors == true)
-        //                    //    LogError("DataBaseTransactions", "DeleteRecord", Information.Err().Number, DeleteRecordRet + ": " + StrDelete);
-        //                    if (!rsHistExt.IsClosed)
-        //                        rsHistExt.Close();
-        //                    rsHistExt = null!;
-        //                    return DeleteRecordRet;
-        //                }
-        //            }
-        //        }
-        //        else
-        //        {
-        //            if (BlnHistStatus == false & !string.IsNullOrEmpty(strHistExt))
-        //            {
-        //                StrInsert = "Insert into " + StrTabName.Trim() + strHistExt + dataLink + " select * from " + StrTabName.Trim() + "" + dataLink + "";
-        //            }
-        //            else
-        //            {
-        //                StrInsert = "";
-        //            }
-
-        //            StrDelete = "Delete from  " + StrTabName.Trim() + dataLink + "";
-
-        //            if (!string.IsNullOrEmpty(StrInsert))
-        //                await ProcessQuery(StrInsert);
-
-        //            var result = await ProcessQuery(StrDelete);
-
-        //            if (result.RecordsAffected == 0)
-        //            {
-        //                DeleteRecordRet = "Delete Failed due to False Condition !";
-        //                //if (blnLogErrors == true)
-        //                //    LogError("DataBaseTransactions", "DeleteRecord", Information.Err().Number, DeleteRecordRet + ": " + StrDelete);
-        //                if (!rsHistExt.IsClosed)
-        //                    rsHistExt.Close();
-        //                rsHistExt = null!;
-        //                return DeleteRecordRet;
-        //            }
-        //        }
-
-        //        DeleteRecordRet = BankingConstants.TransactionCompleted;
-
-        //        if (!rsHistExt.IsClosed)
-        //            rsHistExt.Close();
-        //        rsHistExt = null!;
-        //    }
-        //    catch(Exception ex)
-        //    {
-        //        DeleteRecordRet = ProcessError(ex, connError, BankingConstants.DBTrans_Delete);
-        //    }
-
-        //    return DeleteRecordRet;
-        //}
+        public async Task<string> UpdateRecord(string TableName, string FldNames, string[] Arrvalues, string WhereCondition = "", string BranchCode = "",
+            string UserCode = "", string MachineID = "", string ApplicationDate = "", string DayBeginEndStatusCheckYN = "")
+        {
+            string UpdateRecordRet = string.Empty;
+
+            string[] ArrTempValues;
+            string[] ArrRowValue;
+            string[] arrflds;
+            string strquery;
+            var Strupdate = default(string);
+            string StrInsert;
+            int ColCnt;
+            int RowCnt;
+
+            var strUpdateRow = default(string);
+            string[] StrCondition;
+            string StrTabName;
+            string strfields;
+            try
+            {
+                connError = "";
+
+                ArrTempValues = Arrvalues;
+                StrTabName = TableName.Trim().ToUpper();
+                strfields = FldNames;
+
+                applicationDate = string.Format(string.IsNullOrWhiteSpace(ApplicationDate) ? DateTime.Now.ToString() : ApplicationDate, "dd-MMM-yyyy");
+
+                // Spliting the conditions For Different Rows
+                if (DayBeginEndStatusCheckYN != "N")
+                {
+                    OracleQueryModel queryModel = new()
+                    {
+                        TableName = StrTabName,
+                        FieldNames = FldNames,
+                        BranchCode = string.IsNullOrWhiteSpace(BranchCode.Trim().ToUpper()) ? "" : BranchCode.Trim().ToUpper(),
+                        UserId = string.IsNullOrWhiteSpace(UserCode.Trim().ToUpper()) ? "" : UserCode.Trim().ToUpper(),
+                        MachineID = string.IsNullOrWhiteSpace(MachineID.Trim().ToUpper()) ? "" : MachineID.Trim().ToUpper(),
+                        ArrValues = ArrTempValues,
+                        Condition = WhereCondition,
+                        QueryType = OracleQueryType.Update
+                    };
+
+                    // Check for day begin and day end status is required
+                    connError = await CheckDayBeginDayEndStatus(queryModel);
+
+                    if (connError != "CONTINUE")
+                        throw new Exception();
+                }
+
+                connError = "Connected";
+
+                StrCondition = WhereCondition.Split("|");
+
+                // Roll back segment for large transactions
+                // If Right(StrTabName, 3) = "LOG" Then
+                //     AdoConnObj.Execute ("SET TRANSACTION USE ROLLBACK SEGMENT RBS7")
+                // End If
+
+                if (string.IsNullOrEmpty(WhereCondition.Trim()))
+                {
+                    StrCondition[0] = "";
+                }
+
+                // Checking if the record is to be send to the respective history table.
+                bool BlnHistStatus = false;
+                string strHistExt = "";
+
+                DataTable rsHistCol;
+                DataTable rsHistExt;
+
+                rsHistCol = await ProcessQueryAsync("Select * from GENHISTNOTREQUIREDCOLNAME");
+                rsHistExt = await ProcessQueryAsync("Select * from GENHISTNOTREQUIREDTABEXTNS");
+
+                arrflds = strfields.Split(",");
+
+                if (rsHistExt.Rows.Count>0)
+                {
+                    // Load the OracleDataReader into a DataTable
+                    //DataTable histExtTable = new DataTable();
+                    //histExtTable.Load(rsHistExt);
+
+                    foreach (DataRow row in rsHistExt.Rows)
+                    {
+                        string tabExtName = row["TABEXTENSIONNAME"].ToString().Trim().ToUpperInvariant() ?? string.Empty;
+                        string tabBkPExtName = row["TABBKPEXTENSIONNAME"].ToString().Trim() ?? string.Empty;
+
+                        if (!string.IsNullOrEmpty(tabExtName) &&
+                            StrTabName.Length >= tabExtName.Length &&
+                            StrTabName.Substring(StrTabName.Length - tabExtName.Length).ToUpperInvariant() == tabExtName)
+                        {
+                            strHistExt = tabBkPExtName;
+                            BlnHistStatus = true;
+                            break; // exit loop once match is found
+                        }
+                    }
+                }
+
+                if (rsHistCol.Rows.Count>0)
+                {
+                    //DataTable histTable = new DataTable();
+                    //histTable.Load(rsHistCol);
+
+                    if (BlnHistStatus && arrflds.Length <= rsHistCol.Rows.Count)
+                    {
+                        for (int i = 0; i < arrflds.Length; i++)
+                        {
+                            BlnHistStatus = false;
+
+                            foreach (DataRow row in rsHistCol.Rows)
+                            {
+                                if (row[0].ToString().Trim().Equals(arrflds[i].Trim(), StringComparison.OrdinalIgnoreCase))
+                                {
+                                    BlnHistStatus = true;
+                                    break;
+                                }
+                            }
+
+                            if (!BlnHistStatus)
+                                break;
+                        }
+                    }
+                    else
+                    {
+                        BlnHistStatus = false;
+                    }
+                }
+
+                rsHistCol = null!;
+                rsHistExt = null!;
+
+                var loopTo3 = ArrTempValues.Length - 1;
+                for (RowCnt = 0; RowCnt <= loopTo3; RowCnt++)
+                {
+                    // First passing the data into history tables based on the type of tables.
+                    StrInsert = "";
+                    if (BlnHistStatus == false & !string.IsNullOrEmpty(strHistExt))
+                    {
+                        if ((StrCondition.Length - 1) == (ArrTempValues.Length - 1) && !string.IsNullOrEmpty(WhereCondition.Trim()))
+                        {
+                            StrInsert = "Insert into " + StrTabName.Trim() + strHistExt + dataLink + " select * from " + StrTabName + "" + dataLink + " Where " + StrCondition[RowCnt];
+                        }
+                        else
+                        {
+                            StrInsert = "Insert into " + StrTabName.Trim() + strHistExt + dataLink + " select * from " + StrTabName + "" + dataLink + "";
+                        }
+                    }
+
+                    if (!string.IsNullOrEmpty(StrInsert.Trim()))
+                        await ProcessQueryAsync(StrInsert);
+
+                    // Spliting the Collumn Names (Fields) to build the Update Statement
+                    arrflds = strfields.Split(",");
+
+                    // ****** Spliting the Collumn Values (Fields Values) to build the Update Statement
+                    ArrRowValue = ArrTempValues[RowCnt].Split("~");
+
+                    /// *******  first concantinating the values for update ***********
+                    var loopTo4 = arrflds.Length - 1;
+                    for (ColCnt = 0; ColCnt <= loopTo4; ColCnt++)
+                        strUpdateRow = strUpdateRow + arrflds[ColCnt] + "=" + ArrRowValue[ColCnt] + ",";
+
+                    // Now building the The Update statement
+                    if ((StrCondition.Length - 1) == (ArrTempValues.Length - 1) && !string.IsNullOrEmpty(WhereCondition.Trim()))
+                    {
+                        Strupdate = "update " + StrTabName + "" + dataLink + " set " + strUpdateRow?.Substring(0, strUpdateRow.Length - 1) + " where " + StrCondition[RowCnt];
+                        strquery = "select " + strfields + " from " + StrTabName.Trim() + dataLink + " where " + StrCondition[RowCnt] + " for update";
+                    }
+                    else
+                    {
+                        strquery = "select " + strfields + " from " + StrTabName.Trim() + dataLink + " for update";
+                        Strupdate = "update " + StrTabName + "" + dataLink + " set " + strUpdateRow?.Substring(0, strUpdateRow.Length - 1);
+                    }
+
+                    // Executing the update statement Based On Number of Rows
+
+                    await ProcessQueryAsync(strquery);
+
+                    var result = await ProcessNonQueryAsync(Strupdate);
+
+                    Strupdate = "";
+                    strUpdateRow = "";
+
+                    if (result== 0)
+                    {
+                        UpdateRecordRet = "Update Failed due to False Condition ! " + StrTabName;
+
+                        //if (blnLogErrors == true)
+                        //    LogError("DataBaseTransactions", "UpdateRecord", "0", UpdateRecordRet + ": " + Strupdate);
+
+                        
+                        rsHistCol = null!;
+
+                        
+                        rsHistExt = null!;
+
+                        return UpdateRecordRet;
+                    }
+                }
+
+                UpdateRecordRet = BankingConstants.TransactionCompleted;
+
+              
+                rsHistCol = null!;
+
+               
+                rsHistExt = null!;
+            }
+            catch (Exception ex)
+            {
+                UpdateRecordRet = ProcessError(ex, connError, BankingConstants.DBTrans_Update);
+            }
+
+            return UpdateRecordRet;
+        }
+
+        public async Task<string> DeleteRecord(string TableName,string WhereCondition, string BranchCode = "", string UserCode = "", string MachineID = "",
+            string ApplicationDate = "", string DayBeginEndStatusCheckYN = "")
+        {
+            string DeleteRecordRet = string.Empty;
+            string StrDelete;
+            string StrTabName;
+            string[] StrCondition;
+            string StrInsert;
+
+            try
+            {
+                connError = "";
+                StrDelete = "";
+                StrTabName = "";
+                StrTabName = TableName.Trim().ToUpper();
+
+                applicationDate = string.Format(string.IsNullOrWhiteSpace(ApplicationDate) ? DateTime.Now.ToString() : ApplicationDate, "dd-MMM-yyyy");
+
+                // Checking day begin status and day end status.
+                if (DayBeginEndStatusCheckYN != "N")
+                {
+                    OracleQueryModel queryModel = new()
+                    {
+                        TableName = StrTabName,
+                        BranchCode = string.IsNullOrWhiteSpace(BranchCode.Trim().ToUpper()) ? "" : BranchCode.Trim().ToUpper(),
+                        UserId = string.IsNullOrWhiteSpace(UserCode.Trim().ToUpper()) ? "" : UserCode.Trim().ToUpper(),
+                        MachineID = string.IsNullOrWhiteSpace(MachineID.Trim().ToUpper()) ? "" : MachineID.Trim().ToUpper(),
+                        Condition = WhereCondition,
+                        QueryType = OracleQueryType.Delete
+                    };
+
+                    connError = await CheckDayBeginDayEndStatus(queryModel);
+
+                    if (connError != "CONTINUE")
+                        throw new Exception();
+                }
+
+                // First passing the data into History tables before deleting the data from original tables
+                bool BlnHistStatus = false;
+                string strHistExt = "";
+
+                DataTable rsHistExt;
+
+                rsHistExt = await ProcessQueryAsync("Select * from GENHISTNOTREQUIREDTABEXTNS");
+                foreach (DataRow row in rsHistExt.Rows)
+                
+
+                //while (rsHistExt.Rows.Count > 0)
+                {
+                    // Get the trimmed and uppercased TABEXTENSIONNAME from the reader
+                    string TABEXTENSIONNAME = Convert.ToString(row["TABEXTENSIONNAME"]) ?? string.Empty;
+                    string tabExtName = TABEXTENSIONNAME.Trim().ToUpper();
+
+                    // Get the rightmost part of StrTabName that matches the length of TABEXTENSIONNAME
+                    string strTabNameRight = StrTabName.Length >= tabExtName.Length
+                        ? StrTabName.Substring(StrTabName.Length - tabExtName.Length)
+                        : StrTabName;
+
+                    if (strTabNameRight.ToUpper() == tabExtName)
+                    {
+                        string TABBKPEXTENSIONNAME = Convert.ToString(row["TABBKPEXTENSIONNAME"]) ?? string.Empty;
+
+                        strHistExt = TABBKPEXTENSIONNAME;
+                        BlnHistStatus = false;
+                        break; // Exit the loop when a match is found
+                    }
+                }
+
+                StrInsert = "";
+
+                if (!string.IsNullOrEmpty(WhereCondition.Trim()))
+                {
+                    StrCondition = WhereCondition.Split("|");
+                    var loopTo1 = StrCondition.Length - 1;
+                    for (int i = 0; i <= loopTo1; i++)
+                    {
+                        if (BlnHistStatus == false & !string.IsNullOrEmpty(strHistExt))
+                        {
+                            // First passing the data into history tables based on the type of tables.
+                            StrInsert = "Insert into " + StrTabName.Trim() + strHistExt + dataLink + " select * from " +
+                                StrTabName.Trim() + "" + dataLink + " Where " + StrCondition[i];
+                        }
+                        else
+                        {
+                            StrInsert = "";
+                        }
+
+                        StrDelete = "Delete from  " + StrTabName.Trim() + dataLink + " where " + StrCondition[i];
+
+                        if (!string.IsNullOrEmpty(StrInsert))
+                            await ProcessNonQueryAsync(StrInsert);
+
+                        var result = await ProcessNonQueryAsync(StrDelete);
+
+                        if (result == 0)
+                        {
+                            DeleteRecordRet = "Delete Failed due to False Condition !";
+                            //if (blnLogErrors == true)
+                            //    LogError("DataBaseTransactions", "DeleteRecord", Information.Err().Number, DeleteRecordRet + ": " + StrDelete);
+                           
+                            rsHistExt = null!;
+                            return DeleteRecordRet;
+                        }
+                    }
+                }
+                else
+                {
+                    if (BlnHistStatus == false & !string.IsNullOrEmpty(strHistExt))
+                    {
+                        StrInsert = "Insert into " + StrTabName.Trim() + strHistExt + dataLink + " select * from " + StrTabName.Trim() + "" + dataLink + "";
+                    }
+                    else
+                    {
+                        StrInsert = "";
+                    }
+
+                    StrDelete = "Delete from  " + StrTabName.Trim() + dataLink + "";
+
+                    if (!string.IsNullOrEmpty(StrInsert))
+                        await ProcessNonQueryAsync(StrInsert);
+
+                    var result = await ProcessNonQueryAsync(StrDelete);
+
+                    if (result == 0)
+                    {
+                        DeleteRecordRet = "Delete Failed due to False Condition !";
+                        //if (blnLogErrors == true)
+                        //    LogError("DataBaseTransactions", "DeleteRecord", Information.Err().Number, DeleteRecordRet + ": " + StrDelete);
+                        
+                        rsHistExt = null!;
+                        return DeleteRecordRet;
+                    }
+                }
+
+                DeleteRecordRet = BankingConstants.TransactionCompleted;
+
+                
+                rsHistExt = null!;
+            }
+            catch (Exception ex)
+            {
+                DeleteRecordRet = ProcessError(ex, connError, BankingConstants.DBTrans_Delete);
+            }
+
+            return DeleteRecordRet;
+        }
 
         //public async Task<string> DeleteRecordOnly(string TableName, string WhereCondition, string BranchCode = "", string UserCode = "", string MachineID = "",
         //    string ApplicationDate = "", string DayBeginEndStatusCheckYN = "")
@@ -1126,7 +1124,7 @@ namespace Banking.Backend
         {
             string CheckDayBeginDayEndStatusRet = string.Empty;
             string strquery, strtempCode;
-            string[] arrflds;
+            string[]? arrflds;
             string[] arrChkVal;
             string[] ArrCond;
             bool BlnUserMach, blnbrCode;
@@ -1141,7 +1139,7 @@ namespace Banking.Backend
                 // if branchcode parameter not available from the frontend then collect it from the values of the transarray.
                 if (string.IsNullOrEmpty(oracleQueryModel.BranchCode) | string.IsNullOrEmpty(oracleQueryModel.UserId) | string.IsNullOrEmpty(oracleQueryModel.MachineID))
                 {
-                    arrflds = oracleQueryModel.FieldNames.Split(",");
+                    arrflds = oracleQueryModel.FieldNames?.Split(",");
 
                     // Insert - if the transaction is insert
                     if (oracleQueryModel.QueryType == OracleQueryType.Insert)

@@ -1,4 +1,5 @@
-﻿using Banking.Interfaces;
+﻿using Banking.Framework;
+using Banking.Interfaces;
 using Banking.Models;
 using Banking.Services;
 using Microsoft.AspNetCore.Mvc;
@@ -15,7 +16,10 @@ namespace Banking.Frontend.Controllers
             _loginService = new LoginService(_options);
             _logger = logger;
         }
-
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
         public ActionResult Index()
         {
             var loginModel = new LoginModel();
@@ -25,7 +29,11 @@ namespace Banking.Frontend.Controllers
             ViewData["Title"] = "Login Page";
             return View(loginModel);
         }
-
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="loginModel"></param>
+        /// <returns></returns>
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> Index(LoginModel loginModel)
@@ -132,6 +140,26 @@ namespace Banking.Frontend.Controllers
             {
                 return View();
             }
+        }
+        /// <summary>
+        /// Logout 
+        /// </summary>
+        /// <returns></returns>
+        public async Task<ActionResult> Logout()
+        {
+            try
+            {
+                RedirectModel commDict = await _loginService.Logout(HttpContext.Session);
+                if (commDict.ErrorMessage == "Transaction Sucessful.")
+                    return RedirectToAction(nameof(Index), "Login");
+                else
+                    return RedirectToAction(commDict.ActionName, commDict.ControllerName);
+            }
+            catch
+            {
+                return View();
+            }
+
         }
     }
 }
