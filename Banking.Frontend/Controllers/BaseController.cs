@@ -16,7 +16,9 @@ namespace Banking.Frontend.Controllers
 
             _options = Options.Create(_configuration.GetSection("OracleSettings").Get<DatabaseSettings>() ?? new DatabaseSettings());
 
-            var colorOptions = _configuration.GetSection("ApplicationColorSettings").Get<List<BaseModel>>() ?? new List<BaseModel>();
+            // string bankName = _configuration.GetValue<string>("BankName") ?? string.Empty;
+
+            //var colorOptions = _configuration.GetSection("ApplicationColorSettings").Get<List<BaseModel>>() ?? new List<BaseModel>();
 
             //var bank = colorOptions.FirstOrDefault(x => x.IPAddress.Equals(remoteHost, StringComparison.Ordinal));
 

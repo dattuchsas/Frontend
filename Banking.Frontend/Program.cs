@@ -28,8 +28,8 @@ builder.Services.AddSession(options =>
 builder.Services.AddControllersWithViews();
 
 builder.Services.Configure<DatabaseSettings>(builder.Configuration.GetSection("OracleSettings"));
-builder.Services.Configure<BaseModel>(builder.Configuration.GetSection("ApplicationColorSettings"));
 
+// Application Services
 builder.Services.AddScoped<ILoginService, LoginService>();
 builder.Services.AddScoped<IDashboardService, DashboardService>();
 

@@ -1,0 +1,38 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>FinXPro - @ViewData["Title"]</title>
+    <link asp-append-version="true" rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link asp-append-version="true" rel="stylesheet" href="~/css/login.css" />
+</head>
+<body>
+    <header>
+        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light border-bottom box-shadow hd-maharaja">
+            <div class="container-fluid">
+                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index"><img src="~/images/bankLogo.jpg" style="height: 55px !important; width: 423px !important" alt="Our Bank"></a>
+            </div>
+        </nav>
+    </header>
+    <main class="bg-maharaja">
+        <div class="container-fluid">
+            <div class="row p-3">
+                <div class="col-1"></div>
+                <div class="col-10">
+                    <div class="row">
+                        @RenderBody()
+                    </div>
+                </div>
+                <div class="col-1"></div>
+            </div>
+        </div>
+    </main>
+    <footer class="bd-footer py-3 hd-maharaja">
+        <div class="container text-center">
+            <span class="bg-text-maharaja">&copy; @DateTime.Now.Year - FinXPro</span>
+        </div>
+    </footer>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

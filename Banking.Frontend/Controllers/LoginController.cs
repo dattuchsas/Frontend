@@ -10,7 +10,7 @@ namespace Banking.Frontend.Controllers
     {
         private readonly ILogger<LoginController> _logger;
         private ILoginService _loginService;
-       
+
         public LoginController(ILogger<LoginController> logger, IConfiguration configuration) : base(configuration)
         {
             _loginService = new LoginService(_options);
@@ -23,9 +23,7 @@ namespace Banking.Frontend.Controllers
         public ActionResult Index()
         {
             var loginModel = new LoginModel();
-            //loginModel.BankName = _baseModel.BankName;
             _logger.LogInformation("Login Page");
-            HttpContext.Session.Clear();
             ViewData["Title"] = "Login Page";
             return View(loginModel);
         }
@@ -99,7 +97,7 @@ namespace Banking.Frontend.Controllers
 
                 remoteHost = remoteHost.Equals("::1") ? "127.0.0.1" : remoteHost;
 
-                RedirectModel commDict = await _loginService.LoginCheckProcess(HttpContext.Session, loginModel.Username, loginModel.Password1, 
+                RedirectModel commDict = await _loginService.LoginCheckProcess(HttpContext.Session, loginModel.Username, loginModel.Password1,
                     loginModel.Password2, loginModel.HdnDayBegin, loginModel.Status, remoteHost);
 
                 if (commDict != null)
