@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Banking.Models;
+using Microsoft.AspNetCore.Mvc;
 
 namespace Banking.Frontend.Controllers
 {
@@ -6,7 +7,8 @@ namespace Banking.Frontend.Controllers
     {
         public IActionResult Index()
         {
-            return View();
+            var customerModel = new CustomerModel();
+            return View(customerModel);
         }
     }
 }

@@ -1,4 +1,93 @@
-﻿<!DOCTYPE html>
+﻿@using Microsoft.AspNetCore.Http
+@inject Microsoft.AspNetCore.Http.IHttpContextAccessor httpContextAccessor
+@{
+    ISession session = httpContextAccessor.HttpContext?.Session ?? null!;
+    string userName = session.GetString("Username") ?? string.Empty;
+    string appDate = session.GetString("applicationdate") ?? string.Empty;
+    string background = session.GetString("background") ?? string.Empty;
+    string header = session.GetString("header") ?? string.Empty;
+    string textColor = session.GetString("textColor") ?? string.Empty;
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>FinXPro - @ViewData["Title"]</title>
+    <link asp-append-version="true" rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link asp-append-version="true" rel="stylesheet" href="~/css/login.css" />
+</head>
+<body>
+    <header>
+        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light border-bottom box-shadow @header">
+            <div class="container-fluid">
+                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index"><img src="~/images/bankLogo.jpg" style="height: 55px !important; width: 423px !important" alt="Our Bank"></a>
+@*                 <div class="text-right text-white">
+                    <div class="row">
+                        <div class="col-10">
+                            <strong>Welcome, @userName</strong>
+                            <br />
+                            <strong>Application Date: @appDate</strong>
+                        </div>
+                        <div class="col-2">
+                            <a asp-action="Index" asp-controller="Login" asp-area="">
+                                <i class="bi bi-box-arrow-right"></i>
+                                <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" fill="currentColor" class="bi bi-box-arrow-right text-white" viewBox="0 0 16 16">
+                                    <path fill-rule="evenodd" d="M10 12.5a.5.5 0 0 1-.5.5h-8a.5.5 0 0 1-.5-.5v-9a.5.5 0 0 1 .5-.5h8a.5.5 0 0 1 .5.5v2a.5.5 0 0 0 1 0v-2A1.5 1.5 0 0 0 9.5 2h-8A1.5 1.5 0 0 0 0 3.5v9A1.5 1.5 0 0 0 1.5 14h8a1.5 1.5 0 0 0 1.5-1.5v-2a.5.5 0 0 0-1 0z" />
+                                    <path fill-rule="evenodd" d="M15.854 8.354a.5.5 0 0 0 0-.708l-3-3a.5.5 0 0 0-.708.708L14.293 7.5H5.5a.5.5 0 0 0 0 1h8.793l-2.147 2.146a.5.5 0 0 0 .708.708z" />
+                                </svg>
+                            </a>
+                        </div>
+                    </div>
+                </div> *@
+            </div>
+        </nav>
+    </header>
+    <main class="@background">
+        <div class="container-fluid">
+            <div class="row">
+                <div class="col-md-1"></div>
+                <div class="col-md-10 p-4">
+                    <div class="alert alert-warning" role="alert">
+                        <div class="row">
+                            <div class="col-md-4 text-success text-start">
+                                <strong>Welcome, @userName</strong>
+                            </div>
+                            <div class="col-md-4 text-center text-success">
+                                <strong>Application Date: @appDate</strong>
+                            </div>
+                            <div class="col-md-4 text-end">
+                                <a asp-action="Index" asp-controller="Login" asp-area="">
+                                    <i class="bi bi-box-arrow-right"></i>
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" fill="currentColor" class="bi bi-box-arrow-right text-success" viewBox="0 0 16 16">
+                                        <path fill-rule="evenodd" d="M10 12.5a.5.5 0 0 1-.5.5h-8a.5.5 0 0 1-.5-.5v-9a.5.5 0 0 1 .5-.5h8a.5.5 0 0 1 .5.5v2a.5.5 0 0 0 1 0v-2A1.5 1.5 0 0 0 9.5 2h-8A1.5 1.5 0 0 0 0 3.5v9A1.5 1.5 0 0 0 1.5 14h8a1.5 1.5 0 0 0 1.5-1.5v-2a.5.5 0 0 0-1 0z" />
+                                        <path fill-rule="evenodd" d="M15.854 8.354a.5.5 0 0 0 0-.708l-3-3a.5.5 0 0 0-.708.708L14.293 7.5H5.5a.5.5 0 0 0 0 1h8.793l-2.147 2.146a.5.5 0 0 0 .708.708z" />
+                                    </svg>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row p-3">
+                        @RenderBody()
+                    </div>
+                </div>
+                <div class="col-md-1"></div>
+            </div>
+        </div>
+    </main>
+    <footer class="bd-footer py-3 @header">
+        <div class="container text-center">
+            <span class="@textColor">&copy; @DateTime.Now.Year - FinXPro</span>
+        </div>
+    </footer>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>
+
+
+
+@* <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8" />
@@ -36,3 +125,4 @@
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>
+ *@

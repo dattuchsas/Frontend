@@ -39,7 +39,7 @@ namespace Banking.Services
         public LoginService(IOptions<DatabaseSettings> databaseSettings)
         {
             _databaseFactory = new DatabaseService(databaseSettings.Value);
-        }
+        } 
 
         public async Task<string> LoginValidate(string userId)
         {
@@ -385,10 +385,7 @@ namespace Banking.Services
 
                     if (rsdate.Rows.Count != 0)
                     {
-                        //TODO: Set application date back once testing done.
-                        //session.SetString("applicationdate", Convert.ToString(rsdate.Rows[0].ItemArray[0]));
-                        
-                        session.SetString("applicationdate", "11-Jan-2050");
+                        session.SetString("applicationdate", Convert.ToString(rsdate.Rows[0].ItemArray[0]));
 
                         try
                         {
