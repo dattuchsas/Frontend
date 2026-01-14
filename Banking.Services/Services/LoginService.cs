@@ -320,7 +320,8 @@ namespace Banking.Services
             return GetEODProgressRet;
         }
 
-        public async Task<RedirectModel> LoginCheckProcess(ISession session, string userId, string firstPass, string secPass, string hdndaybegin, string status, string remoteHost)
+        public async Task<RedirectModel> LoginCheckProcess(ISession session, string userId, string firstPass, string secPass, 
+            string hdndaybegin, string status, string remoteHost, string serverName)
         {
             string[,] trans = new string[1, 5];
             string queryString = string.Empty, strMessage = string.Empty, message = string.Empty, strQuery = string.Empty;
@@ -350,6 +351,7 @@ namespace Banking.Services
 
                 string sessionId = session.GetSessionId();
 
+                session.SetString("serverid", serverName);
                 session.SetString("machineid", remoteHost);
 
                 try
@@ -1046,30 +1048,6 @@ namespace Banking.Services
         {
             string[,] trans = new string[2, 5];
             string queryString = string.Empty, strMessage = string.Empty, message = string.Empty, strQuery = string.Empty;
-            // reccheck = null!;
-
-            //            sessid = session.SessionID
-            //macid = session("machineid")
-            //usrid = session("userid")
-            //trans(0, 0) = "U"
-            //trans(0, 1) = "Genuserlogindtls"
-            //trans(0, 2) = "logoutsysdate,logoutstatus"
-            //trans(0, 3) = "sysdate~'N'"
-            //trans(0, 4) = "upper(userid)='" & cstr(ucase(usrid)) & _
-
-            //            "' and upper(machineid)='" & ucase(macid) & "' and " & _
-
-            //                "sessionid='" & sessid & "'"
-
-            //trans(1, 0) = "D"
-            //trans(1, 1) = "Genuserlogindtls"
-            //trans(1, 2) = ""
-            //trans(1, 3) = ""
-            //trans(1, 4) = "upper(userid)='" & cstr(ucase(usrid)) & "'"
-
-            //'trans(1,4)="upper(userid)='" & cstr(ucase(usrid)) & _
-            //'"' and upper(machineid)= '" & ucase(macid) & "' and sessionid = '" & sessid & "'"	
-
 
             string sessionId = session.GetSessionId();
             string macid = session.GetString("machineid");
@@ -1079,7 +1057,6 @@ namespace Banking.Services
             trans[0, 1] = "Genuserlogindtls";
             trans[0, 2] = "logoutsysdate,logoutstatus";
             trans[0, 3] = "sysdate~'N'";
-            //upper(userid) = '" & cstr(ucase(usrid)) & "' and upper(machineid)='" & ucase(macid) & "' and " & _"sessionid='" & sessid & "'"
             trans[0, 4] = "upper(userid)='" + userid.ToUpper() + "'and upper(machineid)='" + macid + "'and sessionid='" + sessionId + "'";
 
             trans[1, 0] = "D";
@@ -1089,9 +1066,9 @@ namespace Banking.Services
             trans[1,4]= "upper(userid)='" + userid.ToUpper() + "'and upper(machineid)='" + macid + "'and sessionid='"  + sessionId + "'";
 
             strMessage = await _databaseFactory.ProcessDataTransactions(trans, "", "", "","","", "N");
-           return new RedirectModel() { ControllerName = BankingConstants.Controller_Login, ActionName = BankingConstants.Action_Index, 
-                                        ErrorMessage = strMessage };
 
+            return new RedirectModel() { ControllerName = BankingConstants.Controller_Login, 
+                ActionName = BankingConstants.Action_Index, ErrorMessage = strMessage };
         }
         #region Private Methods
 

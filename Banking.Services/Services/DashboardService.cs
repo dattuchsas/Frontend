@@ -1,14 +1,7 @@
-﻿using Banking.Backend;
-using Banking.Framework;
-using Banking.Interfaces;
+﻿using System.Data;
 using Banking.Models;
+using Banking.Interfaces;
 using Microsoft.Extensions.Options;
-using System;
-using System.Collections.Generic;
-using System.Data;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Banking.Services
 {
@@ -23,33 +16,33 @@ namespace Banking.Services
             _generalValidationService = new GeneralValidationService(databaseSettings);
         }
 
-        public async Task<DataTable> GetUserModuleList(string fields, string condition)
-        {
-            try
-            {
-                return await ProcessSingleRecordSet(TableNames.GenModuleMst, fields, condition);
-            }
-            catch (Exception ex)
-            {
-                throw new Exception(ex.Message);
-            }
-        }
-
-        public async Task<DataTable> GetServiceVirtualDirectoryDetails(string fields, string condition)
-        {
-            try
-            {
-                return await ProcessSingleRecordSet(TableNames.ServerVirtualDirDtls, fields, condition);
-            }
-            catch (Exception ex)
-            {
-                throw new Exception(ex.Message);
-            }
-        }
-
         public async Task<string> GetHOTRALWBrCode()
         {
             return await _generalValidationService.GetHOTRALWBrCode();
+        }
+
+        public async Task<DataTable> GetUserId(string query)
+        {
+            try
+            {
+                return await _databaseFactory.ProcessQueryAsync(query);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
+        }
+
+        public async Task<DataTable> ProcessSingleRecordRequest(string tblName, string fieldName, string whereCondition)
+        {
+            try
+            {
+                return await ProcessSingleRecordSet(tblName, fieldName, whereCondition);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
         }
 
         #region Private Methods

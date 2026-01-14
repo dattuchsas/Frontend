@@ -11,8 +11,28 @@
     color: white !important;
 }
 
-.hd-maharaja{
-    background: #007e39 !important;
+.hd-maharaja {
+    background: #25b350 !important;
+}
+
+.hd-text-maharaja {
+    font-family: Calibri, sans-serif;
+    color: white;
+    font-size: 22px;
+}
+
+.hd-img-maharaja {
+    height: 75px !important;
+    width: 85px !important
+}
+
+.btn-maharaja {
+    background-color: #25b350 !important;
+    color: white !important;
+    border-radius: 13px;
+    height: 52px;
+    font-size: 15px;
+    align-content: center;
 }
 
 /*////////////////////////////////////////////////////////////////*/
@@ -203,7 +223,7 @@ main, container, container-fluid {
 }
 
 .forgot-link {
-    color: #6366F1;
+    color: #25b350;
     text-decoration: none;
     font-size: 13px;
     font-weight: 600;
@@ -211,13 +231,13 @@ main, container, container-fluid {
 }
 
 .forgot-link:hover {
-    color: #4f46e5;
+    color: #25b350;
 }
 
 /* Login Button */
 .login-btn {
     width: 100%;
-    background: #6366F1;
+    background: #25b350;
     color: #ffffff;
     border: none;
     border-radius: 8px;
@@ -237,7 +257,7 @@ main, container, container-fluid {
 }
 
 .login-btn:hover {
-    background: #4f46e5;
+    background: #25b350;
     transform: translateY(-1px);
     box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
 }
@@ -247,7 +267,7 @@ main, container, container-fluid {
 }
 
 .login-btn:disabled {
-    background: #9ca3af;
+    background: #25b350;
     cursor: not-allowed;
     transform: none;
     box-shadow: none;
@@ -347,6 +367,27 @@ main, container, container-fluid {
 .success-icon {
     margin: 0 auto 16px;
     animation: successScale 0.5s ease-out;
+}
+
+.watermark-container {
+    position: relative;
+    //min-height: 200px; /* Ensure container has enough height to show image */
+}
+
+.watermark-container::after {
+    content: "";
+    background-image: url('../images/banklogo.jpg'); /* Your image URL */
+    background-repeat: no-repeat;
+    background-position: center; /* Center the image */
+    background-size: 50%; /* Adjust size as needed */
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    opacity: 0.2; /* Adjust opacity */
+    pointer-events: none;
+    z-index: 0;
 }
 
 @keyframes successScale {
