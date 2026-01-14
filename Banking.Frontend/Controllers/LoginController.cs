@@ -3,6 +3,7 @@ using Banking.Interfaces;
 using Banking.Models;
 using Banking.Services;
 using Microsoft.AspNetCore.Mvc;
+using System.Runtime.Intrinsics.Arm;
 
 namespace Banking.Frontend.Controllers
 {
@@ -18,6 +19,7 @@ namespace Banking.Frontend.Controllers
             _loginService = new LoginService(_options);
             httpContextAccessor.HttpContext?.Session.SetString("BankColorOption", _bankName);
         }
+
         /// <summary>
         /// 
         /// </summary>
@@ -29,6 +31,7 @@ namespace Banking.Frontend.Controllers
             ViewData["Title"] = "Login Page";
             return View(loginModel);
         }
+
         /// <summary>
         /// 
         /// </summary>
@@ -101,8 +104,10 @@ namespace Banking.Frontend.Controllers
 
                 remoteHost = remoteHost.Equals("::1") ? "127.0.0.1" : remoteHost;
 
+                string serverName = HttpContext.Request.Host.Host;
+
                 RedirectModel commDict = await _loginService.LoginCheckProcess(HttpContext.Session, loginModel.Username, loginModel.Password1,
-                    loginModel.Password2, loginModel.HdnDayBegin, loginModel.Status, remoteHost);
+                    loginModel.Password2, loginModel.HdnDayBegin, loginModel.Status, remoteHost, serverName);
 
                 if (commDict != null)
                 {
@@ -143,6 +148,7 @@ namespace Banking.Frontend.Controllers
                 return View();
             }
         }
+
         /// <summary>
         /// Logout 
         /// </summary>
@@ -152,16 +158,13 @@ namespace Banking.Frontend.Controllers
             try
             {
                 RedirectModel commDict = await _loginService.Logout(HttpContext.Session);
-                if (commDict.ErrorMessage == "Transaction Sucessful.")
-                    return RedirectToAction(nameof(Index), "Login");
-                else
-                    return RedirectToAction(commDict.ActionName, commDict.ControllerName);
+
+                return RedirectToAction(nameof(commDict.ActionName), commDict.ControllerName);
             }
-            catch
+            catch (Exception ex)
             {
                 return View();
             }
-
         }
     }
 }

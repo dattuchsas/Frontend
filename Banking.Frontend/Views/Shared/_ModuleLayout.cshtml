@@ -17,19 +17,31 @@
     <title>FinXPro - @ViewData["Title"]</title>
     <link asp-append-version="true" rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link asp-append-version="true" rel="stylesheet" href="~/css/login.css" />
+
+    <script asp-append-version="true" src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script asp-append-version="true" src="~/lib/jquery/dist/jquery.js"></script>
+    @*<script asp-append-version="true" src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script asp-append-version="true" src="~/lib/bootstrap/dist/js/bootstrap.bundle.js"></script>
+    <script asp-append-version="true" src="~/lib/bootstrap/dist/js/bootstrap.esm.min.js"></script>
+    <script asp-append-version="true" src="~/lib/bootstrap/dist/js/bootstrap.esm.js"></script> *@
+    <script asp-append-version="true" src="~/lib/bootstrap/dist/js/bootstrap.min.js"></script>
+    <script asp-append-version="true" src="~/lib/bootstrap/dist/js/bootstrap.js"></script>
 </head>
 <body>
     <header>
         <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light border-bottom box-shadow @header">
             <div class="container-fluid">
-                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index"><img src="~/images/bankLogo.jpg" style="height: 55px !important; width: 423px !important" alt="Our Bank"></a>
+                <a class="navbar-brand" asp-area="" asp-controller="#" asp-action="#">
+                    <img src="~/images/maharaja_logo.svg" class="hd-img-maharaja" alt="Our Bank">
+                    <strong class="hd-text-maharaja">THE MAHARAJA CO.OP URBAN BANK LTD.</strong>
+                </a>
                 <div class="text-end text-white">
                     <div class="row">
                         <div class="col-10">
-                            <strong>FinXPro Banking System<br /> Welcome, @userName<br />@appDate</strong>
+                            <strong>FinXPro Banking System<br />@appDate</strong>
                         </div>
                         <div class="col-2 d-flex align-items-center">
-                            <a asp-action="Index" asp-controller="Login" asp-area="">
+                            <a asp-action="Logout" asp-controller="Login" asp-area="">
                                 <i class="bi bi-box-arrow-right"></i>
                                 <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" fill="currentColor" class="bi bi-box-arrow-right text-white" viewBox="0 0 16 16">
                                     <path fill-rule="evenodd" d="M10 12.5a.5.5 0 0 1-.5.5h-8a.5.5 0 0 1-.5-.5v-9a.5.5 0 0 1 .5-.5h8a.5.5 0 0 1 .5.5v2a.5.5 0 0 0 1 0v-2A1.5 1.5 0 0 0 9.5 2h-8A1.5 1.5 0 0 0 0 3.5v9A1.5 1.5 0 0 0 1.5 14h8a1.5 1.5 0 0 0 1.5-1.5v-2a.5.5 0 0 0-1 0z" />
@@ -41,6 +53,13 @@
                 </div>
             </div>
         </nav>
+        <div class="bg-white p-1 ms-5">
+            <div class="row">
+                <div class="col-3"><strong>Welcome, @userName</strong></div>
+                <div class="col-7"></div>
+                <div class="col-2"><strong>Currency Code: INR</strong></div>
+            </div>
+        </div>
     </header>
     <main class="@background">
         <div class="container-fluid">
@@ -52,6 +71,18 @@
                     </div>
                 </div>
                 <div class="col-md-1"></div>
+            </div>
+        </div>
+        <div class="modal fade" id="errorModal" tabindex="-1" role="dialog" aria-labelledby="errorModalLabel" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body mt-3">
+                        <p id="errorMessageText"></p>
+                    </div>
+                </div>
             </div>
         </div>
     </main>
