@@ -1,9 +1,7 @@
-﻿using Banking.Framework;
-using Banking.Interfaces;
+﻿using Banking.Interfaces;
 using Banking.Models;
 using Banking.Services;
 using Microsoft.AspNetCore.Mvc;
-using System.Runtime.Intrinsics.Arm;
 
 namespace Banking.Frontend.Controllers
 {
