@@ -469,158 +469,104 @@ namespace Banking.Services
             return GetLimitAmountRet;
         }
 
-        //public string GetCustMobileNo(string BrCode, string CrCode, string ModId, string GlCode, string accountNo)
-        //{
-        //    string GetCustMobileNoRet = default;
-        //    var objCon = new OracleClient.OracleConnection();
-        //    var objCmd = new OracleClient.OracleCommand();
-        //    var dbCon = new DatabaseConnection.cDBConnection();
-        //    string errmsg, strQuery;
-        //    string strMobileNo = "";
-        //    OracleClient.OracleDataReader dr;
-        //    try
-        //    {
+        public async Task<string> GetCustMobileNo(string BrCode, string CrCode, string ModId, string GlCode, string accountNo)
+        {
+            DataTable dr;
+            string GetCustMobileNoRet = string.Empty, strQuery;
 
-        //        if (objCon.State != ConnectionState.Open)
-        //        {
-        //            errmsg = "";
-        //            objCon = dbCon.GetDbConnection(errmsg);
-        //            if (!string.IsNullOrEmpty(errmsg))
-        //            {
-        //                throw new Exception(errmsg);
-        //                return GetCustMobileNoRet;
-        //            }
-        //        }
-        //        strQuery = "select custmobile from gencustinfomst where customerid = " + " (select DISTINCT customerid from " + ModId + "mst where " + " accno = '" + accountNo + "'  and glcode='" + GlCode + "'" + " and branchcode='" + BrCode + "'and currencycode = '" + CrCode + "')";
+            try
+            {
+                strQuery = "select custmobile from gencustinfomst where customerid = " + " (select DISTINCT customerid from " + ModId + "mst where " + 
+                    " accno = '" + accountNo + "'  and glcode='" + GlCode + "'" + " and branchcode='" + BrCode + "'and currencycode = '" + CrCode + "')";
 
-        //        objCmd = new OracleClient.OracleCommand(strQuery, objCon);
-        //        dr = objCmd.ExecuteReader;
-        //        if (dr.HasRows == true)
-        //        {
-        //            dr.Read();
-        //            strMobileNo = Conversions.ToString(Interaction.IIf(dr["custmobile"] is DBNull, "", dr["custmobile"]));
-        //        }
-        //        else
-        //        {
-        //            strMobileNo = "";
-        //        }
+                dr = await _databaseFactory.ProcessQueryAsync(strQuery);
 
-        //        dr.Close();
-        //        dr = default;
-        //        objCmd.Dispose();
-        //        objCmd = default;
-        //        GetCustMobileNoRet = strMobileNo;
-        //        return GetCustMobileNoRet;
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        GetCustMobileNoRet = "";
-        //    }
+                if (dr.Rows.Count > 0)
+                {
+                    GetCustMobileNoRet = Convert.IsDBNull(dr.Rows[0]["custmobile"]) ? "" : Convert.ToString(dr.Rows[0]["custmobile"]) ?? string.Empty;
+                }
+                else
+                {
+                    GetCustMobileNoRet = "";
+                }
 
-        //    return GetCustMobileNoRet;
-        //}
+                dr = null!;
+            }
+            catch (Exception ex)
+            {
+                GetCustMobileNoRet = "";
+            }
 
-        //public void GetCustomerIDName(string BrCode, string CrCode, string ModId, string GlCode, string accountNo, ref string strCustomerID, ref string strName)
-        //{
-        //    var objCon = new OracleClient.OracleConnection();
-        //    var objCmd = new OracleClient.OracleCommand();
-        //    var dbCon = new DatabaseConnection.cDBConnection();
-        //    string errmsg, strQuery;
+            return GetCustMobileNoRet;
+        }
 
-        //    OracleClient.OracleDataReader dr;
-        //    try
-        //    {
+        public async Task GetCustomerIDName(string BrCode, string CrCode, string ModId, string GlCode, string accountNo)
+        {
+            DataTable dr;
+            string strQuery;
+            string strCustomerID, strName;
 
-        //        if (objCon.State != ConnectionState.Open)
-        //        {
-        //            errmsg = "";
-        //            objCon = dbCon.GetDbConnection(errmsg);
-        //            if (!string.IsNullOrEmpty(errmsg))
-        //            {
-        //                throw new Exception(errmsg);
-        //                return;
-        //            }
-        //        }
-        //        strQuery = "select DISTINCT customerid customerid,name from " + ModId + "mst where " + " accno = '" + accountNo + "'  and glcode='" + GlCode + "'" + " and branchcode='" + BrCode + "'and currencycode = '" + CrCode + "'";
+            try
+            {
+                strQuery = "select DISTINCT customerid customerid,name from " + ModId + "mst where " + " accno = '" + accountNo + "'  and glcode='" + GlCode + 
+                    "'" + " and branchcode='" + BrCode + "'and currencycode = '" + CrCode + "'";
 
-        //        objCmd = new OracleClient.OracleCommand(strQuery, objCon);
-        //        dr = objCmd.ExecuteReader;
-        //        if (dr.HasRows == true)
-        //        {
-        //            dr.Read();
-        //            strCustomerID = Conversions.ToString(Interaction.IIf(dr["customerid"] is DBNull, "", dr["customerid"]));
-        //            strName = Conversions.ToString(Interaction.IIf(dr["name"] is DBNull, "", dr["name"]));
-        //        }
-        //        else
-        //        {
-        //            strCustomerID = "";
-        //            strName = "";
-        //        }
+                dr = await _databaseFactory.ProcessQueryAsync(strQuery);
 
-        //        dr.Close();
-        //        dr = default;
-        //        objCmd.Dispose();
-        //        objCmd = default;
+                if (dr.Rows.Count > 0)
+                {
+                    strCustomerID = Convert.IsDBNull(dr.Rows[0][""]) ? "" : Convert.ToString(dr.Rows[0]["customerid"]) ?? string.Empty;
+                    strName = Convert.IsDBNull(dr.Rows[0]["name"]) ? "" : Convert.ToString(dr.Rows[0]["name"]) ?? string.Empty;
+                }
+                else
+                {
+                    strCustomerID = "";
+                    strName = "";
+                }
 
-        //        return;
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        strCustomerID = "1111111111";
-        //        strName = "";
-        //    }
-        //}
+                dr = null!;
+            }
+            catch (Exception ex)
+            {
+                strCustomerID = "1111111111";
+                strName = "";
+            }
+        }
 
-        //public string GetCloseBal(string BrCode, string CrCode, string ModId, string GlCode, string accountNo)
-        //{
-        //    string GetCloseBalRet = default;
-        //    var objCon = new OracleClient.OracleConnection();
-        //    var objCmd = new OracleClient.OracleCommand();
-        //    var dbCon = new DatabaseConnection.cDBConnection();
-        //    string errmsg, strQuery;
-        //    string strCloseBal = "";
-        //    OracleClient.OracleDataReader dr;
-        //    try
-        //    {
+        public async Task<string> GetCloseBal(string BrCode, string CrCode, string ModId, string GlCode, string accountNo)
+        {
+            DataTable dr;
+            string GetCloseBalRet = string.Empty, strQuery;
+            
+            try
+            {
+                strQuery = "select sum(nvl(closebal,0)) closebal from (select curbal closebal from " + ModId + "balance where  accno = '" + accountNo + 
+                    "' and glcode='" + GlCode + "' and branchcode='" + BrCode + "'and currencycode = '" + CrCode + "'" + " union all " + 
+                    " select sum(nvl(amount,0)) closebal from " + ModId + "tranday where accno = '" + accountNo + "'  and glcode='" + GlCode + 
+                    "' and branchcode='" + BrCode + "'and currencycode = '" + CrCode + "')";
 
-        //        if (objCon.State != ConnectionState.Open)
-        //        {
-        //            errmsg = "";
-        //            objCon = dbCon.GetDbConnection(errmsg);
-        //            if (!string.IsNullOrEmpty(errmsg))
-        //            {
-        //                throw new Exception(errmsg);
-        //                return GetCloseBalRet;
-        //            }
-        //        }
-        //        strQuery = "select sum(nvl(closebal,0)) closebal from (select curbal closebal from " + ModId + "balance where  accno = '" + accountNo + "'  and glcode='" + GlCode + "' and branchcode='" + BrCode + "'and currencycode = '" + CrCode + "'" + " union all " + " select sum(nvl(amount,0)) closebal from " + ModId + "tranday where accno = '" + accountNo + "'  and glcode='" + GlCode + "' and branchcode='" + BrCode + "'and currencycode = '" + CrCode + "')";
+                dr = await _databaseFactory.ProcessQueryAsync(strQuery);
 
-        //        objCmd = new OracleClient.OracleCommand(strQuery, objCon);
-        //        dr = objCmd.ExecuteReader;
-        //        if (dr.HasRows == true)
-        //        {
-        //            dr.Read();
-        //            strCloseBal = Conversions.ToString(Interaction.IIf(dr["closebal"] is DBNull, "0", dr["closebal"]));
-        //        }
-        //        else
-        //        {
-        //            strCloseBal = "";
-        //        }
-        //        dr.Close();
-        //        dr = default;
-        //        objCmd.Dispose();
-        //        objCmd = default;
+                if (dr.Rows.Count > 0)
+                {
+                    GetCloseBalRet = Convert.IsDBNull(dr.Rows[0]["closebal"]) ? "0" : Convert.ToString(dr.Rows[0]["closebal"]) ?? string.Empty;
+                }
+                else
+                {
+                    GetCloseBalRet = "";
+                }
 
-        //        GetCloseBalRet = strCloseBal;
-        //        return GetCloseBalRet;
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        GetCloseBalRet = "";
-        //    }
+                dr = null!;
 
-        //    return GetCloseBalRet;
-        //}
+                return GetCloseBalRet;
+            }
+            catch (Exception ex)
+            {
+                GetCloseBalRet = "";
+            }
+
+            return GetCloseBalRet;
+        }
 
         public async Task<string> GetNFTSCONVYN()
         {
@@ -1077,597 +1023,374 @@ namespace Banking.Services
             return strtdsyn1;
         }
 
-        //public string GetTDSyn(string BrCode, string CurCode, string DepGlcode, string DepAccNo)
-        //{
-        //    string GetTDSynRet = default;
-        //    string strSql;
-        //    var objCon = new OracleClient.OracleConnection();
-        //    var objCmd = new OracleClient.OracleCommand();
-        //    var dbCon = new DatabaseConnection.cDBConnection();
-
-        //    OracleClient.OracleDataReader recnfts1;
-        //    string errmsg;
-        //    string strtdsyn1 = "";
-        //    string str15Hyn1 = "";
-        //    string str15Gyn1 = "";
-        //    string stryn1 = "";
-        //    try
-        //    {
-        //        if (objCon.State != ConnectionState.Open)
-        //        {
-        //            errmsg = "";
-        //            objCon = dbCon.GetDbConnection(errmsg);
-        //            if (!string.IsNullOrEmpty(errmsg))
-        //            {
-        //                throw new Exception(errmsg);
-        //                return GetTDSynRet;
-        //            }
-        //        }
-
-        //        strSql = "";
-        //        strSql = "SELECT nvl(tdsyn,'N') tdsyn,nvl(EXMPFORMSRECYN,'N') EXMPFORMSRECYN, nvl(FORMS15G,'N') FORMS15G FROM depmst WHERE BRANCHCODE='" + BrCode + "' AND CURRENCYCODE='" + CurCode + "' AND GLCODE='" + DepGlcode + "' AND ACCNO='" + DepAccNo + "'";
-        //        objCmd = new OracleClient.OracleCommand(strSql, objCon);
-        //        recnfts1 = objCmd.ExecuteReader();
-        //        if (recnfts1.HasRows == true)
-        //        {
-        //            recnfts1.Read();
-        //            strtdsyn1 = recnfts1["tdsyn"];
-        //            str15Hyn1 = recnfts1["EXMPFORMSRECYN"];
-        //            str15Gyn1 = recnfts1["FORMS15G"];
-
-        //            if (strtdsyn1 == "Y")
-        //            {
-        //                stryn1 = "Y";
-        //            }
-        //            else if (str15Hyn1 == "Y")
-        //            {
-        //                stryn1 = "Y";
-        //            }
-        //            else if (str15Gyn1 == "Y")
-        //            {
-        //                stryn1 = "Y";
-        //            }
-        //            else
-        //            {
-        //                stryn1 = "N";
-        //            }
-        //        }
-
-        //        GetTDSynRet = stryn1;
-        //        recnfts1.Close();
-        //        recnfts1 = default;
-        //        objCmd.Dispose();
-        //        objCmd = default;
-        //        return GetTDSynRet;
-        //    }
-        //    catch (Exception ex)
-        //    {
-
-        //    }
-
-        //    return GetTDSynRet;
-        //}
-
-        //public string GetLoginOTPYN()
-        //{
-        //    string GetLoginOTPYNRet = default;
-        //    string strSql, errmsg;
-        //    var objCon = new OracleClient.OracleConnection();
-        //    var objCmd = new OracleClient.OracleCommand();
-        //    var dbCon = new DatabaseConnection.cDBConnection();
-
-        //    if (objCon.State != ConnectionState.Open)
-        //    {
-        //        errmsg = "";
-        //        objCon = dbCon.GetDbConnection(errmsg);
-        //        if (!string.IsNullOrEmpty(errmsg))
-        //        {
-        //            throw new Exception(errmsg);
-        //            return GetLoginOTPYNRet;
-        //        }
-        //    }
-
-        //    string strloginotpyn = "N";
-        //    OracleClient.OracleDataReader recnfts1;
-        //    strSql = "";
-        //    strSql = "select loginotpyn from genbankparm";
-
-        //    objCmd = new OracleClient.OracleCommand(strSql, objCon);
-        //    recnfts1 = objCmd.ExecuteReader();
-        //    if (recnfts1.HasRows == true)
-        //    {
-        //        recnfts1.Read();
-        //        strloginotpyn = Conversions.ToString(Interaction.IIf(recnfts1["loginotpyn"] is DBNull, "N", recnfts1["loginotpyn"]));
-        //    }
-
-        //    recnfts1.Close();
-        //    recnfts1 = default;
-        //    objCmd.Dispose();
-        //    objCmd = default;
-
-        //    GetLoginOTPYNRet = strloginotpyn;
-        //    return GetLoginOTPYNRet;
-        //}
-
-        //public void GetCKYCEnrollDetails(string strkycenrolldate, ref string pstrckycsno, ref string pstrduedate)
-        //{
-        //    string strSql, errmsg;
-        //    var objCon = new OracleClient.OracleConnection();
-        //    var objCmd = new OracleClient.OracleCommand();
-        //    var dbCon = new DatabaseConnection.cDBConnection();
-        //    try
-        //    {
-
-
-        //        if (objCon.State != ConnectionState.Open)
-        //        {
-        //            errmsg = "";
-        //            objCon = dbCon.GetDbConnection(errmsg);
-        //            if (!string.IsNullOrEmpty(errmsg))
-        //            {
-        //                throw new Exception(errmsg);
-        //                return;
-        //            }
-        //        }
-
-
-        //        string strckycsno = default, strCKYCIDPERIOD = default;
-        //        OracleClient.OracleDataReader recnfts1;
-        //        strSql = "";
-        //        strSql = "SELECT NVL(MAX(sno),0) +1 sno  FROM CKYCENROLLDTLS";
-
-        //        objCmd = new OracleClient.OracleCommand(strSql, objCon);
-        //        recnfts1 = objCmd.ExecuteReader();
-        //        if (recnfts1.HasRows == true)
-        //        {
-        //            recnfts1.Read();
-        //            strckycsno = Conversions.ToString(Interaction.IIf(recnfts1["sno"] is DBNull, "0", recnfts1["sno"]));
-        //        }
-
-        //        recnfts1.Close();
-        //        recnfts1 = default;
-        //        objCmd.Dispose();
-        //        objCmd = default;
-
-        //        strSql = "";
-        //        strSql = "select CKYCIDPERIOD from genbankparm";
-
-        //        objCmd = new OracleClient.OracleCommand(strSql, objCon);
-        //        recnfts1 = objCmd.ExecuteReader();
-        //        if (recnfts1.HasRows == true)
-        //        {
-        //            recnfts1.Read();
-        //            strCKYCIDPERIOD = Conversions.ToString(Interaction.IIf(recnfts1["CKYCIDPERIOD"] is DBNull, "0", recnfts1["CKYCIDPERIOD"]));
-        //        }
-
-        //        recnfts1.Close();
-        //        recnfts1 = default;
-        //        objCmd.Dispose();
-        //        objCmd = default;
-
-        //        pstrduedate = Conversions.ToString(DateAndTime.DateAdd("m", Conversions.ToInteger(strCKYCIDPERIOD), Conversions.ToDate(strkycenrolldate)));
-        //        pstrduedate = Strings.Format(Conversions.ToDate(pstrduedate), "dd-MMM-yyyy");
-        //        pstrckycsno = strckycsno;
-        //    }
-        //    catch (Exception ex)
-        //    {
-
-        //    }
-        //}
-
-        //public string getCheckIMPSCycle(string strPrcsCode, string strTransAmt, ref string sumamount, ref string limitamount)
-        //{
-        //    string getCheckIMPSCycleRet = default;
-        //    string strSql, errmsg;
-        //    var objCon = new OracleClient.OracleConnection();
-        //    var objCmd = new OracleClient.OracleCommand();
-        //    var dbCon = new DatabaseConnection.cDBConnection();
-        //    OracleClient.OracleDataReader recnfts;
-        //    string intfromtime = default, inttotime = default;
-        //    double dbllimitamt, dblamount, dblgentransamt;
-        //    string sQuery;
-        //    try
-        //    {
-
-
-        //        if (objCon.State != ConnectionState.Open)
-        //        {
-        //            errmsg = "";
-        //            objCon = dbCon.GetDbConnection(errmsg);
-        //            if (!string.IsNullOrEmpty(errmsg))
-        //            {
-        //                throw new Exception(errmsg);
-        //                return getCheckIMPSCycleRet;
-        //            }
-        //        }
-
-
-        //        dbllimitamt = 0d;
-        //        dblamount = 0d;
-        //        dblgentransamt = 0d;
-        //        if (strPrcsCode == "OUTWRD")
-        //        {
-        //            sQuery = "  SELECT fromtime,totime,limitamt FROM IMPSCYCLEDTLS  WHERE TO_CHAR(SYSDATE,'HH24Mi') BETWEEN fromtime AND totime AND effdate = (SELECT MAX(effdate) FROM IMPSCYCLEDTLS  WHERE TO_CHAR(SYSDATE,'HH24Mi') BETWEEN fromtime AND totime )";
-
-        //            objCmd = new OracleClient.OracleCommand(sQuery, objCon);
-        //            recnfts = objCmd.ExecuteReader;
-        //            if (recnfts.HasRows == true)
-        //            {
-        //                recnfts.Read();
-        //                intfromtime = recnfts["fromtime"];
-        //                inttotime = recnfts["totime"];
-        //                dbllimitamt = recnfts["limitamt"];
-        //            }
-        //            objCmd.Dispose();
-        //            objCmd = default;
-        //            recnfts.Close();
-        //            recnfts = default;
-
-        //            sQuery = "select sum(amount) amount from gentranslog where (remarks NOT LIKE 'IMPS Charges Inclusive GST Charges%' AND  trim(remarks) NOT LIKE 'Charges Inclusive GST Charges%') AND  SUBSTR(respondingbankcode,1,6) = 'OUTWRD' AND chqfvg = 'IMPS' AND moduleid != 'ATM'  AND modeoftran IN (1,3,5) AND TO_CHAR(systemdate,'HH24Mi') between '" + intfromtime + "' and '" + inttotime + "'";
-
-        //            objCmd = new OracleClient.OracleCommand(sQuery, objCon);
-        //            recnfts = objCmd.ExecuteReader;
-        //            if (recnfts.HasRows == true)
-        //            {
-        //                recnfts.Read();
-        //                dblgentransamt = Conversions.ToDouble(Interaction.IIf(recnfts["amount"] is DBNull, 0, recnfts["amount"]));
-
-        //            }
-        //            objCmd.Dispose();
-        //            objCmd = default;
-        //            recnfts.Close();
-        //            recnfts = default;
-
-        //            dblamount = Math.Abs(dblgentransamt) + Conversions.ToDouble(strTransAmt) / 100d;
-
-        //            if (dblamount > dbllimitamt)
-        //            {
-        //                getCheckIMPSCycleRet = "121";
-        //            }
-        //            else
-        //            {
-        //                getCheckIMPSCycleRet = "";
-        //            }
-
-        //        }
-
-        //        sumamount = dblamount.ToString();
-        //        limitamount = dbllimitamt.ToString();
-        //        return getCheckIMPSCycleRet;
-        //    }
-        //    catch (Exception ex)
-        //    {
-
-        //    }
-
-        //    return getCheckIMPSCycleRet;
-        //}
-
-        //public string getNEFTMobileFrm_bnkbrhmst(string strbrid)
-        //{
-        //    string getNEFTMobileFrm_bnkbrhmstRet = default;
-        //    string strSql, errmsg;
-        //    var objCon = new OracleClient.OracleConnection();
-        //    var objCmd = new OracleClient.OracleCommand();
-        //    var dbCon = new DatabaseConnection.cDBConnection();
-        //    OracleClient.OracleDataReader recnfts;
-        //    string strNEFTMobNo;
-        //    strNEFTMobNo = "";
-        //    string sQuery;
-        //    try
-        //    {
-
-
-        //        if (objCon.State != ConnectionState.Open)
-        //        {
-        //            errmsg = "";
-        //            objCon = dbCon.GetDbConnection(errmsg);
-        //            if (!string.IsNullOrEmpty(errmsg))
-        //            {
-        //                throw new Exception(errmsg);
-        //                return getNEFTMobileFrm_bnkbrhmstRet;
-        //            }
-        //        }
-
-        //        sQuery = " select NEFTMOBILE from genbankbranchmst where branchcode = '" + strbrid + "'";
-
-        //        objCmd = new OracleClient.OracleCommand(sQuery, objCon);
-        //        recnfts = objCmd.ExecuteReader;
-        //        if (recnfts.HasRows == true)
-        //        {
-        //            recnfts.Read();
-        //            strNEFTMobNo = recnfts["NEFTMOBILE"];
-
-        //        }
-        //        objCmd.Dispose();
-        //        objCmd = default;
-        //        recnfts.Close();
-        //        recnfts = default;
-        //        getNEFTMobileFrm_bnkbrhmstRet = strNEFTMobNo;
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        getNEFTMobileFrm_bnkbrhmstRet = "";
-        //    }
-
-        //    return getNEFTMobileFrm_bnkbrhmstRet;
-        //}
-
-        //public string GetCCDrCrLienYN(string strBrCode, string strCurcode, string strModId, string strGlcode, string strAccno, DateTime TranDate, ref string o_Errmsg)
-        //{
-        //    string GetCCDrCrLienYNRet = default;
-
-        //    string strDrLnYN;
-        //    string strCrLnYN;
-        //    string strAllowYN;
-        //    double dblDrLnAmt;
-        //    double dblCrLnAmt;
-        //    double dblAccBal;
-        //    double dblfinLeinLimAmt;
-        //    string strDrCrLnYN;
-        //    string strSql;
-        //    var objCmd = new OracleClient.OracleCommand();
-        //    OracleClient.OracleDataReader rsneftAck;
-        //    try
-        //    {
-        //        if (strModId == "CC")
-        //        {
-        //        }
-        //        else
-        //        {
-        //            goto End1;
-        //        }
-
-        //        // '   ObjOracleConnection = objDBConnection.GetDbConnection(o_Errmsg)
-
-        //        if (ObjOracleConnection.State != ConnectionState.Open)
-        //        {
-        //            o_Errmsg = "";
-        //            ObjOracleConnection = objDBConnection.GetDbConnection(o_Errmsg);
-        //            if (!string.IsNullOrEmpty(o_Errmsg))
-        //            {
-        //                throw new Exception(o_Errmsg);
-        //                return GetCCDrCrLienYNRet;
-        //            }
-        //        }
-        //        if (Strings.Len(o_Errmsg) == 0)
-        //        {
-
-        //            strSql = "SELECT DRLIENYN, CRLIENYN FROM " + strModId + "mst  WHERE branchcode ='" + strBrCode + "' AND " + " currencycode ='" + strCurcode + "' AND glcode ='" + strGlcode + "'  AND accno ='" + strAccno + "'";
-        //            objCmd = new OracleClient.OracleCommand(strSql, ObjOracleConnection);
-        //            rsneftAck = objCmd.ExecuteReader;
-
-        //            if (rsneftAck.HasRows == true)
-        //            {
-        //                rsneftAck.Read();
-        //                strDrLnYN = Conversions.ToString(Interaction.IIf(rsneftAck["DRLIENYN"] is DBNull, "N", rsneftAck["DRLIENYN"]));
-        //                strCrLnYN = Conversions.ToString(Interaction.IIf(rsneftAck["CRLIENYN"] is DBNull, "N", rsneftAck["CRLIENYN"]));
-        //            }
-        //            else
-        //            {
-        //                strDrLnYN = "N";
-        //                strCrLnYN = "N";
-        //            }
-
-        //            objCmd.Dispose();
-        //            objCmd = default;
-        //            rsneftAck.Close();
-        //            rsneftAck = default;
-
-        //            strSql = "SELECT DRLIENAMT, CRLIENAMT FROM SBCALIENDTLS WHERE branchcode ='" + strBrCode + "' AND " + " currencycode ='" + strCurcode + "' AND glcode ='" + strGlcode + "'  AND accno ='" + strAccno + "'";
-
-        //            objCmd = new OracleClient.OracleCommand(strSql, ObjOracleConnection);
-        //            rsneftAck = objCmd.ExecuteReader;
-
-        //            if (rsneftAck.HasRows == true)
-        //            {
-        //                rsneftAck.Read();
-
-        //                dblDrLnAmt = Conversions.ToDouble(Interaction.IIf(rsneftAck["DRLIENAMT"] is DBNull, 0, rsneftAck["DRLIENAMT"]));
-        //                dblCrLnAmt = Conversions.ToDouble(Interaction.IIf(rsneftAck["CRLIENAMT"] is DBNull, 0, rsneftAck["CRLIENAMT"]));
-        //            }
-        //            else
-        //            {
-        //                dblDrLnAmt = 0d;
-        //                dblCrLnAmt = 0d;
-        //            }
-
-        //            objCmd.Dispose();
-        //            objCmd = default;
-        //            rsneftAck.Close();
-        //            rsneftAck = default;
-
-        //            GetCCDrCrLienYNRet = strDrLnYN + "|" + dblDrLnAmt + "|" + strCrLnYN + "|" + dblCrLnAmt;
-
-        //        }
-        //        return GetCCDrCrLienYNRet;
-        //        End1:
-        //        ;
-
-        //        GetCCDrCrLienYNRet = "|||";
-        //        return GetCCDrCrLienYNRet;
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        o_Errmsg = ex.Message;
-        //    }
-
-        //    return GetCCDrCrLienYNRet;
-        //}
-
-        //public string GetSBCADrCrLienYN(string strMode, string strBrCode, string strCurcode, string strModId, string strGlcode, string strAccno, double TransAmt, DateTime TranDate, ref string o_Errmsg)
-        //{
-        //    string GetSBCADrCrLienYNRet = default;
-
-        //    string strDrLnYN;
-        //    string strCrLnYN;
-        //    var strAllowYN = default(string);
-        //    double dblDrLnAmt;
-        //    double dblCrLnAmt;
-        //    double dblAccBal;
-        //    double dblfinLeinLimAmt;
-        //    string strDrCrLnYN;
-        //    string strSql;
-        //    var objCmd = new OracleClient.OracleCommand();
-        //    OracleClient.OracleDataReader rsneftAck;
-        //    try
-        //    {
-        //        if (strModId == "SB" | strModId == "CA")
-        //        {
-        //        }
-        //        else
-        //        {
-        //            goto End1;
-        //        }
-
-        //        // '   ObjOracleConnection = objDBConnection.GetDbConnection(o_Errmsg)
-
-        //        if (ObjOracleConnection.State != ConnectionState.Open)
-        //        {
-        //            o_Errmsg = "";
-        //            ObjOracleConnection = objDBConnection.GetDbConnection(o_Errmsg);
-        //            if (!string.IsNullOrEmpty(o_Errmsg))
-        //            {
-        //                throw new Exception(o_Errmsg);
-        //                return GetSBCADrCrLienYNRet;
-        //            }
-        //        }
-        //        if (Strings.Len(o_Errmsg) == 0)
-        //        {
-
-
-
-        //            strSql = "select GETANYDAYBAL('" + strBrCode + "'," + " '" + strCurcode + "' ,'" + strModId + "'," + " '" + strGlcode + "','" + strAccno + "'," + " '" + Strings.Format(TranDate, "dd-MMM-yyyy") + "') bal from dual";
-
-        //            objCmd = new OracleClient.OracleCommand(strSql, ObjOracleConnection);
-        //            rsneftAck = objCmd.ExecuteReader;
-        //            if (rsneftAck.HasRows == true)
-        //            {
-        //                rsneftAck.Read();
-        //                dblAccBal = Conversions.ToDouble(Interaction.IIf(rsneftAck["bal"] is DBNull, 0, rsneftAck["bal"]));
-        //            }
-        //            else
-        //            {
-        //                dblAccBal = 0d;
-        //            }
-        //            objCmd.Dispose();
-        //            objCmd = default;
-        //            rsneftAck.Close();
-        //            rsneftAck = default;
-
-        //            strSql = "SELECT DRLIENYN, CRLIENYN FROM " + strModId + "mst  WHERE branchcode ='" + strBrCode + "' AND " + " currencycode ='" + strCurcode + "' AND glcode ='" + strGlcode + "'  AND accno ='" + strAccno + "'";
-        //            objCmd = new OracleClient.OracleCommand(strSql, ObjOracleConnection);
-        //            rsneftAck = objCmd.ExecuteReader;
-
-        //            if (rsneftAck.HasRows == true)
-        //            {
-        //                rsneftAck.Read();
-        //                strDrLnYN = Conversions.ToString(Interaction.IIf(rsneftAck["DRLIENYN"] is DBNull, "N", rsneftAck["DRLIENYN"]));
-        //                strCrLnYN = Conversions.ToString(Interaction.IIf(rsneftAck["CRLIENYN"] is DBNull, "N", rsneftAck["CRLIENYN"]));
-        //            }
-        //            else
-        //            {
-        //                strDrLnYN = "N";
-        //                strCrLnYN = "N";
-        //            }
-
-        //            objCmd.Dispose();
-        //            objCmd = default;
-        //            rsneftAck.Close();
-        //            rsneftAck = default;
-
-        //            strSql = "SELECT DRLIENAMT, CRLIENAMT FROM SBCALIENDTLS WHERE branchcode ='" + strBrCode + "' AND " + " currencycode ='" + strCurcode + "' AND glcode ='" + strGlcode + "'  AND accno ='" + strAccno + "'";
-
-        //            objCmd = new OracleClient.OracleCommand(strSql, ObjOracleConnection);
-        //            rsneftAck = objCmd.ExecuteReader;
-
-        //            if (rsneftAck.HasRows == true)
-        //            {
-        //                rsneftAck.Read();
-
-        //                dblDrLnAmt = Conversions.ToDouble(Interaction.IIf(rsneftAck["DRLIENAMT"] is DBNull, 0, rsneftAck["DRLIENAMT"]));
-        //                dblCrLnAmt = Conversions.ToDouble(Interaction.IIf(rsneftAck["CRLIENAMT"] is DBNull, 0, rsneftAck["CRLIENAMT"]));
-        //            }
-        //            else
-        //            {
-        //                dblDrLnAmt = 0d;
-        //                dblCrLnAmt = 0d;
-        //            }
-
-        //            objCmd.Dispose();
-        //            objCmd = default;
-        //            rsneftAck.Close();
-        //            rsneftAck = default;
-
-        //            if (strModId == "SB" | strModId == "CA")
-        //            {
-        //                // ' for Debit lien yn
-        //                if (strMode == "Dr")
-        //                {
-        //                    if (strDrLnYN == "Y")
-        //                    {
-        //                        if (dblAccBal - dblDrLnAmt >= TransAmt)
-        //                        {
-        //                            strAllowYN = "Y";
-        //                        }
-        //                        else
-        //                        {
-        //                            strAllowYN = "N";
-        //                        }
-        //                    }
-        //                    else
-        //                    {
-        //                        strAllowYN = "Y";
-        //                    }
-        //                }
-
-
-        //                // ' for Credit Lien YN
-        //                if (strMode == "Cr")
-        //                {
-        //                    if (strCrLnYN == "Y")
-        //                    {
-        //                        strAllowYN = "N";
-        //                    }
-        //                    else
-        //                    {
-        //                        strAllowYN = "Y";
-        //                    }
-        //                }
-
-        //                if (strMode == "Dr")
-        //                {
-        //                    dblfinLeinLimAmt = dblDrLnAmt;
-        //                    strDrCrLnYN = strDrLnYN;
-        //                }
-        //                else if (strMode == "Cr")
-        //                {
-        //                    dblfinLeinLimAmt = dblCrLnAmt;
-        //                    strDrCrLnYN = strCrLnYN;
-        //                }
-        //                else
-        //                {
-        //                    dblfinLeinLimAmt = 0d;
-        //                    strDrCrLnYN = "";
-        //                }
-        //            } // 'strModId = "SB" Or strModId = "CA"
-
-
-        //            GetSBCADrCrLienYNRet = strAllowYN;
-        //        }
-        //        return GetSBCADrCrLienYNRet;
-        //        End1:
-        //        ;
-
-        //        GetSBCADrCrLienYNRet = "Y";
-        //        return GetSBCADrCrLienYNRet;
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        GetSBCADrCrLienYNRet = "N";
-        //    }
-
-        //    return GetSBCADrCrLienYNRet;
-        //}
+        public async Task<string> GetTDSyn(string BrCode, string CurCode, string DepGlcode, string DepAccNo)
+        {
+            DataTable recnfts1;
+            string GetTDSynRet = string.Empty, strSql;
+            string strtdsyn1 = "", str15Hyn1 = "", str15Gyn1 = "";
+
+            try
+            {
+                strSql = "SELECT nvl(tdsyn,'N') tdsyn,nvl(EXMPFORMSRECYN,'N') EXMPFORMSRECYN, nvl(FORMS15G,'N') FORMS15G FROM depmst WHERE BRANCHCODE='" + BrCode + 
+                    "' AND CURRENCYCODE='" + CurCode + "' AND GLCODE='" + DepGlcode + "' AND ACCNO='" + DepAccNo + "'";
+
+                recnfts1 = await _databaseFactory.ProcessQueryAsync(strSql);
+
+                if (recnfts1.Rows.Count > 0)
+                {
+                    strtdsyn1 = Convert.ToString(recnfts1.Rows[0]["tdsyn"]) ?? string.Empty;
+                    str15Hyn1 = Convert.ToString(recnfts1.Rows[0]["EXMPFORMSRECYN"]) ?? string.Empty;
+                    str15Gyn1 = Convert.ToString(recnfts1.Rows[0]["FORMS15G"]) ?? string.Empty;
+
+                    if (strtdsyn1 == "Y")
+                        GetTDSynRet = "Y";
+                    else if (str15Hyn1 == "Y")
+                        GetTDSynRet = "Y";
+                    else if (str15Gyn1 == "Y")
+                        GetTDSynRet = "Y";
+                    else
+                        GetTDSynRet = "N";
+                }
+
+                recnfts1 = null!;
+            }
+            catch (Exception ex)
+            {
+
+            }
+
+            return GetTDSynRet;
+        }
+
+        public async Task<string> GetLoginOTPYN()
+        {
+            DataTable recnfts1;
+            string strSql, GetLoginOTPYNRet = string.Empty;
+
+            strSql = "select loginotpyn from genbankparm";
+
+            recnfts1 = await _databaseFactory.ProcessQueryAsync(strSql);
+
+            if (recnfts1.Rows.Count > 0)
+            {
+                GetLoginOTPYNRet = Convert.IsDBNull(recnfts1.Rows[0]["loginotpyn"]) ? "N" : Convert.ToString(recnfts1.Rows[0]["loginotpyn"]) ?? string.Empty;
+            }
+
+            recnfts1 = null!;
+
+            return GetLoginOTPYNRet;
+        }
+
+        public async Task GetCKYCEnrollDetails(string strkycenrolldate)
+        {
+            DataTable recnfts1;
+            string pstrckycsno, pstrduedate, strSql, strckycsno = string.Empty, strCKYCIDPERIOD = string.Empty;
+
+            try
+            {
+                strSql = "SELECT NVL(MAX(sno),0) +1 sno  FROM CKYCENROLLDTLS";
+
+                recnfts1 = await _databaseFactory.ProcessQueryAsync(strSql);
+
+                if (recnfts1.Rows.Count > 0)
+                {
+                    strckycsno = Convert.IsDBNull(recnfts1.Rows[0]["sno"]) ? "0" : Convert.ToString(recnfts1.Rows[0]["sno"]) ?? string.Empty;
+                }
+
+                recnfts1 = null!;
+
+                strSql = "select CKYCIDPERIOD from genbankparm";
+
+                recnfts1 = await _databaseFactory.ProcessQueryAsync(strSql);
+
+                if (recnfts1.Rows.Count > 0)
+                {
+                    strCKYCIDPERIOD = Convert.IsDBNull(recnfts1.Rows[0]["CKYCIDPERIOD"]) ? "0" : Convert.ToString(recnfts1.Rows[0]["CKYCIDPERIOD"]) ?? string.Empty;
+                }
+
+                recnfts1 = null!;
+
+                pstrduedate = Convert.ToString(Convert.ToDateTime(strkycenrolldate).AddMonths(Convert.ToInt32(strCKYCIDPERIOD)));
+                pstrduedate = string.Format("dd-MMM-yyyy", Convert.ToDateTime(pstrduedate));
+                pstrckycsno = strckycsno;
+            }
+            catch (Exception ex)
+            {
+            }
+        }
+
+        public async Task<string> getCheckIMPSCycle(string strPrcsCode, string strTransAmt)
+        {
+            DataTable recnfts;
+            string sumamount = string.Empty, limitamount = string.Empty;
+            double dbllimitamt = 0d, dblamount = 0d, dblgentransamt = 0d;
+            string strQuery, getCheckIMPSCycleRet = string.Empty, intfromtime = string.Empty, inttotime = string.Empty;
+
+            try
+            {
+                if (strPrcsCode == "OUTWRD")
+                {
+                    strQuery = "SELECT fromtime,totime,limitamt FROM IMPSCYCLEDTLS  WHERE TO_CHAR(SYSDATE,'HH24Mi') BETWEEN fromtime AND totime AND " +
+                        "effdate = (SELECT MAX(effdate) FROM IMPSCYCLEDTLS  WHERE TO_CHAR(SYSDATE,'HH24Mi') BETWEEN fromtime AND totime )";
+
+                    recnfts = await _databaseFactory.ProcessQueryAsync(strQuery);
+
+                    if (recnfts.Rows.Count > 0)
+                    {
+                        intfromtime = Convert.ToString(recnfts.Rows[0]["fromtime"]) ?? string.Empty;
+                        inttotime = Convert.ToString(recnfts.Rows[0]["totime"]) ?? string.Empty;
+                        dbllimitamt = Convert.ToDouble(recnfts.Rows[0]["limitamt"]);
+                    }
+
+                    recnfts = null!;
+
+                    strQuery = "select sum(amount) amount from gentranslog where (remarks NOT LIKE 'IMPS Charges Inclusive GST Charges%' AND  trim(remarks) NOT LIKE 'Charges Inclusive GST Charges%') AND  SUBSTR(respondingbankcode,1,6) = 'OUTWRD' AND chqfvg = 'IMPS' AND moduleid != 'ATM'  AND modeoftran IN (1,3,5) AND TO_CHAR(systemdate,'HH24Mi') between '" + intfromtime + "' and '" + inttotime + "'";
+
+                    recnfts = await _databaseFactory.ProcessQueryAsync(strQuery);
+
+                    if (recnfts.Rows.Count > 0)
+                    {
+                        dblgentransamt = Convert.IsDBNull(recnfts.Rows[0]["amount"]) ? 0 : Convert.ToDouble(recnfts.Rows[0]["amount"]);
+                    }
+
+                    recnfts = null!;
+
+                    dblamount = Math.Abs(dblgentransamt) + Convert.ToDouble(strTransAmt) / 100d;
+
+                    if (dblamount > dbllimitamt)
+                        getCheckIMPSCycleRet = "121";
+                    else
+                        getCheckIMPSCycleRet = "";
+                }
+
+                sumamount = dblamount.ToString();
+                limitamount = dbllimitamt.ToString();
+                return getCheckIMPSCycleRet;
+            }
+            catch (Exception ex)
+            {
+            }
+
+            return getCheckIMPSCycleRet;
+        }
+
+        public async Task<string> getNEFTMobileFrm_bnkbrhmst(string strbrid)
+        {
+            DataTable recnfts;
+            string getNEFTMobileFrm_bnkbrhmstRet = string.Empty, strQuery, strNEFTMobNo = "";
+
+            try
+            {
+                strQuery = " select NEFTMOBILE from genbankbranchmst where branchcode = '" + strbrid + "'";
+
+                recnfts = await _databaseFactory.ProcessQueryAsync(strQuery);
+
+                if (recnfts.Rows.Count > 0)
+                {
+                    strNEFTMobNo = Convert.ToString(recnfts.Rows[0]["NEFTMOBILE"]) ?? string.Empty;
+                }
+
+                recnfts = null!;
+
+                getNEFTMobileFrm_bnkbrhmstRet = strNEFTMobNo;
+            }
+            catch (Exception ex)
+            {
+                getNEFTMobileFrm_bnkbrhmstRet = "";
+            }
+
+            return getNEFTMobileFrm_bnkbrhmstRet;
+        }
+
+        public async Task<string> GetCCDrCrLienYN(string strBrCode, string strCurcode, string strModId, string strGlcode, string strAccno, DateTime TranDate)
+        {
+            DataTable rsneftAck;
+            double dblDrLnAmt, dblCrLnAmt;
+            string GetCCDrCrLienYNRet = string.Empty, strSql, strDrLnYN, strCrLnYN;
+
+            try
+            {
+                if (strModId == "CC")
+                {
+                }
+                else
+                {
+                }
+
+                strSql = "SELECT DRLIENYN, CRLIENYN FROM " + strModId + "mst  WHERE branchcode ='" + strBrCode + "' AND " + " currencycode ='" + strCurcode + "' AND glcode ='" + strGlcode + "'  AND accno ='" + strAccno + "'";
+
+                rsneftAck = await _databaseFactory.ProcessQueryAsync(strSql);
+
+                if (rsneftAck.Rows.Count > 0)
+                {
+                    strDrLnYN = Convert.IsDBNull(rsneftAck.Rows[0]["DRLIENYN"]) ? "N" : Convert.ToString(rsneftAck.Rows[0]["DRLIENYN"]) ?? string.Empty;
+                    strCrLnYN = Convert.IsDBNull(rsneftAck.Rows[0]["CRLIENYN"]) ? "N" : Convert.ToString(rsneftAck.Rows[0]["CRLIENYN"]) ?? string.Empty;
+                }
+                else
+                {
+                    strDrLnYN = "N";
+                    strCrLnYN = "N";
+                }
+
+                rsneftAck = null!;
+
+                strSql = "SELECT DRLIENAMT, CRLIENAMT FROM SBCALIENDTLS WHERE branchcode ='" + strBrCode + "' AND " + " currencycode ='" + strCurcode + "' AND glcode ='" + strGlcode + "'  AND accno ='" + strAccno + "'";
+
+                rsneftAck = await _databaseFactory.ProcessQueryAsync(strSql);
+
+                if (rsneftAck.Rows.Count > 0)
+                {
+                    dblDrLnAmt = Convert.IsDBNull(rsneftAck.Rows[0]["DRLIENAMT"]) ? 0 : Convert.ToDouble(rsneftAck.Rows[0]["DRLIENAMT"]);
+                    dblCrLnAmt = Convert.IsDBNull(rsneftAck.Rows[0]["CRLIENAMT"]) ? 0 : Convert.ToDouble(rsneftAck.Rows[0]["CRLIENAMT"]);
+                }
+                else
+                {
+                    dblDrLnAmt = 0d;
+                    dblCrLnAmt = 0d;
+                }
+
+                rsneftAck = null!;
+
+                GetCCDrCrLienYNRet = strDrLnYN + "|" + dblDrLnAmt + "|" + strCrLnYN + "|" + dblCrLnAmt;
+
+                return GetCCDrCrLienYNRet;
+
+                //GetCCDrCrLienYNRet = "|||";
+                //return GetCCDrCrLienYNRet;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
+        }
+
+        public async Task<string> GetSBCADrCrLienYN(string strMode, string strBrCode, string strCurcode, string strModId, string strGlcode, string strAccno, 
+            double TransAmt, DateTime TranDate)
+        {
+            DataTable rsneftAck;
+            double dblDrLnAmt, dblCrLnAmt, dblAccBal, dblfinLeinLimAmt;
+            string strDrCrLnYN, strSql, strDrLnYN, strCrLnYN, GetSBCADrCrLienYNRet = string.Empty, strAllowYN = string.Empty;
+
+            try
+            {
+                if (strModId == "SB" | strModId == "CA")
+                {
+                }
+                else
+                {
+                    // goto End1;
+                }
+
+                strSql = "select GETANYDAYBAL('" + strBrCode + "'," + " '" + strCurcode + "' ,'" + strModId + "'," + " '" + strGlcode + "','" +
+                        strAccno + "'," + " '" + string.Format("dd-MMM-yyyy", TranDate) + "') bal from dual";
+
+                rsneftAck = await _databaseFactory.ProcessQueryAsync(strSql);
+
+                if (rsneftAck.Rows.Count > 0)
+                {
+                    dblAccBal = Convert.IsDBNull(rsneftAck.Rows[0]["bal"]) ? 0 : Convert.ToDouble(rsneftAck.Rows[0]["bal"]);
+                }
+                else
+                {
+                    dblAccBal = 0d;
+                }
+
+                rsneftAck = null!;
+
+                strSql = "SELECT DRLIENYN, CRLIENYN FROM " + strModId + "mst  WHERE branchcode ='" + strBrCode + "' AND " + " currencycode ='" + strCurcode + 
+                    "' AND glcode ='" + strGlcode + "'  AND accno ='" + strAccno + "'";
+
+                rsneftAck = await _databaseFactory.ProcessQueryAsync(strSql);
+
+                if (rsneftAck.Rows.Count > 0)
+                {
+                    strDrLnYN = Convert.IsDBNull(rsneftAck.Rows[0]["DRLIENYN"]) ? "N" : Convert.ToString(rsneftAck.Rows[0]["DRLIENYN"]) ?? string.Empty;
+                    strCrLnYN = Convert.IsDBNull(rsneftAck.Rows[0]["CRLIENYN"]) ? "N" : Convert.ToString(rsneftAck.Rows[0]["CRLIENYN"]) ?? string.Empty;
+                }
+                else
+                {
+                    strDrLnYN = "N";
+                    strCrLnYN = "N";
+                }
+
+                rsneftAck = null!;
+
+                strSql = "SELECT DRLIENAMT, CRLIENAMT FROM SBCALIENDTLS WHERE branchcode ='" + strBrCode + "' AND " + " currencycode ='" + strCurcode + 
+                    "' AND glcode ='" + strGlcode + "'  AND accno ='" + strAccno + "'";
+
+                rsneftAck = await _databaseFactory.ProcessQueryAsync(strSql);
+
+                if (rsneftAck.Rows.Count > 0)
+                {
+                    dblDrLnAmt = Convert.IsDBNull(rsneftAck.Rows[0]["DRLIENAMT"]) ? 0 : Convert.ToDouble(rsneftAck.Rows[0]["DRLIENAMT"]);
+                    dblCrLnAmt = Convert.IsDBNull(rsneftAck.Rows[0]["CRLIENAMT"]) ? 0 : Convert.ToDouble(rsneftAck.Rows[0]["CRLIENAMT"]);
+                }
+                else
+                {
+                    dblDrLnAmt = 0d;
+                    dblCrLnAmt = 0d;
+                }
+
+                rsneftAck = null!;
+
+                if (strModId == "SB" | strModId == "CA")
+                {
+                    // for Debit lien yn
+                    if (strMode == "Dr")
+                    {
+                        if (strDrLnYN == "Y")
+                        {
+                            if (dblAccBal - dblDrLnAmt >= TransAmt)
+                                strAllowYN = "Y";
+                            else
+                                strAllowYN = "N";
+                        }
+                        else
+                            strAllowYN = "Y";
+                    }
+
+                    // ' for Credit Lien YN
+                    if (strMode == "Cr")
+                    {
+                        if (strCrLnYN == "Y")
+                            strAllowYN = "N";
+                        else
+                            strAllowYN = "Y";
+                    }
+
+                    if (strMode == "Dr")
+                    {
+                        dblfinLeinLimAmt = dblDrLnAmt;
+                        strDrCrLnYN = strDrLnYN;
+                    }
+                    else if (strMode == "Cr")
+                    {
+                        dblfinLeinLimAmt = dblCrLnAmt;
+                        strDrCrLnYN = strCrLnYN;
+                    }
+                    else
+                    {
+                        dblfinLeinLimAmt = 0d;
+                        strDrCrLnYN = "";
+                    }
+                } // strModId = "SB" Or strModId = "CA"
+
+                GetSBCADrCrLienYNRet = strAllowYN;
+
+                return GetSBCADrCrLienYNRet;
+
+                //if (Strings.Len(o_Errmsg) == 0)
+                //{
+                //}
+                //GetSBCADrCrLienYNRet = "Y";
+                //return GetSBCADrCrLienYNRet;
+            }
+            catch (Exception ex)
+            {
+                GetSBCADrCrLienYNRet = "N";
+            }
+
+            return GetSBCADrCrLienYNRet;
+        }
     }
 }
