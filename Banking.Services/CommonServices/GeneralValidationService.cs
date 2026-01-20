@@ -1,15 +1,28 @@
-﻿using Banking.Interfaces;
+﻿using Banking.Framework;
+using Banking.Interfaces;
 using Banking.Models;
 using Microsoft.Extensions.Options;
-using Microsoft.VisualBasic;
 using System.Data;
-using System.Threading.Tasks;
 
 namespace Banking.Services
 {
     public class GeneralValidationService : IGeneralValidationService
     {
+        private int intDivPer;
+        private double dblNoOfDaysPerYear;
+        private double Intamt;
+        private double PrincipalAmount;
+        private double RemainingDays;
+        private double NewROI;
+        private double InMonths;
+        private string DateTill = string.Empty;
+        private string Tilldate = string.Empty;
+        private string BreakDate = string.Empty;
+        private string strCompoundType = string.Empty;
+
         private readonly IDatabaseService _databaseFactory;
+
+        #region Validations
 
         public GeneralValidationService(IOptions<DatabaseSettings> databaseSettings)
         {
@@ -128,13 +141,6 @@ namespace Banking.Services
             }
 
             return GetExcIntRevFrmDepIntAccDtlsRet;
-        }
-
-        private string GetFinancialYear(string AppDate)
-        {
-            var sDateTime = Convert.ToDateTime(AppDate); // DateTime.Now
-            return (sDateTime.Month > 3) ? sDateTime.Year.ToString() + "-" + Convert.ToString(sDateTime.Year + 1) 
-                : Convert.ToString(sDateTime.Year - 1) + "-" + sDateTime.Year.ToString();
         }
 
         public async Task<string> GetSystemDate()
@@ -290,7 +296,9 @@ namespace Banking.Services
                 if (objDr.Rows.Count > 0)
                     dbllimitamt = Convert.IsDBNull(objDr.Rows[0]["AMOUNT"]) ? 0 : Convert.ToDouble(objDr.Rows[0]["AMOUNT"]);
 
-                strSql = "SELECT NVL(TODLIMITAMT,0) TODLIMITAMT FROM genlimitlnk WHERE LINKEDACCNO = '" + accountNo + "' AND LINKEDGLCODE='" + GlCode + "' AND  LINKEDMODULEID='" + ModId + "' AND BRANCHCODE= '" + BrCode + "' AND CURRENCYCODE='INR' AND TODEXPDATE >= '" + Strings.Format(TranDate, "dd-MMM-yyyy") + "' AND TODEXPDATE IS NOT NULL ";
+                strSql = "SELECT NVL(TODLIMITAMT,0) TODLIMITAMT FROM genlimitlnk WHERE LINKEDACCNO = '" + accountNo + "' AND LINKEDGLCODE='" + GlCode + 
+                    "' AND  LINKEDMODULEID='" + ModId + "' AND BRANCHCODE= '" + BrCode + "' AND CURRENCYCODE='INR' AND TODEXPDATE >= '" + 
+                    string.Format("dd-MMM-yyyy", TranDate) + "' AND TODEXPDATE IS NOT NULL ";
 
                 rstod = await _databaseFactory.ProcessQueryAsync(strSql);
 
@@ -320,7 +328,7 @@ namespace Banking.Services
             try
             {
                 strQuery = "select GetanydaybalAppr('" + BrCode + "'," + " '" + CrCode + "' ,'" + ModId + "'," + " '" + GlCode + "','" + accountNo + "'," + 
-                    " '" + Strings.Format(TranDate, "dd-MMM-yyyy") + "') from dual";
+                    " '" + string.Format("dd-MMM-yyyy", TranDate) + "') from dual";
 
                 DataTable objCmd = await _databaseFactory.ProcessQueryAsync(strQuery);
 
@@ -344,7 +352,7 @@ namespace Banking.Services
 
                 strSql = "SELECT NVL(TODLIMITAMT,0) TODLIMITAMT FROM genlimitlnk WHERE LINKEDACCNO = '" + accountNo + "' AND LINKEDGLCODE='" + GlCode + 
                     "' AND  LINKEDMODULEID='" + ModId + "' AND BRANCHCODE= '" + BrCode + "' AND CURRENCYCODE='INR' AND TODEXPDATE >= '" + 
-                    Strings.Format(TranDate, "dd-MMM-yyyy") + "' AND TODEXPDATE IS NOT NULL ";
+                    string.Format("dd-MMM-yyyy", TranDate) + "' AND TODEXPDATE IS NOT NULL ";
 
                 rstod = await _databaseFactory.ProcessQueryAsync(strSql);
 
@@ -427,46 +435,6 @@ namespace Banking.Services
             }
 
             return GetRefnoWithOutTransRet;
-        }
-
-        private async Task<double> GetLimitAmount(string pstrBrCode, string pstrmodid, string pstrGlcode, string pstrAccno, DateTime TranDate)
-        {
-            double GetLimitAmountRet = default;
-            DataTable objDr;
-            double dbllimitamt = 0d;
-            double dbltodlimitamt = 0d;
-            string strSql;
-
-            try
-            {
-                strSql = " select Sum(nvl(LINKEDAMOUNT,0)) AMOUNT from GENLIMITLNK where LINKEDACCNO='" + pstrAccno + "' and LINKEDGLCODE='" + pstrGlcode + 
-                    "' AND BRANCHCODE='" + pstrBrCode + "' AND CURRENCYCODE='INR' AND LINKEDMODULEID='" + pstrmodid + "'   and closedate is null and status='R' ";
-
-                objDr = await _databaseFactory.ProcessQueryAsync(strSql);
-
-                if (objDr.Rows.Count > 0)
-                {
-                    dbllimitamt = Convert.IsDBNull(objDr.Rows[0]["AMOUNT"]) ? 0 : Convert.ToDouble(objDr.Rows[0]["AMOUNT"]);
-                }
-
-                strSql = "SELECT NVL(TODLIMITAMT,0) TODLIMITAMT FROM genlimitlnk WHERE LINKEDACCNO = '" + pstrAccno + "' AND LINKEDGLCODE='" + pstrGlcode + 
-                    "' AND  LINKEDMODULEID='" + pstrmodid + "' AND BRANCHCODE= '" + pstrBrCode + "' AND CURRENCYCODE='INR' AND TODEXPDATE >= '" + 
-                    string.Format("dd-MMM-yyyy", TranDate) + "' AND TODEXPDATE IS NOT NULL ";
-
-                objDr = await _databaseFactory.ProcessQueryAsync(strSql);
-
-                if (objDr.Rows.Count > 0)
-                {
-                    dbltodlimitamt = Convert.IsDBNull(objDr.Rows[0]["TODLIMITAMT"]) ? 0 : Convert.ToDouble(objDr.Rows[0]["TODLIMITAMT"]);
-                }
-
-                GetLimitAmountRet = dbllimitamt + dbltodlimitamt;
-            }
-            catch (Exception ex)
-            {
-
-            }
-            return GetLimitAmountRet;
         }
 
         public async Task<string> GetCustMobileNo(string BrCode, string CrCode, string ModId, string GlCode, string accountNo)
@@ -672,7 +640,7 @@ namespace Banking.Services
             {
                 string straccno1;
                 string straccnotrimst;
-                straccno1 = Strings.Mid(straccno, 10, 7);
+                straccno1 = straccno.Substring(9, 7);
                 straccnotrimst = straccno1.TrimStart('0');
 
                 if (straccnotrimst.Length == 1)
@@ -728,21 +696,21 @@ namespace Banking.Services
             try
             {
                 string strfullaccno1, pstrBrId, pstrGlcd, NFTSCONVYN, pstrAccNo, pstrACTP;
-                strfullaccno1 = Strings.StrReverse(Strings.Mid(Strings.StrReverse(strfullAccno), 1, 16));
+                strfullaccno1 = strfullAccno.Length <= 16 ? strfullAccno : strfullAccno.Substring(strfullAccno.Length - 16);
 
-                pstrBrId = Strings.Mid(strfullaccno1, 1, 3);
-                pstrGlcd = Strings.Mid(strfullaccno1, 4, 6);
+                pstrBrId = strfullaccno1.Substring(0, 3);
+                pstrGlcd = strfullaccno1.Substring(3, 6);
 
                 // ' for accno 16 digits only
                 NFTSCONVYN = await GetNFTSCONVYN();
 
                 if (NFTSCONVYN == "Y")
                 {
-                    pstrAccNo = pstrBrId + pstrGlcd + Strings.Mid(strfullaccno1, 10, 7);
+                    pstrAccNo = pstrBrId + pstrGlcd + strfullaccno1.Substring(9, 7);
                 }
                 else
                 {
-                    pstrAccNo = Strings.Mid(strfullaccno1, 10, 7).TrimStart('0');
+                    pstrAccNo = strfullaccno1.Substring(9, 7).TrimStart('0');
                 }
 
                 pstrACTP = await GetModuleID(pstrGlcd);
@@ -784,11 +752,11 @@ namespace Banking.Services
                 {
                     pstrACTP = "CA";
                 }
-                else if (Strings.Mid(pstrGlcd, 1, 3) == "104")
+                else if (pstrGlcd.Substring(0, 3) == "104")
                 {
                     pstrACTP = "DEP";
                 }
-                else if (Strings.Mid(pstrGlcd, 1, 3) == "206")
+                else if (pstrGlcd.Substring(0, 3) == "206")
                 {
                     pstrACTP = await GetModuleIDCCLOAN(pstrGlcd);
                 }
@@ -852,115 +820,6 @@ namespace Banking.Services
             {
                 throw new Exception(ex.Message);
             }
-        }
-
-        private async Task<string> GetPanYNDtls(string strcustid, string strtds, string pstrPAN206AAYN = "", string pstrPAN206ABYN = "")
-        {
-            string strSql;
-            string GetPanYNDtlsRet = string.Empty;
-            DataTable recnfts;
-
-            string strPANYN = "";
-            string strPAN206AAYN = "", strPAN206ABYN = "";
-
-            strSql = "SELECT PAN206AAYN,PAN206ABYN FROM gencustinfomst WHERE  CUSTOMERID = '" + strcustid + "'";
-
-            recnfts = await _databaseFactory.ProcessQueryAsync(strSql);
-
-            if (recnfts.Rows.Count > 0)
-            {
-                strPAN206AAYN = Convert.ToString(recnfts.Rows[0]["PAN206AAYN"]) ?? string.Empty;
-                strPAN206ABYN = Convert.ToString(recnfts.Rows[0]["PAN206ABYN"]) ?? string.Empty;
-            }
-
-            recnfts = null!;
-
-            pstrPAN206AAYN = strPAN206AAYN;
-            pstrPAN206ABYN = strPAN206ABYN;
-
-            if (strtds == "TDS")
-            {
-                strSql = "SELECT panno FROM gencustinfomst WHERE KYCID=2 and  CUSTOMERID = '" + strcustid + "'";
-
-                recnfts = await _databaseFactory.ProcessQueryAsync(strSql);
-
-                if (recnfts.Rows.Count > 0)
-                {
-                    string panno = Convert.ToString(recnfts.Rows[0]["panno"]) ?? string.Empty;
-
-                    if (Convert.IsDBNull(recnfts.Rows[0]["panno"]))
-                    {
-                        strPANYN = "N"; // ' 20%
-                    }
-                    else if (panno.Length != 10)
-                    {
-                        strPANYN = "N";   // ' 20%
-                    }
-                    // ' pan no is there
-                    else if (strPAN206AAYN == "Y" & strPAN206ABYN == "Y")
-                    {
-                        strPANYN = "N";   // ' 20%
-                    }
-                    else if (strPAN206AAYN == "Y" & strPAN206ABYN == "N")
-                    {
-                        strPANYN = "Y";   // ' 10%
-                    }
-                    else if (strPAN206AAYN == "N" & strPAN206ABYN == "Y")
-                    {
-                        strPANYN = "N";   // ' 20%
-                    }
-                    else if (strPAN206AAYN == "N" & strPAN206ABYN == "N")
-                    {
-                        strPANYN = "N";   // ' 20%
-                    }
-                }
-                else
-                {
-                    strPANYN = "N";
-                }
-            }
-            else if (strtds == "Form 15H" | strtds == "Form 15G")
-            {
-                strSql = "SELECT panno FROM gencustinfomst WHERE KYCID=2 and  CUSTOMERID = '" + strcustid + "'";
-
-                recnfts = await _databaseFactory.ProcessQueryAsync(strSql);
-
-                if (recnfts.Rows.Count > 0)
-                {
-                    string panno = Convert.ToString(recnfts.Rows[0]["panno"]) ?? string.Empty;
-                    if (Convert.IsDBNull(recnfts.Rows[0]["panno"]))
-                    {
-                        strPANYN = "N"; // ' 20%
-                    }
-                    else if (panno.Length != 10)
-                    {
-                        strPANYN = "N";   // ' 20%
-                    }
-                    // ' pan no is there
-                    else if (strPAN206AAYN == "Y" & strPAN206ABYN == "Y")
-                    {
-                        strPANYN = "N";   // ' 20%
-                    }
-                    else if (strPAN206AAYN == "Y" & strPAN206ABYN == "N")
-                    {
-                        strPANYN = "";   // ' 
-                    }
-                    else if (strPAN206AAYN == "N" & strPAN206ABYN == "Y")
-                    {
-                        strPANYN = "N";   // ' 20%
-                    }
-                    else if (strPAN206AAYN == "N" & strPAN206ABYN == "N")
-                    {
-                        strPANYN = "N";   // ' 20%
-                    }
-                }
-                else
-                {
-                    strPANYN = "N";
-                }
-            }
-            GetPanYNDtlsRet = strPANYN;
-            return GetPanYNDtlsRet;
         }
 
         public async Task<string> GetTDSFlag(string BrCode, string CurCode, string DepGlcode, string DepAccNo)
@@ -1392,5 +1251,653 @@ namespace Banking.Services
 
             return GetSBCADrCrLienYNRet;
         }
+
+        #endregion
+
+        #region Maturity Value Calculation
+
+        public async Task<object> GetMaturityvalue(string Period, string EffDate, string MatDate, double Amount, string CompoundTerm, string InstalmentsYN, 
+            double ROI, string strpremat = "0")
+        {
+            double GetMaturityvalueRet = 0d;
+            int Monstr, Prd;
+            string TERM;
+            double DiffMonths, Year, Mon, Day, DblDays, Strperiod, NoOfQuarters, Factor;
+            long lngdiffdays, lngdiffdays1;
+
+            //int Chkstr;
+            //string Strmsg;
+            //public string ConnError; // error object
+            //string ErrNum, errDesc, strComponent;
+            //double Maturityvalue, , , i, SimIntDays;
+            //object TotQuarters, intcount, RemainingDays, InMonths, Monstr, objdblink, ArrLink, objError, ArrError;
+            //const bool blnDebug = true;
+
+            try
+            {
+                dblNoOfDaysPerYear = 36500;
+                if (string.IsNullOrEmpty(Period))
+                {
+                    if (string.IsNullOrEmpty(EffDate) | string.IsNullOrEmpty(MatDate))
+                    {
+                        throw new Exception("Error! Please send required parameters");
+                    }
+                }
+                // Either two dates or period can be given as input for Mat value Calculation
+
+                if (!string.IsNullOrEmpty(EffDate) & !string.IsNullOrEmpty(MatDate))
+                {
+                    Tilldate = Convert.ToString(Convert.ToDateTime(MatDate));
+                    BreakDate = Convert.ToString(Convert.ToDateTime(EffDate));
+                }
+
+                if (!string.IsNullOrEmpty(Period))
+                {
+                    string[] prdDtls = Period.Split("|");
+                    Year = Convert.ToDouble(Convert.ToString(prdDtls[0]).Trim());
+                    Mon = Convert.ToDouble(Convert.ToString(prdDtls[1]).Trim());
+                    Day = Convert.ToDouble(Convert.ToString(prdDtls[2]).Trim());
+                    if (Year == default)
+                        Year = 0d;
+                    if (Mon == (double)default)
+                        Mon = 0d;
+                    if (Day == default)
+                        Day = 0d;
+
+                    if (InstalmentsYN == "N" & (string.IsNullOrEmpty(CompoundTerm) | CompoundTerm == "N"))
+                    {
+                        // Do Simple int calculation based on given periodicity
+                        double dblTempInt;
+
+                        dblTempInt = 0d;
+
+                        if (Year > 0)
+                            dblTempInt = Amount * Year * ROI / 100;
+
+                        if (Mon > 0d)
+                            dblTempInt = dblTempInt + Amount * Mon * ROI / 1200d;
+
+                        if (Day > 0)
+                            dblTempInt = dblTempInt + Amount * Day * ROI / 36500;
+
+                        // Maturity value = Principal + calculated Interest
+                        GetMaturityvalueRet = Amount + dblTempInt;
+
+                        return GetMaturityvalueRet;
+                    }
+
+                    // If period is send as input then, breakDate is assumed as this date for reference only
+                    BreakDate = Convert.ToString(Convert.ToDateTime("1-jan-2000"));
+                    Tilldate = Convert.ToString(Convert.ToDateTime(BreakDate).AddYears(Convert.ToInt32(Year)));
+                    Tilldate = Convert.ToString(Convert.ToDateTime(Tilldate).AddMonths(Convert.ToInt32(Mon)));
+                    Tilldate = Convert.ToString(Convert.ToDateTime(Tilldate).AddDays(Day));
+                    Tilldate = Convert.ToString(Convert.ToDateTime(Tilldate));
+                }
+
+                NewROI = ROI;
+                PrincipalAmount = Amount;
+                DblDays = BankingExtensions.DateDifference("D", Convert.ToDateTime(BreakDate), Convert.ToDateTime(Tilldate));
+                DateTill = Convert.ToString(Convert.ToDateTime(BreakDate));
+                DateTill = Convert.ToString(Convert.ToDateTime(DateTill));
+
+                // Finding exact number of full months between two periods
+                // For i = 1 To 1000
+                // DateTill = DateAdd("M", 1, CDate(DateTill))
+                // If CDate(DateTill) > CDate(Tilldate) Then
+                // Exit For
+                // End If
+                // Count = Count + 1
+                // Next
+                // DiffMonths = Count
+
+                // Original Code commented by Radhika on 31 Mar 2008
+                // DiffMonths = Fix(DateDiff("M", BreakDate, Tilldate))
+                
+                DiffMonths = GetMonthsDiff(Convert.ToDateTime(BreakDate), Convert.ToDateTime(Tilldate));
+
+                if (strpremat == "Y")
+                {
+                    lngdiffdays = BankingExtensions.DateDifference("D", Convert.ToDateTime(BreakDate), Convert.ToDateTime(Tilldate));
+                    if (lngdiffdays < 365L)
+                    {
+                        lngdiffdays1 = BankingExtensions.DateDifference("D", Convert.ToDateTime(BreakDate), Convert.ToDateTime(Tilldate));
+
+                        Strperiod = lngdiffdays1 / 365d;
+
+                        PrincipalAmount = PrincipalAmount + PrincipalAmount * Strperiod * NewROI / 100d;
+                        GetMaturityvalueRet = PrincipalAmount;
+                        return GetMaturityvalueRet;
+                    }
+                }
+                // Simple Int calc
+                // If Compound term is null component calculates Simple Interest
+
+                if (string.IsNullOrEmpty(CompoundTerm) & InstalmentsYN == "N" | CompoundTerm == "N" & InstalmentsYN == "N")
+                {
+                    Strperiod = DiffMonths / 12d;
+                    BreakDate = Convert.ToString(Convert.ToDateTime(BreakDate).AddMonths(Convert.ToInt32(DiffMonths)));
+                    RemainingDays = BankingExtensions.DateDifference("D", Convert.ToDateTime(BreakDate), Convert.ToDateTime(Tilldate));
+                    if (Convert.ToBoolean(RemainingDays > 0)) //Operators.ConditionalCompareObjectGreater(RemainingDays, 0, false)))
+                    {
+                        Strperiod = Convert.ToDouble(Strperiod + Convert.ToString((double)RemainingDays / 365)); // Operators.AddObject(Strperiod, Operators.DivideObject(RemainingDays, 365)));
+                    }
+                    PrincipalAmount = PrincipalAmount + PrincipalAmount * Strperiod * NewROI / 100d;
+                    GetMaturityvalueRet = PrincipalAmount;
+                    return GetMaturityvalueRet;
+                }
+
+                // Simple Int Calc Ends
+
+                if (InstalmentsYN == "Y")  // For Recurring Deposits
+                {
+                    GetMaturityvalueRet = await getRDMaturityValue(Convert.ToDateTime(MatDate), Convert.ToDateTime(EffDate), Amount, (float)ROI);
+                }
+                else
+                {
+                    // Compound Int Calc Starts
+                    switch (CompoundTerm ?? "")
+                    {
+                        case "Q":    // Quarterly
+                        {
+                            if (DiffMonths >= 3d)
+                            {
+                                NoOfQuarters = DiffMonths / 3d;
+                                Factor = 0.0025d;
+                                TERM = "Q";
+                                Prd = 1;
+                                CompCalculation(Factor, NoOfQuarters, TERM, Prd);
+                                GetMaturityvalueRet = PrincipalAmount;
+                            }
+                            else
+                            {
+                                // GetMaturityvalue = "Error  ! Period does not satisfy one Quarter"
+                                PrincipalAmount = PrincipalAmount + PrincipalAmount * DblDays * NewROI / 36500d;
+                                GetMaturityvalueRet = Math.Round(PrincipalAmount);
+                            }
+
+                            break;
+                        }
+                        case "M":    // Monthly
+                        {
+                            if (DiffMonths >= 1d)
+                            {
+                                NoOfQuarters = DiffMonths;
+                                Factor = 1d / 1200d;
+                                TERM = "M";
+                                Prd = 1;
+                                CompCalculation(Factor, NoOfQuarters, TERM, Prd);
+                                GetMaturityvalueRet = PrincipalAmount;
+                            }
+                            else
+                            {
+                                // GetMaturityvalue = "Error  ! Period does not satisfy one Month"
+                                PrincipalAmount = PrincipalAmount + PrincipalAmount * DblDays * NewROI / 36500d;
+                                GetMaturityvalueRet = Math.Round(PrincipalAmount);
+                            }
+
+                            break;
+                        }
+                        case "H":    // Half Yearly
+                        {
+                            if (DiffMonths >= 6d)
+                            {
+                                NoOfQuarters = DiffMonths / 6d;
+                                Factor = 0.005d;
+                                TERM = "Q";
+                                Prd = 2;
+                                CompCalculation(Factor, NoOfQuarters, TERM, Prd);
+                                GetMaturityvalueRet = PrincipalAmount;
+                            }
+                            else
+                            {
+                                // GetMaturityvalue = "Error  ! Period does not satisfy one Halfyear"
+                                PrincipalAmount = PrincipalAmount + PrincipalAmount * DblDays * NewROI / 36500d;
+                                GetMaturityvalueRet = Math.Round(PrincipalAmount);
+                            }
+
+                            break;
+                        }
+                        case "Y":    // Yearly
+                        {
+                            if (DiffMonths >= 12d)
+                            {
+                                NoOfQuarters = DiffMonths / 12d;
+                                Factor = 0.01d;
+                                TERM = "YYYY";
+                                Prd = 1;
+                                CompCalculation(Factor, NoOfQuarters, TERM, Prd);
+                                GetMaturityvalueRet = PrincipalAmount;
+                            }
+                            else
+                            {
+                                // GetMaturityvalue = "Error  ! Period does not satisfy one Year"
+                                PrincipalAmount = PrincipalAmount + PrincipalAmount * DblDays * NewROI / 36500d;
+                                GetMaturityvalueRet = Math.Round(PrincipalAmount);
+                            }
+
+                            break;
+                        }
+                    }
+                }
+
+                return GetMaturityvalueRet;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
+        }
+
+        #endregion
+
+        #region Private Methods
+
+        private string GetFinancialYear(string AppDate)
+        {
+            var sDateTime = Convert.ToDateTime(AppDate); // DateTime.Now
+            return (sDateTime.Month > 3) ? sDateTime.Year.ToString() + "-" + Convert.ToString(sDateTime.Year + 1)
+                : Convert.ToString(sDateTime.Year - 1) + "-" + sDateTime.Year.ToString();
+        }
+
+        private async Task<double> GetLimitAmount(string pstrBrCode, string pstrmodid, string pstrGlcode, string pstrAccno, DateTime TranDate)
+        {
+            double GetLimitAmountRet = default;
+            DataTable objDr;
+            double dbllimitamt = 0d;
+            double dbltodlimitamt = 0d;
+            string strSql;
+
+            try
+            {
+                strSql = " select Sum(nvl(LINKEDAMOUNT,0)) AMOUNT from GENLIMITLNK where LINKEDACCNO='" + pstrAccno + "' and LINKEDGLCODE='" + pstrGlcode +
+                    "' AND BRANCHCODE='" + pstrBrCode + "' AND CURRENCYCODE='INR' AND LINKEDMODULEID='" + pstrmodid + "'   and closedate is null and status='R' ";
+
+                objDr = await _databaseFactory.ProcessQueryAsync(strSql);
+
+                if (objDr.Rows.Count > 0)
+                {
+                    dbllimitamt = Convert.IsDBNull(objDr.Rows[0]["AMOUNT"]) ? 0 : Convert.ToDouble(objDr.Rows[0]["AMOUNT"]);
+                }
+
+                strSql = "SELECT NVL(TODLIMITAMT,0) TODLIMITAMT FROM genlimitlnk WHERE LINKEDACCNO = '" + pstrAccno + "' AND LINKEDGLCODE='" + pstrGlcode +
+                    "' AND  LINKEDMODULEID='" + pstrmodid + "' AND BRANCHCODE= '" + pstrBrCode + "' AND CURRENCYCODE='INR' AND TODEXPDATE >= '" +
+                    string.Format("dd-MMM-yyyy", TranDate) + "' AND TODEXPDATE IS NOT NULL ";
+
+                objDr = await _databaseFactory.ProcessQueryAsync(strSql);
+
+                if (objDr.Rows.Count > 0)
+                {
+                    dbltodlimitamt = Convert.IsDBNull(objDr.Rows[0]["TODLIMITAMT"]) ? 0 : Convert.ToDouble(objDr.Rows[0]["TODLIMITAMT"]);
+                }
+
+                GetLimitAmountRet = dbllimitamt + dbltodlimitamt;
+            }
+            catch (Exception ex)
+            {
+
+            }
+            return GetLimitAmountRet;
+        }
+
+        private async Task<string> GetPanYNDtls(string strcustid, string strtds, string pstrPAN206AAYN = "", string pstrPAN206ABYN = "")
+        {
+            string strSql;
+            string GetPanYNDtlsRet = string.Empty;
+            DataTable recnfts;
+
+            string strPANYN = "";
+            string strPAN206AAYN = "", strPAN206ABYN = "";
+
+            strSql = "SELECT PAN206AAYN,PAN206ABYN FROM gencustinfomst WHERE  CUSTOMERID = '" + strcustid + "'";
+
+            recnfts = await _databaseFactory.ProcessQueryAsync(strSql);
+
+            if (recnfts.Rows.Count > 0)
+            {
+                strPAN206AAYN = Convert.ToString(recnfts.Rows[0]["PAN206AAYN"]) ?? string.Empty;
+                strPAN206ABYN = Convert.ToString(recnfts.Rows[0]["PAN206ABYN"]) ?? string.Empty;
+            }
+
+            recnfts = null!;
+
+            pstrPAN206AAYN = strPAN206AAYN;
+            pstrPAN206ABYN = strPAN206ABYN;
+
+            if (strtds == "TDS")
+            {
+                strSql = "SELECT panno FROM gencustinfomst WHERE KYCID=2 and  CUSTOMERID = '" + strcustid + "'";
+
+                recnfts = await _databaseFactory.ProcessQueryAsync(strSql);
+
+                if (recnfts.Rows.Count > 0)
+                {
+                    string panno = Convert.ToString(recnfts.Rows[0]["panno"]) ?? string.Empty;
+
+                    if (Convert.IsDBNull(recnfts.Rows[0]["panno"]))
+                    {
+                        strPANYN = "N"; // ' 20%
+                    }
+                    else if (panno.Length != 10)
+                    {
+                        strPANYN = "N";   // ' 20%
+                    }
+                    // ' pan no is there
+                    else if (strPAN206AAYN == "Y" & strPAN206ABYN == "Y")
+                    {
+                        strPANYN = "N";   // ' 20%
+                    }
+                    else if (strPAN206AAYN == "Y" & strPAN206ABYN == "N")
+                    {
+                        strPANYN = "Y";   // ' 10%
+                    }
+                    else if (strPAN206AAYN == "N" & strPAN206ABYN == "Y")
+                    {
+                        strPANYN = "N";   // ' 20%
+                    }
+                    else if (strPAN206AAYN == "N" & strPAN206ABYN == "N")
+                    {
+                        strPANYN = "N";   // ' 20%
+                    }
+                }
+                else
+                {
+                    strPANYN = "N";
+                }
+            }
+            else if (strtds == "Form 15H" | strtds == "Form 15G")
+            {
+                strSql = "SELECT panno FROM gencustinfomst WHERE KYCID=2 and  CUSTOMERID = '" + strcustid + "'";
+
+                recnfts = await _databaseFactory.ProcessQueryAsync(strSql);
+
+                if (recnfts.Rows.Count > 0)
+                {
+                    string panno = Convert.ToString(recnfts.Rows[0]["panno"]) ?? string.Empty;
+                    if (Convert.IsDBNull(recnfts.Rows[0]["panno"]))
+                    {
+                        strPANYN = "N"; // ' 20%
+                    }
+                    else if (panno.Length != 10)
+                    {
+                        strPANYN = "N";   // ' 20%
+                    }
+                    // ' pan no is there
+                    else if (strPAN206AAYN == "Y" & strPAN206ABYN == "Y")
+                    {
+                        strPANYN = "N";   // ' 20%
+                    }
+                    else if (strPAN206AAYN == "Y" & strPAN206ABYN == "N")
+                    {
+                        strPANYN = "";   // ' 
+                    }
+                    else if (strPAN206AAYN == "N" & strPAN206ABYN == "Y")
+                    {
+                        strPANYN = "N";   // ' 20%
+                    }
+                    else if (strPAN206AAYN == "N" & strPAN206ABYN == "N")
+                    {
+                        strPANYN = "N";   // ' 20%
+                    }
+                }
+                else
+                {
+                    strPANYN = "N";
+                }
+            }
+            GetPanYNDtlsRet = strPANYN;
+            return GetPanYNDtlsRet;
+        }
+
+        private void CompCalculation(double Fact, double Quarters, string TERM, int Prd)
+        {
+            // Full period calculation
+            dblNoOfDaysPerYear = 36500;
+            var loopTo = (int)Math.Round(Quarters);
+            for (int intcount = 1; intcount <= loopTo; intcount++)
+            {
+                if (TERM.Equals("M"))
+                    BreakDate = Convert.ToString(Convert.ToDateTime(BreakDate).AddMonths(Prd));
+                if (TERM.Equals("D"))
+                    BreakDate = Convert.ToString(Convert.ToDateTime(BreakDate).AddDays(Prd));
+                if (TERM.Contains("Y"))
+                    BreakDate = Convert.ToString(Convert.ToDateTime(BreakDate).AddYears(Prd));
+                Intamt = PrincipalAmount * NewROI * Fact;
+                PrincipalAmount = PrincipalAmount + Convert.ToDouble(Intamt);
+            }
+
+            // Remaining Months calculation
+            double Count = 0d;
+            DateTill = BreakDate;
+            for (int i = 1; i <= 1000d; i++)
+            {
+                DateTill = Convert.ToString(Convert.ToDateTime(DateTill).AddMonths(1));
+                if (Convert.ToDateTime(DateTill) > Convert.ToDateTime(Tilldate))
+                {
+                    break;
+                }
+                Count = Count + 1;
+            }
+            InMonths = Count;
+            BreakDate = Convert.ToString(Convert.ToDateTime(BreakDate).AddMonths(Convert.ToInt32(InMonths)));
+
+            // Convert.ToDouble(Operators.AddObject(PrincipalAmount, Operators.DivideObject(Operators.MultiplyObject(Operators.MultiplyObject(PrincipalAmount, Operators.DivideObject(InMonths, 12)), NewROI), 100)));
+            PrincipalAmount = PrincipalAmount + (PrincipalAmount * (InMonths / 12.0) * NewROI / 100.0);
+
+            // Remaining Days calculation
+            RemainingDays = BankingExtensions.DateDifference("D", BreakDate, Tilldate);
+            if (RemainingDays > 0) // (Convert.ToBoolean(Operators.ConditionalCompareObjectGreater(RemainingDays, 0, false)))
+            {
+                Intamt = PrincipalAmount * NewROI * Convert.ToDouble(RemainingDays) / Convert.ToDouble(dblNoOfDaysPerYear);
+                PrincipalAmount = PrincipalAmount + Convert.ToDouble(Intamt);
+            }
+        }
+
+        private int GetMonthsDiff(DateTime i_FromDt, DateTime i_ToDt)
+        {
+            int GetMonthsDiffRet = default;
+            // Dim objCon As New OracleClient.OracleConnection
+            // Dim objCmd As New OracleClient.OracleCommand
+            // Dim dbCon As New DatabaseConnection.cDBConnection
+            // Dim errmsg, strSql As String
+            // Dim dr_Gen As OracleClient.OracleDataReader
+
+
+            // If objCon.State <> ConnectionState.Open Then
+            // errmsg = ""
+            // objCon = dbCon.GetDbConnection(errmsg)
+            // If errmsg <> "" Then
+            // Throw New Exception(errmsg)
+            // Exit Function
+            // End If
+            // End If
+
+            // If i_FromDt > i_ToDt Then
+            // Throw New Exception("To Date Should be greater than From Date to get Months Difference")
+            // End If
+
+            // strSql = "Select floor(months_between('" & _
+            // Format(i_ToDt, "dd-MMM-yyyy") & "', '" & Format(i_FromDt, "dd-MMM-yyyy") _
+            // & "')) mon from dual"
+
+
+            // objCmd = New OracleClient.OracleCommand(strSql, objCon)
+
+            // dr_Gen = objCmd.ExecuteReader
+            // objCmd.Dispose()
+            // objCmd = Nothing
+
+            // If dr_Gen.HasRows = True Then
+            // dr_Gen.Read()
+            // GetMonthsDiff = IIf(IsDBNull(dr_Gen!mon), "", dr_Gen!mon)
+            // Else
+            // Throw New Exception("Unable to Get Months Difference between given Dates")
+            // End If
+            // dr_Gen.Close()
+            // dr_Gen = Nothing
+            GetMonthsDiffRet = 0;
+            GetMonthsDiffRet = (int)Math.Round(Math.Floor((decimal)BankingExtensions.DateDifference("", i_FromDt, i_ToDt)));
+            return GetMonthsDiffRet;
+
+        }
+
+        private async Task<double> getRDMaturityValue(DateTime MaturityDate, DateTime IntEffectiveDate, double InstalmentAmt, float ROI)
+        {
+            double getRDMaturityValueRet = default;
+            int NoOfQuarters;
+            double FirstQuarterAmt;
+            int RemainingDays;
+            // If Not IsDate(MaturityDate) Or Not IsDate(IntEffectiveDate) Then
+            // MsgBox "Either Maturity date or Interest Effective Date is null." & Chr(13) & _
+            // "System cannot calculate Maturity Amount", vbInformation
+            // Exit Function
+            // End If
+            // New formula is Introduced on 18-01-2003 don't change this formula without informing to the project manager
+            // Code altered by Radhika on 29 Mar 2008
+            // Reason: Date difference in Months not giving correct value
+            // NoOfQuarters = Fix(DateDiff("M", IntEffectiveDate, MaturityDate) / 3)
+
+            /// THIS CODE ADDED BY VINOD FOR RECURRING DEPOSIT CALCULATION
+
+            // Dim strCompoundType As String
+            var intPer = default(int);
+            // Dim intDivPer As Integer
+            string strSql;
+            DataTable dr_Gen;
+
+            strSql = "SELECT NVL(INTCOMPOUNDYN,'N') COMYN FROM DEPTYPEMST WHERE INSTSYN='Y'";
+
+            dr_Gen = await _databaseFactory.ProcessQueryAsync(strSql);
+
+            if (dr_Gen.Rows.Count > 0)
+            {
+                strCompoundType = Convert.IsDBNull(dr_Gen.Rows[0]["COMYN"]) ? "" : Convert.ToString(dr_Gen.Rows[0]["COMYN"]) ?? string.Empty;
+            }
+            else
+            {
+                throw new Exception("Unable to Get Compound Yes or No.");
+            }
+
+            dr_Gen = null!;
+
+            // If rsTmp.RecordCount = 0 Then
+            // Err.Raise(999, , "Unable to Get Compound Yes or No.")
+            // End If
+
+            if (strCompoundType == "M")
+            {
+                intPer = 1;
+                intDivPer = 1200;
+            }
+            else if (strCompoundType == "Q")
+            {
+                intPer = 3;
+                intDivPer = 400;
+            }
+            else if (strCompoundType == "H")
+            {
+                intPer = 6;
+                intDivPer = 200;
+            }
+            else if (strCompoundType == "Y")
+            {
+                intPer = 12;
+                intDivPer = 100;
+            }
+
+            /// THIS CODE ADDED BY VINOD FOR RECURRING DEPOSIT CALCULATION CODE ENDED HERE
+
+            int intMonths;
+            intMonths = GetMonthsDiff(Convert.ToDateTime(IntEffectiveDate), Convert.ToDateTime(MaturityDate));
+            NoOfQuarters = Convert.ToInt32(Math.Truncate(intMonths / (double)intPer));
+
+            // RemainingDays = (int)DateAndTime.DateDiff("D", DateAndTime.DateAdd("M", NoOfQuarters * intPer, IntEffectiveDate), MaturityDate);
+            RemainingDays = (MaturityDate - IntEffectiveDate.AddMonths(NoOfQuarters * intPer)).Days;
+            FirstQuarterAmt = InstalmentAmt * (double)(intPer + ROI / intDivPer);
+
+            if (strCompoundType == "M")
+            {
+                getRDMaturityValueRet = getRDCompundedValue(NoOfQuarters, FirstQuarterAmt, ROI);
+            }
+            else
+            {
+                getRDMaturityValueRet = RDCompoundCalculation(intMonths, strCompoundType, InstalmentAmt, ROI);
+            }
+
+            return getRDMaturityValueRet;
+
+            // If RemainingDays > 0 Then
+            // getRDMaturityValue = (getRDMaturityValue + InstalmentAmt) + ((getRDMaturityValue + InstalmentAmt) * 31 * ROI / 36500)
+            // End If
+
+            // If RemainingDays > 31 Then
+            // getRDMaturityValue = (getRDMaturityValue + InstalmentAmt) + ((getRDMaturityValue + InstalmentAmt) * (RemainingDays - 31) * ROI / 36500)
+            // End If
+
+            // After Quarter, Calculate Simple Interest and add it.
+
+
+
+            // New formula Ends here
+        }
+
+        private double getRDCompundedValue(int Quarter, double InstalmentAmt, float ROI)
+        {
+            double getRDCompundedValueRet = default, SubTotal;
+            if (Quarter <= 0)
+            {
+                getRDCompundedValueRet = 0d;
+                return getRDCompundedValueRet;
+            }
+            SubTotal = InstalmentAmt * Math.Pow((double)(1f + ROI / intDivPer), Quarter - 1) + getRDCompundedValue(Quarter - 1, InstalmentAmt, ROI);
+            getRDCompundedValueRet = SubTotal;
+            return getRDCompundedValueRet;
+        }
+
+        private double RDCompoundCalculation(int Months, string perType, double Amount, float ROI)
+        {
+            double RDCompoundCalculationRet = default;
+            double dblInstlAmt = 0d, dblInt = 0d;
+            int intInstallments = default(int), intAddInstal = 0;
+
+            if (perType == "Q")
+            {
+                intInstallments = 3;
+                intAddInstal = 3;
+            }
+            else if (perType == "H")
+            {
+                intInstallments = 6;
+                intAddInstal = 6;
+            }
+            else if (perType == "Y")
+            {
+                intInstallments = 12;
+                intAddInstal = 12;
+            }
+
+            var loopTo = (double)Months;
+            for (int i = 1; i <= loopTo; i++)
+            {
+                dblInstlAmt = dblInstlAmt + Amount;
+
+                if (i == Months & Months % intAddInstal != 0)
+                    dblInt = dblInstlAmt * (1d / 12d) * (double)ROI / 100d;
+                else
+                    dblInt = dblInt + dblInstlAmt * (1d / 12d) * (double)ROI / 100d;
+
+                if (i == intInstallments & i < Months)
+                {
+                    dblInstlAmt = dblInstlAmt + dblInt + Amount;
+                    dblInt = dblInstlAmt * (1d / 12d) * (double)ROI / 100d;
+                    intInstallments = intInstallments + intAddInstal;
+                    i = i + 1;
+                }
+            }
+
+            RDCompoundCalculationRet = dblInstlAmt + dblInt;
+            return RDCompoundCalculationRet;
+        }
+
+        #endregion
     }
 }
