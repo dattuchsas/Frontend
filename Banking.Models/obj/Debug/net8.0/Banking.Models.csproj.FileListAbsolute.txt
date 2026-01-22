@@ -21,3 +21,15 @@ K:\Banking\Github\Banking.Frontend\Frontend\Banking.Models\obj\Debug\net8.0\Bank
 K:\Banking\Github\Banking.Frontend\Frontend\Banking.Models\obj\Debug\net8.0\refint\Banking.Models.dll
 K:\Banking\Github\Banking.Frontend\Frontend\Banking.Models\obj\Debug\net8.0\Banking.Models.pdb
 K:\Banking\Github\Banking.Frontend\Frontend\Banking.Models\obj\Debug\net8.0\ref\Banking.Models.dll
+D:\Banking\Frontend\Banking.Models\bin\Debug\net8.0\Banking.Models.deps.json
+D:\Banking\Frontend\Banking.Models\bin\Debug\net8.0\Banking.Models.dll
+D:\Banking\Frontend\Banking.Models\bin\Debug\net8.0\Banking.Models.pdb
+D:\Banking\Frontend\Banking.Models\obj\Debug\net8.0\Banking.Models.GeneratedMSBuildEditorConfig.editorconfig
+D:\Banking\Frontend\Banking.Models\obj\Debug\net8.0\Banking.Models.AssemblyInfoInputs.cache
+D:\Banking\Frontend\Banking.Models\obj\Debug\net8.0\Banking.Models.AssemblyInfo.cs
+D:\Banking\Frontend\Banking.Models\obj\Debug\net8.0\Banking.Models.csproj.CoreCompileInputs.cache
+D:\Banking\Frontend\Banking.Models\obj\Debug\net8.0\Banking.Models.sourcelink.json
+D:\Banking\Frontend\Banking.Models\obj\Debug\net8.0\Banking.Models.dll
+D:\Banking\Frontend\Banking.Models\obj\Debug\net8.0\refint\Banking.Models.dll
+D:\Banking\Frontend\Banking.Models\obj\Debug\net8.0\Banking.Models.pdb
+D:\Banking\Frontend\Banking.Models\obj\Debug\net8.0\ref\Banking.Models.dll

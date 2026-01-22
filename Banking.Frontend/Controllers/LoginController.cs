@@ -141,9 +141,10 @@ namespace Banking.Frontend.Controllers
 
                 return RedirectToAction(nameof(Index), "Login");
             }
-            catch
+            catch (Exception ex)
             {
-                return View();
+                loginModel.ErrorMessage = ex.Message;
+                return View(loginModel);
             }
         }
 
@@ -156,6 +157,8 @@ namespace Banking.Frontend.Controllers
             try
             {
                 RedirectModel commDict = await _loginService.Logout(HttpContext.Session);
+
+                HttpContext.Session.Clear();
 
                 return RedirectToAction(nameof(commDict.ActionName), commDict.ControllerName);
             }

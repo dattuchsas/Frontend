@@ -3,6 +3,17 @@
     Layout = "~/Views/Shared/_LoginLayout.cshtml";
 }
 
+@if (!string.IsNullOrWhiteSpace(Model.ErrorMessage))
+{
+	<script>
+		$(document).ready(function () {
+			var errorMessage = "@Html.Raw(System.Web.HttpUtility.HtmlEncode(Model.ErrorMessage))";
+			$('#errorMessageText').text(errorMessage);
+			$('#errorModal').modal('show');
+		});
+	</script>
+}
+
 <div class="col-md-9">
 	<div class="row px-2">
 		<div class="p-5 rounded"></div>
