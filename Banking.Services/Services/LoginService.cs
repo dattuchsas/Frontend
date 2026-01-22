@@ -310,14 +310,15 @@ namespace Banking.Services
                     GetEODProgressRet = "906";
 
                 BankingExtensions.ReleaseMemory(reader);
+
+                return GetEODProgressRet;
             }
             catch (Exception ex)
             {
                 GetEODProgressRet = "906";
                 BankingExtensions.ReleaseMemory(reader);
+                throw new Exception(ex.Message);
             }
-
-            return GetEODProgressRet;
         }
 
         public async Task<RedirectModel> LoginCheckProcess(ISession session, string userId, string firstPass, string secPass, 
