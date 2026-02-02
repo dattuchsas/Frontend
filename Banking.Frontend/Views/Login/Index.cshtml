@@ -1,89 +1,86 @@
 ﻿@model Banking.Models.LoginModel;
 @{
-    Layout = "~/Views/Shared/_LoginLayout.cshtml";
+    Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
 @if (!string.IsNullOrWhiteSpace(Model.ErrorMessage))
 {
-	<script>
-		$(document).ready(function () {
-			var errorMessage = "@Html.Raw(System.Web.HttpUtility.HtmlEncode(Model.ErrorMessage))";
-			$('#errorMessageText').text(errorMessage);
-			$('#errorModal').modal('show');
-		});
-	</script>
+    <script>
+        $(document).ready(function () {
+            var errorMessage = "@Html.Raw(System.Web.HttpUtility.HtmlEncode(Model.ErrorMessage))";
+            $('#errorMessageText').text(errorMessage);
+            $('#errorModal').modal('show');
+        });
+    </script>
 }
-
-<div class="col-md-9">
-	<div class="row px-2">
-		<div class="p-5 rounded"></div>
-	</div>
-</div>
-<div class="col-md-3">
-	<div class="row px-2">
-		<div class="login-card">
-			<div class="login-header">
-				<h1>Sign In</h1>
-				<p>Access your account securely</p>
-			</div>
-			<form class="login-form" id="loginForm" novalidate asp-area="" asp-controller="Login" asp-action="Index" asp-antiforgery="true">
-				<div class="form-group">
-					<label for="username">Username</label>
-					<input asp-for="Username" type="text" id="username" name="username" required autocomplete="username">
-					<span class="error-message" id="usernameError"></span>
-				</div>
-				<div class="form-group">
-					<label for="password">Password 1</label>
-					<div class="password-wrapper">
-						<input asp-for="Password1" type="password" id="password1" name="password1" required autocomplete="current-password">
-					</div>
-					<span class="error-message" id="password1Error"></span>
-				</div>
-				<div class="form-group">
-					<label for="password">Password 2</label>
-					<div class="password-wrapper">
-						<input asp-for="Password2" type="password" id="password2" name="password2" required autocomplete="current-password">
-					</div>
-					<span class="error-message" id="password2Error"></span>
-				</div>
-				<div class="form-options">
-					<a href="#" class="forgot-link">Alter password</a>
-					<a href="#" class="forgot-link">Cancel</a>
-					<a href="#" class="forgot-link">Exit</a>
-				</div>
-				<button type="submit" class="login-btn">
-					<span class="btn-text">Sign In</span>
-					<div class="btn-loader">
-						<div class="spinner"></div>
-					</div>
-				</button>
-			</form>
-			<div class="text-center">
-				<span class="error-message" id="passwordMismatch">Passwords not matched..</span>
-			</div>
-		</div>
-	</div>
+<div class="row p-4">
+    <div class="col-md-9">
+        <div class="row px-2">
+            <div class="p-5 rounded"></div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="row px-2">
+            <div class="login-card">
+                <div class="login-header">
+                    <h1>Sign In</h1>
+                    <p>Access your account securely</p>
+                </div>
+                <form class="login-form" id="loginForm" novalidate asp-area="" asp-controller="Login" asp-action="Index" asp-antiforgery="true">
+                    <div class="form-group">
+                        <label for="username">Username</label>
+                        <input asp-for="Username" type="text" id="username" name="username" required autocomplete="username">
+                        <span class="error-message" id="usernameError"></span>
+                    </div>
+                    <div class="form-group">
+                        <label for="password">Password 1</label>
+                        <div class="password-wrapper">
+                            <input asp-for="Password1" type="password" id="password1" name="password1" required autocomplete="current-password">
+                        </div>
+                        <span class="error-message" id="password1Error"></span>
+                    </div>
+                    <div class="form-group">
+                        <label for="password">Password 2</label>
+                        <div class="password-wrapper">
+                            <input asp-for="Password2" type="password" id="password2" name="password2" required autocomplete="current-password">
+                        </div>
+                        <span class="error-message" id="password2Error"></span>
+                    </div>
+                    <div class="form-options">
+                        <a href="#" class="forgot-link">Alter password</a>
+                        <a href="#" class="forgot-link">Cancel</a>
+                        <a href="#" class="forgot-link">Exit</a>
+                    </div>
+                    <button type="submit" class="login-btn">
+                        <span class="btn-text">Sign In</span>
+                        <div class="btn-loader">
+                            <div class="spinner"></div>
+                        </div>
+                    </button>
+                </form>
+                <div class="text-center">
+                    <span class="error-message" id="passwordMismatch">Passwords not matched..</span>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 
 <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-	<div class="modal-dialog">
-		<div class="modal-content">
-			<div class="modal-header">
-				<h1 class="modal-title fs-5" id="exampleModalLabel">Message</h1>
-				<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-			</div>
-			<div class="modal-body">
-				@Model.ErrorMessage
-			</div>
-			<div class="modal-footer">
-				<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-			</div>
-		</div>
-	</div>
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h1 class="modal-title fs-5" id="exampleModalLabel">Message</h1>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                @Model.ErrorMessage
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
 </div>
 
-@section Scripts {
-	@{
-		await Html.RenderPartialAsync("_ValidationScriptsPartial");
-	}
-}
+<script asp-append-version="true" src="~/js/login.js"></script>

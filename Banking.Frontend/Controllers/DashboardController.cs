@@ -3,7 +3,6 @@ using Banking.Interfaces;
 using Banking.Models;
 using Banking.Services;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging.Abstractions;
 using System.Data;
 
 namespace Banking.Frontend.Controllers
@@ -15,20 +14,19 @@ namespace Banking.Frontend.Controllers
 
         private ISession session => HttpContext.Session;
 
-        public DashboardController(ILogger<DashboardController> logger, IConfiguration configuration) : base(configuration)
+        public DashboardController(ILogger<DashboardController> logger, IConfiguration configuration,
+            IHttpContextAccessor httpContextAccessor) : base(configuration, httpContextAccessor)
         {
             _dashboardService = new DashboardService(_options);
             _logger = logger;
         }
 
-        public async Task<IActionResult> Index()
+        public IActionResult Index()
         {
             string appdate = "";
             var model = new DashboardModel();
 
-            //var queryString = Convert.ToString(TempData["QueryString"]);
-
-            var queryString = "record=SB:F|CA:F|DEP:F|LOAN:F|CC:F|BILLS:F|REM:F|CASH:F|CLG:F|LOCKER:F|GL:F|CUSTOMER:F|ADMIN:F|SHARES:F|HO:F|INV:F|ATM:F|PAYROLL:F|$";
+            var queryString = HttpContext.Session.GetString(SessionConstants.QueryString);
 
             if (string.IsNullOrWhiteSpace(queryString) || queryString.Equals("record=$"))
             {
@@ -47,16 +45,13 @@ namespace Banking.Frontend.Controllers
 
                 string[] modules = queryString.Split('|', StringSplitOptions.RemoveEmptyEntries);
 
-                if (session.GetString("applicationdate") != null)
+                if (session.GetString(SessionConstants.ApplicationDate) != null)
                 {
-                    DateTime dt = Convert.ToDateTime(session.GetString("applicationdate"));
+                    DateTime dt = Convert.ToDateTime(session.GetString(SessionConstants.ApplicationDate));
                     appdate = dt.ToShortDateString();
                 }
 
-                // Welcome, session.GetString("userid") & " - " & session.GetString("userName")
-                // AppDate
-
-                string[] moduleNames = Convert.ToString(session.GetString("modnar") ?? string.Empty).Split("$", StringSplitOptions.RemoveEmptyEntries);
+                string[] moduleNames = Conversions.ToString(session.GetString(SessionConstants.ModNar)).Split("$", StringSplitOptions.RemoveEmptyEntries);
 
                 moduleNames = moduleNames[0].Split(',', StringSplitOptions.RemoveEmptyEntries);
 
@@ -68,40 +63,13 @@ namespace Banking.Frontend.Controllers
                         break;
 
                     string[] moduleShortName = modules[i].Split(":");
-                    string form = moduleShortName[0].ToLower();
 
                     if (moduleShortName[1].Equals("F"))
                     {
-                        string modid = string.Empty;
-                        string moddir = string.Empty;
-
-                        recmod = await _dashboardService.ProcessSingleRecordRequest(TableNames.GenModuleMaster, 
-                            "moduleid,moduledir", "moduleid='" + moduleShortName[0].Trim() + "'");
+                        string form = moduleShortName[0] + "~" + (BankingExtensions.GetModuleRoute.ContainsKey(moduleShortName[0]) ? 
+                            BankingExtensions.GetModuleRoute[moduleShortName[0]] : string.Empty);
 
                         strMod = string.Concat(strMod, moduleShortName[0], "|");
-
-                        if (recmod.Rows.Count != 0)
-                        {
-                            modid = Convert.ToString(recmod.Rows[0].ItemArray[0]) ?? string.Empty;
-                            moddir = Convert.ToString(recmod.Rows[0].ItemArray[1]) ?? string.Empty;
-                            session.SetString("moddir", moddir);
-                        }
-                        else
-                        {
-                            recmod = await _dashboardService.ProcessSingleRecordRequest(TableNames.GenModuleMaster,
-                            "parentmoduleid", "parentmoduleid='" + moduleShortName[0].Trim() + "'");
-
-                            if (recmod.Rows.Count != 0)
-                            {
-                                modid = Convert.ToString(recmod.Rows[0].ItemArray[0]) ?? string.Empty;
-                                moddir = Convert.ToString(recmod.Rows[0].ItemArray[0]) ?? string.Empty;
-                                session.SetString("moddir", moddir);
-                            }
-                        }
-
-                        strMod = strMod + moduleShortName[0] + "|";
-
-                        // flname = "commonmodule.aspx?record=" + modid + "~" + moddir;
 
                         model.AssignedModules.Add(form, moduleNames[i]);
                     }
@@ -110,202 +78,202 @@ namespace Banking.Frontend.Controllers
                 BankingExtensions.ReleaseMemory(recmod);
 
                 session.SetString("DayBeginMod", strMod);
-
-                string vmod = string.Empty, strSql;
-                string[] vmodx = queryString.Split("~", StringSplitOptions.RemoveEmptyEntries);
-
-                if ((vmodx.Length - 1) > 0)
-                {
-                    vmod = vmodx[0];
-                    session.SetString("moddir", vmodx[1]);
-                }
-
-                string usrid = session.GetString("userid") ?? string.Empty;
-
-                string serverId = session.GetString("serverid") ?? string.Empty;
-
-                DataTable recdtls = await _dashboardService.ProcessSingleRecordRequest(TableNames.ServerVirtualDirDtls, 
-                    "machinename,virtualdir", "upper(trim(machinename))='" + serverId + "'");
-
-                string mainstr = string.Empty;
-
-                if (recdtls.Rows.Count > 0)
-                {
-                    string item0 = Convert.ToString(recdtls.Rows[0].ItemArray[0]) ?? string.Empty;
-                    string item1 = Convert.ToString(recdtls.Rows[0].ItemArray[1]) ?? string.Empty;
-
-                    mainstr = string.Concat(item0, "/", item1, "/", "~");
-
-                    session.SetString("moduledir", item0 + "/" + item1);
-
-                    if (usrid == "")
-                    {
-                        Redirect("http://" + item0 + "/" + item1.Trim() + "/useridscreen.aspx?record=" + "Your session is timeout. Please login again..");
-                    }
-                }
-
-                string strHOTrALWBrCode = await _dashboardService.GetHOTRALWBrCode();
-
-                if (vmod.Equals("PAYROLL"))
-                {
-                    strSql = "SELECT USERID FROM GENUSERMST WHERE BRANCHCODE = '" + strHOTrALWBrCode + "' AND GROUPID = 'ADMIN' AND USERID = '" + usrid + "'";
-
-                    DataTable rsAuto = await _dashboardService.GetUserId(strSql);
-
-                    if (rsAuto.Rows.Count == 0)
-                    {
-                        var d = recdtls.Rows[0].ItemArray[0];
-                        var d1 = recdtls.Rows[0].ItemArray[1];
-                        // Response.Redirect("http://" + d + "/" + d1 + "/modulescr.aspx?record10=" + "Not Allowed To Open This Payroll Module Contact Head Office");
-                    }
-
-                    BankingExtensions.ReleaseMemory(rsAuto);
-                }
-
-                session.SetString("module", vmod.Trim());
-                //	session("servername")=Request.ServerVariables("SERVER_NAME")
-
-                string valStr = ",";
-
-                if (session.GetString("applicationdate") != null)
-                {
-                    DateTime dt = Convert.ToDateTime(session.GetString("applicationdate"));
-                    appdate = dt.ToShortDateString();
-                }
-
-                valStr = valStr.Substring(1);
-                string brcode = session.GetString("branchcode") ?? string.Empty;
-                appdate = session.GetString("applicationdate") ?? string.Empty;
-
-                DataTable recdaybeg = null!;
-                string daybeg = string.Empty;
-                string daybegin1 = session.GetString("daybegin1") ?? string.Empty;
-                if (daybegin1.Equals("over"))
-                {
-                    recdaybeg = await _dashboardService.ProcessSingleRecordRequest(TableNames.GenApplicationDateMaster, 
-                        "daybeginstatus,dayendstatus,PREDAYENDCHKYN",
-                        "applicationdate='" + appdate + "' and branchcode='" + brcode + "'");
-
-                    if (recdaybeg.Rows.Count > 0)
-                    {
-                        string val = Convert.ToString(recdaybeg.Rows[0].ItemArray[0]) ?? string.Empty;
-                        string val1 = Convert.ToString(recdaybeg.Rows[0].ItemArray[1]) ?? string.Empty;
-                        string val2 = Convert.ToString(recdaybeg.Rows[0].ItemArray[2]) ?? string.Empty;
-                        if (val == "O" && val1 == "N" && val2 == "N")
-                            daybeg = "Yes";
-                    }
-                }
-
-                daybeg = "No";
-                recdtls = null!;
-
-                string gcode = session.GetString("groupcode") ?? string.Empty;
-
-                if (daybeg.Equals("Yes"))
-                {
-                    recdtls = await _dashboardService.ProcessSingleRecordRequest("genmoduleidformsmst a",
-                        "distinct a.menutitle,a.narration,a.forms,a.gendir,a.mainmenu,a.menuorder,a.FORMSORDER",
-                        "(a.formsid in( select formsid from gengroupformsmst where groupcode='" +
-                        gcode + "' and a.moduleid='" + vmod.Trim() + "' and status='R') or " +
-                        "a.formsid in( select formsid from genuseridformsmst where " +
-                        " userid='" + session.GetString("userid") + "' AND " +
-                        " a.moduleid='" + vmod.Trim() + "' and status='R' and addoreliminate='A'))" +
-                        " and a.formsid not in( select formsid from genuseridformsmst where " +
-                        " moduleid='" + vmod.Trim() + "' and status='R' and addoreliminate='E'" +
-                        " and userid='" + session.GetString("userid") + "')" +
-                        "order by a.menuorder,a.FORMSORDER ");
-                }
-                else
-                {
-                    recdtls = await _dashboardService.ProcessSingleRecordRequest("genmoduleidformsmst a",
-                        "distinct a.menutitle,a.narration,a.forms,a.gendir,a.mainmenu,a.menuorder,a.FORMSORDER",
-                        "(a.formsid in( select formsid from gengroupformsmst where groupcode='" +
-                        gcode + "' and a.moduleid='" + vmod.Trim() + "' and status='R') or " +
-                        "a.formsid in( select formsid from genuseridformsmst where " +
-                        " userid='" + session.GetString("userid") + "' AND " +
-                        " a.moduleid='" + vmod.Trim() + "' and status='R' and addoreliminate='A'))" +
-                        " and a.formsid not in (select formsid from genuseridformsmst where " +
-                        " moduleid='" + vmod.Trim() + "' and status='R' and addoreliminate='E'" +
-                        " and userid='" + session.GetString("userid") + "') " +
-                        " and a.formstatus ='A' order by a.menuorder,a.FORMSORDER ");
-                }
-
-                recmod = await _dashboardService.ProcessSingleRecordRequest(TableNames.GenModuleMaster, 
-                    "moduledir,narration", "moduleid='" + vmod.Trim() + "'");
-
-                if (recmod.Rows.Count > 0)
-                    session.SetString("modulenarration", Convert.ToString(recmod.Rows[0].ItemArray[1]) ?? string.Empty);
-
-                string chkstr = string.Empty;
-
-                if (recdtls.Rows.Count > 0)
-                {
-                    chkstr = Convert.ToString(recdtls.Rows[0].ItemArray[0]) ?? string.Empty;
-                    mainstr = chkstr;
-                }
-
-                foreach (DataRow row in recdtls.Rows)
-                {
-                }
-
-                do
-                {
-                    //			if isdbnull(recdtls(3).value)=false then
-                    //				stdir=recdtls(3).value
-                    //			else
-                    //				stdir=recmod(0).value
-                    //			end if
-                    //			if recdtls(0).value=chkstr then
-                    //				mainstr=mainstr & "," & recdtls(1).value & "*" & stdir & "/" & recdtls(2).value
-                    //			else
-                    //				chkstr=recdtls(0).value
-                    //				mainstr=mainstr & "|" & recdtls(0).value & "," & recdtls(1).value & "*" & stdir & "/" & recdtls(2).value 
-                    //			end if
-                    //			recdtls.MoveNext
-
-                } while (recdtls.Rows.Count > 0);
-
-                recdtls = null!;
-
-                recdtls = await _dashboardService.ProcessSingleRecordRequest(TableNames.ServerVirtualDirDtls, 
-                    "machinename,virtualdir", "upper(trim(machinename))='" + serverId.ToUpper() + "'");
-
-                if (recdtls.Rows.Count > 0)
-                {
-                    string val = Convert.ToString(recdtls.Rows[0].ItemArray[0]) ?? string.Empty;
-                    string val1 = Convert.ToString(recdtls.Rows[0].ItemArray[1]) ?? string.Empty;
-                    mainstr = string.Concat(val.Trim(), "/", val1.Trim(), "/", "~", mainstr, "~", vmod.Trim());
-                    session.SetString("moduledir", string.Concat(val.Trim(), "/", val1.Trim()));
-                    session.SetString("menustring", mainstr);
-                }
-
-                // This code is Cash Module Denomination Purpose YN purpose. -- ADD by ramakrishna.
-                string module = session.GetString("module") ?? string.Empty;
-
-                if (module.Equals("CASH"))
-                {
-                    DataTable rs = null!;
-                    rs = await _dashboardService.ProcessSingleRecordRequest(TableNames.GenBankBranchMaster, 
-                        "CASHDENOMINATIONSREQUIREDYN,CASHDENOMTALLYYN", "BRANCHCODE='" + brcode + "'");
-                    if (rs.Rows.Count > 0)
-                    {
-                        session.SetString("cashdenomyn", Convert.ToString(rs.Rows[0].ItemArray[0]) ?? string.Empty);
-                        session.SetString("cashdenomtallyyn", Convert.ToString(rs.Rows[0].ItemArray[1]) ?? string.Empty);
-                    }
-                    BankingExtensions.ReleaseMemory(rs);
-                }
-
-                DataTable rsclg = null!;
-
-                rsclg = await _dashboardService.ProcessSingleRecordRequest(TableNames.GenBankBranchMaster, "CLGRETCHGSAUTOPOSTYN", "BRANCHCODE='" + brcode + "'");
-
-                if (rsclg.Rows.Count > 0)
-                    session.SetString("clgretchgsautoyn", Convert.ToString(rsclg.Rows[0].ItemArray[0]) ?? string.Empty);
-
-                BankingExtensions.ReleaseMemory(rsclg);
             }
 
             return View(model);
+        }
+
+        public async Task<IActionResult> SelectedModule(string moduleId = "")
+        {
+            DataTable recmod = null!;
+            string vmod = string.Empty, strQuery, appDate;
+
+            string[] vmodx = moduleId.Split("~", StringSplitOptions.RemoveEmptyEntries);
+
+            if ((vmodx.Length - 1) > 0)
+            {
+                vmod = vmodx[0];
+                session.SetString(SessionConstants.SelectedModule, vmod);
+                session.SetString("moddir", vmodx[1]);
+            }
+
+            string mainstr = string.Empty;
+            string usrid = session.GetString(SessionConstants.UserId) ?? string.Empty;
+            string serverId = session.GetString(SessionConstants.ServerId) ?? string.Empty;
+
+            DataTable recdtls = await _dashboardService.ProcessSingleRecordRequest(TableNames.ServerVirtualDirDtls,
+                "machinename,virtualdir", "upper(trim(machinename))='" + serverId.ToUpper() + "'");
+
+            if (recdtls.Rows.Count > 0)
+            {
+                string item0 = Conversions.ToString(recdtls.Rows[0].ItemArray[0]);
+                string item1 = Conversions.ToString(recdtls.Rows[0].ItemArray[1]);
+
+                mainstr = string.Concat(item0.Trim(), "/", item1.Trim(), "/", "~", mainstr.Trim());
+
+                session.SetString("moduledir", item0 + "/" + item1);
+
+                if (usrid == "")
+                {
+                    Redirect("http://" + item0 + "/" + item1.Trim() + "/useridscreen.aspx?record=" + "Your session is timeout. Please login again..");
+                }
+            }
+
+            string strHOTrALWBrCode = await _dashboardService.GetHOTRALWBrCode();
+
+            if (vmod.Equals("PAYROLL"))
+            {
+                strQuery = "SELECT USERID FROM GENUSERMST WHERE BRANCHCODE = '" + strHOTrALWBrCode + "' AND GROUPID = 'ADMIN' AND USERID = '" + usrid + "'";
+
+                DataTable rsAuto = await _dashboardService.GetUserId(strQuery);
+
+                if (rsAuto.Rows.Count == 0)
+                {
+                    var d = recdtls.Rows[0].ItemArray[0];
+                    var d1 = recdtls.Rows[0].ItemArray[1];
+                    // Response.Redirect("http://" + d + "/" + d1 + "/modulescr.aspx?record10=" + "Not Allowed To Open This Payroll Module Contact Head Office");
+                }
+
+                BankingExtensions.ReleaseMemory(rsAuto);
+            }
+
+            session.SetString("module", vmod.Trim());
+            // session("servername") = Request.ServerVariables("SERVER_NAME")
+
+            string valStr = ",";
+
+            appDate = Convert.ToDateTime(session.GetString(SessionConstants.ApplicationDate)).ToShortDateString();
+
+            valStr = valStr.Substring(1);
+            string brcode = session.GetString(SessionConstants.BranchCode) ?? string.Empty;
+
+            DataTable recdaybeg = null!;
+            string daybeg = string.Empty;
+            string daybegin1 = session.GetString(SessionConstants.DayBegin1) ?? string.Empty;
+            if (daybegin1.Equals("over"))
+            {
+                recdaybeg = await _dashboardService.ProcessSingleRecordRequest(TableNames.GenApplicationDateMaster,
+                    "daybeginstatus,dayendstatus,PREDAYENDCHKYN",
+                    "applicationdate='" + appDate + "' and branchcode='" + brcode + "'");
+
+                if (recdaybeg.Rows.Count > 0)
+                {
+                    string val = Conversions.ToString(recdaybeg.Rows[0].ItemArray[0]);
+                    string val1 = Conversions.ToString(recdaybeg.Rows[0].ItemArray[1]);
+                    string val2 = Conversions.ToString(recdaybeg.Rows[0].ItemArray[2]);
+                    if (val == "O" && val1 == "N" && val2 == "N")
+                        daybeg = "Yes";
+                }
+            }
+
+            daybeg = "No";
+            recdtls = null!;
+
+            string gcode = session.GetString(SessionConstants.GroupCode) ?? string.Empty;
+
+            if (daybeg.Equals("Yes"))
+            {
+                recdtls = await _dashboardService.ProcessSingleRecordRequest("genmoduleidformsmst a",
+                    "distinct a.menutitle,a.narration,a.forms,a.gendir,a.mainmenu,a.menuorder,a.FORMSORDER",
+                    "(a.formsid in( select formsid from gengroupformsmst where groupcode='" +
+                    gcode + "' and a.moduleid='" + vmod.Trim() + "' and status='R') or " +
+                    "a.formsid in( select formsid from genuseridformsmst where " +
+                    " userid='" + session.GetString(SessionConstants.UserId) + "' AND " +
+                    " a.moduleid='" + vmod.Trim() + "' and status='R' and addoreliminate='A'))" +
+                    " and a.formsid not in( select formsid from genuseridformsmst where " +
+                    " moduleid='" + vmod.Trim() + "' and status='R' and addoreliminate='E'" +
+                    " and userid='" + session.GetString(SessionConstants.UserId) + "')" +
+                    "order by a.menuorder,a.FORMSORDER ");
+            }
+            else
+            {
+                recdtls = await _dashboardService.ProcessSingleRecordRequest("genmoduleidformsmst a",
+                    "distinct a.menutitle,a.narration,a.forms,a.gendir,a.mainmenu,a.menuorder,a.FORMSORDER",
+                    "(a.formsid in( select formsid from gengroupformsmst where groupcode='" +
+                    gcode + "' and a.moduleid='" + vmod.Trim() + "' and status='R') or " +
+                    "a.formsid in( select formsid from genuseridformsmst where " +
+                    " userid='" + session.GetString(SessionConstants.UserId) + "' AND " +
+                    " a.moduleid='" + vmod.Trim() + "' and status='R' and addoreliminate='A'))" +
+                    " and a.formsid not in (select formsid from genuseridformsmst where " +
+                    " moduleid='" + vmod.Trim() + "' and status='R' and addoreliminate='E'" +
+                    " and userid='" + session.GetString(SessionConstants.UserId) + "') " +
+                    " and a.formstatus ='A' order by a.menuorder,a.FORMSORDER ");
+            }
+
+            recmod = await _dashboardService.ProcessSingleRecordRequest(TableNames.GenModuleMaster,
+                "moduledir,narration", "moduleid='" + vmod.Trim() + "'");
+
+            if (recmod.Rows.Count > 0)
+                session.SetString("modulenarration", Conversions.ToString(recmod.Rows[0].ItemArray[1]));
+
+            string chkstr = string.Empty;
+
+            if (recdtls.Rows.Count > 0)
+            {
+                chkstr = Conversions.ToString(recdtls.Rows[0].ItemArray[0]);
+                mainstr = chkstr;
+            }
+
+            foreach (DataRow row in recdtls.Rows)
+            {
+                string stdir = string.Empty;
+
+                if (Convert.IsDBNull(row.ItemArray[3]).Equals(false))
+                    stdir = Conversions.ToString(row.ItemArray[3]);
+                else
+                    stdir = Conversions.ToString(row.ItemArray[0]);
+
+                if (Conversions.ToString(row.ItemArray[0]) == chkstr)
+                    mainstr = mainstr + "," + Conversions.ToString(row.ItemArray[1]) + "*" + stdir + "/" +
+                        Conversions.ToString(row.ItemArray[2]);
+                else
+                {
+                    chkstr = Conversions.ToString(row.ItemArray[0]);
+                    mainstr = mainstr + "|" + Conversions.ToString(row.ItemArray[0]) + "," + Conversions.ToString(row.ItemArray[1])
+                        + "*" + stdir + "/" + Conversions.ToString(row.ItemArray[2]);
+                }
+            }
+
+            recdtls = null!;
+
+            recdtls = await _dashboardService.ProcessSingleRecordRequest(TableNames.ServerVirtualDirDtls,
+                "machinename,virtualdir", "upper(trim(machinename))='" + serverId.ToUpper() + "'");
+
+            if (recdtls.Rows.Count > 0)
+            {
+                string val = Conversions.ToString(recdtls.Rows[0].ItemArray[0]);
+                string val1 = Conversions.ToString(recdtls.Rows[0].ItemArray[1]);
+                mainstr = string.Concat(val.Trim(), "/", val1.Trim(), "/", "~", mainstr, "~", vmod.Trim());
+                session.SetString("moduledir", string.Concat(val.Trim(), "/", val1.Trim()));
+                session.SetString("menustring", mainstr);
+            }
+
+            // This code is Cash Module Denomination Purpose YN purpose. -- ADD by ramakrishna.
+            string module = session.GetString("module") ?? string.Empty;
+
+            if (module.Equals("CASH"))
+            {
+                DataTable rs = null!;
+                rs = await _dashboardService.ProcessSingleRecordRequest(TableNames.GenBankBranchMaster,
+                    "CASHDENOMINATIONSREQUIREDYN,CASHDENOMTALLYYN", "BRANCHCODE='" + brcode + "'");
+                if (rs.Rows.Count > 0)
+                {
+                    session.SetString(SessionConstants.CashDenomYN, Conversions.ToString(rs.Rows[0].ItemArray[0]));
+                    session.SetString(SessionConstants.CashDenomTallyYN, Conversions.ToString(rs.Rows[0].ItemArray[1]));
+                }
+                BankingExtensions.ReleaseMemory(rs);
+            }
+
+            DataTable rsclg = null!;
+
+            rsclg = await _dashboardService.ProcessSingleRecordRequest(TableNames.GenBankBranchMaster, "CLGRETCHGSAUTOPOSTYN", "BRANCHCODE='" + brcode + "'");
+
+            if (rsclg.Rows.Count > 0)
+                session.SetString(SessionConstants.ClgRetChgsAutoYN, Conversions.ToString(rsclg.Rows[0].ItemArray[0]));
+
+            BankingExtensions.ReleaseMemory(rsclg);
+
+            return RedirectToAction("Index", vmodx[1]);
         }
     }
 }

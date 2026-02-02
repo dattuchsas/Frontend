@@ -1,33 +1,50 @@
-﻿using Banking.Models;
+﻿using Banking.Framework;
+using Banking.Interfaces;
+using Banking.Models;
+using Banking.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 
 namespace Banking.Frontend.Controllers
 {
-    [ApplicationSecurityFilter]
+    [ApplicationSecurity]
     public class BaseController : Controller
     {
         public IOptions<DatabaseSettings> _options;
         public IConfiguration _configuration;
-        public string _bankName;
+        public List<Menu>? _userMenu;
 
-        public BaseController(IConfiguration configuration)
+        private IMenuService _menuService;
+
+        public BaseController(IConfiguration configuration, 
+            IHttpContextAccessor httpContextAccessor)
         {
             _configuration = configuration;
 
             _options = Options.Create(_configuration.GetSection("OracleSettings").Get<DatabaseSettings>() ?? new DatabaseSettings());
 
-            _bankName = _configuration.GetValue<string>("BankName") ?? string.Empty;
+            _menuService = (IMenuService)new MenuService(_options);
 
-            //var colorOptions = _configuration.GetSection("ApplicationColorSettings").Get<List<BaseModel>>() ?? new List<BaseModel>();
+            var controllerName = Conversions.ToString(httpContextAccessor.HttpContext?.Request.RouteValues["controller"]);
 
-            //var bank = colorOptions.FirstOrDefault(x => x.IPAddress.Equals(remoteHost, StringComparison.Ordinal));
+            httpContextAccessor.HttpContext!.Session.SetString(SessionConstants.ControllerName, controllerName);
 
-            //_baseModel = new BaseModel
-            //{
-            //    BankName = bank?.BankName ?? string.Empty,
-            //    IPAddress = bank?.IPAddress ?? string.Empty
-            //};
+            if (!controllerName.Equals(ControllerNames.Login) && !controllerName.Equals(ControllerNames.Dashboard))
+                _userMenu = BuildMenuOrder(httpContextAccessor).GetAwaiter().GetResult();
+        }
+
+        public async Task<List<Menu>> BuildMenuOrder(IHttpContextAccessor httpContextAccessor)
+        {
+            ISession session = httpContextAccessor.HttpContext!.Session;
+
+            string userId = Conversions.ToString(session.GetString(SessionConstants.UserId));
+            string moduleId = Conversions.ToString(session.GetString(SessionConstants.SelectedModule));
+            string groupCode = Conversions.ToString(session.GetString(SessionConstants.GroupCode));
+
+            if (string.IsNullOrWhiteSpace(userId) || string.IsNullOrWhiteSpace(moduleId) || string.IsNullOrWhiteSpace(groupCode))
+                return new List<Menu>();
+
+            return await _menuService.GetUserMenu(userId.ToUpper(), moduleId, groupCode);
         }
     }
 }

@@ -18,7 +18,7 @@
 .hd-text-maharaja {
     font-family: Calibri, sans-serif;
     color: white;
-    font-size: 22px;
+    font-size: 28px;
 }
 
 .hd-img-maharaja {
@@ -34,6 +34,7 @@
     font-size: 15px;
     align-content: center;
 }
+
 
 /*////////////////////////////////////////////////////////////////*/
 
@@ -91,45 +92,45 @@ main, container, container-fluid {
     position: relative;
 }
 
-.form-group label {
-    display: block;
-    font-size: 13px;
-    font-weight: 600;
-    color: #374151;
-    margin-bottom: 6px;
-}
+    .form-group label {
+        display: block;
+        font-size: 13px;
+        font-weight: 600;
+        color: #374151;
+        margin-bottom: 6px;
+    }
 
-.form-group input {
-    width: 100%;
-    background: #ffffff;
-    border: 1.5px solid #e2e8f0;
-    border-radius: 8px;
-    padding: 12px 14px;
-    color: #1e293b;
-    font-size: 15px;
-    font-weight: 400;
-    outline: none;
-    transition: all 0.2s ease;
-    font-family: inherit;
-}
+    .form-group input {
+        width: 100%;
+        background: #ffffff;
+        border: 1.5px solid #e2e8f0;
+        border-radius: 8px;
+        padding: 12px 14px;
+        color: #1e293b;
+        font-size: 15px;
+        font-weight: 400;
+        outline: none;
+        transition: all 0.2s ease;
+        font-family: inherit;
+    }
 
-.form-group input:focus {
-    border-color: #6366F1;
-    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
-}
+        .form-group input:focus {
+            border-color: #6366F1;
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+        }
 
-.form-group input::placeholder {
-    color: #94a3b8;
-}
+        .form-group input::placeholder {
+            color: #94a3b8;
+        }
 
 /* Password Field */
 .password-wrapper {
     position: relative;
 }
 
-.password-wrapper input {
-    padding-right: 44px;
-}
+    .password-wrapper input {
+        padding-right: 44px;
+    }
 
 .password-toggle {
     position: absolute;
@@ -148,9 +149,9 @@ main, container, container-fluid {
     justify-content: center;
 }
 
-.password-toggle:hover {
-    color: #6366F1;
-}
+    .password-toggle:hover {
+        color: #6366F1;
+    }
 
 .eye-closed {
     display: none;
@@ -184,9 +185,9 @@ main, container, container-fluid {
     font-weight: 500;
 }
 
-.checkbox-wrapper input[type="checkbox"] {
-    display: none;
-}
+    .checkbox-wrapper input[type="checkbox"] {
+        display: none;
+    }
 
 .checkmark {
     width: 16px;
@@ -230,9 +231,9 @@ main, container, container-fluid {
     transition: color 0.2s ease;
 }
 
-.forgot-link:hover {
-    color: #25b350;
-}
+    .forgot-link:hover {
+        color: #25b350;
+    }
 
 /* Login Button */
 .login-btn {
@@ -256,22 +257,22 @@ main, container, container-fluid {
     justify-content: center;
 }
 
-.login-btn:hover {
-    background: #25b350;
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
-}
+    .login-btn:hover {
+        background: #25b350;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+    }
 
-.login-btn:active {
-    transform: translateY(0);
-}
+    .login-btn:active {
+        transform: translateY(0);
+    }
 
-.login-btn:disabled {
-    background: #25b350;
-    cursor: not-allowed;
-    transform: none;
-    box-shadow: none;
-}
+    .login-btn:disabled {
+        background: #25b350;
+        cursor: not-allowed;
+        transform: none;
+        box-shadow: none;
+    }
 
 .btn-text {
     transition: opacity 0.2s ease;
@@ -293,8 +294,13 @@ main, container, container-fluid {
 }
 
 @keyframes spin {
-    from { transform: rotate(0deg); }
-    to { transform: rotate(360deg); }
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
 }
 
 .login-btn.loading .btn-text {
@@ -317,11 +323,11 @@ main, container, container-fluid {
     margin-bottom: 16px;
 }
 
-.security-notice span {
-    color: #166534;
-    font-size: 12px;
-    font-weight: 500;
-}
+    .security-notice span {
+        color: #166534;
+        font-size: 12px;
+        font-weight: 500;
+    }
 
 /* Error States */
 .error-message {
@@ -334,19 +340,19 @@ main, container, container-fluid {
     transition: all 0.2s ease;
 }
 
-.error-message.show {
-    opacity: 1;
-    transform: translateY(0);
-}
+    .error-message.show {
+        opacity: 1;
+        transform: translateY(0);
+    }
 
 .form-group.error input {
     border-color: #dc2626;
     background: #fef2f2;
 }
 
-.form-group.error input:focus {
-    box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
-}
+    .form-group.error input:focus {
+        box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
+    }
 
 /* Success Message */
 .success-message {
@@ -358,11 +364,11 @@ main, container, container-fluid {
     transition: all 0.3s ease;
 }
 
-.success-message.show {
-    display: block;
-    opacity: 1;
-    transform: translateY(0);
-}
+    .success-message.show {
+        display: block;
+        opacity: 1;
+        transform: translateY(0);
+    }
 
 .success-icon {
     margin: 0 auto 16px;
@@ -374,26 +380,34 @@ main, container, container-fluid {
     //min-height: 200px; /* Ensure container has enough height to show image */
 }
 
-.watermark-container::after {
-    content: "";
-    background-image: url('../images/banklogo.jpg'); /* Your image URL */
-    background-repeat: no-repeat;
-    background-position: center; /* Center the image */
-    background-size: 50%; /* Adjust size as needed */
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    opacity: 0.2; /* Adjust opacity */
-    pointer-events: none;
-    z-index: 0;
-}
+    .watermark-container::after {
+        content: "";
+        background-image: url('../images/banklogo.jpg'); /* Your image URL */
+        background-repeat: no-repeat;
+        background-position: center; /* Center the image */
+        background-size: 50%; /* Adjust size as needed */
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        opacity: 0.2; /* Adjust opacity */
+        pointer-events: none;
+        z-index: 0;
+    }
 
 @keyframes successScale {
-    0% { transform: scale(0); }
-    50% { transform: scale(1.1); }
-    100% { transform: scale(1); }
+    0% {
+        transform: scale(0);
+    }
+
+    50% {
+        transform: scale(1.1);
+    }
+
+    100% {
+        transform: scale(1);
+    }
 }
 
 .success-message h3 {
@@ -414,22 +428,22 @@ main, container, container-fluid {
     body {
         padding: 16px;
     }
-    
+
     .login-card {
         padding: 32px 24px 24px;
         border-radius: 12px;
     }
-    
+
     .login-header h1 {
         font-size: 1.5rem;
     }
-    
+
     .form-options {
         flex-direction: column;
         align-items: flex-start;
         gap: 12px;
     }
-    
+
     .security-notice {
         flex-direction: column;
         text-align: center;

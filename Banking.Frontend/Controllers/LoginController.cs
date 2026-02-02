@@ -1,7 +1,11 @@
-﻿using Banking.Interfaces;
+﻿using Banking.Framework;
+using Banking.Interfaces;
 using Banking.Models;
 using Banking.Services;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace Banking.Frontend.Controllers
 {
@@ -11,11 +15,10 @@ namespace Banking.Frontend.Controllers
         private ILoginService _loginService;
 
         public LoginController(ILogger<LoginController> logger, IConfiguration configuration, 
-            IHttpContextAccessor httpContextAccessor) : base(configuration)
+            IHttpContextAccessor httpContextAccessor) : base(configuration, httpContextAccessor)
         {
             _logger = logger;
             _loginService = new LoginService(_options);
-            httpContextAccessor.HttpContext?.Session.SetString("BankColorOption", _bankName);
         }
 
         /// <summary>
@@ -39,7 +42,7 @@ namespace Banking.Frontend.Controllers
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> Index(LoginModel loginModel)
         {
-            HttpContext.Session.SetString("Username", loginModel.Username);
+            HttpContext.Session.SetString(SessionConstants.UserId, loginModel.Username);
 
             try
             {
@@ -98,6 +101,25 @@ namespace Banking.Frontend.Controllers
                     }
                 }
 
+                var claims = new List<Claim>
+                {
+                    new Claim(ClaimTypes.Name, loginModel.Username),
+                    new Claim(ClaimTypes.NameIdentifier, "1"),
+                    new Claim(ClaimTypes.Role, "Admin")
+                };
+
+                var identity = new ClaimsIdentity(
+                    claims,
+                    CookieAuthenticationDefaults.AuthenticationScheme
+                );
+
+                var principal = new ClaimsPrincipal(identity);
+
+                await HttpContext.SignInAsync(
+                    CookieAuthenticationDefaults.AuthenticationScheme,
+                    principal
+                );
+
                 string remoteHost = HttpContext.Connection.RemoteIpAddress?.ToString() ?? string.Empty;
 
                 remoteHost = remoteHost.Equals("::1") ? "127.0.0.1" : remoteHost;
@@ -126,7 +148,7 @@ namespace Banking.Frontend.Controllers
                         {
                             string queryString = string.Join("&", keyValuePairs.Select(kvp => $"{kvp.Key}={kvp.Value}"));
 
-                            TempData["QueryString"] = queryString;
+                            HttpContext.Session.SetString(SessionConstants.QueryString, queryString);
 
                             return RedirectToAction(actionName, controller);
                         }
@@ -160,7 +182,7 @@ namespace Banking.Frontend.Controllers
 
                 HttpContext.Session.Clear();
 
-                return RedirectToAction(nameof(commDict.ActionName), commDict.ControllerName);
+                return RedirectToAction(commDict.ActionName, commDict.ControllerName);
             }
             catch (Exception ex)
             {
