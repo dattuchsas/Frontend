@@ -84,7 +84,7 @@ namespace Banking.Backend
             }
             catch (Exception ex)
             {
-                InsertRecordRet = ProcessError(ex, connError, BankingConstants.DBTrans_Insert);
+                InsertRecordRet = ProcessError(ex, connError, TransactionTypes.Insert);
             }
 
             return InsertRecordRet;
@@ -350,7 +350,7 @@ namespace Banking.Backend
             }
             catch (Exception ex)
             {
-                UpdateRecordRet = ProcessError(ex, connError, BankingConstants.DBTrans_Update);
+                UpdateRecordRet = ProcessError(ex, connError, TransactionTypes.Update);
             }
 
             return UpdateRecordRet;
@@ -497,7 +497,7 @@ namespace Banking.Backend
             }
             catch (Exception ex)
             {
-                DeleteRecordRet = ProcessError(ex, connError, BankingConstants.DBTrans_Delete);
+                DeleteRecordRet = ProcessError(ex, connError, TransactionTypes.Delete);
             }
 
             return DeleteRecordRet;

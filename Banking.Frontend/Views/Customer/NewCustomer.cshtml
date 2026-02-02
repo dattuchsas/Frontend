@@ -1,0 +1,368 @@
+﻿@model Banking.Models.CustomerModel
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="card mb-2 h-100">
+    <div class="card-header">
+        <h3 class="mb-0 section-title">Customer Master</h3>
+    </div>
+    <div class="card-body">
+        <div class="row g-3 mb-3">
+            <div class="col-xl-6">
+                <label for="Cust-Type" class="form-label">Branch Code</label>
+                <div class="d-flex align-items-center">
+                    <div class="me-2 flex-shrink-0">
+                        <select class="form-select" id="Cust-Type" aria-label="Example select with button addon">
+                            <option selected>Select</option>
+                            <option selected>101</option>
+                        </select>
+                    </div>
+                    <div class="flex-grow-1">
+                        <input type="text" class="form-control" id="Risk-Category">
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="card mb-3">
+            <div class="card-body">
+                <div class="row align-items-end g-3">
+                    <div class="col-xl-6">
+                        <label for="name" class="form-label">Search Customer</label>
+                        <div class="d-flex align-items-center">
+                            <div class="me-2 flex-shrink-0">
+                                <select class="form-select" id="Cust-Type" aria-label="Example select with button addon">
+                                    <option selected="">Select</option>
+                                    <option value="mr">Pan</option>
+                                    <option value="mr">Adhar</option>
+                                </select>
+                            </div>
+                            <div class="flex-grow-1">
+                                <input type="text" class="form-control" id="Risk-Category">
+                            </div>
+                            <div class="ms-2 flex-shrink-0">
+                                <button class="btn btn-primary" type="button">Search</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-xl-6">
+                        <label for="name" class="form-label">Name <span class="text-danger">*</span></label>
+                        <div class="d-flex align-items-center">
+                            <div class="me-2 flex-grow-1">
+                                <div class="input-group">
+                                    <select class="form-select flex-grow-0 flex-basis" id="name-select"
+                                            aria-label="Example select with button addon">
+                                        <option selected value="mr">Mr.</option>
+                                        <option value="mrs">Mrs.</option>
+                                    </select>
+                                    <input type="text" class="form-control" id="name">
+                                </div>
+                            </div>
+                            <div class="flex-shrink-0">
+                                <button class="btn btn-primary" type="button">Search</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6 col-xl-3">
+                        <label for="Cust-Type" class="form-label">Cust. Type <span class="text-danger">*</span></label>
+                        <select class="form-select" id="Cust-Type" aria-label="Example select with button addon">
+                            <option selected>Select</option>
+                            <option selected>Individual</option>
+                            <option selected>Staff</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6 col-xl-5">
+                        <div class="d-flex align-items-center">
+                            <div class="form-check flex-shrink-0">
+                                <input class="form-check-input" type="checkbox" id="MemberIDCheck">
+                                <label class="form-check-label" for="MemberIDCheck">
+                                    Member ID
+                                </label>
+                            </div>
+                            <div class="ms-3 flex-grow-1">
+                                <input type="text" class="form-control" id="Cust-ID">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6 col-xl-6">
+                        <div class="row g-3 align-items-end">
+                            <div class="col-md-6">
+                                <label for="Placeholder" class="form-label">DOB <span class="text-danger">*</span></label>
+                                <input type="date" class="form-control" placeholder="DD-MM-YYYY">
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="checkbox" id="MinorCheck">
+                                    <label class="form-check-label" for="MinorCheck">
+                                        Minor (Y/N)
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="d-flex align-items-center">
+                            <div class="me-2 flex-shrink-0">
+                                <select class="form-select" id="Cust-Type" aria-label="Example select with button addon">
+                                    <option selected="">Select</option>
+                                    <option value="1" selected="">Father</option>
+                                    <option value="1">Mother</option>
+                                    <option value="1">Son</option>
+                                </select>
+                            </div>
+                            <div class="flex-grow-1">
+                                <input type="text" class="form-control" id="Risk-Category">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="card mb-3">
+            <div class="card-body">
+                <div class="row g-3 align-items-end">
+                    <div class="col-md-4 col-xl-3">
+                        <label for="DOB" class="form-label">Flat/Plot No <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="DOB">
+                    </div>
+                    <div class="col-md-8 col-xl-3">
+                        <label for="DOB" class="form-label">Bldg./Society <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="DOB">
+                    </div>
+                    <div class="col-md-4 col-xl-3">
+                        <label for="DOB" class="form-label">Area/Locality</label>
+                        <input type="text" class="form-control" id="DOB">
+                    </div>
+                    <div class="col-md-4 col-xl-3">
+                        <label for="DOB" class="form-label">City/Village</label>
+                        <input type="text" class="form-control" id="DOB">
+                    </div>
+                    <div class="col-md-4 col-xl-3">
+                        <label for="DOB" class="form-label">Pin Code <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="DOB">
+                    </div>
+                    <div class="col-lg-9">
+                        <div class="form-check mb-2 float-end">
+                            <input class="form-check-input" type="checkbox" id="PermanentCheck">
+                            <label class="form-check-label" for="PermanentCheck">
+                                Permanent adress same as mailing address.
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="card mb-3">
+            <div class="card-body">
+                <div class="row g-3 align-items-end">
+                    <div class="col-md-4 col-xl-3">
+                        <label for="Gender" class="form-label">Gender <span class="text-danger">*</span></label>
+                        <select class="form-select" id="Gender" aria-label="Example select with button addon">
+                            <option selected>Select</option>
+                            <option value="Male">Male</option>
+                            <option value="Female">Female</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4 col-xl-3">
+                        <label for="Marital" class="form-label">Marital Status <span class="text-danger">*</span></label>
+                        <select class="form-select" id="Marital" aria-label="Example select with button addon">
+                            <option selected>Select</option>
+                            <option value="Married">Married</option>
+                            <option value="Single">Single</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4 col-xl-3">
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="checkbox" id="GlobalCheck">
+                            <label class="form-check-label" for="GlobalCheck">
+                                Global Customer
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="card mb-3">
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-xl-6">
+                        <div class="row g-3 align-items-end">
+                            <div class="col-md-6">
+                                <label for="Pan" class="form-label">Mobile No <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="Pan">
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-check form-check-inline mb-2">
+                                    <input class="form-check-input" type="checkbox" id="SMSYNCheck">
+                                    <label class="form-check-label" for="SMSYNCheck">
+                                        SMSYN
+                                    </label>
+                                </div>
+                                <div class="form-check form-check-inline mb-2">
+                                    <input class="form-check-input" type="checkbox" id="MobAccesCheck">
+                                    <label class="form-check-label" for="MobAccesCheck">
+                                        Mob Acces YB
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6 col-xl-3">
+                        <label for="DOB" class="form-label">Phone No.(Off)</label>
+                        <input type="text" class="form-control" id="DOB">
+                    </div>
+                    <div class="col-md-6 col-xl-3">
+                        <label for="DOB" class="form-label">Phone No.(Res)</label>
+                        <input type="text" class="form-control" id="DOB">
+                    </div>
+                    <div class="col-xl-9">
+                        <div class="row g-3 align-items-end">
+                            <div class="col-md-6 col-xl-4">
+                                <label for="Pan" class="form-label">Pan No</label>
+                                <input type="text" class="form-control" id="Pan">
+                            </div>
+                            <div class="col-md-6 col-xl-6">
+                                <div class="form-check form-check-inline mb-2">
+                                    <input class="form-check-input" type="checkbox" id="206ABCheck">
+                                    <label class="form-check-label" for="206ABCheck">
+                                        Pan 206AB YN
+                                    </label>
+                                </div>
+                                <div class="form-check form-check-inline mb-2">
+                                    <input class="form-check-input" type="checkbox" id="206AACheck">
+                                    <label class="form-check-label" for="206AACheck">
+                                        Pan 206AA YN
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4 col-xl-3">
+                        <label for="Adhar" class="form-label">Adhar No</label>
+                        <input type="text" class="form-control" id="Adhar">
+                    </div>
+                    <div class="col-md-8 col-xl-3">
+                        <label for="Email" class="form-label">Email ID</label>
+                        <input type="text" class="form-control" id="Email">
+                    </div>
+                    <div class="col-md-4 col-xl-3">
+                        <label for="GSTIN" class="form-label">GSTIN</label>
+                        <input type="text" class="form-control" id="GSTIN">
+                    </div>
+                    <div class="col-md-4 col-xl-3">
+                        <label for="CKYCID" class="form-label">CKYCID</label>
+                        <input type="text" class="form-control" id="CKYCID">
+                    </div>
+                    <div class="col-md-4 col-xl-3">
+                        <label for="CKYCID" class="form-label">CKYCENROLL</label>
+                        <input type="date" class="form-control" placeholder="DD-MM-YYYY">
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row g-xl-3">
+            <div class="col-xl-6">
+                <div class="card mb-3">
+                    <div class="card-body">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label for="Religion" class="form-label">Religion</label>
+                                <select class="form-select" id="Religion" aria-label="Example select with button addon">
+                                    <option selected value="Select">Select</option>
+                                    <option>Hindu</option>
+                                    <option>Muslim</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="Cust-Type" class="form-label">Risk Category</label>
+                                <select class="form-select" id="Risk-Category" aria-label="Example select with button addon">
+                                    <option selected="">Select</option>
+                                    <option> Low</option>
+                                    <option>Medium</option>
+                                    <option>High</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xl-6">
+                <div class="card mb-3">
+                    <div class="card-body">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label for="Religion" class="form-label">Occupation</label>
+                                <select class="form-select" id="Religion" aria-label="Example select with button addon">
+                                    <option selected value="Select">Select</option>
+                                    <option selected value="Select">Govt Employee</option>
+                                    <option selected value="Select">Private Employee</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="Religion" class="form-label">Annual Income</label>
+                                <select class="form-select" id="Religion" aria-label="Example select with button addon">
+                                    <option selected value="Select">0-3 Lakhs</option>
+                                    <option selected value="Select">3-6 Lakhs</option>
+                                    <option selected value="Select">6-9 Lakhs</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="card">
+            <div class="card-body">
+                <div class="row g-3 align-items-end">
+                    <div class="col-md-8 col-lg-12 col-xl-6">
+                        <label for="Religion" class="form-label">KYC Prof.</label>
+                        <div class="d-flex align-items-center">
+                            <div class="me-2 flex-shrink-0">
+                                <select class="form-select" id="Cust-Type" aria-label="Example select with button addon">
+                                    <option selected>Select</option>
+                                    <option value="mr">Pan</option>
+                                    <option value="mr">Adhar</option>
+                                    <option value="mr">Ration Card</option>
+                                    <option value="mr">Driving Licence</option>
+                                </select>
+                            </div>
+                            <div class="flex-grow-1">
+                                <input type="text" class="form-control" id="Risk-Category">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4 col-lg-12 col-xl-3 text-end text-md-start text-lg-end text-xl-start">
+                        <button type="button" class="btn btn-primary">Add</button>
+                        <button type="button" class="btn btn-primary">Clear</button>
+                    </div>
+                    <div class="col-12">
+                        <div class="table-responsive">
+                            <table class="table table-bordered">
+                                <thead>
+                                    <tr>
+                                        <th scope="col">S.No</th>
+                                        <th scope="col">KYC ID</th>
+                                        <th scope="col">Description</th>
+                                        <th scope="col">KYC No</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <th scope="row">1</th>
+                                        <td>4</td>
+                                        <td>Driving Licence</td>
+                                        <td>DLAB764947</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="text-center py-3">
+        <a href="Customer.html" target="_self" class="btn btn-primary">Ok</a>
+        <a href="Customer.html" target="_self" class="btn btn-primary">Cancel</a>
+    </div>
+</div>

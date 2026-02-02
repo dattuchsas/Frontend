@@ -3,64 +3,412 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-@* <div class="col-12">
-    @if (!string.IsNullOrWhiteSpace(Model.ErrorMessage))
-    {
-        <div class="alert alert-danger" role="alert">
-            @Model.ErrorMessage
-        </div>
-    }
-</div> *@
-@* 
-<div class="row bg-white p-3">
-    <div class="col-12">
-        <ul class="nav nav-tabs d-none d-lg-flex" id="myTab" role="tablist">
-            <li class="nav-item" role="presentation">
-                <button class="nav-link active" id="home-tab" data-bs-toggle="tab" data-bs-target="#home-tab-pane" type="button" role="tab" aria-controls="home-tab-pane" aria-selected="true">Home</button>
-            </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link" id="profile-tab" data-bs-toggle="tab" data-bs-target="#profile-tab-pane" type="button" role="tab" aria-controls="profile-tab-pane" aria-selected="false">Profile</button>
-            </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link" id="contact-tab" data-bs-toggle="tab" data-bs-target="#contact-tab-pane" type="button" role="tab" aria-controls="contact-tab-pane" aria-selected="false">Contact</button>
-            </li>
-        </ul>
-
-        <div class="tab-content accordion" id="myTabContent">
-            <div class="tab-pane fade show active accordion-item" id="home-tab-pane" role="tabpanel" aria-labelledby="home-tab" tabindex="0">
-                <h2 class="accordion-header d-lg-none" id="headingOne">
-                    <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">Accordion Item #1</button>
-                </h2>
-                <div id="collapseOne" class="accordion-collapse collapse show  d-lg-block" aria-labelledby="headingOne" data-bs-parent="#myTabContent">
-                    <div class="accordion-body">
-                        <strong>This is the first item's accordion body.</strong> It is shown by default, until the collapse plugin adds the appropriate classes that we use to style each element. These classes control the overall appearance, as well as the showing and hiding via CSS transitions. You can modify any of this with custom CSS or overriding our default variables. It's also worth noting that just about any HTML can go within the <code>.accordion-body</code>, though the transition does limit overflow.
-                    </div>
-                </div>
-            </div>
-            <div class="tab-pane fade accordion-item" id="profile-tab-pane" role="tabpanel" aria-labelledby="profile-tab" tabindex="0">
-                <h2 class="accordion-header d-lg-none" id="headingTwo">
-                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
-                        Accordion Item #2
-                    </button>
-                </h2>
-                <div id="collapseTwo" class="accordion-collapse collapse d-lg-block" aria-labelledby="headingTwo" data-bs-parent="#myTabContent">
-                    <div class="accordion-body">
-                        <strong>This is the second item's accordion body.</strong> It is hidden by default, until the collapse plugin adds the appropriate classes that we use to style each element. These classes control the overall appearance, as well as the showing and hiding via CSS transitions. You can modify any of this with custom CSS or overriding our default variables. It's also worth noting that just about any HTML can go within the <code>.accordion-body</code>, though the transition does limit overflow.
-                    </div>
-                </div>
-            </div>
-            <div class="tab-pane fade accordion-item" id="contact-tab-pane" role="tabpanel" aria-labelledby="contact-tab" tabindex="0">
-                <h2 class="accordion-header d-lg-none" id="headingThree">
-                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
-                        Accordion Item #3
-                    </button>
-                </h2>
-                <div id="collapseThree" class="accordion-collapse collapse d-lg-block" aria-labelledby="headingThree" data-bs-parent="#myTabContent">
-                    <div class="accordion-body">
-                        <strong>This is the third item's accordion body.</strong> It is hidden by default, until the collapse plugin adds the appropriate classes that we use to style each element. These classes control the overall appearance, as well as the showing and hiding via CSS transitions. You can modify any of this with custom CSS or overriding our default variables. It's also worth noting that just about any HTML can go within the <code>.accordion-body</code>, though the transition does limit overflow.
-                    </div>
-                </div>
+<div class="card mb-2 h-100">
+    <div class="card-header">
+        <div class="d-flex align-items-center flex-wrap">
+            <h3 class="mb-0 section-title me-auto"> Customer</h3>
+            <div class="ms-auto">
+                <a asp-controller="Customer" asp-action="NewCustomer" target="_self" class="btn btn-primary">New</a>
+                <a href="#" target="_self" class="btn btn-primary">Modify</a>
+                <button type="button" class="btn btn-primary">View</button>
             </div>
         </div>
     </div>
-</div> *@
+
+    <form class="login-form" id="loginForm" novalidate asp-area="" asp-controller="Customer" asp-action="Index" asp-antiforgery="true" method="post">
+        @Html.AntiForgeryToken()
+        <div class="card-body">
+            <div class="row g-3 mb-3">
+                <div class="col-xl-6">
+                    <label asp-for="Branch" class="form-label">Branch Code</label>
+                    <div class="d-flex align-items-center">
+                        <div class="me-2 flex-shrink-0">
+                            <select asp-for="Branch" asp-items="@Model.BranchList" 
+                                class="form-select" aria-label="Example select with button addon"></select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-body">
+                    <div class="row align-items-end g-3">
+                        <div class="col-md-6 col-xl-3 col-xxl-4">
+                            <label asp-for="CustomerId" class="form-label">Cust. ID</label>
+                            <input asp-for="CustomerId" type="text" class="form-control">
+                        </div> 
+                        <div class="col-md-6 col-xxl-5">
+                            <label class="form-label">Name</label>
+                            <div class="input-group">
+                                <select asp-for="Salutation" asp-items="@Model.SalutationList"
+                                    class="form-select flex-grow-0 flex-basis" aria-label="Example select with button addon"></select>
+                                <input asp-for="CustomerName" type="text" class="form-control">
+                            </div>
+                        </div>
+                        <div class="col-md-6 col-xl-3">
+                            <label class="form-label">Cust. Type</label>
+                            <select asp-for="CustomerType" asp-items="@Model.CustomerTypeList" 
+                                class="form-select" aria-label="Example select with button addon"></select>
+                        </div>
+                        <div class="col-md-6 col-xl-4">
+                            <div class="d-flex align-items-center">
+                                <div class="form-check flex-shrink-0">
+                                    <input asp-for="MemberId" class="form-check-input" type="checkbox">
+                                    <label asp-for="MemberId" class="form-check-label">
+                                        Member ID
+                                    </label>
+                                </div>
+                                <div class="ms-3 flex-grow-1">
+                                    <input type="text" class="form-control">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6 col-xl-3">
+                            <label class="form-label">Risk Category</label>
+                            <select asp-for="RiskCategory" asp-items="@Model.RiskCategoryList" 
+                                class="form-select" aria-label="Example select with button addon"></select>
+                        </div>
+                        <div class="col-md-6 col-xl-4">
+                            <div class="form-check form-check-inline mb-2">
+                                <input asp-for="SMS_YesNo" class="form-check-input" type="checkbox">
+                                <label asp-for="SMS_YesNo" class="form-check-label">
+                                    SMSYN
+                                </label>
+                            </div>
+                            <div class="form-check form-check-inline mb-2">
+                                <input asp-for="MobileAccess_YesNo" class="form-check-input" type="checkbox">
+                                <label asp-for="MobileAccess_YesNo" class="form-check-label">
+                                    Mobile Access YN
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="tabs mt-3">
+                <ul class="nav nav-tabs" id="maharajtab" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="Personal-Dtls-tab" data-bs-toggle="tab"
+                                data-bs-target="#Personal-Dtls-tab-pane" type="button" role="tab"
+                                aria-controls="Personal-Dtls-tab-pane" aria-selected="true">
+                            Personal Dtls
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="mailing-tab" data-bs-toggle="tab" data-bs-target="#mailing-tab-pane"
+                                type="button" role="tab" aria-controls="mailing-tab-pane" aria-selected="false">
+                            Mailing
+                            Addr
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="mailing-tab" data-bs-toggle="tab" data-bs-target="#mailing-tab-pane"
+                                type="button" role="tab" aria-controls="mailing-tab-pane" aria-selected="false">
+                            Permanent
+                            Addr
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="Office-tab" data-bs-toggle="tab" data-bs-target="#Office-tab-pane"
+                                type="button" role="tab" aria-controls="Office-tab-pane" aria-selected="false">
+                            Office
+                            Addr
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="KYC-tab" data-bs-toggle="tab" data-bs-target="#KYC-tab-pane"
+                                type="button" role="tab" aria-controls="KYC-tab-pane" aria-selected="false">
+                            KYC Dtls
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="Family-Dtls-tab" data-bs-toggle="tab"
+                                data-bs-target="#Family-Dtls-tab-pane" type="button" role="tab"
+                                aria-controls="Family-Dtls-tab-pane" aria-selected="false">
+                            Relation
+                            Dtls
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="Occupation-Dtls-tab" data-bs-toggle="tab"
+                                data-bs-target="#Occupation-Dtls-tab-pane" type="button" role="tab"
+                                aria-controls="Occupation-Dtls-tab-pane" aria-selected="false">
+                            Occupation
+                            Dtls
+                        </button>
+                    </li>
+                </ul>
+                <div class="tab-content" id="myTabContent">
+                    <div class="tab-pane fade show active" id="Personal-Dtls-tab-pane" role="tabpanel"
+                         aria-labelledby="Personal-Dtls-tab" tabindex="0">
+                        <div class="row g-3 align-items-end">
+                            <div class="col-md-8 col-xl-6">
+                                <div class="d-flex align-items-center">
+                                    <div class="me-2 flex-shrink-0">
+                                        <select asp-for="Personal_Relation" asp-items="@Model.Personal_RelationList" 
+                                            class="form-select" aria-label="Example select with button addon"></select>
+                                    </div>
+                                    <div class="flex-grow-1">
+                                        <input asp-for="Personal_RelationName" type="text" class="form-control">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4 col-xl-3">
+                                <label class="form-label">Marital Status</label>
+                                <select asp-for="Personal_MaritalStatus" asp-items="@Model.Personal_MaritalStatusList" 
+                                    class="form-select" aria-label="Example select with button addon"></select>
+                            </div>
+                            <div class="col-md-4 col-xl-3">
+                                <label class="form-label">Gender</label>
+                                <select asp-for="Personal_Gender" asp-items="@Model.Personal_GenderList" 
+                                    class="form-select" aria-label="Example select with button addon"></select>
+                            </div>
+                            <div class="col-md-8 col-xl-6">
+                                <div class="row g-3 align-items-end">
+                                    <div class="col-md-6 col-xl-6">
+                                        <label class="form-label">DOB</label>
+                                        <input asp-for="Personal_DOB" type="date" class="form-control" placeholder="DD-MM-YYYY">
+                                    </div>
+                                    <div class="col-md-6 col-xl-6">
+                                        <div class="form-check mb-2">
+                                            <input asp-for="Personal_Minor" class="form-check-input" type="checkbox">
+                                            <label class="form-check-label">
+                                                Minor Y/N
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6 col-xl-3">
+                                <label class="form-label">Religion</label>
+                                <select asp-for="Personal_Religion" asp-items="@Model.Personal_ReligionList" 
+                                    class="form-select" aria-label="Example select with button addon"></select>
+                            </div>
+                            <div class="col-md-6 col-xl-3">
+                                <label class="form-label">Mobile No</label>
+                                <input asp-for="Personal_Mobile" type="text" class="form-control">
+                            </div>
+                            <div class="col-md-12 col-xl-12">
+                                <div class="row g-3 align-items-end">
+                                    <div class="col-md-6 col-xl-3">
+                                        <label class="form-label">PAN No</label>
+                                        <input asp-for="Personal_PANNo" type="text" class="form-control">
+                                    </div>
+                                    <div class="col-md-6 col-xl-6">
+                                        <div class="form-check form-check-inline mb-2">
+                                            <input asp-for="Personal_PANABYN" class="form-check-input" type="checkbox">
+                                            <label class="form-check-label">
+                                                PAN 206AB YN
+                                            </label>
+                                        </div>
+                                        <div class="form-check form-check-inline mb-2">
+                                            <input asp-for="Personal_PANAAYN" class="form-check-input" type="checkbox">
+                                            <label class="form-check-label">
+                                                PAN 206AA YN
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4 col-xl-3">
+                                <label class="form-label">Email</label>
+                                <input asp-for="Personal_Email" type="text" class="form-control">
+                            </div>
+                            <div class="col-md-4 col-xl-3">
+                                <label class="form-label">Aadhaar No</label>
+                                <input asp-for="Personal_Aadhaar" type="text" class="form-control">
+                            </div>
+                            <div class="col-md-4 col-xl-3">
+                                <label class="form-label">CKYC ID</label>
+                                <input asp-for="Personal_CKYCID" type="text" class="form-control">
+                            </div>
+                            <div class="col-md-4 col-xl-3">
+                                <label class="form-label">GSTIN</label>
+                                <input asp-for="Personal_GSTIN" type="text" class="form-control">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="tab-pane fade" id="Family-Dtls-tab-pane" role="tabpanel" aria-labelledby="Family-Dtls-tab"
+                         tabindex="0">
+                        <div class="row align-items-end g-3">
+                            <div class="col-md-4 col-xl-3">
+                                <label class="form-label">Name</label>
+                                <input asp-for="Relation_Name" type="text" class="form-control">
+                            </div>
+                            <div class="col-md-4 col-xl-3">
+                                <label class="form-label">Relation</label>
+                                <select asp-for="Relation_Type" asp-items="@Model.Relation_List" 
+                                    class="form-select" aria-label="Example select with button addon"></select>
+                            </div>
+                            <div class="col-md-4 col-xl-3">
+                                <label class="form-label">DOB</label>
+                                <input asp-for="Relation_DOB" type="date" class="form-control" placeholder="DD-MM-YYYY">
+                            </div>
+                            <div class="col-md-12 col-xl-3 text-end text-md-end text-xl-start">
+                                <button type="button" class="btn btn-primary">Ok</button>
+                                <button type="button" class="btn btn-primary">Delete</button>
+                            </div>
+                        </div>
+                        <table class="table table-bordered mt-3">
+                            <thead>
+                                <tr>
+                                    <th scope="col">S.No</th>
+                                    <th scope="col">Name</th>
+                                    <th scope="col">Placeholder</th>
+                                    <th scope="col">Relation</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <th scope="row">1</th>
+                                    <td>Razia Begum</td>
+                                    <td>05-Jul-2006</td>
+                                    <td>Wife</td>
+                                </tr>
+                                <tr>
+                                    <th scope="row">2</th>
+                                    <td> Khader Basha</td>
+                                    <td>10-Jul-2007</td>
+                                    <td>Son</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="tab-pane fade" id="Occupation-Dtls-tab-pane" role="tabpanel"
+                         aria-labelledby="Occupation-Dtls-tab" tabindex="0">
+                        <div class="row g-3">
+                            <div class="col-md-4 col-xl-3">
+                                <label class="form-label">Occupation</label>
+                                <select asp-for="Occupation_Id" asp-items="@Model.Occupation_List" 
+                                    class="form-select" aria-label="Example select with button addon"></select>
+                            </div>
+                            <div class="col-md-4 col-xl-3">
+                                <label class="form-label">Annual Income</label>
+                                <select asp-for="Occupation_Income" asp-items="@Model.Occupation_IncomeList" 
+                                    class="form-select" aria-label="Example select with button addon"></select>
+                            </div>
+                            <div class="col-md-4 col-xl-3">
+                                <label class="form-label">Education</label>
+                                <select asp-for="Occupation_Educataion" asp-items="@Model.Occupation_EducationList" 
+                                    class="form-select" aria-label="Example select with button addon"></select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="tab-pane fade" id="mailing-tab-pane" role="tabpanel" aria-labelledby="mailing-tab"
+                         tabindex="0">
+                        <div class="row g-3">
+                            <div class="col-md-4 col-xl-3">
+                                <label class="form-label">Flat/Plot No</label>
+                                <input asp-for="Mailing_FlatNo" type="text" class="form-control">
+                            </div>
+                            <div class="col-md-4 col-xl-3">
+                                <label class="form-label">Bldg./Society</label>
+                                <input asp-for="Mailing_Building" type="text" class="form-control">
+                            </div>
+                            <div class="col-md-4 col-xl-3">
+                                <label class="form-label">Area/Locality</label>
+                                <input asp-for="Mailing_Area" type="text" class="form-control">
+                            </div>
+                            <div class="col-md-4 col-xl-3">
+                                <label class="form-label">City/Village</label>
+                                <input asp-for="Mailing_City" type="text" class="form-control">
+                            </div>
+                            <div class="col-md-4 col-xl-3">
+                                <label class="form-label">Pincode</label>
+                                <input asp-for="Mailing_Pincode" type="text" class="form-control">
+                            </div>
+                            <div class="col-md-4 col-xl-3">
+                                <label class="form-label">Phone No.</label>
+                                <input asp-for="Mailing_Phone" type="text" class="form-control">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="tab-pane fade" id="Office-tab-pane" role="tabpanel" aria-labelledby="Office-tab"
+                         tabindex="0">
+                        <div class="row g-3">
+                            <div class="col-md-4 col-xl-3">
+                                <label class="form-label">Company</label>
+                                <input asp-for="Office_Company" type="text" class="form-control">
+                            </div>
+                            <div class="col-md-4 col-xl-3">
+                                <label class="form-label">Bldg./Society</label>
+                                <input asp-for="Office_Building" type="text" class="form-control">
+                            </div>
+                            <div class="col-md-4 col-xl-3">
+                                <label class="form-label">Area/Locality</label>
+                                <input asp-for="Office_Area" type="text" class="form-control">
+                            </div>
+                            <div class="col-md-4 col-xl-3">
+                                <label class="form-label">City/Village</label>
+                                <input asp-for="Office_City" type="text" class="form-control">
+                            </div>
+                            <div class="col-md-4 col-xl-3">
+                                <label class="form-label">Pincode</label>
+                                <input asp-for="Office_Pincode" type="text" class="form-control">
+                            </div>
+                            <div class="col-md-4 col-xl-3">
+                                <label class="form-label">Phone No.</label>
+                                <input asp-for="Office_Phone" type="text" class="form-control">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="tab-pane fade" id="KYC-tab-pane" role="tabpanel" aria-labelledby="KYC-tab" tabindex="0">
+                        <div class="row g-3 align-items-end">
+                            <div class="col-md-8 col-lg-12 col-xl-6">
+                                <label class="form-label">KYC Prof.</label>
+                                <div class="d-flex align-items-center">
+                                    <div class="me-2 flex-shrink-0">
+                                        <select asp-for="KYCType" asp-items="@Model.KYCTypeList" 
+                                            class="form-select" aria-label="Example select with button addon"></select>
+                                    </div>
+                                    <div class="flex-grow-1">
+                                        <input asp-for="KYCNumber" type="text" class="form-control">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4 col-lg-12 col-xl-3 text-end text-md-start  text-lg-end text-xl-start">
+                                <button type="button" class="btn btn-primary">Add</button>
+                                <button type="button" class="btn btn-primary">Delete</button>
+                            </div>
+                            <div class="col-12">
+                                <div class="table-responsive">
+                                    <table class="table table-bordered">
+                                        <thead>
+                                            <tr>
+                                                <th scope="col">S.No</th>
+                                                <th scope="col">KYC ID</th>
+                                                <th scope="col">Description</th>
+                                                <th scope="col">KYC No</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <th scope="row">2</th>
+                                                <td>4</td>
+                                                <td>Driving Licence</td>
+                                                <td>DLAB764947</td>
+                                            </tr>
+                                            <tr>
+                                                <th scope="row">1</th>
+                                                <td>4</td>
+                                                <td>Pancard</td>
+                                                <td>BIADS5475H</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="text-center py-3">
+            <button type="submit" class="btn btn-primary">Ok</button>
+            <button type="button" class="btn btn-primary">Cancel</button>
+            <button type="button" class="btn btn-primary">Exit</button>
+        </div>
+        <input type="hidden" id="hiddenCustId" name="custId" />
+    </form>
+</div>
+
+<script src="~/js/customer.js"></script>

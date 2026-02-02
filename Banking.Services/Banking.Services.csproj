@@ -8,6 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Humanizer" Version="3.0.1" />
     <PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" Version="2.3.0" />
     <PackageReference Include="Microsoft.AspNetCore.Http.Extensions" Version="2.3.0" />
     <PackageReference Include="Microsoft.Extensions.Options" Version="10.0.1" />

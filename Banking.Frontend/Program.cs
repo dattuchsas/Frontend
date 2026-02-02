@@ -1,6 +1,7 @@
 using Banking.Interfaces;
 using Banking.Models;
 using Banking.Services;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.HttpOverrides;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -12,13 +13,13 @@ builder.Services.AddHttpClient();
 
 builder.Services.AddHttpContextAccessor();
 
-builder.Services.Configure<ForwardedHeadersOptions>(options =>
-{
-    options.ForwardedHeaders = ForwardedHeaders.XForwardedFor;
-    options.ForwardLimit = 1;
-    options.KnownNetworks.Add(
-        new IPNetwork(System.Net.IPAddress.Parse("10.0.0.0"), 24));
-});
+//builder.Services.Configure<ForwardedHeadersOptions>(options =>
+//{
+//    options.ForwardedHeaders = ForwardedHeaders.XForwardedFor;
+//    options.ForwardLimit = 1;
+//    options.KnownNetworks.Add(
+//        new IPNetwork(System.Net.IPAddress.Parse("10.0.0.0"), 24));
+//});
 
 builder.Services.AddDistributedMemoryCache(); // Required to store session data
 builder.Services.AddSession(options =>
@@ -27,6 +28,15 @@ builder.Services.AddSession(options =>
     options.Cookie.HttpOnly = true; // Make the session cookie inaccessible to client-side script
     options.Cookie.IsEssential = true; // Make the session cookie essential
 });
+
+builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme).AddCookie(options =>
+{
+    options.LoginPath = "/Login/Index";
+    options.LogoutPath = "/Login/Logout";
+    options.AccessDeniedPath = "/Login/AccessDenied";
+});
+
+builder.Services.AddAuthorization();
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
@@ -58,9 +68,12 @@ if (!app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
 app.UseStaticFiles();
 
 app.UseRouting();
+
+app.UseAuthentication();
 
 app.UseAuthorization();
 

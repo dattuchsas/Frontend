@@ -15,28 +15,41 @@ namespace Banking.Framework
         }
     }
 
+    public static class Conversions
+    {
+        public static string ToString(this object? str)
+        {
+            return Convert.ToString(str) ?? string.Empty;
+        }
+
+        public static bool ToBoolean(this object? str)
+        {
+            return Convert.ToBoolean(str);
+        }
+    }
+
     public static class BankingExtensions
     {
         public static readonly Dictionary<string, string> GetModuleRoute = new()
         {
-            { "SB", "" },
-            { "CA", "" },
-            { "DEP", "" },
-            { "LOAN", "" },
-            { "CC", "" },
-            { "BILLS", "" },
-            { "REM", "" },
-            { "CASH", "" },
-            { "CLG", "" },
-            { "LOCKER", "" },
-            { "GL", "" },
+            { "SB", "SavingsAccount" },
+            { "CA", "CurrentAccount" },
+            { "DEP", "Deposits" },
+            { "LOAN", "Loans" },
+            { "CC", "CreditCard" },
+            { "BILLS", "Bills" },
+            { "REM", "Remittance" },
+            { "CASH", "Cash" },
+            { "CLG", "Clearing" },
+            { "LOCKER", "Lockers" },
+            { "GL", "GeneralLedger" },
             { "CUSTOMER", "Customer" },
-            { "ADMIN", "" },
-            { "SHARES", "" },
-            { "HO", "" },
-            { "INV", "" },
-            { "ATM", "" },
-            { "PAYROLL", "" }
+            { "ADMIN", "Administration" },
+            { "SHARES", "SharesManagement" },
+            { "HO", "SystemControl" },
+            { "INV", "Investments" },
+            { "ATM", "ATM" },
+            { "PAYROLL", "Payroll" }
         };
 
         public static void ReleaseMemory(DataTable source)
