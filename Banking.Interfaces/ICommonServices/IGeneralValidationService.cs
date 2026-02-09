@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Banking.Models;
+using System;
 
 namespace Banking.Interfaces
 {
@@ -66,7 +67,7 @@ namespace Banking.Interfaces
 
         Task<string> GetLoginOTPYN();
 
-        Task GetCKYCEnrollDetails(string strkycenrolldate);
+        Task<CKYCEnrollmentDateModel> GetCKYCEnrollDetails(string strkycenrolldate);
 
         Task<string> getCheckIMPSCycle(string strPrcsCode, string strTransAmt);
 

@@ -25,21 +25,20 @@
         <div class="col-md-1"></div>
         <div class="col-md-10">
             <div class="row p-3">
-
                 <div class="row">
                     @foreach (var item in Model.AssignedModules.Keys)
                     {
                         @if (cnt == 1)
                         {
                             <div class="col-3 d-grid gap-2 p-2">
-                                <button class="btn btn-lg btn-outline-maharaja text-white moduleClass" id="@item">@Model.AssignedModules[item]</button>
+                                <button class="btn btn-lg btn-outline-maharaja moduleClass" id="@item">@Model.AssignedModules[item]</button>
                             </div>
                         }
                         if (cnt == 2)
                         {
                             <div class="col-6 d-grid gap-2 p-2"></div>
                             <div class="col-3 d-grid gap-2 p-2">
-                                <button class="btn btn-lg btn-outline-maharaja text-white moduleClass" id="@item">@Model.AssignedModules[item]</button>
+                                <button class="btn btn-lg btn-outline-maharaja moduleClass" id="@item">@Model.AssignedModules[item]</button>
                             </div>
                         }
                         cnt = (cnt == 2) ? 1 : ++cnt;

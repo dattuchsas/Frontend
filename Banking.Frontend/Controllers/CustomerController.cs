@@ -10,6 +10,8 @@ namespace Banking.Frontend.Controllers
         private readonly ILogger<LoginController> _logger;
         private ICustomerService _customerService;
 
+        private ISession session => HttpContext.Session;
+
         public CustomerController(ILogger<LoginController> logger, IConfiguration configuration,
             IHttpContextAccessor httpContextAccessor) : base(configuration, httpContextAccessor)
         {
@@ -19,36 +21,29 @@ namespace Banking.Frontend.Controllers
 
         public async Task<IActionResult> Index(string custId = "")
         {
-            var customerModel = await _customerService.GetCustomerDetails(custId);
+            var customerModel = await _customerService.GetCustomerDetails(session, custId);
 
-            customerModel.MenuDetails = _userMenu;
+            return View(customerModel);
+        }
+
+        public async Task<IActionResult> NewCustomer()
+        {
+            var customerModel = await _customerService.NewCustomer(session);
 
             return View(customerModel);
         }
 
         [HttpPost]
-        public IActionResult Get(string custId = "")
+        public async Task<IActionResult> NewCustomer(CustomerModel customerModel, List<KYC> kycDocuments)
         {
-            var customerModel = new CustomerModel();
+            var result = await _customerService.SaveCustomer(session, customerModel, kycDocuments, "New");
 
-            return RedirectToAction("Index", customerModel);
+            return View(customerModel);
         }
 
-        public IActionResult NewCustomer()
+        public async Task<string> GetCustomerListByName(string customerName)
         {
-            //strresult = Request.QueryString("result")
-            //custid = Request.QueryString("custid")
-            //record = Request.QueryString("record")
-            //code = Request.QueryString("code")
-            //st = request.querystring("main")
-
-            var customerModel = new CustomerModel();
-
-            // Saluation List
-
-            // 
-
-            return View();
+            return await _customerService.GetCustomerListByName(customerName);
         }
     }
 }

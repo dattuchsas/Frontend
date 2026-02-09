@@ -2,6 +2,9 @@
 {
     public class BaseModel : ErrorModel
     {
+        public string? UserId { get; set; }
+        public string? Branch { get; set; }
+        public string? ApplicationDate { get; set; }
         public List<Menu>? MenuDetails { get; set; }
     }
 

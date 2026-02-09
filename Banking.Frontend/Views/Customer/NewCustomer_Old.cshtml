@@ -5,26 +5,33 @@
 
 <script asp-append-version="true" src="~/js/newcustomer.js"></script>
 
-<form class="login-form" id="newCustomerForm" novalidate asp-area="" asp-controller="Customer" asp-action="NewCustomer"
-      asp-antiforgery="true" method="post" enctype="multipart/form-data">
+<form class="login-form" id="newCustomerForm" novalidate asp-area="" asp-controller="Customer" asp-action="NewCustomer" 
+    asp-antiforgery="true" method="post" enctype="multipart/form-data">
     @Html.AntiForgeryToken()
     <div class="card mb-2 h-100">
         <div class="card-header">
-            <h3 class="mb-0 section-title">Customer Master</h3>
+            <h3 class="mb-0 section-title">New Customer</h3>
         </div>
         <div class="card-body">
+            <div class="row g-3 mb-3">
+                <div class="col-xl-6">
+                    <label for="Cust-Type" class="form-label">Branch Code</label>
+                    <div class="d-flex align-items-center">
+                        <div class="me-2 flex-shrink-0">
+                            <select asp-for="Branch" asp-items="@Model.BranchList"
+                                    class="form-select" aria-label="Example select with button addon"></select>
+                        </div>
+                    </div>
+                </div>
+            </div>
             <div class="card mb-3">
                 <div class="card-body">
                     <div class="row align-items-end g-3">
-                        <div class="col-lg-4 col-xxl-3">
-                            <label asp-for="Branch" class="form-label">Branch Code</label>
-                            <select asp-for="Branch" asp-items="@Model.BranchList" class="form-select"></select>
-                        </div>
-                        <div class="col-lg-8 col-xxl-4">
-                            <label class="form-label">Search Customer</label>
+                        <div class="col-xl-6">
+                            <label for="name" class="form-label">Search Customer</label>
                             <div class="d-flex align-items-center">
                                 <div class="me-2 flex-shrink-0">
-                                    <select class="form-select flex-grow-0 flex-basis" id="idSearch">
+                                    <select class="form-select flex-grow-0 flex-basis" id="idSearch" aria-label="Example select with button addon">
                                         <option selected value="">Select</option>
                                         <option value="PAN">PAN</option>
                                         <option value="AADHAR">Aadhaar</option>
@@ -38,12 +45,13 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="col-lg-6 col-xl-6 col-xxl-5">
-                            <label asp-for="Salutation" class="form-label">Name <span class="text-danger">*</span></label>
+                        <div class="col-xl-6">
+                            <label for="name" class="form-label">Name <span class="text-danger">*</span></label>
                             <div class="d-flex align-items-center">
                                 <div class="me-2 flex-grow-1">
                                     <div class="input-group">
-                                        <select asp-for="Salutation" asp-items="@Model.SalutationList" class="form-select flex-grow-0 flex-basis"></select>
+                                        <select asp-for="Salutation" asp-items="@Model.SalutationList"
+                                                class="form-select flex-grow-0 flex-basis" aria-label="Example select with button addon"></select>
                                         <input asp-for="CustomerName" type="text" class="form-control">
                                     </div>
                                 </div>
@@ -54,11 +62,12 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="col-md-5 col-lg-2">
-                            <label asp-for="CustomerType" class="form-label">Cust. Type <span class="text-danger">*</span></label>
-                            <select asp-for="CustomerType" asp-items="@Model.CustomerTypeList" class="form-select"></select>
+                        <div class="col-md-6 col-xl-3">
+                            <label for="Cust-Type" class="form-label">Customer Type <span class="text-danger">*</span></label>
+                            <select asp-for="CustomerType" asp-items="@Model.CustomerTypeList"
+                                    class="form-select" aria-label="Example select with button addon"></select>
                         </div>
-                        <div class="col-md-7 col-lg-4 col-xxl-3">
+                        <div class="col-md-6 col-xl-5">
                             <div class="d-flex align-items-center">
                                 <div class="form-check flex-shrink-0">
                                     <input asp-for="MemberId" class="form-check-input" type="checkbox">
@@ -74,31 +83,30 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="col-md-7 col-lg-6 col-xl-4 col-xxl-3">
-                            <div class="d-flex align-items-end">
-                                <div class="flex-grow-1">
+                        <div class="col-md-6 col-xl-6">
+                            <div class="row g-3 align-items-end">
+                                <div class="col-md-6">
                                     <label asp-for="Personal_DOB" class="form-label">DOB <span class="text-danger">*</span></label>
                                     <input asp-for="Personal_DOB" asp-format="{0:dd-MMM-yyyy}" type="date" class="form-control">
                                 </div>
-                                <div class="flex-shrink-0 ms-2">
+                                <div class="col-md-6">
                                     <div class="form-check mb-2">
                                         <input asp-for="Personal_Minor" class="form-check-input" type="checkbox">
-                                        <label asp-for="Personal_Minor" class="form-check-label">
+                                        <label class="form-check-label">
                                             Minor Y/N
                                         </label>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                        <div class="col-lg-6 col-xl-8 col-xxl-4">
+                        <div class="col-md-6">
                             <div class="d-flex align-items-center">
                                 <div class="me-2 flex-shrink-0">
-                                    <label asp-for="Personal_Relation" class="form-label">Relation</label>
-                                    <select asp-for="Personal_Relation" asp-items="@Model.Personal_RelationList" class="form-select"></select>
+                                    <select asp-for="Personal_Relation" asp-items="@Model.Personal_RelationList"
+                                            class="form-select" aria-label="Example select with button addon"></select>
                                 </div>
                                 <div class="flex-grow-1">
-                                    <label asp-for="Personal_RelationName" class="form-label">Name</label>
-                                    <input asp-for="Personal_RelationName" type="text" class="form-control">
+                                    <input asp-for="Personal_RelationName" type="text" class="form-control" id="Risk-Category">
                                 </div>
                             </div>
                         </div>
@@ -108,27 +116,27 @@
             <div class="card mb-3">
                 <div class="card-body">
                     <div class="row g-3 align-items-end">
-                        <div class="col-md-6 col-xl-3">
+                        <div class="col-md-4 col-xl-3">
                             <label asp-for="Mailing_FlatNo" class="form-label">Flat No / Plot No <span class="text-danger">*</span></label>
                             <input asp-for="Mailing_FlatNo" type="text" class="form-control">
                         </div>
-                        <div class="col-md-6 col-xl-3">
+                        <div class="col-md-8 col-xl-3">
                             <label asp-for="Mailing_Building" class="form-label">Building / Society <span class="text-danger">*</span></label>
                             <input asp-for="Mailing_Building" type="text" class="form-control">
                         </div>
-                        <div class="col-md-4 col-xl-2">
+                        <div class="col-md-4 col-xl-3">
                             <label asp-for="Mailing_Area" class="form-label">Area / Locality</label>
                             <input asp-for="Mailing_Area" type="text" class="form-control">
                         </div>
-                        <div class="col-md-4 col-xl-2">
+                        <div class="col-md-4 col-xl-3">
                             <label asp-for="Mailing_City" class="form-label">City / Village</label>
                             <input asp-for="Mailing_City" type="text" class="form-control">
                         </div>
-                        <div class="col-md-4 col-xl-2">
+                        <div class="col-md-4 col-xl-3">
                             <label asp-for="Mailing_Pincode" class="form-label">Pincode <span class="text-danger">*</span></label>
                             <input asp-for="Mailing_Pincode" type="text" class="form-control">
                         </div>
-                        <div class="col-lg-12">
+                        <div class="col-lg-9">
                             <div class="form-check mb-2 float-end">
                                 <input asp-for="IsMailingSameAsPermanent" class="form-check-input" type="checkbox">
                                 <label asp-for="IsMailingSameAsPermanent" class="form-check-label">
@@ -143,12 +151,14 @@
                 <div class="card-body">
                     <div class="row g-3 align-items-end">
                         <div class="col-md-4 col-xl-3">
-                            <label asp-for="Personal_Gender" class="form-label">Gender <span class="text-danger">*</span></label>
-                            <select asp-for="Personal_Gender" asp-items="@Model.Personal_GenderList" class="form-select"></select>
+                            <label for="Gender" class="form-label">Gender <span class="text-danger">*</span></label>
+                            <select asp-for="Personal_Gender" asp-items="@Model.Personal_GenderList"
+                                    class="form-select" aria-label="Example select with button addon"></select>
                         </div>
                         <div class="col-md-4 col-xl-3">
-                            <label asp-for="Personal_MaritalStatus" class="form-label">Marital Status <span class="text-danger">*</span></label>
-                            <select asp-for="Personal_MaritalStatus" asp-items="@Model.Personal_MaritalStatusList" class="form-select"></select>
+                            <label for="Marital" class="form-label">Marital Status <span class="text-danger">*</span></label>
+                            <select asp-for="Personal_MaritalStatus" asp-items="@Model.Personal_MaritalStatusList"
+                                    class="form-select" aria-label="Example select with button addon"></select>
                         </div>
                         <div class="col-md-4 col-xl-3">
                             <div class="form-check mb-2">
@@ -164,75 +174,75 @@
             <div class="card mb-3">
                 <div class="card-body">
                     <div class="row g-3">
-                        <div class="col-xl-12 col-xxl-6">
+                        <div class="col-xl-6">
                             <div class="row g-3 align-items-end">
-                                <div class="col-md-6 col-lg-4 col-xl-3 col-xxl-6">
-                                    <label asp-for="Personal_Mobile" class="form-label">Mobile No <span class="text-danger">*</span></label>
-                                    <input asp-for="Personal_Mobile" type="text" class="form-control">
+                                <div class="col-md-6">
+                                    <label for="Pan" class="form-label">Mobile No <span class="text-danger">*</span></label>
+                                    <input asp-for="Personal_Mobile" type="text" class="form-control" id="Pan">
                                 </div>
                                 <div class="col-md-6">
                                     <div class="form-check form-check-inline mb-2">
                                         <input asp-for="SMS_YesNo" class="form-check-input" type="checkbox">
                                         <label asp-for="SMS_YesNo" class="form-check-label">
-                                            SMSYN
+                                            SMS Y/N
                                         </label>
                                     </div>
                                     <div class="form-check form-check-inline mb-2">
                                         <input asp-for="MobileAccess_YesNo" class="form-check-input" type="checkbox">
                                         <label asp-for="MobileAccess_YesNo" class="form-check-label">
-                                            Mob Acces YN
+                                            Mobile Access Y/N
                                         </label>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                        <div class="col-md-6 col-lg-4 col-xl-3 col-xxl-2">
-                            <label asp-for="Office_Phone" class="form-label">Phone No.(Off)</label>
+                        <div class="col-md-6 col-xl-3">
+                            <label asp-for="Office_Phone" class="form-label">Phone No. (Office)</label>
                             <input asp-for="Office_Phone" type="text" class="form-control">
                         </div>
-                        <div class="col-md-6 col-lg-4 col-xl-3 col-xxl-2">
-                            <label asp-for="Permanent_Phone" class="form-label">Phone No.(Res)</label>
-                            <input asp-for="Permanent_Phone" type="text" class="form-control">
+                        <div class="col-md-6 col-xl-3">
+                            <label asp-for="Mailing_Phone" class="form-label">Phone No. (Residence)</label>
+                            <input asp-for="Mailing_Phone" type="text" class="form-control">
                         </div>
-                        <div class="col-lg-4 col-xl-3 col-xxl-2">
-                            <label asp-for="Personal_Email" class="form-label">Email ID</label>
-                            <input asp-for="Personal_Email" type="text" class="form-control">
-                        </div>
-                        <div class=" col-xl-12 col-xxl-6">
+                        <div class="col-xl-9">
                             <div class="row g-3 align-items-end">
-                                <div class="col-md-6 col-lg-4 col-xl-6 col-xxl-6">
-                                    <label asp-for="Personal_PANNo" class="form-label">Pan No</label>
+                                <div class="col-md-6 col-xl-4">
+                                    <label for="Pan" class="form-label">PAN No</label>
                                     <input asp-for="Personal_PANNo" type="text" class="form-control">
                                 </div>
-                                <div class="col-md-6">
+                                <div class="col-md-6 col-xl-6">
                                     <div class="form-check form-check-inline mb-2">
                                         <input asp-for="Personal_PANABYN" class="form-check-input" type="checkbox">
                                         <label asp-for="Personal_PANABYN" class="form-check-label">
-                                            Pan 206AB YN
+                                            PAN 206AB Y/N
                                         </label>
                                     </div>
                                     <div class="form-check form-check-inline mb-2">
                                         <input asp-for="Personal_PANAAYN" class="form-check-input" type="checkbox">
                                         <label asp-for="Personal_PANAAYN" class="form-check-label">
-                                            Pan 206AA YN
+                                            PAN 206AA Y/N
                                         </label>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                        <div class="col-md-6 col-lg-3 col-xl-3 col-xxl-2">
-                            <label asp-for="Personal_Aadhaar" class="form-label">Adhar No</label>
+                        <div class="col-md-4 col-xl-3">
+                            <label asp-for="Personal_Aadhaar" class="form-label">Aadhaar No</label>
                             <input asp-for="Personal_Aadhaar" type="text" class="form-control">
                         </div>
-                        <div class="col-md-6 col-lg-3 col-xl-3 col-xxl-2">
+                        <div class="col-md-8 col-xl-3">
+                            <label asp-for="Personal_Email" class="form-label">Email ID</label>
+                            <input asp-for="Personal_Email" type="text" class="form-control">
+                        </div>
+                        <div class="col-md-4 col-xl-3">
                             <label asp-for="Personal_GSTIN" class="form-label">GSTIN</label>
                             <input asp-for="Personal_GSTIN" type="text" class="form-control">
                         </div>
-                        <div class="col-md-6 col-lg-3 col-xl-3 col-xxl-2">
+                        <div class="col-md-4 col-xl-3">
                             <label asp-for="Personal_CKYCID" class="form-label">CKYCID</label>
                             <input asp-for="Personal_CKYCID" type="text" class="form-control">
                         </div>
-                        <div class="col-md-6 col-lg-3 col-xl-3 col-xxl-2">
+                        <div class="col-md-4 col-xl-3">
                             <label asp-for="Personal_CKYCEnrollDate" class="form-label">CKYC Enroll Date</label>
                             <input asp-for="Personal_CKYCEnrollDate" type="date" class="form-control" placeholder="DD-MM-YYYY">
                         </div>
@@ -245,12 +255,14 @@
                         <div class="card-body">
                             <div class="row g-3">
                                 <div class="col-md-6">
-                                    <label asp-for="Personal_Religion" class="form-label">Religion</label>
-                                    <select asp-for="Personal_Religion" asp-items="@Model.Personal_ReligionList" class="form-select"></select>
+                                    <label for="Religion" class="form-label">Religion</label>
+                                    <select asp-for="Personal_Religion" asp-items="@Model.Personal_ReligionList"
+                                            class="form-select" aria-label="Example select with button addon"></select>
                                 </div>
                                 <div class="col-md-6">
-                                    <label asp-for="RiskCategory" class="form-label">Risk Category</label>
-                                    <select asp-for="RiskCategory" asp-items="@Model.RiskCategoryList" class="form-select"></select>
+                                    <label for="Cust-Type" class="form-label">Risk Category</label>
+                                    <select asp-for="RiskCategory" asp-items="@Model.RiskCategoryList"
+                                            class="form-select" aria-label="Example select with button addon"></select>
                                 </div>
                             </div>
                         </div>
@@ -262,11 +274,13 @@
                             <div class="row g-3">
                                 <div class="col-md-6">
                                     <label asp-for="Occupation_Id" class="form-label">Occupation</label>
-                                    <select asp-for="Occupation_Id" asp-items="@Model.Occupation_List" class="form-select"></select>
+                                    <select asp-for="Occupation_Id" asp-items="@Model.Occupation_List"
+                                            class="form-select" aria-label="Example select with button addon"></select>
                                 </div>
                                 <div class="col-md-6">
-                                    <label asp-for="Occupation_Income" class="form-label">Annual Income</label>
-                                    <select asp-for="Occupation_Income" asp-items="@Model.Occupation_IncomeList" class="form-select"></select>
+                                    <label for="Religion" class="form-label">Annual Income</label>
+                                    <select asp-for="Occupation_Income" asp-items="@Model.Occupation_IncomeList"
+                                            class="form-select" aria-label="Example select with button addon"></select>
                                 </div>
                             </div>
                         </div>
@@ -276,11 +290,12 @@
             <div class="card">
                 <div class="card-body">
                     <div class="row g-3 align-items-end">
-                        <div class="col-xl-9">
-                            <label asp-for="KYCType" class="form-label">KYC Prof.</label>
+                        <div class="col-md-9 col-lg-12 col-xl-9">
+                            <label for="Religion" class="form-label">KYC Proof</label>
                             <div class="d-flex align-items-center">
                                 <div class="me-2 flex-shrink-0">
-                                    <select asp-for="KYCType" asp-items="@Model.KYCTypeList" class="form-select"></select>
+                                    <select asp-for="KYCType" asp-items="@Model.KYCTypeList"
+                                            class="form-select" aria-label="Example select with button addon"></select>
                                 </div>
                                 <div class="flex-grow-1 me-2">
                                     <input asp-for="KYCNumber" type="text" class="form-control">
@@ -290,7 +305,7 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="col-xl-3 text-end text-xl-start">
+                        <div class="col-md-4 col-lg-12 col-xl-3 text-end text-md-start text-lg-end text-xl-start">
                             <button type="button" class="btn btn-primary" id="AddToGrid">Add</button>
                             <button type="button" class="btn btn-primary">Clear</button>
                         </div>
@@ -299,7 +314,6 @@
                                 <table class="table table-bordered">
                                     <thead>
                                         <tr>
-                                            <th scope="col">S.No</th>
                                             <th scope="col">KYC ID</th>
                                             <th scope="col">Description</th>
                                             <th scope="col">KYC No</th>
@@ -331,7 +345,6 @@
         </div>
     </div>
     <input asp-for="ApplicationDate" type="hidden" class="form-control">
-    <input id="KYCList" type="hidden" class="form-control">
 </form>
 
 <div class="modal fade" id="nameSearchModal" tabindex="-1">

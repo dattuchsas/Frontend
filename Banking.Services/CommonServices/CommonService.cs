@@ -1,18 +1,18 @@
 ﻿using Banking.Framework;
 using Banking.Interfaces;
 using Banking.Models;
-using Microsoft.AspNetCore.Hosting.Server;
+using Humanizer;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.Extensions.Options;
 using System.Data;
-using System.IO;
-using System.Security.Cryptography;
+using System.Diagnostics;
+using System.Reflection.PortableExecutable;
+using System.Text;
 
 namespace Banking.Services
 {
     public class CommonService : ICommonService
     {
-        // dim rs, rs1, rs2, rs3, rs4, obj, result, record, length, exitdir, menustr, menuyn, custid, vbWhite
         private readonly IDatabaseService _databaseFactory;
 
         public CommonService(IOptions<DatabaseSettings> databaseSettings)
@@ -24,7 +24,7 @@ namespace Banking.Services
         {
             using DataTable dataTable = await _databaseFactory.SingleRecordSet("GENSALUTATIONMST", "CODE,DESCRIPTION", "");
 
-            return ReturnKeyValuePair(dataTable);
+            return ReturnKeyValuePair(dataTable, "Salutation");
         }
 
         public async Task<List<SelectListItem>> GetRelationList(string whereCondition = "")
@@ -33,42 +33,42 @@ namespace Banking.Services
             using DataTable dataTable = await _databaseFactory.SingleRecordSet("GENRELATIONSMST", 
                 "CODE,NARRATION", !string.IsNullOrWhiteSpace(whereCondition) ? whereCondition : string.Empty);
 
-            return ReturnKeyValuePair(dataTable);
+            return ReturnKeyValuePair(dataTable, "Relation");
         }
 
         public async Task<List<SelectListItem>> GetReligionList()
         {
             using DataTable dataTable = await _databaseFactory.SingleRecordSet("GENRELIGIONMST", "CODE,DESCRIPTION", "");
 
-            return ReturnKeyValuePair(dataTable);
+            return ReturnKeyValuePair(dataTable, "Religion");
         }
 
         public async Task<List<SelectListItem>> GetOccupationList()
         {
             using DataTable dataTable = await _databaseFactory.SingleRecordSet("genoccupationmst", "code,narration", "status='R' order by code");
 
-            return ReturnKeyValuePair(dataTable);
+            return ReturnKeyValuePair(dataTable, "Occupation");
         }
 
         public async Task<List<SelectListItem>> GetEducationList()
         {
             using DataTable dataTable = await _databaseFactory.SingleRecordSet("genoccupationmst", "code,narration", "status='R' order by code");
 
-            return ReturnKeyValuePair(dataTable);
+            return ReturnKeyValuePair(dataTable, "Education");
         }
 
         public async Task<List<SelectListItem>> GetKYCList()
         {
             using DataTable dataTable = await _databaseFactory.SingleRecordSet("GENKYCMST", "CODE,DESCRIPTION", "code not in (2,12) ");
 
-            return ReturnKeyValuePair(dataTable);
+            return ReturnKeyValuePair(dataTable, "KYC Type");
         }
 
         public List<SelectListItem> GetGenderList()
         {
             return
             [
-                new() { Text = "Select Gender", Value = "" },
+                new() { Text = "Select", Value = "" },
                 new() { Text = "Male", Value = "M" },
                 new() { Text = "Female", Value = "F" }
             ];
@@ -78,7 +78,7 @@ namespace Banking.Services
         {
             return
             [
-                new() { Text = "Select Marital Status", Value = "" },
+                new() { Text = "Select", Value = "" },
                 new() { Text = "Single", Value = "N" },
                 new() { Text = "Married", Value = "Y" }
             ];
@@ -113,14 +113,13 @@ namespace Banking.Services
         {
             return
             [
-                new() { Text = "Select Risk Category", Value = "" },
+                new() { Text = "Select", Value = "" },
                 new() { Text = "High", Value = "H" },
                 new() { Text = "Medium", Value = "M" },
                 new() { Text = "Low", Value = "L" },
                 new() { Text = "None", Value = "N" }
             ];
         }
-
 
         public void GetList(string strType, string hidsearch)
         {
@@ -132,9 +131,9 @@ namespace Banking.Services
             {
                 //    k = split(strType, "|")
                 //objfetch = server.CreateObject("ReportPurposeOnly.Reportonly")
-                //strsql = "SELECT to_char(EXECUTEDATE,'dd-Mon-yyyy') FROM CUSTBALANCEEXECUTEDATE where branchcode = '" & k(1) & "' AND MONTHS_BETWEEN('" & k(2) & "',EXECUTEDATE) <=42 "
+                //sqlQuery = "SELECT to_char(EXECUTEDATE,'dd-Mon-yyyy') FROM CUSTBALANCEEXECUTEDATE where branchcode = '" & k(1) & "' AND MONTHS_BETWEEN('" & k(2) & "',EXECUTEDATE) <=42 "
 
-                //    rs = objfetch.SingleSelectStat(strsql)
+                //    rs = objfetch.SingleSelectStat(sqlQuery)
             }
             else if (strType.Substring(0, 12) == "DividForYear")
             {
@@ -243,9 +242,9 @@ namespace Banking.Services
             {
                 //k = split(strType, "|")
                 // objfetch = server.CreateObject("ReportPurposeOnly.Reportonly")
-                //strsql = "select DISTINCT A.ACCNO, B.NAME from SHAREALLOTMENTDTLS A, SHARESMST  B where A.SHARETYPE='" & k(3) & "' AND A.BRANCHCODE='" & k(2) & "' AND A.ACCNO=B.ACCNO AND A.SHARETYPE = B.GLCODE AND A.BRANCHCODE=B.BRANCHCODE and " & k(4) & " order by TO_NUMBER(A.ACCNO)"
+                //sqlQuery = "select DISTINCT A.ACCNO, B.NAME from SHAREALLOTMENTDTLS A, SHARESMST  B where A.SHARETYPE='" & k(3) & "' AND A.BRANCHCODE='" & k(2) & "' AND A.ACCNO=B.ACCNO AND A.SHARETYPE = B.GLCODE AND A.BRANCHCODE=B.BRANCHCODE and " & k(4) & " order by TO_NUMBER(A.ACCNO)"
 
-                //rs = objfetch.SingleSelectStat(strsql)
+                //rs = objfetch.SingleSelectStat(sqlQuery)
 
 
             }
@@ -999,7 +998,7 @@ namespace Banking.Services
             using DataTable dataTable = await _databaseFactory.SingleRecordSet("genqualificationmst", "code,narration,status",
                 arr.Length != 0 && arr[1].Equals("View") ? "" : "status='R' order by code");
 
-            return ReturnKeyValuePair(dataTable);
+            return ReturnKeyValuePair(dataTable, "Qualification");
         }
 
         public async Task<List<SelectListItem>> GetIncomeList(string type = "")
@@ -1009,18 +1008,18 @@ namespace Banking.Services
             using DataTable dataTable = await _databaseFactory.SingleRecordSet("genincomemst", "code,narration,status",
                 arr.Length != 0 && string.IsNullOrWhiteSpace(arr[1]) ? "" : "status='R' order by code");
 
-            return ReturnKeyValuePair(dataTable);
+            return ReturnKeyValuePair(dataTable, "Income");
         }
 
         public async Task<List<SelectListItem>> GetCardLength()
         {
-            // dim length
+            // dim lengthmo
             using DataTable dataTable = await _databaseFactory.SingleRecordSet("GENCARDLENGTHMST", "CARDLENGTH");
             // "status='R'"
             //              if rs4.RecordCount > 0 then
             //               length = rs4(0).value
             //              end if
-            return ReturnKeyValuePair(dataTable);
+            return ReturnKeyValuePair(dataTable, "Card Length");
         }
 
         private List<SelectListItem> ReturnKeyValuePair(DataTable dataTable, string type = "")
@@ -1030,17 +1029,90 @@ namespace Banking.Services
                 "Branch", "Category"
             };
             var result = new List<SelectListItem>();
+            result.Add(new SelectListItem { Value = "", Text = "Select" });
             foreach (DataRow row in dataTable.Rows)
             {
                 var keyValuePair = new SelectListItem();
                 if (list.Contains(type))
-                    keyValuePair.Text = string.Concat(Conversions.ToString(row.ItemArray[0]), " - ", Conversions.ToString(row.ItemArray[1]));
+                    keyValuePair.Text = string.Concat(Conversions.ToString(row.ItemArray[0]), " - ", Conversions.ToString(row.ItemArray[1]).ToLower().Humanize(LetterCasing.Title));
                 else
-                    keyValuePair.Text = Conversions.ToString(row.ItemArray[1]);
+                    keyValuePair.Text = Conversions.ToString(row.ItemArray[1]).ToLower().Humanize(LetterCasing.Title);
                 keyValuePair.Value = Conversions.ToString(row.ItemArray[0]);
                 result.Add(keyValuePair);
             }
             return result;
         }
+
+        //public async Task<string> SearchByName(string strName)
+        //{
+        //    var names = new List<string>();
+        //    var parts = strName.Split(' ', 3, StringSplitOptions.RemoveEmptyEntries);
+
+        //    async Task<DataTable> Query(string value)
+        //    {
+        //        string v = value.ToUpper();
+        //        string sql =
+        //            $"select * from GENTERRORISTLIST where " +
+        //            $"FIRSTNAME like '%{v}%' or SECONDNAME like '%{v}%' or " +
+        //            $"THIRDNAME like '%{v}%' or FOURTHNAME like '%{v}%'";
+        //        return await _databaseFactory.ProcessQueryAsync(sql);
+        //    }
+
+        //    // try full name first, then each part
+        //    foreach (var key in new[] { strName }.Concat(parts))
+        //    {
+        //        var table = await Query(key);
+
+        //        if (table.Rows.Count > 0)
+        //        {
+        //            foreach (DataRow r in table.Rows)
+        //            {
+        //                names.Add(
+        //                    $"{r["DATEOFBIRTH"]}~{r["FIRSTNAME"]} {r["SECONDNAME"]} {r["THIRDNAME"]} {r["FOURTHNAME"]};"
+        //                );
+        //            }
+        //            return string.Join("", names);
+        //        }
+
+        //        if (string.IsNullOrWhiteSpace(await Search(key, parts[0])))
+        //            return " ~ No Records Found;".ToUpper();
+        //    }
+
+        //    return "NO RECORDS FOUND";
+        //}
+
+        //private async Task<string> Search(string strCheck, string strName)
+        //{
+        //    DataTable dataTable = null!;
+        //    StringBuilder strAllNames = new StringBuilder();
+
+        //    string[] aliasColumns = {
+        //        "ALIASNAME1", "ALIASNAME2", "ALIASNAME3", "ALIASNAME4", "ALIASNAME5",
+        //        "ALIASNAME6", "ALIASNAME7", "ALIASNAME8", "ALIASNAME9", "ALIASNAME10"
+        //    };
+
+        //    foreach (var alias in aliasColumns)
+        //    {
+        //        string searchString = alias == "ALIASNAME10" ? strName : strCheck;
+        //        string sqlQuery = $"SELECT DATEOFBIRTH, FIRSTNAME, SECONDNAME, THIRDNAME, FOURTHNAME, {alias} FROM GENTERRORISTLIST " +
+        //            $"WHERE {alias} LIKE '%{searchString}%'";
+
+        //        dataTable = await _databaseFactory.ProcessQueryAsync(sqlQuery);
+
+        //        if (dataTable.Rows.Count > 0)
+        //        {
+        //            foreach (DataRow row in dataTable.Rows)
+        //            {
+        //                strAllNames.Append($"{row["DATEOFBIRTH"]}~{row["FIRSTNAME"]} {row["SECONDNAME"]} " +
+        //                    $"{row["THIRDNAME"]} {row["FOURTHNAME"]}~{Conversions.ToString(row[alias])};");
+        //            }
+
+        //            // Stop after finding the first matching alias column
+        //            break;
+        //        }
+        //    }
+
+        //    return Conversions.ToString(strAllNames);
+        //}
     }
 }
