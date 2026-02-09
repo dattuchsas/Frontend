@@ -178,16 +178,29 @@ namespace Banking.Frontend.Controllers
         {
             try
             {
-                RedirectModel commDict = await _loginService.Logout(HttpContext.Session);
+                if (HttpContext.Session != null && !string.IsNullOrWhiteSpace(HttpContext.Session.GetString(SessionConstants.UserId)))
+                {
+                    RedirectModel commDict = await _loginService.Logout(HttpContext.Session);
 
-                HttpContext.Session.Clear();
+                    await HttpContext.SignOutAsync("Cookies");
 
-                return RedirectToAction(commDict.ActionName, commDict.ControllerName);
+                    HttpContext.Session.Clear();
+
+                    return RedirectToAction(commDict.ActionName, commDict.ControllerName);
+                }
+
+                return RedirectToAction("Index", "Login");
             }
             catch (Exception ex)
             {
                 return View();
             }
+        }
+
+        [HttpGet]
+        public IActionResult KeepAlive()
+        {
+            return Ok();
         }
     }
 }

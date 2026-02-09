@@ -76,7 +76,7 @@ function formatDate(obj) {
     dateval = dateval.replace('/', '');
     len = dateval;
     if (len.length != 8) {
-      alert("Enter Date In Valid Date Format");
+      bankingAlert("Enter Date In Valid Date Format");
       obj.value = ""
       obj.select();
       return false;
@@ -90,26 +90,26 @@ function formatDate(obj) {
       date1 = dd + mm + yy;
       noDays = getDays((len.substring(2, 4) - 1), yy)
       if ((len.substring(0, 2) > 31) || (len.substring(2, 4) > 12)) {
-        alert('No Of Days (or) Months Exceeds The Limit');
+        bankingAlert('No Of Days (or) Months Exceeds The Limit');
         obj.value = ""
         obj.focus();
         obj.select();
         return false;
       }
       else if ((len.substring(0, 2) < 1) || (len.substring(2, 4) < 1)) {
-        alert('No Of Days (or) Months Not Equal To Zero');
+        bankingAlert('No Of Days (or) Months Not Equal To Zero');
         obj.focus();
         obj.select();
         return false;
       }
       else if (len.substring(4, 8) < 1950) {
-        alert('Year Should Not Be Less Than 1950');
+        bankingAlert('Year Should Not Be Less Than 1950');
         obj.focus();
         obj.select();
         return false;
       }
       else if (len.substring(0, 2) > noDays) {
-        alert("Enter DD Value Not More Than " + noDays);
+        bankingAlert("Enter DD Value Not More Than " + noDays);
         obj.focus();
         obj.select();
         return false;
@@ -228,4 +228,93 @@ function changeMonth(str) {
     strMonth = "December"
 
   return strMonth;
+}
+
+function ValidateEmail(emailField) {
+  debugger;
+  if (emailField.value != "") {
+    var reg = /^([A-Za-z0-9_\-\.])+\@([A-Za-z0-9_\-\.])+\.([A-Za-z]{2,4})$/;
+    if (reg.test(emailField.value) == false) {
+      bankingAlert('Please enter valid email address.');
+      emailField.value = '';
+      emailField.trigger('focus');
+      return false;
+    }
+    return true;
+  }
+}
+
+function ValidateGSTIN(gstField) {
+  debugger;
+  if (gstField.value != "") {
+    if (eval(gstField.value.length) != 15) {
+      bankingAlert("Enter Valid GST IN");
+      gstField.value = '';
+      gstField.trigger('focus');
+    }
+  }
+}
+
+function ValidateCKYCID(ckycField) {
+  debugger;
+  if (ckycField.value != "") {
+    if (eval(ckycField.length) != 14) {
+      bankingAlert("Enter Valid CKYCID");
+      ckycField.value = '';
+      ckycField.trigger('focus');
+    }
+  }
+}
+
+function bankingAlert(response) {
+  bankingAlert(response);
+}
+
+
+/******************* Idle Timeout Logic ******************/
+function resetIdleTimer() {
+  idleSeconds = 0;
+  $('#idleModal').modal('hide');
+  clearInterval(countdownInterval);
+  updateUITimer();
+}
+
+function showWarning() {
+  $('#idleModal').modal('show');
+  var remaining = warningSeconds;
+  $('#countdown').text(formatTime(remaining));
+  countdownInterval = setInterval(function () {
+    remaining--;
+    $('#countdown').text(formatTime(remaining));
+
+    if (remaining <= 0) {
+      clearInterval(countdownInterval);
+    }
+  }, 1000);
+}
+
+function updateUITimer() {
+  var remaining = totalIdleSeconds - idleSeconds;
+  $('#uiTimer').text(formatTime(remaining));
+}
+
+function formatTime(seconds) {
+  var m = Math.floor(seconds / 60);
+  var s = seconds % 60;
+  return (m < 10 ? '0' : '') + m + ':' + (s < 10 ? '0' : '') + s;
+}
+
+function keepAlive() {
+  $.get('/Login/KeepAlive')
+    .done(function () {
+      resetIdleTimer();
+    })
+    .fail(function () {
+      logoutUser();
+    });
+}
+
+function logoutUser() {
+  window.location.href = '/Login/Logout';
+  window.close();
 }

@@ -135,7 +135,7 @@ function GetCustomer() {
 }
 function Onsearch() {
   if (window.document.frmCustomer.txtCustname.value == "") {
-    alert("Name should not be Empty")
+    bankingAlert("Name should not be Empty")
   }
   else {
     strName = window.document.frmCustomer.txtCustname.value
@@ -145,14 +145,14 @@ function Onsearch() {
 function validateaadharid() {
   if (window.document.frmCustomer.opttransmod(1).checked == true) {
     if (window.document.frmCustomer.txtCustid.value == "") {
-      alert("Enter Customer ID");
+      bankingAlert("Enter Customer ID");
       window.document.frmCustomer.txtCustid.focus();
       return
     }
   }
   if (window.document.frmCustomer.txtadharid.value != "") {
     if (eval(window.document.frmCustomer.txtadharid.value.length) != 12) {
-      alert("Enter Valid Aadhar ID");
+      bankingAlert("Enter Valid Aadhar ID");
       window.document.frmCustomer.txtadharid.value = "";
       window.document.frmCustomer.txtadharid.focus();
     }
@@ -164,7 +164,7 @@ function validateaadharid() {
 function validategstin() {
   if (window.document.frmCustomer.txtgstin.value != "") {
     if (eval(window.document.frmCustomer.txtgstin.value.length) != 15) {
-      alert("Enter Valid GST IN");
+      bankingAlert("Enter Valid GST IN");
       window.document.frmCustomer.txtgstin.value = "";
       window.document.frmCustomer.txtgstin.focus();
     }
@@ -173,7 +173,7 @@ function validategstin() {
 function validateckycid() {
   if (window.document.frmCustomer.txtckycid.value != "") {
     if (eval(window.document.frmCustomer.txtckycid.value.length) != 14) {
-      alert("Enter Valid CKYCID");
+      bankingAlert("Enter Valid CKYCID");
       window.document.frmCustomer.txtckycid.value = "";
       window.document.frmCustomer.txtckycid.focus();
     }
@@ -181,7 +181,7 @@ function validateckycid() {
 }
 function chkcust() {
   if (window.document.frmCustomer.txtCustid.value == "") {
-    alert("Customer Id Should Not Be Null")
+    bankingAlert("Customer Id Should Not Be Null")
     return
   }
 }
@@ -193,12 +193,12 @@ function AddtoGrid() {
   var frel = window.document.frmCustomer.cmbRelation.options[selind].text
 
   if (fname == "") {
-    alert("Name Should Not Be Null")
+    bankingAlert("Name Should Not Be Null")
     window.document.frmCustomer.txtFamName.focus()
     return
   }
   if (frel == "--select--") {
-    alert("Select Relation")
+    bankingAlert("Select Relation")
     window.document.frmCustomer.cmbRelation.focus()
     return
   }
@@ -221,13 +221,13 @@ function AddToKYCGrid() {
   var kycdata = document.frmCustomer.slckyctypeall.options[document.frmCustomer.slckyctypeall.selectedIndex].text
   var kycNo = window.document.frmCustomer.txtKYCNo.value
   if (kycdata == "Select") {
-    alert("Please Select KYC ID")
+    bankingAlert("Please Select KYC ID")
     return;
   }
 
   if (kycdata != "Select") {
     if (window.document.frmCustomer.txtKYCNo.value == "") {
-      alert(kycdata + "Should not be null.")
+      bankingAlert(kycdata + "Should not be null.")
       window.document.frmCustomer.txtKYCNo.focus()
       return
 
@@ -238,7 +238,7 @@ function AddToKYCGrid() {
   for (i = 0; i < jhcnt - 1; i++) {
 
     if (window.document.frmCustomer.MfgKYC.TextMatrix(i + 1, 1) == kycid) {
-      alert("This KYC Was Already Added")
+      bankingAlert("This KYC Was Already Added")
       return;
     }
   }
@@ -260,7 +260,7 @@ function kycclear() {
 }
 function getMemberName() {
   if (window.document.frmCustomer.txtMemId.value == "") {
-    alert("Please Enter The Member Id.")
+    bankingAlert("Please Enter The Member Id.")
   }
   else {
     var st
@@ -424,7 +424,7 @@ function Display(kstr) {
   if (kstr.substring(0, 10) == "MemberName") {
     var vstrarr = kstr.split("|")
     if (vstrarr[1] == "Norecords") {
-      alert("Not A Valid MemberId")
+      bankingAlert("Not A Valid MemberId")
       window.document.frmCustomer.txtMemId.value = ""
       window.document.frmCustomer.txtmemName.value = ""
     }
@@ -434,7 +434,7 @@ function Display(kstr) {
     return
   }
   if ((kstr == "Invalid Customer Id..") && (window.document.frmCustomer.hidmode.value != "New")) {
-    alert(kstr)
+    bankingAlert(kstr)
     window.document.frmCustomer.txtCustid.value = ""
     return
   }
@@ -507,7 +507,7 @@ function Display(kstr) {
   }
   else {
     window.document.frmCustomer.chkpan206aayn.checked = false
-    alert("This Customer Panno is Inactive")
+    bankingAlert("This Customer Panno is Inactive")
   }
 
   if (droplist[10] == "Y") {
@@ -671,7 +671,7 @@ function mfgPenal_DblClick() {
       window.document.frmCustomer.mfgPenal.RemoveItem(row)
   }
   else {
-    alert("Already Data Is There In The Fields, Whether Insert It In To The Grid Or Delete It")
+    bankingAlert("Already Data Is There In The Fields, Whether Insert It In To The Grid Or Delete It")
     return
   }
 
@@ -698,7 +698,7 @@ function MfgKYC_DblClick() {
       window.document.frmCustomer.MfgKYC.RemoveItem(row)
   }
   else {
-    alert("Already Data Is There In The Fields, Whether Insert It In To The Grid Or Delete It")
+    bankingAlert("Already Data Is There In The Fields, Whether Insert It In To The Grid Or Delete It")
     return
   }
 }
@@ -707,7 +707,7 @@ function dtpfromdate_CloseUp() {
   if (window.document.frmCustomer.txtissuedate) {
     Datecheck1(window.document.frmCustomer.txtfromdate, window.document.frmCustomer.txtissuedate)
     if (retrnval == "FALSE") {
-      alert("From Date Cannot Be Less Than Issue Date")
+      bankingAlert("From Date Cannot Be Less Than Issue Date")
       window.document.frmCustomer.txtfromdate.focus()
       window.document.frmCustomer.txtfromdate.value = ""
     }
@@ -715,7 +715,7 @@ function dtpfromdate_CloseUp() {
   if (window.document.frmCustomer.txttodate) {
     Datecheck(window.document.frmCustomer.txttodate, window.document.frmCustomer.txtfromdate)
     if (retrnval == "FALSE") {
-      alert("From Date Cannot Be More Than To Date")
+      bankingAlert("From Date Cannot Be More Than To Date")
       window.document.frmCustomer.txtfromdate.focus()
       window.document.frmCustomer.txtfromdate.value = ""
     }
@@ -726,7 +726,7 @@ function dtpissuedate_CloseUp() {
   if (window.document.frmCustomer.txtfromdate) {
     Datecheck1(window.document.frmCustomer.txtfromdate, window.document.frmCustomer.txtissuedate)
     if (retrnval == "FALSE") {
-      alert("Issue Date Cannot Be More Than From Date")
+      bankingAlert("Issue Date Cannot Be More Than From Date")
       window.document.frmCustomer.txtissuedate.focus()
       window.document.frmCustomer.txtissuedate.value = ""
     }
@@ -736,7 +736,7 @@ function dtptodate_CloseUp() {
   Datepick(window.document.frmCustomer.dtptodate, window.document.frmCustomer.txttodate)
   Datecheck(window.document.frmCustomer.txttodate, window.document.frmCustomer.txtfromdate)
   if (retrnval == "FALSE") {
-    alert("To Date Cannot Be Less Than or Equal To From Date")
+    bankingAlert("To Date Cannot Be Less Than or Equal To From Date")
     window.document.frmCustomer.txttodate.focus()
     window.document.frmCustomer.txttodate.value = ""
   }
@@ -787,27 +787,27 @@ function Checksymbols() {
   if (window.document.frmCustomer.txtEmail.value != "") {
     indx = window.document.frmCustomer.txtEmail.value.split("@")
     if (indx.length > 2) {
-      alert("Enter valid mailid...!")
+      bankingAlert("Enter valid mailid...!")
       window.document.frmCustomer.txtEmail.focus()
       return
     }
     indy = window.document.frmCustomer.txtEmail.value.split(".")
     if (indy.length > 3) {
-      alert("Enter valid mailid...!")
+      bankingAlert("Enter valid mailid...!")
       window.document.frmCustomer.txtEmail.focus()
       return
     }
     indy = window.document.frmCustomer.txtEmail.value.lastIndexOf(".")
     indx = window.document.frmCustomer.txtEmail.value.length
     if (indy == indx - 1) {
-      alert("Enter valid mailid...!")
+      bankingAlert("Enter valid mailid...!")
       window.document.frmCustomer.txtEmail.focus()
       return
     }
     indx = window.document.frmCustomer.txtEmail.value.indexOf("@") // Take the index of "@"
     if ((indx == -1) || (indx == 0))  // if "@" is not found
     {
-      alert("Enter valid mailid...!")
+      bankingAlert("Enter valid mailid...!")
       window.document.frmCustomer.txtEmail.focus()
       return
     }
@@ -815,12 +815,12 @@ function Checksymbols() {
 
     if ((indx == -1) || (indx == 0))  // if "." is not found
     {
-      alert("Enter valid mailid...!")
+      bankingAlert("Enter valid mailid...!")
       window.document.frmCustomer.txtEmail.focus()
       return
     }
     if ((indy == indx + 1) || (indy < indx)) {
-      alert("Enter valid mailid...!")
+      bankingAlert("Enter valid mailid...!")
       window.document.frmCustomer.txtEmail.focus()
       return
     }
@@ -866,7 +866,7 @@ function CheckVals() {
 
 function Ok() {
   if (eval(window.document.frmCustomer.txtFax.value) == "0") {
-    alert("Invalid Fax No.")
+    bankingAlert("Invalid Fax No.")
     window.document.frmCustomer.radclick(0).checked = true
     DispDivision("1")
     window.document.frmCustomer.txtFax.select()
@@ -874,21 +874,21 @@ function Ok() {
   }
 
   if (eval(window.document.frmCustomer.txtMPin.value) == "0") {
-    alert("Invalid Pin No.")
+    bankingAlert("Invalid Pin No.")
     window.document.frmCustomer.radclick(3).checked = true
     DispDivision("4")
     window.document.frmCustomer.txtMPin.select()
     return;
   }
   if (eval(window.document.frmCustomer.txtOPin.value) == "0") {
-    alert("Invalid Pin No.")
+    bankingAlert("Invalid Pin No.")
     window.document.frmCustomer.radclick(4).checked = true
     DispDivision("5")
     window.document.frmCustomer.txtOPin.select()
     return;
   }
   if (eval(window.document.frmCustomer.txtPPin.value) == "0") {
-    alert("Invalid Pin No.")
+    bankingAlert("Invalid Pin No.")
     window.document.frmCustomer.radclick(5).checked = true
     DispDivision("6")
     window.document.frmCustomer.txtPPin.select()
@@ -896,53 +896,53 @@ function Ok() {
   }
 
   if ((window.document.frmCustomer.txtCustType.value != "1") && (window.document.frmCustomer.chkMinor.checked == true)) {
-    alert("DOB Should Not Be A Minor DOB")
+    bankingAlert("DOB Should Not Be A Minor DOB")
     window.document.frmCustomer.txtDob.select()
     return
 
   }
   if ((window.document.frmCustomer.chkMember.checked == true) && (window.document.frmCustomer.txtMemId.value == "")) {
-    alert("Member Id Should Not Be Null")
+    bankingAlert("Member Id Should Not Be Null")
     window.document.frmCustomer.txtMemId.focus()
     return
   }
   if (window.document.frmCustomer.slctRiskcat.selectedIndex == "0") {
-    alert("Risk Category should be selected")
+    bankingAlert("Risk Category should be selected")
     window.document.frmCustomer.slctRiskcat.select()
     return
   }
   if (window.document.frmCustomer.txtBranchCode.value == "") {
-    alert("Select Branch code.")
+    bankingAlert("Select Branch code.")
     window.document.frmCustomer.txtBranchCode.focus()
     return;
   }
 
   if (window.document.frmCustomer.txtCurrencyCode.value == "") {
-    alert("Select Currency code.")
+    bankingAlert("Select Currency code.")
     window.document.frmCustomer.txtCurrencyCode.focus()
     return;
   }
 
   if (window.document.frmCustomer.txtCustname.value == "") {
-    alert("Select Customer Name.")
+    bankingAlert("Select Customer Name.")
     window.document.frmCustomer.txtCustname.focus()
     return;
   }
 
   if (window.document.frmCustomer.txtCustType.value == "") {
-    alert("Select Customer Type.")
+    bankingAlert("Select Customer Type.")
     window.document.frmCustomer.txtCustType.focus()
     return;
   }
 
   if (window.document.frmCustomer.txtMFlat.value == "") {
-    alert("Select Flat.")
+    bankingAlert("Select Flat.")
     window.document.frmCustomer.txtMFlat.focus()
     return;
   }
 
   if (window.document.frmCustomer.slctRiskcat.selectedIndex == 0) {
-    alert("Select Risk Category.")
+    bankingAlert("Select Risk Category.")
     window.document.frmCustomer.slctRiskcat.focus()
     return;
   }
@@ -953,7 +953,7 @@ function Ok() {
     (window.document.frmCustomer.txtCustType.value == "") ||
     (window.document.frmCustomer.txtMFlat.value == "") ||
     (window.document.frmCustomer.slctRiskcat.selectedIndex == "")) {
-    alert("Manditory Fields should not be null..")
+    bankingAlert("Manditory Fields should not be null..")
     return
   }
 
@@ -961,19 +961,19 @@ function Ok() {
   if (window.document.frmCustomer.hidmode.value != "Modify")
     result = ""
   if (result == "Perm") {
-    alert("Please Fill Permanent Address...")
+    bankingAlert("Please Fill Permanent Address...")
     return
   }
   else if (result == "office") {
-    alert("Please Fill Office Address...")
+    bankingAlert("Please Fill Office Address...")
     return
   }
   else if (result == "Occupation") {
-    alert("Please Fill Occupation Details...")
+    bankingAlert("Please Fill Occupation Details...")
     return
   }
   else if (result == "family") {
-    alert("Please Fill Family Details...")
+    bankingAlert("Please Fill Family Details...")
     return
   }
   brcode = "'" + window.document.frmCustomer.txtBranchCode.value + "'"
@@ -1093,7 +1093,7 @@ function Ok() {
   }
 
   if (window.document.frmCustomer.txtKYCNo.value != "") {
-    alert("Enter KYC Details")
+    bankingAlert("Enter KYC Details")
     return
   }
 
@@ -1137,7 +1137,7 @@ function Ok() {
 
   if (window.document.frmCustomer.hidmode.value != "View") {
     window.document.frmCustomer.hidcustvals.value = dbvalues
-    //alert("dbvalues="+dbvalues)
+    //bankingAlert("dbvalues="+dbvalues)
     window.document.frmCustomer.hidfamvals.value = famdtls
 
     window.document.frmCustomer.hidkycid.value = kycvals
@@ -1178,7 +1178,7 @@ function Cancel() {
 }
 function GetDateDif(kstr, str1, str2) {
   if (window.document.frmCustomer.txtCustType.value == "") {
-    alert("Category Code Should Not Be Null")
+    bankingAlert("Category Code Should Not Be Null")
     window.document.frmCustomer.txtDob.value = ""
     return
   }
@@ -1200,7 +1200,7 @@ function GetDateDif(kstr, str1, str2) {
   }
 
   if (eval(kstr) >= 0) {
-    alert("DOB Should Be Less Than Application Date..")
+    bankingAlert("DOB Should Be Less Than Application Date..")
     if (str1.length == 4)
       window.document.frmCustomer.txtDob.value = ""
     window.document.frmCustomer.chkMinor.checked = false
@@ -1276,7 +1276,7 @@ function Datecheck2(fdate, tdate) {
   var todate = Date.parse(trodate)
   var diff = todate - fromdate
   if (eval(diff) > 0) {
-    alert("This Date Should Be Less Than Or Equal To ApplicationDate")
+    bankingAlert("This Date Should Be Less Than Or Equal To ApplicationDate")
     return false
   }
 
@@ -1288,7 +1288,7 @@ function datetocheck() {
   datevalidate(window.document.frmCustomer.txttodate)
   Datecheck(window.document.frmCustomer.txttodate, window.document.frmCustomer.txtfromdate)
   if (retrnval == "FALSE") {
-    alert("To Date Cannot Be Less Than or Equal To From Date")
+    bankingAlert("To Date Cannot Be Less Than or Equal To From Date")
     window.document.frmCustomer.txttodate.focus()
     window.document.frmCustomer.txttodate.value = ""
   }
@@ -1298,7 +1298,7 @@ function datefromcheck() {
   if (window.document.frmCustomer.txttodate) {
     Datecheck(window.document.frmCustomer.txttodate, window.document.frmCustomer.txtfromdate)
     if (retrnval == "FALSE") {
-      alert("From Date Cannot Be More Than To Date")
+      bankingAlert("From Date Cannot Be More Than To Date")
       window.document.frmCustomer.txtfromdate.focus()
       window.document.frmCustomer.txtfromdate.value = ""
     }
@@ -1306,7 +1306,7 @@ function datefromcheck() {
   if (window.document.frmCustomer.txtissuedate) {
     Datecheck1(window.document.frmCustomer.txtfromdate, window.document.frmCustomer.txtissuedate)
     if (retrnval == "FALSE") {
-      alert("From Date Cannot Be Less Than Issue Date")
+      bankingAlert("From Date Cannot Be Less Than Issue Date")
       window.document.frmCustomer.txtfromdate.focus()
       window.document.frmCustomer.txtfromdate.value = ""
     }
@@ -1317,7 +1317,7 @@ function dateissuecheck() {
   if (window.document.frmCustomer.txtfromdate) {
     Datecheck1(window.document.frmCustomer.txtfromdate, window.document.frmCustomer.txtissuedate)
     if (retrnval == "FALSE") {
-      alert("Issue Date Cannot Be More Than From Date")
+      bankingAlert("Issue Date Cannot Be More Than From Date")
       window.document.frmCustomer.txtissuedate.focus()
       window.document.frmCustomer.txtissuedate.value = ""
     }
@@ -1327,7 +1327,7 @@ function checkamt() {
   with (window.document.frmCustomer) {
     if (eval(txtcardlimit.value) > 0) {
       if (eval(txtcashlimit.value) > eval(txtcardlimit.value)) {
-        alert('CashLimit not more then Cardlimit')
+        bankingAlert('CashLimit not more then Cardlimit')
         txtcashlimit.value = "0.00"
         txtcashlimit.focus()
       }
@@ -1350,7 +1350,7 @@ function popPanDtls(str) {
 
       var stCus = stVal[0].split("~")
 
-      alert("This Pan card have already Customerid :" + stCus[0] + " and Name :" + stCus[1])
+      bankingAlert("This Pan card have already Customerid :" + stCus[0] + " and Name :" + stCus[1])
       window.document.frmCustomer.txtpan.value = ""
       window.document.frmCustomer.txtpan.focus()
 
@@ -1367,7 +1367,7 @@ function popAADHARUIDDtls(str) {
 
       var stCus = stVal[0].split("~")
 
-      alert("This AADHAR card have already Customerid :" + stCus[0] + " and Name :" + stCus[1])
+      bankingAlert("This AADHAR card have already Customerid :" + stCus[0] + " and Name :" + stCus[1])
       window.document.frmCustomer.txtadharid.value = "";
       window.document.frmCustomer.txtadharid.focus();
     }
@@ -1408,7 +1408,7 @@ function panCheck() {
   if (window.document.frmCustomer.opttransmod(1).checked == true) {
 
     if (window.document.frmCustomer.txtCustid.value == "") {
-      alert("Enter Customer ID");
+      bankingAlert("Enter Customer ID");
       window.document.frmCustomer.txtCustid.focus();
       return
     }
@@ -1418,13 +1418,13 @@ function panCheck() {
 
 
   if (window.document.frmCustomer.txtpan.value == "") {
-    alert("Please Enter Pan Number")
+    bankingAlert("Please Enter Pan Number")
 
     return;
   }
   else {
     if ((panNum.length == "10") && (panNum.substring(0, 10)).match("[(/).]+")) {
-      alert("Not a valid PanNumber")
+      bankingAlert("Not a valid PanNumber")
       window.document.frmCustomer.txtpan.value = ""
     }
     else {
@@ -1435,14 +1435,14 @@ function panCheck() {
           window.document.all['iGetDtls1'].src = "../GEN/getDtls1.aspx?st=" + st
         }
         else {
-          alert("Not a valid PanNumber")
+          bankingAlert("Not a valid PanNumber")
           window.document.frmCustomer.txtpan.value = ""
           window.document.frmCustomer.txtpan.focus()
           return;
         }
       }
       else {
-        alert("Not a valid PanNumber")
+        bankingAlert("Not a valid PanNumber")
         window.document.frmCustomer.txtpan.value = ""
         window.document.frmCustomer.txtpan.focus()
         return;

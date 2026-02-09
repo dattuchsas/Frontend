@@ -12,39 +12,22 @@ namespace Banking.Frontend.Controllers
     {
         public IOptions<DatabaseSettings> _options;
         public IConfiguration _configuration;
-        public List<Menu>? _userMenu;
+        public ISession session;
 
-        private IMenuService _menuService;
-
-        public BaseController(IConfiguration configuration, 
-            IHttpContextAccessor httpContextAccessor)
+        public BaseController(IConfiguration configuration, IHttpContextAccessor httpContextAccessor)
         {
             _configuration = configuration;
 
-            _options = Options.Create(_configuration.GetSection("OracleSettings").Get<DatabaseSettings>() ?? new DatabaseSettings());
+            if (session == null)
+                session = httpContextAccessor.HttpContext!.Session;
 
-            _menuService = (IMenuService)new MenuService(_options);
+            _options = Options.Create(_configuration.GetSection("OracleSettings").Get<DatabaseSettings>() ?? new DatabaseSettings());
 
             var controllerName = Conversions.ToString(httpContextAccessor.HttpContext?.Request.RouteValues["controller"]);
 
-            httpContextAccessor.HttpContext!.Session.SetString(SessionConstants.ControllerName, controllerName);
+            session.SetString(SessionConstants.ControllerName, controllerName);
 
-            if (!controllerName.Equals(ControllerNames.Login) && !controllerName.Equals(ControllerNames.Dashboard))
-                _userMenu = BuildMenuOrder(httpContextAccessor).GetAwaiter().GetResult();
-        }
-
-        public async Task<List<Menu>> BuildMenuOrder(IHttpContextAccessor httpContextAccessor)
-        {
-            ISession session = httpContextAccessor.HttpContext!.Session;
-
-            string userId = Conversions.ToString(session.GetString(SessionConstants.UserId));
-            string moduleId = Conversions.ToString(session.GetString(SessionConstants.SelectedModule));
-            string groupCode = Conversions.ToString(session.GetString(SessionConstants.GroupCode));
-
-            if (string.IsNullOrWhiteSpace(userId) || string.IsNullOrWhiteSpace(moduleId) || string.IsNullOrWhiteSpace(groupCode))
-                return new List<Menu>();
-
-            return await _menuService.GetUserMenu(userId.ToUpper(), moduleId, groupCode);
+            session.SetString(SessionConstants.CurrencyCode, "INR");
         }
     }
 }

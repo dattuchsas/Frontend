@@ -1,3 +1,4 @@
+using Banking.Frontend;
 using Banking.Interfaces;
 using Banking.Models;
 using Banking.Services;
@@ -24,9 +25,10 @@ builder.Services.AddHttpContextAccessor();
 builder.Services.AddDistributedMemoryCache(); // Required to store session data
 builder.Services.AddSession(options =>
 {
-    options.IdleTimeout = TimeSpan.FromMinutes(2); // Set session timeout
+    options.IdleTimeout = TimeSpan.FromMinutes(20); // Set session timeout
     options.Cookie.HttpOnly = true; // Make the session cookie inaccessible to client-side script
     options.Cookie.IsEssential = true; // Make the session cookie essential
+    options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
 });
 
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme).AddCookie(options =>
@@ -34,26 +36,27 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
     options.LoginPath = "/Login/Index";
     options.LogoutPath = "/Login/Logout";
     options.AccessDeniedPath = "/Login/AccessDenied";
+    options.ExpireTimeSpan = TimeSpan.FromMinutes(5);
+    options.SlidingExpiration = false; // IMPORTANT for banking
 });
 
 builder.Services.AddAuthorization();
-
-// Add services to the container.
-builder.Services.AddControllersWithViews();
 
 builder.Services.Configure<DatabaseSettings>(builder.Configuration.GetSection("OracleSettings"));
 
 // Application Services
 builder.Services.AddScoped<ILoginService, LoginService>();
 builder.Services.AddScoped<IDashboardService, DashboardService>();
+builder.Services.AddScoped<ICustomerService, CustomerService>();
 
-// Database Services
-//builder.Services.AddScoped<IDatabaseService, DatabaseService>();
-// builder.Services.AddScoped<ITransactionalService, Transactional>();
+// Add services to the container.
+builder.Services.AddControllersWithViews();
 
 // Common Services
 builder.Services.AddScoped<IAutoNumberService, AutoNumberService>();
+builder.Services.AddScoped<ICommonService, CommonService>();
 builder.Services.AddScoped<IGeneralValidationService, GeneralValidationService>();
+builder.Services.AddScoped<IMenuService, MenuService>();
 
 builder.Services.AddSingleton(builder.Configuration);
 

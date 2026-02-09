@@ -1,5 +1,7 @@
 ﻿using Microsoft.AspNetCore.Http;
 using System.Data;
+using System.Globalization;
+using System.Xml;
 
 namespace Banking.Framework
 {
@@ -25,6 +27,11 @@ namespace Banking.Framework
         public static bool ToBoolean(this object? str)
         {
             return Convert.ToBoolean(str);
+        }
+
+        public static DateTime ToDateTime(this object? str)
+        {
+            return DateTime.ParseExact(ToString(str), "dd-MMM-yyyy", CultureInfo.InvariantCulture);
         }
     }
 

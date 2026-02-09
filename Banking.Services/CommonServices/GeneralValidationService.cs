@@ -940,10 +940,10 @@ namespace Banking.Services
             return GetLoginOTPYNRet;
         }
 
-        public async Task GetCKYCEnrollDetails(string strkycenrolldate)
+        public async Task<CKYCEnrollmentDateModel> GetCKYCEnrollDetails(string strkycenrolldate)
         {
             DataTable recnfts1;
-            string pstrckycsno, pstrduedate, strSql, strckycsno = string.Empty, strCKYCIDPERIOD = string.Empty;
+            string strSql, strckycsno = string.Empty, strCKYCIDPERIOD = string.Empty;
 
             try
             {
@@ -969,12 +969,16 @@ namespace Banking.Services
 
                 recnfts1 = null!;
 
-                pstrduedate = Convert.ToString(Convert.ToDateTime(strkycenrolldate).AddMonths(Convert.ToInt32(strCKYCIDPERIOD)));
-                pstrduedate = string.Format("dd-MMM-yyyy", Convert.ToDateTime(pstrduedate));
-                pstrckycsno = strckycsno;
+                var ckycModel = new CKYCEnrollmentDateModel();
+                string pstrduedate = Convert.ToString(Convert.ToDateTime(strkycenrolldate).AddMonths(Convert.ToInt32(strCKYCIDPERIOD)));
+                ckycModel.DueDate = string.Format("dd-MMM-yyyy", Convert.ToDateTime(pstrduedate));
+                ckycModel.CKYCSno = strckycsno;
+
+                return ckycModel;
             }
             catch (Exception ex)
             {
+                throw ex;
             }
         }
 
