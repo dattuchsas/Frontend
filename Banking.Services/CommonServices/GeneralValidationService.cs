@@ -967,7 +967,7 @@ namespace Banking.Services
                     strCKYCIDPERIOD = Convert.IsDBNull(recnfts1.Rows[0]["CKYCIDPERIOD"]) ? "0" : Convert.ToString(recnfts1.Rows[0]["CKYCIDPERIOD"]) ?? string.Empty;
                 }
 
-                recnfts1 = null!;
+                BankingExtensions.ReleaseMemory(recnfts1);
 
                 var ckycModel = new CKYCEnrollmentDateModel();
                 string pstrduedate = Convert.ToString(Convert.ToDateTime(strkycenrolldate).AddMonths(Convert.ToInt32(strCKYCIDPERIOD)));

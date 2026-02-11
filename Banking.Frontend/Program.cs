@@ -57,6 +57,7 @@ builder.Services.AddScoped<IAutoNumberService, AutoNumberService>();
 builder.Services.AddScoped<ICommonService, CommonService>();
 builder.Services.AddScoped<IGeneralValidationService, GeneralValidationService>();
 builder.Services.AddScoped<IMenuService, MenuService>();
+builder.Services.AddScoped<IGetDetailsService, GetDetailsService>();
 
 builder.Services.AddSingleton(builder.Configuration);
 
@@ -86,6 +87,6 @@ app.UseSession(); // Enable session middleware
 
 app.MapControllerRoute(
     name: "default",
-    pattern: "{controller=Login}/{action=Index}");
+    pattern: "{controller=Login}/{action=Index}/{id?}");
 
 app.Run();

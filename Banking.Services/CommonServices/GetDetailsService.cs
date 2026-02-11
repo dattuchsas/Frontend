@@ -1,0 +1,15220 @@
+﻿using Banking.Framework;
+using Banking.Interfaces;
+using Banking.Models;
+using Humanizer;
+using Microsoft.Extensions.Options;
+using Newtonsoft.Json.Linq;
+using System.Data;
+using System.Diagnostics;
+using System.Runtime.InteropServices;
+using System.Threading.Tasks;
+using static System.Net.Mime.MediaTypeNames;
+using static System.Runtime.InteropServices.JavaScript.JSType;
+
+namespace Banking.Services
+{
+    public class GetDetailsService : IGetDetailsService
+    {
+        private readonly IDatabaseService _databaseFactory;
+
+        public GetDetailsService(IOptions<DatabaseSettings> databaseSettings)
+        {
+            _databaseFactory = new DatabaseService(databaseSettings.Value);
+        }
+
+        // GETAADHARUIDTLS
+        public async Task<string> GetAadhaarDetails(string aadhaarNumber)
+        {
+            string strResult = string.Empty;
+            string sqlQuery = string.Empty;
+
+            sqlQuery = "SELECT CUSTOMERID,NAME FROM GENCUSTINFOMST WHERE AADHARUID='" + aadhaarNumber + "'";
+
+            DataTable dataTable = await _databaseFactory.ProcessQueryAsync(sqlQuery);
+
+            if (dataTable.Rows.Count > 0)
+            {
+                foreach (DataRow row in dataTable.Rows)
+                {
+                    strResult = strResult + row.ItemArray[0] + "~" + row.ItemArray[1] + "|";
+                }
+                strResult = strResult.Substring(0, strResult.Length - 1);
+            }
+            else
+                strResult = "0";
+
+            BankingExtensions.ReleaseMemory(dataTable);
+
+            return strResult;
+        }
+
+        // GETPANDTLS
+        public async Task<string> GetPANDetails(string panNumber)
+        {
+            string strResult = string.Empty;
+            string sqlQuery = string.Empty;
+            sqlQuery = "SELECT CUSTOMERID,NAME FROM GENCUSTINFOMST WHERE PANNO='" + panNumber + "'";
+            DataTable dataTable = await _databaseFactory.ProcessQueryAsync(sqlQuery);
+            if (dataTable.Rows.Count > 0)
+            {
+                foreach (DataRow row in dataTable.Rows)
+                {
+                    strResult = strResult + row.ItemArray[0] + "~" + row.ItemArray[1] + "|";
+                }
+                strResult = strResult.Substring(0, strResult.Length - 1);
+            }
+            else
+                strResult = "0";
+            BankingExtensions.ReleaseMemory(dataTable);
+            return strResult;
+        }
+
+        // SERCHCUST
+        public async Task<string> SearchCustomer(string searchString)
+        {
+            string sqlQuery, strPAN206AAYN = string.Empty, strResult = string.Empty;
+
+            sqlQuery = "SELECT customerid,name,pan206aayn FROM gencustinfomst WHERE " + searchString + " AND status='R'";
+
+            DataTable dataTable = await _databaseFactory.ProcessQueryAsync(sqlQuery);
+
+            if (dataTable.Rows.Count > 0)
+            {
+                foreach (DataRow row in dataTable.Rows)
+                {
+                    strResult = strResult + row.ItemArray[0] + "  " + row.ItemArray[1] + " |";
+                    strPAN206AAYN = Conversions.ToString(row.ItemArray[2]);
+                }
+            }
+
+            if (string.IsNullOrWhiteSpace(strResult))
+                strResult = "No Records";
+            else
+                strResult = string.Concat(strResult.Substring(0, strResult.Length - 1), "~", strPAN206AAYN);
+
+            return strResult;
+        }
+
+        // SERINDEFUNCTINFO
+        public async Task<string> PANDefuctInfo(string searchString)
+        {
+            string sqlQuery, strResult = "NO";
+
+            sqlQuery = "select * from defunctinfodtls where panno ='" + searchString + "' and matchyn = 'Y'";
+
+            DataTable dataTable = await _databaseFactory.ProcessQueryAsync(sqlQuery);
+
+            if (dataTable.Rows.Count > 0)
+                strResult = "YES";
+
+            BankingExtensions.ReleaseMemory(dataTable);
+
+            return strResult;
+        }
+
+        public void GetDetails()
+        {
+            //dim objgenval as new GENVALIDATIONS.Validations
+            //objGen = server.CreateObject("ProGeneral.clsGeneral")
+            //dim strVal
+            //dim strArr
+            //dim strIndvVal
+            //dim strResult, batchNo, tranNo, sqlStr
+            //dim rsthresh
+            //dim strSentfilename
+            //dim strAckFilename
+            //dim objctr
+            //dim strNFTSCONVYN
+            //dim strerrMessage
+            //rs = Server.CreateObject("adodb.recordset")
+            //rscheck = Server.CreateObject("adodb.recordset")
+            //rsthresh = Server.CreateObject("adodb.recordset")
+            //objctr = server.CreateObject("queryrecordsets.fetchrecordsets")
+            //dim strrentyear
+            //dim staccond, staccd, stCustid
+            //    dim strrentmonth
+            //    dim strrentdate
+            //    dim rsBnk, objBnk, frmname
+
+            //    rsBnk = server.CreateObject("adodb.recordset")
+            //    objBnk = server.CreateObject("queryrecordsets.fetchrecordsets")
+            //    rsBnk = objBnk.singlerecordset("genbankparm", "depcertificate,NFTSCONVYN", "")
+
+            //    if objBnk.ConnError = "Connected" then
+            //        if not rsBnk.EOF and not rsBnk.BOF then
+            //            frmname = rsBnk(0).value
+            //            strNFTSCONVYN = iif(isdbnull(rsBnk(1).value), "N", rsBnk(1).value)
+            //        end if
+            //    end if
+
+            //strVal = request.querystring("st")
+            //strArr = split(strVal, "|")
+            //     if strArr(0) = "GETSERVICETAX" then
+
+            //         strIndvVal = split(strArr(1), "*")
+
+            //         obj = server.CreateObject("ReportPurposeOnly.Reportonly")
+            //         sqlStr = "SELECT IMPYN FROM GENCONFIGMST WHERE CODE='GSTR'"
+            //         rs = obj.SingleSelectStat(sqlStr)
+
+            //         if obj.ConnError = "Connected" then
+            //             if not rs.BOF and not rs.EOF then
+
+            //                 if rs(0).value = "Y" then
+            //                    sqlStr = ""
+
+            //                    rsq = Server.CreateObject("adodb.recordset")
+
+            //                    objq = Server.CreateObject("queryrecordsets.fetchrecordsets")
+
+            //                    rsq = objq.singlerecordset("genconfigmst", "(" & strIndvVal(3) & "*VALUE1)/100", "CODE='GSTR'")
+
+
+            //                    if objq.ConnError = "Connected" then
+
+            //                        if not rsq.BOF and not rsq.EOF then
+
+            //                            strResult = rsq(0).value
+
+            //                        end if
+
+            //                    end if
+
+
+            //                    rsq = nothing
+
+
+            //                else
+            //                        strResult = "No Records"
+
+            //                end if
+
+
+            //                sqlStr = ""
+
+            //                objc = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+            //                sqlStr = "SELECT IMPYN FROM GENCONFIGMST WHERE CODE='CESS'"
+
+            //                rsc = objc.SingleSelectStat(sqlStr)
+
+
+            //                if objc.ConnError = "Connected" then
+
+            //                    if not rsc.BOF and not rsc.EOF then
+
+
+            //                        if rsc(0).value = "Y" then
+            //                            sqlStr = ""
+
+            //                            rscv = Server.CreateObject("adodb.recordset")
+
+            //                            objcv = Server.CreateObject("queryrecordsets.fetchrecordsets")
+
+            //                            rscv = objcv.singlerecordset("genconfigmst", "(" & strIndvVal(3) & "*VALUE1)/100", "CODE='CESS'")
+
+            //                            if objcv.ConnError = "Connected" then
+
+            //                                if not rscv.BOF and not rscv.EOF then
+
+            //                                    strResult = strResult & "~" & rscv(0).value
+
+            //                                end if
+
+            //                            end if
+
+
+            //                            rscv = nothing
+
+
+            //                        else
+            //                        strResult = strResult & "~No Records"
+
+            //                        end if
+
+            //                    else
+            //                    strResult = strResult & "~No Records"
+
+            //                    end if
+
+            //                end if
+
+
+
+            //            else
+            //                        strResult = "No Records"
+
+            //            end if
+
+            //        end if
+
+            //        rs = nothing
+
+
+            //    elseif strArr(0)= "getpendintcashaccname" then
+
+            //    obj = Server.CreateObject("queryrecordsets.fetchrecordsets")
+
+
+            //    rs = obj.singlerecordset("DEPMST m ,DEPINTPAYCASHDTLS d ", "m.NAME", "d.branchcode='" & strArr(1) & "' and d.currencycode = '" & strArr(2) & "' and d.GLCODE='" & strArr(3) & "' and d.accno='" & strArr(4) & "' and m.accno = d.accno and m.glcode = d.glcode and m.branchcode = d.branchcode and d.status = 'R' and d.PAIDDATE IS NULL AND d.PAIDBATCHNO IS NULL")
+
+
+            //        if obj.ConnError = "Connected" then
+
+            //            if not rs.BOF and not rs.EOF then
+
+            //                strResult = rs(0).value
+
+            //                else
+            //                strResult = "No Record"
+
+            //            end if
+
+            //        end if
+
+            //        rs = nothing
+
+
+
+            //    elseif strArr(0)= "getpendintcashglname" then
+            //    obj = Server.CreateObject("queryrecordsets.fetchrecordsets")
+
+
+            //    rs = obj.singlerecordset("GENGLSHEETMST a , deptypemst b", "a.NARRATION,b.DEPSUBNATURE", "a.glcode = '" & strArr(3) & "' AND a.moduleid = '" & strArr(2) & "' AND a.branchcode = '" & strArr(1) & "' AND a.STATUS = 'R' AND a.glcode =  b.GLCODE")
+
+
+            //        if obj.ConnError = "Connected" then
+
+            //            if not rs.BOF and not rs.EOF then
+
+            //                strResult = rs(0).value & ">>" & rs(1).value
+
+            //                else
+            //                strResult = "No Record>>No Record"
+
+            //            end if
+
+            //        end if
+
+            //        rs = nothing
+
+            //    elseif strArr(0)= "GETBATCHTRANNO" then
+            //        strResult = ""
+
+            //        batchNo = ""
+
+            //        tranNo = ""
+
+
+            //        obj = Server.CreateObject("GeneralTranQueries.TransactionQueries")
+
+            //        strIndvVal = split(strArr(1), "*")
+
+            //        batchNo = obj.GetBatchno(cstr(strIndvVal(0)))
+
+            //        strResult = batchNo & "|"
+
+            //            for vCnt = 0 to(cInt(strIndvVal(1)) + 1)
+
+            //                tranNo = obj.GetTranNo(cstr(strIndvVal(0)))
+
+            //                strResult = strResult & "*" & tranNo
+
+            //            next
+
+            //    elseif strArr(0) = "GETBANKDESC" then
+
+            //        obj = Server.CreateObject("queryrecordsets.fetchrecordsets")
+
+            //        strIndvVal = split(strArr(1), "*")
+
+            //        rs = obj.singlerecordset("GENOTHERBANKMST", "BANKNAME", "BANKCODE=" & _
+
+            //        "'" & strIndvVal(1) & "' AND BRANCHCODE='" & strIndvVal(0) & "' AND STATUS='R'")
+
+            //        if obj.ConnError = "Connected" then
+
+            //            if not rs.BOF and not rs.EOF then
+
+            //                strResult = rs(0).value
+
+            //            end if
+
+            //        end if
+
+            //        rs = nothing
+
+            //    elseif strArr(0)= "GETCUSTOMERID" then
+            //        obj = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+            //        sqlStr = "SELECT A.NAME, A.CUSTOMERID, (SELECT V.CUSTMOBILE FROM GENCUSTINFOMST V WHERE V.CUSTOMERID=A.CUSTOMERID AND V.BRANCHCODE=A.BRANCHCODE) MOBILE, (SELECT K.NARRATION FROM GENRELATIONSMST K WHERE K.CODE=(SELECT G.RELATIONID FROM GENCUSTINFOMST G WHERE G.CUSTOMERID=A.CUSTOMERID AND G.BRANCHCODE=A.BRANCHCODE)) RELATION, (SELECT G.FATHERNAME FROM GENCUSTINFOMST G WHERE G.CUSTOMERID=A.CUSTOMERID AND G.BRANCHCODE=A.BRANCHCODE) FNAME,(SELECT G.PANNO FROM GENCUSTINFOMST G WHERE G.CUSTOMERID=A.CUSTOMERID AND G.BRANCHCODE=A.BRANCHCODE AND KYCID='2') PANNO FROM " & strArr(3) & "MST A WHERE A.ACCNO='" & strArr(5) & "' AND A.GLCODE='" & strArr(4) & "' AND A.BRANCHCODE='" & strArr(1) & "'"
+
+            //        rs = obj.SingleSelectStat(sqlStr)
+
+            //        if obj.ConnError = "Connected" then
+
+            //            if not rs.BOF and not rs.EOF then
+
+            //                strResult = rs(0).value & "|" & rs(1).value & "|" & rs(2).value & "|" & rs(3).value & "|" & rs(4).value & "|" & rs(5).value
+
+            //            end if
+
+            //        end if
+
+            //        rs = nothing
+
+            //    elseif strArr(0)= "GETCUSTOMERID2" then
+            //        obj = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+            //        sqlStr = "SELECT A.NAME, A.CUSTOMERID, (SELECT V.CUSTMOBILE FROM GENCUSTINFOMST V WHERE V.CUSTOMERID=A.CUSTOMERID AND V.BRANCHCODE=A.BRANCHCODE) MOBILE, (SELECT K.NARRATION FROM GENRELATIONSMST K WHERE K.CODE=(SELECT G.RELATIONID FROM GENCUSTINFOMST G WHERE G.CUSTOMERID=A.CUSTOMERID AND G.BRANCHCODE=A.BRANCHCODE)) RELATION, (SELECT G.FATHERNAME FROM GENCUSTINFOMST G WHERE G.CUSTOMERID=A.CUSTOMERID AND G.BRANCHCODE=A.BRANCHCODE) FNAME,(SELECT G.PANNO FROM GENCUSTINFOMST G WHERE G.CUSTOMERID=A.CUSTOMERID AND G.BRANCHCODE=A.BRANCHCODE AND KYCID='2') PANNO FROM " & strArr(3) & "MST A WHERE A.ACCNO='" & strArr(5) & "' AND A.GLCODE='" & strArr(4) & "' AND A.BRANCHCODE='" & strArr(1) & "'"
+
+            //        rs = obj.SingleSelectStat(sqlStr)
+
+            //        if obj.ConnError = "Connected" then
+
+            //            if not rs.BOF and not rs.EOF then
+
+            //                strResult = rs(0).value & "|" & rs(1).value & "|" & rs(2).value & "|" & rs(3).value & "|" & rs(4).value & "|" & rs(5).value
+
+            //            end if
+
+            //        end if
+
+            //        rs = nothing
+
+
+            //    elseif strArr(0)= "GETCUSTOMERID3" then
+            //        obj = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+            //        sqlStr = "SELECT a.name, a.customerid, a.custmobile, K.NARRATION RELATION, a.FATHERNAME, a.panno FROM gencustinfomst a,GENRELATIONSMST K WHERE a.customerid = '" & strArr(1) & "' AND K.CODE = a.RELATIONID"
+
+            //        rs = obj.SingleSelectStat(sqlStr)
+
+            //        if obj.ConnError = "Connected" then
+
+            //            if not rs.BOF and not rs.EOF then
+
+            //                strResult = rs(0).value & "|" & rs(1).value & "|" & rs(2).value & "|" & rs(3).value & "|" & rs(4).value & "|" & rs(5).value
+
+            //            end if
+
+            //        end if
+
+            //        rs = nothing
+
+            //    elseif strArr(0)= "GETBRANCHDESC" then
+            //        obj = Server.CreateObject("queryrecordsets.fetchrecordsets")
+
+            //        strIndvVal = split(strArr(1), "*")
+
+            //        rs = obj.singlerecordset("GENOTHERBRANCHMST", "BRANCHNAME", "BANKCODE=" & _
+
+            //        "'" & strIndvVal(0) & "' AND BRANCHCODE='" & strIndvVal(1) & "' AND STATUS='R'")
+
+            //        if obj.ConnError = "Connected" then
+
+            //            if not rs.BOF and not rs.EOF then
+
+            //                strResult = rs(0).value
+
+            //            end if
+
+            //        end if
+
+            //        rs = nothing
+
+            //    elseif strArr(0)= "GETMEMBER" then
+            //        obj = Server.CreateObject("queryrecordsets.fetchrecordsets")
+
+
+            //        rs = obj.singlerecordset("GENCUSTINFOMST", "CUSTMEMBERSHIPNO", "CUSTOMERID='" & strArr(1) & "' " & _
+
+            //            "AND BRANCHCODE='" & strArr(2) & "'")
+
+            //        if obj.ConnError = "Connected" then
+
+            //            if not rs.BOF and not rs.EOF then
+
+            //                strResult = rs(0).value
+
+            //            end if
+
+            //        end if
+
+            //        rs = nothing
+
+            //    elseif strArr(0)= "LEAFCHARGE" then
+            //        obj = Server.CreateObject("queryrecordsets.fetchrecordsets")
+
+            //        dim dblgstper
+
+            //        dim dblleafchrgs
+
+            //        dim dblcessper
+
+
+            //    '	rs =obj.singlerecordset(strArr(2) & "TYPEMST","NVL(CHARGEPERLEAF,0), (SELECT NVL(SRVSTAXPERCENT,0) " & _
+
+            //    '		"FROM GENCHARGESPMT WHERE CHARGESID='CIC')","MODULEID=" & _
+
+            //    '		"'" & strArr(2) & "' AND GLCODE='" & strArr(3) & "'")
+
+            //    dblgstper = 0
+
+            //    dblleafchrgs = 0
+
+            //    dblcessper = 0
+
+            //    rs = obj.singlerecordset(strArr(2) & "TYPEMST", "NVL(CHARGEPERLEAF,0)", "MODULEID=" & _
+
+            //            "'" & strArr(2) & "' AND GLCODE='" & strArr(3) & "'")
+
+
+            //        if obj.ConnError = "Connected" then
+
+            //            if not rs.BOF and not rs.EOF then
+
+            //                dblleafchrgs = rs(0).value
+
+
+            //                obj1 = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+            //                rs1 = Server.CreateObject("adodb.recordset")
+
+            //                '' Goods and service tax percentage on commission or charges
+            //        sqlStr = "SELECT nvl(IMPYN,'N') IMPYN,nvl(value1,'0') value1 FROM GENCONFIGMST WHERE CODE='GSTR'"
+
+            //        rs1 = obj1.SingleSelectStat(sqlStr)
+
+
+            //                if obj1.ConnError = "Connected" then
+
+            //                    if not rs1.BOF and not rs1.EOF then
+
+            //                        if rs1(0).value = "Y" then
+            //                            dblgstper = rs1(1).value
+
+            //                        else
+            //                dblgstper = 0
+
+            //                        end if
+
+            //                        else
+            //                    dblgstper = 0
+
+            //                    end if
+
+            //                    else
+            //                    dblgstper = 0
+
+            //                 end if
+
+            //                 rs1 = nothing
+
+            //            '' Cess percentage on commission or charges
+
+            //            sqlStr = "SELECT nvl(IMPYN,'N') IMPYN,nvl(value1,'0') value1 FROM GENCONFIGMST WHERE CODE='CESS'"
+
+            //        rs1 = obj1.SingleSelectStat(sqlStr)
+
+
+            //                if obj1.ConnError = "Connected" then
+
+            //                    if not rs1.BOF and not rs1.EOF then
+
+            //                        if rs1(0).value = "Y" then
+            //                            dblcessper = rs1(1).value
+
+            //                        else
+            //                dblcessper = 0
+
+            //                        end if
+
+            //                        else
+            //                    dblcessper = 0
+
+            //                    end if
+
+            //                    else
+            //                    dblcessper = 0
+
+            //                 end if
+
+            //                 rs1 = nothing
+
+
+            //            else
+            //                    dblleafchrgs = 0
+
+            //            end if
+
+            //            else
+            //                    dblleafchrgs = 0
+
+            //        end if
+
+            //        strResult = dblleafchrgs & "|" & dblgstper & "|" & dblcessper
+
+            //        rs = nothing
+
+            //elseif strArr(0)= "NEFTRTGSCOMMCHRGS" then
+            //        obj1 = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+            //        dim dblgstper
+
+            //        dim dblcessper
+
+            //        dim dblneftrtgsamt
+
+            //        dim strappdate
+
+            //        dblneftrtgsamt = strArr(1)
+
+            //        strappdate = strArr(2)
+
+            //        dim dblcommchrgs
+
+            //        dblcommchrgs = 0
+
+            //    sqlStr = "SELECT exchange FROM neftrtgscommchrgs WHERE frmamt <= " & dblneftrtgsamt & " AND toamt >=  " & dblneftrtgsamt & " AND EFFDATE = (SELECT MAX(effdate) FROM  neftrtgscommchrgs WHERE effdate <= '" & strappdate & "' and  frmamt <= " & dblneftrtgsamt & " AND toamt >=  " & dblneftrtgsamt & ")"
+
+            //    rs = obj1.SingleSelectStat(sqlStr)
+
+
+            //    if obj1.ConnError = "Connected" then
+
+            //            if not rs.BOF and not rs.EOF then
+
+            //            if isdbnull(rs(0).value) then
+            //            dblcommchrgs = 0
+
+            //            else
+            //                dblcommchrgs = iif(isdbnull(rs(0).value), 0, rs(0).value)
+
+            //            end if
+
+            //            rs1 = Server.CreateObject("adodb.recordset")
+
+            //                '' Goods and service tax percentage on commission or charges
+            //        sqlStr = "SELECT nvl(IMPYN,'N') IMPYN,nvl(value1,'0') value1 FROM GENCONFIGMST WHERE CODE='GSTR'"
+
+            //        rs1 = obj1.SingleSelectStat(sqlStr)
+
+
+            //                if obj1.ConnError = "Connected" then
+
+            //                    if not rs1.BOF and not rs1.EOF then
+
+            //                        if rs1(0).value = "Y" then
+            //                            dblgstper = rs1(1).value
+
+            //                        else
+            //                dblgstper = 0
+
+            //                        end if
+
+            //                        else
+            //                    dblgstper = 0
+
+            //                    end if
+
+            //                    else
+            //                    dblgstper = 0
+
+            //                 end if
+
+            //                 rs1 = nothing
+
+            //            '' Cess percentage on commission or charges
+
+            //            sqlStr = "SELECT nvl(IMPYN,'N') IMPYN,nvl(value1,'0') value1 FROM GENCONFIGMST WHERE CODE='CESS'"
+
+            //        rs1 = obj1.SingleSelectStat(sqlStr)
+
+
+            //                if obj1.ConnError = "Connected" then
+
+            //                    if not rs1.BOF and not rs1.EOF then
+
+            //                        if rs1(0).value = "Y" then
+            //                            dblcessper = rs1(1).value
+
+            //                        else
+            //                dblcessper = 0
+
+            //                        end if
+
+            //                        else
+            //                    dblcessper = 0
+
+            //                    end if
+
+            //                    else
+            //                    dblcessper = 0
+
+            //                 end if
+
+            //                 rs1 = nothing
+
+
+            //            else
+            //                    dblcommchrgs = 0
+
+            //            end if
+
+            //            else
+            //                    dblcommchrgs = 0
+
+            //        end if
+
+            //        strResult = dblcommchrgs & "|" & dblgstper & "|" & dblcessper
+
+            //        rs = nothing
+
+            //elseif strArr(0)= "NEFTRTGSCOMMCHRGSTRANS" then
+            //        obj1 = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+            //        dim dblgstper
+
+            //        dim dblcessper
+
+            //        dim dblneftrtgsamt
+
+            //        dim strappdate
+
+            //        dblneftrtgsamt = strArr(1)
+
+            //        strappdate = strArr(2)
+
+            //        dim dblcommchrgs
+
+            //        dblcommchrgs = 0
+
+            //        dim strNEFTRTGSChrgsYN
+
+            //        strNEFTRTGSChrgsYN = "N"
+
+            //        sqlStr = "SELECT nvl(IMPYN,'N') IMPYN FROM GENCONFIGMST WHERE CODE='NEFT'"
+
+            //        rs1 = obj1.SingleSelectStat(sqlStr)
+
+
+            //                if obj1.ConnError = "Connected" then
+
+            //                        if not rs1.BOF and not rs1.EOF then
+
+            //                            strNEFTRTGSChrgsYN = rs1(0).value
+
+            //                        else
+            //                strNEFTRTGSChrgsYN = "N"
+
+            //                        end if
+
+            //                else
+            //                    strNEFTRTGSChrgsYN = "N"
+
+            //                end if
+
+            //            rs1 = nothing
+
+            //    if strNEFTRTGSChrgsYN = "Y" then
+            //    sqlStr = "SELECT exchange FROM neftrtgscommchrgs WHERE frmamt <= " & dblneftrtgsamt & " AND toamt >=  " & dblneftrtgsamt & " AND EFFDATE = (SELECT MAX(effdate) FROM  neftrtgscommchrgs WHERE effdate <= '" & strappdate & "' and  frmamt <= " & dblneftrtgsamt & " AND toamt >=  " & dblneftrtgsamt & ")"
+
+            //    rs = obj1.SingleSelectStat(sqlStr)
+
+
+            //        if obj1.ConnError = "Connected" then
+
+            //                    if not rs.BOF and not rs.EOF then
+
+            //                        if isdbnull(rs(0).value) then
+            //                        dblcommchrgs = 0
+
+            //                        else
+            //                dblcommchrgs = iif(isdbnull(rs(0).value), 0, rs(0).value)
+
+            //                        end if
+
+            //                    else
+            //                    dblcommchrgs = 0
+
+            //                    end if
+
+            //                else
+            //                    dblcommchrgs = 0
+
+            //            end if
+
+            //        else
+            //                    dblcommchrgs = 0
+
+            //        end if
+
+
+            //            rs1 = Server.CreateObject("adodb.recordset")
+
+            //                '' Goods and service tax percentage on commission or charges
+            //        sqlStr = "SELECT nvl(IMPYN,'N') IMPYN,nvl(value1,'0') value1 FROM GENCONFIGMST WHERE CODE='GSTR'"
+
+            //        rs1 = obj1.SingleSelectStat(sqlStr)
+
+
+            //                if obj1.ConnError = "Connected" then
+
+            //                    if not rs1.BOF and not rs1.EOF then
+
+            //                        if rs1(0).value = "Y" then
+            //                            dblgstper = rs1(1).value
+
+            //                        else
+            //                dblgstper = 0
+
+            //                        end if
+
+            //                        else
+            //                    dblgstper = 0
+
+            //                    end if
+
+            //                    else
+            //                    dblgstper = 0
+
+            //                 end if
+
+            //                 rs1 = nothing
+
+            //            '' Cess percentage on commission or charges
+
+            //            sqlStr = "SELECT nvl(IMPYN,'N') IMPYN,nvl(value1,'0') value1 FROM GENCONFIGMST WHERE CODE='CESS'"
+
+            //        rs1 = obj1.SingleSelectStat(sqlStr)
+
+
+            //                if obj1.ConnError = "Connected" then
+
+            //                    if not rs1.BOF and not rs1.EOF then
+
+            //                        if rs1(0).value = "Y" then
+            //                            dblcessper = rs1(1).value
+
+            //                        else
+            //                dblcessper = 0
+
+            //                        end if
+
+            //                        else
+            //                    dblcessper = 0
+
+            //                    end if
+
+            //                    else
+            //                    dblcessper = 0
+
+            //                 end if
+
+            //                 rs1 = nothing
+
+
+
+            //        strResult = dblcommchrgs & "|" & dblgstper & "|" & dblcessper
+
+            //        rs = nothing
+
+
+            //    elseif strArr(0)= "CHARGE" then
+            //        obj = Server.CreateObject("queryrecordsets.fetchrecordsets")
+
+            //        obj1 = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+            //        dim dblgstper
+
+            //        dim dblinopchrgs
+
+            //        dim dblcessper
+
+
+            //    dblgstper = 0
+
+            //    dblinopchrgs = 0
+
+            //    dblcessper = 0
+
+
+            //    rs = obj.singlerecordset("GENCHARGESPMT", "NVL(commamt,0)", "chargesid = '" & strArr(1) & "'")
+
+
+            //        if obj.ConnError = "Connected" then
+
+            //            if not rs.BOF and not rs.EOF then
+
+            //            if isdbnull(rs(0).value) then
+            //            dblinopchrgs = 0
+
+            //            else
+            //                dblinopchrgs = rs(0).value
+
+            //            end if
+
+
+
+            //                rs1 = Server.CreateObject("adodb.recordset")
+
+            //                '' Goods and service tax percentage on commission or charges
+            //        sqlStr = "SELECT nvl(IMPYN,'N') IMPYN,nvl(value1,'0') value1 FROM GENCONFIGMST WHERE CODE='GSTR'"
+
+            //        rs1 = obj1.SingleSelectStat(sqlStr)
+
+
+            //                if obj1.ConnError = "Connected" then
+
+            //                    if not rs1.BOF and not rs1.EOF then
+
+            //                        if rs1(0).value = "Y" then
+            //                            dblgstper = rs1(1).value
+
+            //                        else
+            //                dblgstper = 0
+
+            //                        end if
+
+            //                        else
+            //                    dblgstper = 0
+
+            //                    end if
+
+            //                    else
+            //                    dblgstper = 0
+
+            //                 end if
+
+            //                 rs1 = nothing
+
+            //            '' Cess percentage on commission or charges
+
+            //            sqlStr = "SELECT nvl(IMPYN,'N') IMPYN,nvl(value1,'0') value1 FROM GENCONFIGMST WHERE CODE='CESS'"
+
+            //        rs1 = obj1.SingleSelectStat(sqlStr)
+
+
+            //                if obj1.ConnError = "Connected" then
+
+            //                    if not rs1.BOF and not rs1.EOF then
+
+            //                        if rs1(0).value = "Y" then
+            //                            dblcessper = rs1(1).value
+
+            //                        else
+            //                dblcessper = 0
+
+            //                        end if
+
+            //                        else
+            //                    dblcessper = 0
+
+            //                    end if
+
+            //                    else
+            //                    dblcessper = 0
+
+            //                 end if
+
+            //                 rs1 = nothing
+
+
+            //            else
+            //                    dblinopchrgs = 0
+
+            //            end if
+
+            //            else
+            //                    dblinopchrgs = 0
+
+            //        end if
+
+            //        strResult = dblinopchrgs & "|" & dblgstper & "|" & dblcessper
+
+            //        rs = nothing
+
+
+            //    elseif strArr(0)= "GetGSTCharges" then
+
+            //        obj1 = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+            //        dim dblgstper
+
+            //        dim dblcommchrgs
+
+            //        dim dblcessper
+
+            //        dim strAutoYN
+
+            //        dim strSerYN
+
+            //        dim strCommYN
+
+            //        dim strGSTYN
+
+            //        dim strCessYN
+
+            //        dim strgstaccwisechrgs
+
+            //        dim strgstbrcode
+
+            //        dim strgstcurrcode
+
+            //        dim strgstmodcode
+
+            //        dim strgstglcode
+
+            //        dim strgstaccno
+
+            //        dim strflag
+
+            //        dim strloanopyn
+
+
+            //    strloanopyn = "N"
+
+            //    dblgstper = 0
+
+            //    dblcommchrgs = 0
+
+            //    dblcessper = 0
+
+            //    strAutoYN = "N"
+
+            //    strCommYN = "N"
+
+            //    strGSTYN = "N"
+
+            //    strCessYN = "N"
+
+            //    strgstaccwisechrgs = strArr(1) '-- ACC WISE CHARGES 
+
+            //    strgstbrcode = strArr(2) '-- branch code
+
+            //    strgstcurrcode = strArr(3) '-- currency code
+
+            //    strgstmodcode = strArr(4) '-- module code
+
+            //    strgstglcode = strArr(5) '-- glcode
+
+            //    strgstaccno = strArr(6) '-- accno
+
+
+            //    rsloan = Server.CreateObject("adodb.recordset")
+
+            //    sqlStr = "SELECT LOANOPYN FROM GENCHARGETYPEMST WHERE CHARGETYPE ='" & strgstaccwisechrgs & "'"
+
+            //    rsloan = obj1.SingleSelectStat(sqlStr)
+
+            //        if obj1.ConnError = "Connected" then
+
+            //            if not rsloan.BOF and not rsloan.EOF then
+
+            //                strloanopyn = iif(isdbnull(rsloan(0).value), "N", rsloan(0).value)
+
+            //            end if
+
+            //        end if
+
+
+            //    sqlStr = "SELECT nvl(AUTOPOSTCHRGSYN,'N') AUTOPOSTCHRGSYN, nvl(COMMISSIONYN,'N') COMMISSIONYN, COMMAMT, NVL(SERVICETAXYN,'N')SERVICETAXYN,NVL(flag,'F') flag  FROM GENCHARGESPMT WHERE chargesid = '" & strgstaccwisechrgs & "'"
+
+            //    rs = obj1.SingleSelectStat(sqlStr)
+
+            //        if obj1.ConnError = "Connected" then
+
+            //            if not rs.BOF and not rs.EOF then
+
+            //            strAutoYN = iif(isdbnull(rs(0).value), "N", rs(0).value)
+
+            //            strCommYN = iif(isdbnull(rs(1).value), "N", rs(1).value)
+
+            //            strSerYN = iif(isdbnull(rs(3).value), "N", rs(3).value)
+
+            //            strflag = rs(4).value
+
+
+            //            if rs(0).value = "Y" and rs(1).value = "Y" then
+
+            //                if isdbnull(rs(2).value) then
+            //                    dblcommchrgs = 0
+
+            //                else
+            //                    if strgstmodcode = "LOAN" and strloanopyn = "Y" then
+
+            //                            if strflag = "F" then
+            //                                dblcommchrgs = rs(2).value
+
+            //                            else if strflag = "P" then
+            //                            sqlStr = "SELECT nvl(sanctionedamt,0) sanctionedamt FROM loanmst where branchcode = '" & strgstbrcode & "' and currencycode = '" & strgstcurrcode & "' and glcode ='" & strgstglcode & "'  and accno ='" & strgstaccno & "'"
+
+            //                            rsloan = obj1.SingleSelectStat(sqlStr)
+
+            //                                if obj1.ConnError = "Connected" then
+
+            //                                    if not rsloan.BOF and not rsloan.EOF then
+
+            //                                        dblcommchrgs = ((rsloan(0).value * rs(2).value) / 100)
+
+            //                                        else
+            //                dblcommchrgs = 0
+
+            //                                    end if
+
+            //                                end if
+
+            //                            end if
+
+            //                    else
+            //                            dblcommchrgs = rs(2).value
+
+            //                    end if
+
+            //                end if
+
+            //                else
+
+            //                        dblcommchrgs = 0
+
+            //            end if
+
+            //                rs1 = Server.CreateObject("adodb.recordset")
+
+            //                '' Goods and service tax percentage on commission or charges
+            //        sqlStr = "SELECT nvl(IMPYN,'N') IMPYN,nvl(value1,'0') value1 FROM GENCONFIGMST WHERE CODE='GSTR'"
+
+            //        rs1 = obj1.SingleSelectStat(sqlStr)
+
+
+            //                if obj1.ConnError = "Connected" then
+
+            //                    if not rs1.BOF and not rs1.EOF then
+
+            //                    strGSTYN = iif(isdbnull(rs1(0).value), "N", rs1(0).value)
+
+            //                        if rs1(0).value = "Y" then
+            //                            dblgstper = rs1(1).value
+
+            //                        else
+            //                dblgstper = 0
+
+            //                        end if
+
+            //                        else
+            //                    dblgstper = 0
+
+            //                    end if
+
+            //                    else
+            //                    dblgstper = 0
+
+            //                 end if
+
+            //                 rs1 = nothing
+
+            //            '' Cess percentage on commission or charges
+
+            //            sqlStr = "SELECT nvl(IMPYN,'N') IMPYN,nvl(value1,'0') value1 FROM GENCONFIGMST WHERE CODE='CESS'"
+
+            //        rs1 = obj1.SingleSelectStat(sqlStr)
+
+
+            //                if obj1.ConnError = "Connected" then
+
+            //                    if not rs1.BOF and not rs1.EOF then
+
+            //                    strCessYN = iif(isdbnull(rs1(0).value), "N", rs1(0).value)
+
+            //                        if rs1(0).value = "Y" then
+            //                            dblcessper = rs1(1).value
+
+            //                        else
+            //                dblcessper = 0
+
+            //                        end if
+
+            //                        else
+            //                    dblcessper = 0
+
+            //                    end if
+
+            //                    else
+            //                    dblcessper = 0
+
+            //                 end if
+
+            //                 rs1 = nothing
+
+
+            //            else
+            //                    dblcommchrgs = 0
+
+            //            end if
+
+            //            else
+            //                    dblcommchrgs = 0
+
+            //        end if
+
+            //        strResult = dblcommchrgs & "|" & dblgstper & "|" & dblcessper & "|" & strAutoYN & "|" & strCommYN & "|" & strGSTYN & "|" & strCessYN & "|" & strSerYN
+
+
+            //        rs = nothing
+
+            //        rs1 = nothing
+
+            //        rsloan = nothing
+
+            //        obj1 = nothing
+
+
+            //    elseif strArr(0)= "REMCANCCHARGES" then
+            //    obj = Server.CreateObject("queryrecordsets.fetchrecordsets")
+
+            //        obj1 = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+            //        dim dblgstper
+
+            //        dim dblremcancchrgs
+
+            //        dim dblcessper
+
+
+            //    dblgstper = 0
+
+            //    dblremcancchrgs = 0
+
+            //    dblcessper = 0
+
+
+            //    rs = obj.singlerecordset("GENCHARGESPMT", "NVL(commamt,0)", "chargesid = 'CANC'")
+
+
+            //        if obj.ConnError = "Connected" then
+
+            //            if not rs.BOF and not rs.EOF then
+
+            //            if isdbnull(rs(0).value) then
+            //            dblremcancchrgs = 0
+
+            //            else
+            //                dblremcancchrgs = rs(0).value
+
+            //            end if
+
+
+
+            //                rs1 = Server.CreateObject("adodb.recordset")
+
+            //                '' Goods and service tax percentage on commission or charges
+            //        sqlStr = "SELECT nvl(IMPYN,'N') IMPYN,nvl(value1,'0') value1 FROM GENCONFIGMST WHERE CODE='GSTR'"
+
+            //        rs1 = obj1.SingleSelectStat(sqlStr)
+
+
+            //                if obj1.ConnError = "Connected" then
+
+            //                    if not rs1.BOF and not rs1.EOF then
+
+            //                        if rs1(0).value = "Y" then
+            //                            dblgstper = rs1(1).value
+
+            //                        else
+            //                dblgstper = 0
+
+            //                        end if
+
+            //                        else
+            //                    dblgstper = 0
+
+            //                    end if
+
+            //                    else
+            //                    dblgstper = 0
+
+            //                 end if
+
+            //                 rs1 = nothing
+
+            //            '' Cess percentage on commission or charges
+
+            //            sqlStr = "SELECT nvl(IMPYN,'N') IMPYN,nvl(value1,'0') value1 FROM GENCONFIGMST WHERE CODE='CESS'"
+
+            //        rs1 = obj1.SingleSelectStat(sqlStr)
+
+
+            //                if obj1.ConnError = "Connected" then
+
+            //                    if not rs1.BOF and not rs1.EOF then
+
+            //                        if rs1(0).value = "Y" then
+            //                            dblcessper = rs1(1).value
+
+            //                        else
+            //                dblcessper = 0
+
+            //                        end if
+
+            //                        else
+            //                    dblcessper = 0
+
+            //                    end if
+
+            //                    else
+            //                    dblcessper = 0
+
+            //                 end if
+
+            //                 rs1 = nothing
+
+
+            //            else
+            //                    dblremcancchrgs = 0
+
+            //            end if
+
+            //            else
+            //                    dblremcancchrgs = 0
+
+            //        end if
+
+            //        strResult = dblremcancchrgs & "|" & dblgstper & "|" & dblcessper
+
+            //        rs = nothing
+
+
+
+            //    elseif strArr(0)= "ISSUEBANK" then
+            //        obj = Server.CreateObject("queryrecordsets.fetchrecordsets")
+
+            //        rs = obj.singlerecordset("REMTYPEMST", "ISSUEDONBANKCODE, ISSUEDONBANKDESC", "REMTYPE='" & strArr(1) & "'")
+
+            //        if obj.ConnError = "Connected" then
+
+            //            if not rs.BOF and not rs.EOF then
+
+            //                strResult = ""
+
+            //                do until rs.EOF
+
+            //                    strResult = strResult & rs(0).value & "~" & rs(1).value & "|"
+
+            //                    rs.moveNext()
+
+            //                loop
+            //                strResult = mid(strResult, 1, strResult.length - 1)
+
+            //            end if
+
+            //        end if
+
+            //        rs = nothing
+
+            //    elseif strArr(0)= "GETACCNAME" then
+            //        strResult = ""
+
+            //        obj = Server.CreateObject("queryrecordsets.fetchrecordsets")
+
+            //        rs = obj.singlerecordset(strArr(1), "DISTINCT NAME", "GLCODE='" & strArr(3) & "' AND ACCNO='" & strArr(4) & "'")
+
+            //        if obj.ConnError = "Connected" then
+
+            //            if not rs.BOF and not rs.EOF then
+
+            //                strResult = rs(0).value
+
+            //            end if
+
+            //        end if
+
+            //        rs = nothing
+
+            //    elseif strArr(0)= "POSTINTEREST" then
+            //        dim arrTran(2, 4)
+
+
+            //        strResult = ""
+
+
+            //        obj = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+            //        sqlStr = "SELECT MOD,INTDEBITGLCODE, (SELECT GLDESCRIPTION FROM GENGLMASTMST B WHERE " & _
+
+            //               "B.MODULEID=A.MOD AND B.GLCODE=A.INTDEBITGLCODE) GLDESC, INTDEBITACCNO, " & _
+
+            //               "(SELECT NAME FROM PLMST C WHERE C.ACCNO=A.INTDEBITACCNO AND C.GLCODE=A.INTDEBITGLCODE " & _
+
+            //               "AND BRANCHCODE='" & strArr(1) & "') ACCNAME, (SELECT NARRATION FROM GENMODULEMST D " & _
+
+            //               "WHERE D.MODULEID=A.MOD) MODDESC FROM (SELECT 'PL' MOD, INTDEBITGLCODE, " & _
+
+            //               "INTDEBITACCNO FROM LOANTYPEMST WHERE GLCODE='" & strArr(4) & "') A"
+
+            //        rs = obj.SingleSelectStat(sqlStr)
+
+
+            //        if obj.ConnError = "Connected" then
+
+            //            if not rs.BOF and not rs.EOF then
+
+            //                dim strBatch, strBatchDup, strTran1, strTran2, strTran3, strTran4
+
+            //                ObjBatchNo = Server.CreateObject("GeneralTranQueries.TransactionQueries")
+
+            //                strBatch = ""
+
+            //                if strArr(9) = "" then
+            //                    strBatch = ObjBatchNo.GetBatchno(strArr(1))
+
+            //                else
+            //                strBatch = strArr(9)
+
+            //                end if
+
+            //                strTran1 = ObjBatchNo.GetTranNo(strArr(1))
+
+            //                strTran2 = ObjBatchNo.GetTranNo(strArr(1))
+
+            //                strTran3 = ObjBatchNo.GetTranNo(strArr(1))
+
+            //                if strArr(7) = "REC" then
+            //                    strTran4 = ObjBatchNo.GetTranNo(strArr(1))
+
+            //                else
+            //                strTran4 = ""
+
+            //                end if
+
+
+            //                strResult = rs(0).value & "|" & rs(1).value & "|" & rs(2).value & "|" & rs(3).value & "|" & rs(4).value & "|" & rs(5).value & "|" & strBatch & "|" & strTran1 & "|" & strTran2 & "|" & strTran3 & "|" & strTran4
+
+            //            end if
+
+            //        end if
+
+            //        rs = nothing
+
+
+            //    elseif strArr(0)= "GETCERTIFICATES" then
+            //        strResult = ""
+
+            //        obj = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+            //        sqlStr = "SELECT DISTINCT CERTIFICATENO FROM SHAREALLOTMENTDTLS WHERE ACCNO='" & strArr(3) & "' " & _
+
+            //               "AND SHARETYPE='" & strArr(2) & "' AND BRANCHCODE='" & strArr(1) & "' ORDER BY CERTIFICATENO"
+
+            //        rs = obj.SingleSelectStat(sqlStr)
+
+            //        if obj.ConnError = "Connected" then
+
+            //            if not rs.BOF and not rs.EOF then
+
+            //                do until rs.EOF
+
+            //                    strResult = strResult & rs(0).value & "|"
+
+            //                    rs.movenext()
+
+            //                loop
+            //                strResult = mid(strResult, 1, strResult.length - 1)
+
+            //            end if
+
+            //        end if
+
+            //        rs = nothing
+
+            //    elseif strArr(0)= "GETSHARENAME" then
+            //        strResult = ""
+
+            //        obj = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+            //        sqlStr = "SELECT NAME,status FROM " & strArr(3) & "MST WHERE ACCNO='" & strArr(1) & "' and GLCODE='" & strArr(2) & "' AND BRANCHCODE='" & strArr(4) & "'"
+
+            //        rs = obj.SingleSelectStat(sqlStr)
+
+            //        if obj.ConnError = "Connected" then
+
+            //            if not rs.BOF and not rs.EOF then
+
+            //                strResult = rs(0).value & "|" & rs(1).value
+
+            //            end if
+
+            //        end if
+
+            //        rs = nothing
+
+
+            //    elseif strArr(0)= "GETSHARENAME1" then
+            //        strResult = ""
+
+            //        obj = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+            //        sqlStr = "SELECT NAME FROM " & strArr(3) & "MST WHERE ACCNO='" & strArr(1) & "' and GLCODE='" & strArr(2) & "' AND BRANCHCODE='" & strArr(4) & "'"
+
+            //        rs = obj.SingleSelectStat(sqlStr)
+
+            //        if obj.ConnError = "Connected" then
+
+            //            if not rs.BOF and not rs.EOF then
+
+            //                strResult = rs(0).value
+
+            //            end if
+
+            //        end if
+
+            //        rs = nothing
+
+            //    elseif strArr(0)= "GETINSTRUMENT" then
+            //        strResult = ""
+
+            //        obj = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+            //        'sqlStr="SELECT INSTRTYPE, (SELECT DECODE(UPPER(BANKNAME),'A.P.STATE CO-OPERATIVE BANK','APCOOPERATIVE','ANDHRA BANK','AndhraBank','H.D.F.C.BANK LTD','HDFC','ING VYSYA BANK LTD','INGVYSYA','INDUSIND BANK LTD','INDUS','VIJAYA BANK','VIJAYA','CORPORATION BANK','CORPORATION','STATE BANK OF INDIA','SBI','I.C.I.C.I BANK LTD','ICICIBANK','AXIS BANK LTD','AXIS','PUNJAB NATIONAL BANK','PNB','IDBI BANK LTD','IDBI',BANKNAME) FROM GENOTHERBANKMST A WHERE A.BANKCODE=ISSONBANKCODE), (UPPER(TO_CHAR (TO_DATE (AMOUNT, 'j'), 'jsp'))), BRANCHCODE, CURRENCYCODE, APPLICATIONDATE, AMOUNT, UPPER(FVG) FROM REMITISSUEMST WHERE SERIALNO='"& strArr(4) &"' AND APPLICATIONDATE='"& strArr(2) &"' AND BRANCHCODE='"& strArr(1) &"' AND CURRENCYCODE='"& strArr(3) &"'"
+
+
+            //        ''by mahender reddy on 22 - 02 - 2017 for amount in words
+
+
+            //        sqlStr = "SELECT INSTRTYPE, (SELECT DECODE(UPPER(BANKNAME),'A.P. STATE CO-OPERATIVE BANK','APCOOPERATIVE','ANDHRA BANK','AndhraBank','H.D.F.C .BANK LTD','HDFC','ING VYSYA BANK LTD','INGVYSYA','INDUSIND BANK LTD','INDUS','VIJAYA BANK','VIJAYA','CORPORATION BANK','CORPORATION','STATE BANK OF INDIA','SBI','I.C.I.C.I BANK LTD','ICICIBANK','AXIS BANK LTD','AXIS','PUNJAB NATIONAL BANK','PNB','IDBI BANK LTD','IDBI',BANKNAME) FROM GENOTHERBANKMST A WHERE A.BANKCODE=ISSONBANKCODE), UPPER(F_AMOUNT_TO_WORDS(AMOUNT)), BRANCHCODE, CURRENCYCODE, APPLICATIONDATE, AMOUNT, UPPER(FVG) FROM REMITISSUEMST WHERE SERIALNO='" & strArr(4) & "' AND APPLICATIONDATE='" & strArr(2) & "' AND BRANCHCODE='" & strArr(1) & "' AND CURRENCYCODE='" & strArr(3) & "'"
+
+
+            //        rs = obj.SingleSelectStat(sqlStr)
+
+            //        if obj.ConnError = "Connected" then
+
+            //            if not rs.BOF and not rs.EOF then
+
+            //                strResult = rs(0).value & "|" & rs(1).value & "|" & rs(2).value & "|" & rs(3).value & "|" & rs(4).value & "|" & rs(5).value & "|" & rs(6).value & "|" & rs(7).value
+
+            //            end if
+
+            //        end if
+
+            //        rs = nothing
+
+            //    elseif strArr(0)= "GETLIEN" then
+            //        strResult = ""
+
+            //        obj = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+            //        sqlStr = strArr(1)
+
+            //        rs = obj.SingleSelectStat(sqlStr)
+
+            //        if obj.ConnError = "Connected" then
+
+            //            if not rs.BOF and not rs.EOF then
+
+            //                strResult = rs(0).value
+
+            //            end if
+
+            //        end if
+
+            //        rs = nothing
+
+            //    elseif strArr(0)= "GETJOINTHOLDER" then
+            //        strResult = ""
+
+            //        obj = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+            //        sqlStr = " SELECT CASE WHEN OPERATINGINSTR = 2 THEN 'Either or Survival' WHEN OPERATINGINSTR = 3 THEN 'Joint Holder Account' END OPINSTRDESC FROM " & strArr(5) & "MST WHERE OPERATINGINSTR != 1 AND ACCNO='" & strArr(4) & "' AND GLCODE='" & strArr(3) & "' AND BRANCHCODE='" & strArr(1) & "'"
+
+            //        rs = obj.SingleSelectStat(sqlStr)
+
+            //        if obj.ConnError = "Connected" then
+
+            //            if not rs.BOF and not rs.EOF then
+
+            //                strResult = rs(0).value
+
+            //                else
+            //                strResult = ""
+
+            //            end if
+
+            //        end if
+
+
+            //    elseif strArr(0) = "CheckThreshHoldLimit" then
+            //    dim frmfinyr,tofinyr,frmyear,toyear,strmon,strAppdate1,dblAmount,dblTranAmt,dblThresHoldLmt
+            //    dim blnThresHoldCheck
+            //    blnThresHoldCheck = "false"
+
+            //    strAppdate1 = strArr(6)
+
+            //    dblAmount = strArr(7)
+
+
+            //    strmon = Month(cdate(strAppdate1))
+
+
+            //    if cint(strmon) <= 3  then
+            //    frmyear = cint(Year(cdate(strAppdate1))) - 1
+            //    toyear = Year(cdate(strAppdate1))
+            //    else
+            //                frmyear = Year(cdate(strAppdate1))
+            //    toyear = cint(Year(cdate(strAppdate1))) + 1
+
+            //    end if
+
+            //    frmfinyr = "01-Apr-" & frmyear
+
+            //    tofinyr = "31-Mar-" & toyear
+
+
+            //    strResult = ""
+
+
+            //        obj = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+            //        dblTranAmt = 0
+
+            //        sqlStr = "SELECT SUM(amount) FROM ( SELECT SUM(amount) amount FROM  " & strArr(5) & "tranday WHERE transtatus = 'A' AND modeoftran IN (2,4,6) AND branchcode = '" & strArr(1) & "' AND glcode = '" & strArr(3) & "' AND accno = '" & strArr(4) & "' AND applicationdate BETWEEN '" & frmfinyr & "' AND '" & tofinyr & "' UNION ALL SELECT SUM(amount) amount FROM  " & strArr(5) & "tran WHERE transtatus = 'A' AND modeoftran IN (2,4,6) AND branchcode = '" & strArr(1) & "' AND glcode = '" & strArr(3) & "' AND accno = '" & strArr(4) & "' AND applicationdate BETWEEN '" & frmfinyr & "' AND '" & tofinyr & "') a"
+
+
+            //        rs = obj.SingleSelectStat(sqlStr)
+
+            //        if obj.ConnError = "Connected" then
+
+            //            if not rs.BOF and not rs.EOF then
+
+            //                dblTranAmt = iif(isdbnull(rs(0).value), 0, rs(0).value)
+
+            //                else
+            //                dblTranAmt = 0
+
+            //            end if
+
+            //        end if
+
+
+            //        dblThresHoldLmt = 0
+
+            //        dim blnthresaccchk
+
+            //        blnthresaccchk = false
+
+            //        sqlstr = "SELECT (SELECT NVL(upperlimit,0) * 3 FROM GenIncomeMst WHERE CODE = G.CUSTMONTHLYINCOME) threshholdlimit FROM gencustinfomst G WHERE CUSTOMERID = (SELECT customerid FROM " & strArr(2) & "mst WHERE ACCNO = '" & strArr(4) & "' AND GLCODE = '" & strArr(3) & "' AND BRANCHCODE = '" & strArr(1) & "')"
+
+
+            //        rs = obj.SingleSelectStat(sqlStr)
+
+            //        if obj.ConnError = "Connected" then
+
+
+            //            if not rs.BOF and not rs.EOF then
+
+            //                dblThresHoldLmt = iif(isdbnull(rs(0).value), 0, rs(0).value)
+
+            //                blnthresaccchk = true
+
+            //                else
+            //                dblThresHoldLmt = 0
+
+            //                blnthresaccchk = false
+
+            //            end if
+
+            //            else
+            //                    dblThresHoldLmt = 0
+
+            //                blnthresaccchk = false
+
+            //        end if
+
+            //        rs = nothing
+
+            //        if blnthresaccchk = false then
+            //        sqlstr = "SELECT NVL(upperlimit,0) * 3 FROM GenIncomeMst WHERE CODE = 1"
+
+            //        rs = obj.SingleSelectStat(sqlStr)
+
+            //            if obj.ConnError = "Connected" then
+
+            //                if not rs.BOF and not rs.EOF then
+
+            //                dblThresHoldLmt = iif(isdbnull(rs(0).value), 0, rs(0).value)
+
+            //                else
+            //                dblThresHoldLmt = 0
+
+            //                end if
+
+            //            else
+            //                    dblThresHoldLmt = 0
+
+            //            end if
+
+            //        end if
+
+
+            //            if cdbl(dblAmount) + cdbl(dblTranAmt) > cdbl(dblThresHoldLmt) then
+            //                blnThresHoldCheck = "true"
+
+            //            else
+            //                        blnThresHoldCheck = "false"
+
+            //            end if
+
+
+            //        strResult = blnThresHoldCheck
+
+
+            //elseif strArr(0)= "GETDRCRLIENYN" or strArr(0)= "GETDRCRLIENAMT" then
+            //        strResult = ""
+
+            //        strResult = objGen.GetSBCADrCrLienYN(strArr(1), strArr(2), strArr(3), strArr(4), strArr(5), strArr(6), cdbl(strArr(7)), cdate(strArr(8)))
+            //elseif strArr(0)= "GETCCDRCRLIENYN"  then
+            //        strResult = ""
+
+            //        strResult = objgenval.GetCCDrCrLienYN(strArr(1), strArr(2), strArr(3), strArr(4), strArr(5), strArr(6), strerrMessage)
+
+
+            //    elseif strArr(0)= "GETMINPERIOD" then
+            //        strResult = ""
+
+            //        dim intMinDays as integer
+
+            //        intMinDays = 0
+
+            //        obj = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+            //        sqlStr = "SELECT (SELECT APPLICATIONDATE FROM GENAPPLICATIONDATEMST WHERE BRANCHCODE='" & strArr(1) & "' AND ((DAYBEGINSTATUS='O' AND DAYENDSTATUS='N' AND HODAYBEGINSTATUS='O' AND HODAYENDSTATUS='N') OR (DAYBEGINSTATUS='O' AND DAYENDSTATUS='O' AND HODAYBEGINSTATUS='O' AND HODAYENDSTATUS='N')))-(SELECT ADD_MONTHS((SELECT SANCTIONEDDATE FROM LOANMST WHERE ACCNO='" & strArr(4) & "' AND GLCODE='" & strArr(3) & "' AND BRANCHCODE='" & strArr(1) & "'),(SELECT NVL(MINPERIODMON,0) FROM GENMINMAXBALANCEMST WHERE GLCODE='" & strArr(3) & "'))+(SELECT NVL(MINPERIODDAYS,0) FROM GENMINMAXBALANCEMST WHERE GLCODE='" & strArr(3) & "') REQDATE FROM DUAL) FROM DUAL"
+
+
+            //        rs = obj.SingleSelectStat(sqlStr)
+
+            //        if obj.ConnError = "Connected" then
+
+            //            if not rs.BOF and not rs.EOF then
+
+            //                intMinDays = cDbl(rs(0).value)
+
+            //            end if
+
+            //        end if
+
+            //        if (intMinDays < 0)
+            //                        sqlStr = "SELECT TO_NUMBER((SELECT ADD_MONTHS(SYSDATE,(SELECT NVL(MINPERIODMON,0) FROM GENMINMAXBALANCEMST WHERE GLCODE='" & strArr(3) & "'))+(SELECT NVL(MINPERIODDAYS,0) FROM GENMINMAXBALANCEMST WHERE GLCODE='" & strArr(3) & "') REQDATE FROM DUAL)-SYSDATE)*(SELECT ROI FROM LOANMST WHERE ACCNO='" & strArr(4) & "' AND GLCODE='" & strArr(3) & "' AND BRANCHCODE='" & strArr(1) & "' AND CURRENCYCODE='" & strArr(2) & "')/36500 FROM DUAL"
+
+
+            //            rs = obj.SingleSelectStat(sqlStr)
+
+            //            if obj.ConnError = "Connected" then
+
+            //                if not rs.BOF and not rs.EOF then
+
+            //                    strResult = intMinDays & "|" & rs(0).value
+
+            //                end if
+
+            //            end if
+
+            //        else
+            //                        strResult = intMinDays & "|" & "0"
+
+            //        end if
+
+            //        rs = nothing
+
+            //    elseif strArr(0)= "GETNEXTGL" then
+            //        strResult = ""
+
+            //        dim strModType
+
+
+            //        obj = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+            //        sqlStr = "SELECT MAX(TO_NUMBER(GLCODE))+1 NEXTGL FROM GENGLMASTMST WHERE MODULEID='" & strArr(2) & "' AND GLCATEGORY='A' AND GLCODE LIKE '" & strArr(3) & "%'"
+
+            //        rs = obj.SingleSelectStat(sqlStr)
+
+            //        if obj.ConnError = "Connected" then
+
+            //            if not rs.BOF and not rs.EOF then
+
+            //                strResult = rs(0).value
+
+
+            //                if isdbnull(strResult) then
+            //                    strModType = strArr(2)
+
+
+            //                    if strModType = "MISC" then
+            //                        sqlStr = "SELECT INITGLCODE FROM GENHOGLCTRL WHERE MODULEID='" & strModType & "' AND SUBMODULE='" & strArr(4) & "'"
+
+            //                    else
+            //                sqlStr = "SELECT INITGLCODE FROM GENHOGLCTRL WHERE MODULEID='" & strModType & "'"
+
+            //                    end if
+
+
+
+            //                    rs = obj.SingleSelectStat(sqlStr)
+
+            //                    if obj.ConnError = "Connected" then
+
+            //                        if not rs.BOF and not rs.EOF then
+
+            //                            strResult = rs(0).value
+
+            //                        end if
+
+            //                    end if
+
+            //                end if
+
+            //            else
+            //                            strModType = "'" & strArr(2) & "'"
+
+
+            //                if strModType = "MISC" then
+            //                    sqlStr = "SELECT INITGLCODE FROM GENHOGLCTRL WHERE MODULEID='" & strModType & "' AND SUBMODULE='" & strArr(4) & "'"
+
+            //                else
+            //                sqlStr = "SELECT INITGLCODE FROM GENHOGLCTRL WHERE MODULEID='" & strModType & "'"
+
+            //                end if
+
+
+            //                rs = obj.SingleSelectStat(sqlStr)
+
+            //                if obj.ConnError = "Connected" then
+
+            //                    if not rs.BOF and not rs.EOF then
+
+            //                        strResult = rs(0).value
+
+            //                    end if
+
+            //                end if
+
+            //            end if
+
+            //        end if
+
+
+            //        if strarr(2) = "SI" then
+            //            strResult = "999999"
+
+            //        else if strarr(2) = "ABB" then
+            //            strResult = "111111"
+
+            //        end if
+
+
+            //        rs = nothing
+
+            //    elseif strArr(0)= "GETMATDATE" then
+            //        strResult = ""
+
+            //        obj = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+            //        sqlStr = "SELECT TO_CHAR(ADD_MONTHS('" & strArr(1) & "'," & strArr(3) & ")+" & strArr(2) & ",'DD-Mon-YYYY') FROM DUAL"
+
+            //        rs = obj.SingleSelectStat(sqlStr)
+
+            //        if obj.ConnError = "Connected" then
+
+            //            if not rs.BOF and not rs.EOF then
+
+            //                strResult = rs(0).value
+
+            //            end if
+
+            //        end if
+
+            //        rs = nothing
+
+            //    elseif strArr(0)= "GETGROUPCODE" then
+            //        strResult = ""
+
+            //        obj = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+            //        sqlStr = "SELECT DISTINCT GROUPCODE, GROUPDESC FROM GENGROUPMST WHERE GLTYPE=" & strArr(1) & " ORDER BY GROUPCODE"
+
+            //        rs = obj.SingleSelectStat(sqlStr)
+
+            //        if obj.ConnError = "Connected" then
+
+            //            if not rs.BOF and not rs.EOF then
+
+            //                do until rs.EOF
+
+            //                    strResult = strResult & rs(0).value & "~" & rs(1).value & "|"
+
+            //                    rs.movenext()
+
+            //                loop
+            //                strResult = mid(strResult, 1, strResult.length - 1)
+
+            //            end if
+
+            //        end if
+
+            //        rs = nothing
+
+            //    elseif strArr(0)= "GETMAXSNO" then
+            //        strResult = ""
+
+            //        obj = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+            //        sqlStr = "SELECT NVL(MAX(SNO),0)+1 FROM GENGLMASTMST WHERE GROUPCODE=" & strArr(1)
+
+            //        rs = obj.SingleSelectStat(sqlStr)
+
+            //        if obj.ConnError = "Connected" then
+
+            //            if not rs.BOF and not rs.EOF then
+
+            //                strResult = rs(0).value
+
+            //            end if
+
+            //        end if
+
+
+            //        if isdbnull(strResult) then
+            //            strResult = "1"
+
+            //        end if
+
+            //        rs = nothing
+
+            //    elseif strArr(0)= "GETAGENTNAME" then
+            //        strResult = ""
+
+            //        obj = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+            //        sqlStr = "SELECT AGENTNAME FROM PIGMYAGENTMST WHERE AGENTCODE='" & strArr(4) & "' AND GLCODE='" & strArr(3) & "' AND MODULEID='" & strArr(2) & "' AND BRANCHCODE='" & strArr(1) & "'"
+
+            //        rs = obj.SingleSelectStat(sqlStr)
+
+            //        if obj.ConnError = "Connected" then
+
+            //            if not rs.BOF and not rs.EOF then
+
+            //                strResult = rs(0).value
+
+            //            end if
+
+            //        end if
+
+            //        rs = nothing
+
+            //    elseif strArr(0)= "GETAGENTACCNAME" then
+            //        strResult = ""
+
+            //        obj = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+            //        sqlStr = "SELECT NAME FROM PIGMYACCOUNTSMST WHERE ACCNO='" & strArr(5) & "' AND AGENTCODE='" & strArr(4) & "' AND GLCODE='" & strArr(3) & "' AND BRANCHCODE='" & strArr(1) & "'"
+
+            //        rs = obj.SingleSelectStat(sqlStr)
+
+            //        if obj.ConnError = "Connected" then
+
+            //            if not rs.BOF and not rs.EOF then
+
+            //                strResult = rs(0).value
+
+            //            end if
+
+            //        end if
+
+            //        rs = nothing
+
+            //    elseif strArr(0)= "GETGLACCTYPE" then
+            //        strResult = ""
+
+            //        obj = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+            //        sqlStr = "SELECT NVL(GLACCTYPE,0) FROM GENGLMASTMST WHERE UPPER(trim(glcategory))='" & strArr(3) & "' AND moduleid='" & strArr(2) & "' AND status='R'"
+
+            //        rs = obj.SingleSelectStat(sqlStr)
+
+            //        if obj.ConnError = "Connected" then
+
+            //            if not rs.BOF and not rs.EOF then
+
+            //                strResult = rs(0).value
+
+            //            end if
+
+            //        end if
+
+            //        rs = nothing
+
+            //    elseif strArr(0)= "GETPURPOSEDESC" then
+            //        strResult = ""
+
+            //        obj = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+            //        sqlStr = "SELECT NARRATION FROM LOANPURPOSEMST WHERE PURPOSECODE='" & strArr(1) & "'"
+
+            //        rs = obj.SingleSelectStat(sqlStr)
+
+            //        if obj.ConnError = "Connected" then
+
+            //            if not rs.BOF and not rs.EOF then
+
+            //                strResult = rs(0).value
+
+            //            end if
+
+            //        end if
+
+            //        rs = nothing
+
+            //    elseif strArr(0)= "GETNOMINEE" then
+            //        strResult = ""
+
+            //        obj = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+            //        sqlStr = "SELECT nvl(NOMCUSTOMERID,'0') FROM GENCUSTNOMINEEMST WHERE ACCNO='" & strArr(4) & "' AND GLCODE='" & strArr(3) & "' AND BRANCHCODE='" & strArr(1) & "'"
+
+            //        rs = obj.SingleSelectStat(sqlStr)
+
+            //        if obj.ConnError = "Connected" then
+
+            //            if not rs.BOF and not rs.EOF then
+
+            //                strResult = rs(0).value
+
+            //            else
+            //                strResult = "0"
+
+            //            end if
+
+            //        end if
+
+            //        rs = nothing
+
+            //    elseif strArr(0)= "GETUSERDTLS" then
+            //        strResult = ""
+
+            //        obj = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+            //        sqlStr = "SELECT BRANCHCODE, (SELECT BRANCHNAME FROM GENBANKBRANCHMST WHERE " & _
+
+            //               "BRANCHCODE=A.BRANCHCODE) BRDESC, GROUPID, (SELECT NARRATION FROM " & _
+
+            //               "GENBANKUSERGROUPMST WHERE GROUPCODE=A.GROUPID) GROUPDESC, NVL(ABBUSERYN,'N') " & _
+
+            //               "FROM GENUSERMST A whERE USERID='" & strArr(1) & "'"
+
+            //        rs = obj.SingleSelectStat(sqlStr)
+
+            //        if obj.ConnError = "Connected" then
+
+            //            if not rs.BOF and not rs.EOF then
+
+            //                strResult = rs(0).value & "|" & rs(1).value & "|" & rs(2).value & "|" & rs(3).value & "|" & rs(4).value
+
+            //            else
+            //                strResult = "0"
+
+            //            end if
+
+            //        end if
+
+            //        rs = nothing
+
+            //    elseif strArr(0)= "GETSUBNATURE" then
+            //        strResult = ""
+
+            //        obj = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+            //        sqlStr = "SELECT LOANSUBNATURE FROM LOANTYPEMST WHERE GLCODE='" & strArr(1) & "'"
+
+            //        rs = obj.SingleSelectStat(sqlStr)
+
+            //        if obj.ConnError = "Connected" then
+
+            //            if not rs.BOF and not rs.EOF then
+
+            //                strResult = rs(0).value
+
+            //            end if
+
+            //        end if
+
+            //        rs = nothing
+
+            //    elseif strArr(0)= "INSERTUSERDATA" then
+            //        obj = SERVER.CreateObject("GeneralTransactions.DBTransactions")
+
+            //        strResult = ""
+
+            //        dim arrTrn(1,4)
+
+            //		arrTrn(0, 0) = "U"
+
+            //        arrTrn(0, 1) = "GENUSERMST"
+
+            //        arrTrn(0, 2) = "BRANCHCODE, GROUPID, GROUPNAME, ABBUSERYN, CREATEDUSERID, SYSTEMDATE"
+
+            //        arrTrn(0, 3) = "'" & strArr(4) & "'~'" & strArr(2) & "'~'" & strArr(3) & "'~'" & strArr(5) & "'~'" & session("userid") & "'~SYSDATE"
+
+            //        arrTrn(0, 4) = "USERID='" & strArr(1) & "'"
+
+
+            //        arrTrn(1, 0) = "U"
+
+            //        arrTrn(1, 1) = "GENPROMOTIONSMST"
+
+            //        arrTrn(1, 2) = "BRANCHCODE, USERID, MACHINEID, SYSTEMDATE"
+
+            //        arrTrn(1, 3) = "'" & strArr(4) & "'~'" & session("userid") & "'~'" & session("machineid") & "'~SYSDATE"
+
+            //        arrTrn(1, 4) = "EMPID='" & strArr(1) & "'"
+
+
+            //        strResult = obj.DataTransactions(arrTrn)
+
+            //    elseif strArr(0)= "USERCONFIGDATA" then
+            //        strResult = ""
+
+            //        obj = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+            //        sqlStr = "SELECT IMPYN, BRANCHCODE FROM GENCONFIGMST WHERE CODE='" & strArr(1) & "'"
+
+            //        rs = obj.SingleSelectStat(sqlStr)
+
+            //        if obj.ConnError = "Connected" then
+
+            //            if not rs.BOF and not rs.EOF then
+
+            //                strResult = rs(0).value & "|" & rs(1).value
+
+            //            else
+            //                strResult = "0"
+
+            //            end if
+
+            //        end if
+
+            //        rs = nothing
+
+
+            //        'mahender
+
+            //    elseif strArr(0)= "GETDETAILS" then
+            //        strResult = ""
+
+            //        obj = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+            //        sqlStr = "SELECT NAME, FATHERNAME, CUSTDOB, MAILADDRESS1, MAILADDRESS2, MAILADDRESS3, MAILADDRESS4,MAILADDRESS5,PHONE1, PHONE2, PHONE3, CUSTMOBILE, CUSTEMAIL, PANNO FROM GENCUSTINFOMST WHERE CUSTOMERID=(SELECT CUSTOMERID FROM " & strArr(3) & "MST WHERE ACCNO ='" & strArr(5) & "' AND GLCODE='" & strArr(4) & "' AND BRANCHCODE='" & strArr(1) & "') AND BRANCHCODE='" & strArr(1) & "'"
+
+            //        rs = obj.SingleSelectStat(sqlStr)
+
+            //        if obj.ConnError = "Connected" then
+
+            //            if not rs.BOF and not rs.EOF then
+
+            //                strResult = rs(0).value & "|" & rs(1).value & "|" & rs(2).value & "|" & rs(3).value & "|" & rs(4).value & "|" & rs(5).value & "|" & rs(6).value & "|" & rs(7).value & "|" & rs(8).value & "|" & rs(9).value & "|" & rs(10).value & "|" & rs(11).value & "|" & rs(12).value & "|" & rs(13).value
+
+            //            end if
+
+            //        end if
+
+            //        rs = nothing
+
+
+            //        rs = Server.CreateObject("adodb.recordset")
+
+            //        dim strgar as string
+
+            //        strgar = ""
+
+
+            //        sqlStr = "SELECT NAME, FATHERNAME, CUSTDOB, MAILADDRESS1, MAILADDRESS2, MAILADDRESS3, MAILADDRESS4,MAILADDRESS5,PHONE1, PHONE2, PHONE3, CUSTMOBILE, CUSTEMAIL, PANNO FROM GENCUSTINFOMST WHERE CUSTOMERID IN (SELECT GUARANTORID FROM GENGUARANTORLNK WHERE MODULEID='" & strArr(3) & "' AND GLCODE='" & strArr(4) & "' AND ACCNO='" & strArr(5) & "' AND BRANCHCODE='" & strArr(1) & "') AND BRANCHCODE='" & strArr(1) & "'"
+
+
+            //        rs = obj.SingleSelectStat(sqlStr)
+
+
+            //        if obj.ConnError = "Connected" then
+
+
+            //            if not rs.BOF and not rs.EOF then
+
+            //                do until rs.EOF
+
+            //                    strgar = strgar & rs(0).value & "|" & rs(1).value & "|" & rs(2).value & "|" & rs(3).value & "|" & rs(4).value & "|" & rs(5).value & "|" & rs(6).value & "|" & rs(7).value & "|" & rs(8).value & "|" & rs(9).value & "|" & rs(10).value & "|" & rs(11).value & "|" & rs(12).value & "|" & rs(13).value & "$"
+
+            //                    rs.movenext()
+
+            //                loop
+            //                strResult = strResult & "~" & strgar
+
+            //            else
+
+            //                strResult = strResult & "~"
+
+
+            //            end if
+
+            //        end if
+
+
+            //        rs = nothing
+
+
+
+
+            //        if  strArr(3) = "LOAN" then
+
+            //        rs = Server.CreateObject("adodb.recordset")
+
+
+            //        sqlStr = "SELECT ROI,INSTALMENTAMT,SANCTIONEDAMT,NOOFINSTALLMENT FROM " & strArr(3) & "MST WHERE GLCODE='" & strArr(4) & "' AND ACCNO ='" & strArr(5) & "' AND BRANCHCODE='" & strArr(1) & "' "
+
+            //        rs = obj.SingleSelectStat(sqlStr)
+
+            //        if obj.ConnError = "Connected" then
+
+            //            if not rs.BOF and not rs.EOF then
+
+
+            //                strResult = strResult & "~" & rs(0).value & "|" & rs(1).value & "|" & rs(2).value & "|" & rs(3).value
+
+
+            //            else
+            //                strResult = strResult & "~"
+
+            //            end if
+
+            //        end if
+
+
+            //        rs = nothing
+
+
+            //        else
+            //                        strResult = strResult & "~"
+
+            //        end if
+
+
+            //        rs = Server.CreateObject("adodb.recordset")
+
+
+            //        sqlStr = "SELECT NARRATION FROM LOANPURPOSEMST WHERE PURPOSECODE=(SELECT PURPOSECODE FROM " & strArr(3) & "MST WHERE ACCNO ='" & strArr(5) & "' AND GLCODE='" & strArr(4) & "' AND BRANCHCODE='" & strArr(1) & "')"
+
+            //        rs = obj.SingleSelectStat(sqlStr)
+
+            //        if obj.ConnError = "Connected" then
+
+            //            if not rs.BOF and not rs.EOF then
+
+
+            //                strResult = strResult & "~" & rs(0).value
+
+
+            //            else
+            //                strResult = strResult & "~"
+
+            //            end if
+
+            //        end if
+
+
+            //        rs = nothing
+
+
+            //        rs = Server.CreateObject("adodb.recordset")
+
+
+            //        sqlStr = "SELECT SECURITYDESC FROM GENSECURITYLNK WHERE  MODULEID='" & strArr(3) & "' AND GLCODE='" & strArr(4) & "' AND ACCNO='" & strArr(5) & "' AND BRANCHCODE='" & strArr(1) & "'"
+
+            //        rs = obj.SingleSelectStat(sqlStr)
+
+            //        if obj.ConnError = "Connected" then
+
+            //            if not rs.BOF and not rs.EOF then
+
+
+            //                strResult = strResult & "~" & rs(0).value
+
+
+            //            else
+            //                strResult = strResult & "~"
+
+            //            end if
+
+            //        end if
+
+
+            //        rs = nothing
+
+
+            //        rs = Server.CreateObject("adodb.recordset")
+
+
+            //        sqlStr = "SELECT ACCNO FROM SBMST WHERE CUSTOMERID=(SELECT CUSTOMERID FROM " & strArr(3) & "MST WHERE ACCNO ='" & strArr(5) & "' AND GLCODE='" & strArr(4) & "' AND BRANCHCODE='" & strArr(1) & "') AND BRANCHCODE='" & strArr(1) & "'"
+
+            //        rs = obj.SingleSelectStat(sqlStr)
+
+            //        if obj.ConnError = "Connected" then
+
+            //            if not rs.BOF and not rs.EOF then
+
+
+            //                strResult = strResult & "~" & rs(0).value
+
+
+            //            else
+            //                strResult = strResult & "~"
+
+            //            end if
+
+            //        end if
+
+
+            //        rs = nothing
+
+
+            //        rs = Server.CreateObject("adodb.recordset")
+
+
+            //        sqlStr = "SELECT ACCNO FROM SHARESMST WHERE CUSTOMERID=(SELECT CUSTOMERID FROM " & strArr(3) & "MST WHERE ACCNO ='" & strArr(5) & "' AND GLCODE='" & strArr(4) & "' AND BRANCHCODE='" & strArr(1) & "') AND BRANCHCODE='" & strArr(1) & "'"
+
+            //        rs = obj.SingleSelectStat(sqlStr)
+
+            //        if obj.ConnError = "Connected" then
+
+            //            if not rs.BOF and not rs.EOF then
+
+
+            //                strResult = strResult & "~" & rs(0).value
+
+
+            //            else
+            //                strResult = strResult & "~"
+
+            //            end if
+
+            //        end if
+
+
+            //        rs = nothing
+
+
+            //        rs = Server.CreateObject("adodb.recordset")
+
+
+            //        sqlStr = "SELECT  AMOUNT,ROI FROM GENLIMITMST B WHERE LIMITID IN (SELECT LIMITID FROM GENLIMITLNK A WHERE A.LIMITID=B.LIMITID AND A.CUSTOMERID=B.CUSTOMERID AND A.BRANCHCODE=B.BRANCHCODE AND A.LINKEDACCNO='" & strArr(5) & "' AND A.LINKEDGLCODE='" & strArr(4) & "' AND A.BRANCHCODE='" & strArr(1) & "')"
+
+            //        rs = obj.SingleSelectStat(sqlStr)
+
+            //        if obj.ConnError = "Connected" then
+
+
+            //            if not rs.BOF and not rs.EOF then
+
+
+            //                strResult = strResult & "~" & rs(0).value & "|" & rs(1).value
+
+
+            //            else
+            //                strResult = strResult & "~"
+
+            //            end if
+
+            //        end if
+
+
+            //        rs = nothing
+
+
+            //        rs = Server.CreateObject("adodb.recordset")
+
+
+            //        sqlStr = "SELECT DESCRIPTION FROM GENRELIGIONMST WHERE CODE=(SELECT RELIGIONID FROM GENCUSTINFOMST WHERE CUSTOMERID=(SELECT CUSTOMERID FROM " & strArr(3) & "MST WHERE ACCNO ='" & strArr(5) & "' AND GLCODE='" & strArr(4) & "' AND BRANCHCODE='" & strArr(1) & "')) "
+
+            //        rs = obj.SingleSelectStat(sqlStr)
+
+            //        if obj.ConnError = "Connected" then
+
+
+            //            if not rs.BOF and not rs.EOF then
+
+
+            //                strResult = strResult & "~" & rs(0).value
+
+
+            //            else
+            //                strResult = strResult & "~"
+
+            //            end if
+
+            //        end if
+
+
+            //        rs = nothing
+
+
+            //        rs = Server.CreateObject("adodb.recordset")
+
+
+            //        sqlStr = "SELECT CURBAL FROM SHARESBALANCE WHERE ACCNO=(SELECT ACCNO FROM SHARESMST WHERE CUSTOMERID=(SELECT CUSTOMERID FROM " & strArr(3) & "MST WHERE ACCNO ='" & strArr(5) & "' AND GLCODE='" & strArr(4) & "' AND BRANCHCODE='" & strArr(1) & "') AND BRANCHCODE='" & strArr(1) & "')"
+
+            //        rs = obj.SingleSelectStat(sqlStr)
+
+            //        if obj.ConnError = "Connected" then
+
+
+            //            if not rs.BOF and not rs.EOF then
+
+
+            //                strResult = strResult & "~" & rs(0).value
+
+
+            //            else
+            //                strResult = strResult & "~"
+
+            //            end if
+
+            //        end if
+
+
+            //        rs = nothing
+
+
+            //        rs = Server.CreateObject("adodb.recordset")
+
+
+            //        sqlStr = "SELECT NARRATION FROM GENOCCUPATIONMST WHERE CODE=(SELECT CUSTOCCUPATION FROM GENCUSTINFOMST WHERE CUSTOMERID=(SELECT CUSTOMERID FROM " & strArr(3) & "MST WHERE ACCNO ='" & strArr(5) & "' AND GLCODE='" & strArr(4) & "' AND BRANCHCODE='" & strArr(1) & "'))"
+
+            //        rs = obj.SingleSelectStat(sqlStr)
+
+            //        if obj.ConnError = "Connected" then
+
+
+            //            if not rs.BOF and not rs.EOF then
+
+
+            //                strResult = strResult & "~" & rs(0).value
+
+
+            //            else
+            //                strResult = strResult & "~"
+
+            //            end if
+
+            //        end if
+
+
+            //        rs = nothing
+
+
+            //        rs = Server.CreateObject("adodb.recordset")
+
+
+            //        sqlStr = "SELECT CONCAT(NAME2,' '||DISIGNATION2) FROM RBIREPSOSSPARAMETERS WHERE BRANCHCODE='" & strArr(1) & "'"
+
+            //        rs = obj.SingleSelectStat(sqlStr)
+
+            //        if obj.ConnError = "Connected" then
+
+
+            //            if not rs.BOF and not rs.EOF then
+
+
+            //                strResult = strResult & "~" & rs(0).value
+
+
+            //            else
+            //                strResult = strResult & "~"
+
+            //            end if
+
+            //        end if
+
+
+            //        rs = nothing
+
+
+            //    elseif strArr(0)= "MATDEP" then
+            //            strResult = ""
+
+            //            dim icount as integer
+
+            //            icount = 1
+
+            //            obj = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+            //            sqlStr = "SELECT ACCNO, NAME, TO_CHAR(OPDATE,'DD-Mon-YYYY'), OPBAL , (CASE WHEN STATUS='C' THEN 0 ELSE OPBAL END) AMOUNT, STATUS ,TO_CHAR(CLOSEDATE,'DD-Mon-YYYY'), NARRATION FROM " & strArr(3) & "MST WHERE BRANCHCODE='" & strArr(1) & "' AND GLCODE='" & strArr(4) & "' AND CURRENCYCODE='" & strArr(2) & "' " & strArr(5) & " ORDER BY TO_NUMBER(ACCNO)"
+
+
+            //            rs = obj.SingleSelectStat(sqlStr)
+
+
+            //            if obj.ConnError = "Connected" then
+
+            //                if not rs.BOF and not rs.EOF then
+
+            //                    strResult = "SLNO,5,L~ACCNO,16,R~NAME,50,L~OPDATE,14,L~OPBAL,16,R~AMOUNT,16,R~STATUS,8,C~CLOSEDATE,14,L~NARRATION,50,L|"
+
+            //                    do until rs.EOF
+
+            //                        strResult = strResult & cstr(icount) & "~" & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & cDbl(rs(3).value).ToString("n", System.Globalization.CultureInfo.CreateSpecificCulture("hi-IN")) & "~" & cDbl(rs(4).value).ToString("n", System.Globalization.CultureInfo.CreateSpecificCulture("hi-IN")) & "~" & rs(5).value & "~" & rs(6).value & "~" & rs(7).value & "|"
+
+            //                        rs.moveNext()
+
+            //                        icount = icount + 1
+
+            //                    loop
+
+            //                    sqlStr = "SELECT SUM(OPBAL) , SUM((CASE WHEN STATUS='C' THEN 0 ELSE OPBAL END)) AMOUNT  FROM " & strArr(3) & "MST WHERE BRANCHCODE='" & strArr(1) & "' AND GLCODE='" & strArr(4) & "' AND CURRENCYCODE='" & strArr(2) & "' " & strArr(5) & " "
+
+
+            //                    rs = obj.SingleSelectStat(sqlStr)
+
+
+            //                    strResult = strResult & "-----~~~~----------------~----------------~~~|"
+
+            //                    strResult = strResult & "Total~~~~" & cDbl(rs(0).value).ToString("n", System.Globalization.CultureInfo.CreateSpecificCulture("hi-IN")) & "~" & cDbl(rs(1).value).ToString("n", System.Globalization.CultureInfo.CreateSpecificCulture("hi-IN")) & "|"
+
+            //                    strResult = strResult & "-----~~~~----------------~----------------~~~|"
+
+            //                    strResult = mid(strResult, 1, strResult.length - 1)
+
+
+            //                end if
+
+            //            end if
+
+            //        rs = nothing
+
+
+            //        elseif strArr(0)= "MATDEPXL" then
+            //            strResult = ""
+
+            //            dim icount as integer
+
+            //            icount = 1
+
+            //            obj = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+            //            sqlStr = "SELECT ACCNO, NAME, TO_CHAR(OPDATE,'DD-Mon-YYYY'), OPBAL , (CASE WHEN STATUS='C' THEN 0 ELSE OPBAL END) AMOUNT, STATUS ,TO_CHAR(CLOSEDATE,'DD-Mon-YYYY'), NARRATION FROM " & strArr(3) & "MST WHERE BRANCHCODE='" & strArr(1) & "' AND GLCODE='" & strArr(4) & "' AND CURRENCYCODE='" & strArr(2) & "' " & strArr(5) & " ORDER BY TO_NUMBER(ACCNO)"
+
+
+            //            rs = obj.SingleSelectStat(sqlStr)
+
+
+            //            if obj.ConnError = "Connected" then
+
+            //                if not rs.BOF and not rs.EOF then
+
+            //                    strResult = "SLNO,5,L~ACCNO,16,R~NAME,50,L~OPDATE,14,L~OPBAL,16,R~AMOUNT,16,R~STATUS,8,C~CLOSEDATE,14,L~NARRATION,50,L|"
+
+            //                    do until rs.EOF
+
+            //                        strResult = strResult & cstr(icount) & "~" & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "~" & rs(7).value & "|"
+
+            //                        rs.moveNext()
+
+            //                        icount = icount + 1
+
+            //                    loop
+
+            //                    sqlStr = "SELECT SUM(OPBAL) , SUM((CASE WHEN STATUS='C' THEN 0 ELSE OPBAL END)) AMOUNT  FROM " & strArr(3) & "MST WHERE BRANCHCODE='" & strArr(1) & "' AND GLCODE='" & strArr(4) & "' AND CURRENCYCODE='" & strArr(2) & "' " & strArr(5) & " "
+
+
+            //                    rs = obj.SingleSelectStat(sqlStr)
+
+
+            //                    strResult = strResult & "-----~~~~----------------~----------------~~~|"
+
+            //                    strResult = strResult & "Total~~~~" & rs(0).value & "~" & rs(1).value & "|"
+
+            //                    strResult = strResult & "-----~~~~----------------~----------------~~~|"
+
+
+            //                    strResult = mid(strResult, 1, strResult.length - 1)
+
+
+            //                end if
+
+            //            end if
+
+            //        rs = nothing
+
+
+            //    elseif strArr(0)= "deltran" then
+            //            strResult = ""
+
+            //            obj = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+            //            sqlStr = "SELECT TO_CHAR(APPLICATIONDATE,'DD-Mon-YYYY'),GLCODE,(SELECT GLDESCRIPTION FROM GENGLMASTMST B WHERE B.GLCODE=A.GLCODE)GLDESCRIPTION,ACCNO,NAME,BATCHNO,TRANNO,AMOUNT,REMARKS,USERID,MACHINEID,DELETEDUSERID,DELETEDMACHINEID,DELETEDAPPROVEDBY,DELETEDAPPROVEDMACHINE FROM GENDELETEDTRANSLOG A WHERE ABBYN='N' AND BRANCHCODE='" & strArr(1) & "' AND CURRENCYCODE='" & strArr(2) & "' " & strArr(3) & " UNION SELECT TO_CHAR(APPLICATIONDATE,'DD-Mon-YYYY'),GLCODE,(SELECT GLDESCRIPTION FROM GENGLMASTMST B WHERE B.GLCODE=C.GLCODE)GLDESCRIPTION,ACCNO,NAME,BATCHNO,TRANNO,AMOUNT,REMARKS,USERID,MACHINEID,DELETEDUSERID,DELETEDMACHINEID,DELETEDAPPROVEDBY,DELETEDAPPROVEDMACHINE FROM GENDELETEDTRANSLOGBKP C WHERE ABBYN='N' AND BRANCHCODE='" & strArr(1) & "' AND CURRENCYCODE='" & strArr(2) & "' " & strArr(3) & " ORDER BY BATCHNO,TRANNO"
+
+            //            rs = obj.SingleSelectStat(sqlStr)
+
+            //            if obj.ConnError = "Connected" then
+
+            //                if not rs.BOF and not rs.EOF then
+
+            //                do until rs.EOF
+
+            //                        strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "~" & rs(7).value & "~" & rs(8).value & "~" & rs(9).value & "~" & rs(10).value & "~" & rs(11).value & "~" & rs(12).value & "~" & rs(13).value & "~" & rs(14).value & "|"
+
+            //                        rs.moveNext()
+
+            //                loop
+            //                strResult = mid(strResult, 1, strResult.length - 1)
+
+            //                end if
+
+            //            end if
+
+            //    rs = nothing
+
+
+            //    elseif strArr(0)= "delabbtran" then
+            //            strResult = ""
+
+            //            obj = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+            //            sqlStr = "SELECT TO_CHAR(APPLICATIONDATE,'DD-Mon-YYYY'),GLCODE,(SELECT GLDESCRIPTION FROM GENGLMASTMST B WHERE B.GLCODE=A.GLCODE)GLDESCRIPTION,ACCNO,NAME,BATCHNO,TRANNO,AMOUNT,REMARKS,USERID,MACHINEID,DELETEDUSERID,DELETEDMACHINEID,DELETEDAPPROVEDBY,DELETEDAPPROVEDMACHINE FROM GENDELETEDTRANSLOG A WHERE ABBYN='Y' AND BRANCHCODE='" & strArr(1) & "' AND CURRENCYCODE='" & strArr(2) & "' " & strArr(3) & " UNION SELECT TO_CHAR(APPLICATIONDATE,'DD-Mon-YYYY'),GLCODE,(SELECT GLDESCRIPTION FROM GENGLMASTMST B WHERE B.GLCODE=C.GLCODE)GLDESCRIPTION,ACCNO,NAME,BATCHNO,TRANNO,AMOUNT,REMARKS,USERID,MACHINEID,DELETEDUSERID,DELETEDMACHINEID,DELETEDAPPROVEDBY,DELETEDAPPROVEDMACHINE FROM GENDELETEDTRANSLOGBKP C WHERE ABBYN='Y' AND BRANCHCODE='" & strArr(1) & "' AND CURRENCYCODE='" & strArr(2) & "' " & strArr(3) & " ORDER BY BATCHNO,TRANNO"
+
+            //            rs = obj.SingleSelectStat(sqlStr)
+
+            //            if obj.ConnError = "Connected" then
+
+            //                if not rs.BOF and not rs.EOF then
+
+            //                do until rs.EOF
+
+            //                        strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "~" & rs(7).value & "~" & rs(8).value & "~" & rs(9).value & "~" & rs(10).value & "~" & rs(11).value & "~" & rs(12).value & "~" & rs(13).value & "~" & rs(14).value & "|"
+
+            //                        rs.moveNext()
+
+            //                loop
+            //                strResult = mid(strResult, 1, strResult.length - 1)
+
+            //                end if
+
+            //            end if
+
+            //    rs = nothing
+
+
+            //    elseif strArr(0)= "GETSCHOOLDESC" then
+            //        strResult = ""
+
+            //        obj = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+            //        if strArr(2) = "CASH" then
+            //            sqlStr = "SELECT A.NAME, B.CASHBATCHNO, B.CASHBATCHSTATUS FROM SCHOOLMST A, SCHOOLBATCHDTLS B WHERE A.ACCNO='" & strArr(1) & "' AND B.APPLICATIONDATE='" & session("applicationdate") & "' AND A.ACCNO=B.ACCNO AND A.GLCODE=B.GLCODE AND A.BRANCHCODE=B.BRANCHCODE"
+
+            //        else
+            //                sqlStr = "SELECT A.NAME, B.TRANSFERBATCHNO, B.TRANSFERBATCHSTATUS FROM SCHOOLMST A, SCHOOLBATCHDTLS B WHERE A.ACCNO='" & strArr(1) & "' AND B.APPLICATIONDATE='" & session("applicationdate") & "' AND A.ACCNO=B.ACCNO AND A.GLCODE=B.GLCODE AND A.BRANCHCODE=B.BRANCHCODE"
+
+            //        end if
+
+
+            //        rs = obj.SingleSelectStat(sqlStr)
+
+            //        if obj.ConnError = "Connected" then
+
+            //            if not rs.BOF and not rs.EOF then
+
+            //                strResult = rs(0).value & "~" & rs(1).value & "~" & rs(2).value
+
+            //            end if
+
+            //        end if
+
+            //        rs = nothing
+
+            //    elseif strArr(0)= "GETSCHBRANCHDESC" then
+            //        strResult = ""
+
+            //        obj = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+            //        if strArr(3) = "CASH" then
+            //            sqlStr = "SELECT SCHBRANCHNAME FROM SCHOOLBRANCHMST WHERE SCHOOLACCNO='" & strArr(1) & "' AND SCHOOLBRANCHID='" & strArr(2) & "' AND STATUS='R' AND (SCHOOLACCNO, GLCODE)=(SELECT ACCNO, GLCODE FROM SCHOOLBATCHDTLS WHERE CASHBATCHNO='" & strArr(4) & "' AND APPLICATIONDATE='" & session("applicationdate") & "')"
+
+            //        else
+            //                sqlStr = "SELECT SCHBRANCHNAME FROM SCHOOLBRANCHMST WHERE SCHOOLACCNO='" & strArr(1) & "' AND SCHOOLBRANCHID='" & strArr(2) & "' AND STATUS='R' AND (SCHOOLACCNO, GLCODE)=(SELECT ACCNO, GLCODE FROM SCHOOLBATCHDTLS WHERE TRANSFERBATCHNO='" & strArr(4) & "' AND APPLICATIONDATE='" & session("applicationdate") & "')"
+
+            //        end if
+
+
+            //        rs = obj.SingleSelectStat(sqlStr)
+
+            //        if obj.ConnError = "Connected" then
+
+            //            if not rs.BOF and not rs.EOF then
+
+            //                strResult = rs(0).value
+
+            //            end if
+
+            //        end if
+
+            //        rs = nothing
+
+            //    elseif strArr(0)= "GETSTUDENTDESC" then
+            //        strResult = ""
+
+            //        obj = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+            //        sqlStr = "SELECT NAME FROM SCHOOLSTUDENTINFOMST WHERE SCHOOLACCNO='" & strArr(1) & "' AND SCHOOLBRANCHID='" & strArr(2) & "' AND STUDENTID='" & strArr(3) & "' AND STATUS='R'"
+
+            //        rs = obj.SingleSelectStat(sqlStr)
+
+            //        if obj.ConnError = "Connected" then
+
+            //            if not rs.BOF and not rs.EOF then
+
+            //                strResult = rs(0).value
+
+            //            end if
+
+            //        end if
+
+            //        rs = nothing
+
+            //    elseif strArr(0)= "GETBRANCHID" then
+            //        strResult = ""
+
+            //        obj = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+            //        sqlStr = "SELECT nvl(MAX(TO_NUMBER(SCHOOLBRANCHID))+1,1) MAXBRANCH FROM SCHOOLBRANCHMST WHERE SCHOOLACCNO='" & strArr(5) & "' AND GLCODE='" & strArr(4) & "'"
+
+            //        rs = obj.SingleSelectStat(sqlStr)
+
+            //        if obj.ConnError = "Connected" then
+
+            //            if not rs.BOF and not rs.EOF then
+
+            //                strResult = rs(0).value
+
+            //            else
+            //                strResult = "1"
+
+            //            end if
+
+            //        end if
+
+            //        rs = nothing
+
+            //    elseif strArr(0)= "GETBRANCHDTLS" then
+            //        strResult = ""
+
+            //        obj = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+            //        obj1 = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+            //        sqlStr = "SELECT ADDR1,ADDR2,ADDR3,ADDR4,CITY,MOBILE,PHONE1, PHONE2, LNKBRANCHCODE, (SELECT B.BRANCHNAME FROM GENBANKBRANCHMST B WHERE B.BRANCHCODE=A.LNKBRANCHCODE) BRNAME, LNKMODULEID, (SELECT B.NARRATION FROM GENMODULEMST B WHERE B.MODULEID=UPPER(A.LNKMODULEID)) MODNARRATION, LNKGLCODE, (SELECT B.GLDESCRIPTION FROM GENGLMASTMST B WHERE B.GLCODE=A.LNKGLCODE AND B.MODULEID=UPPER(A.LNKMODULEID)) GLDESC, LNKACCNO FROM SCHOOLBRANCHMST A WHERE GLCODE='" & strArr(1) & "' AND SCHOOLACCNO='" & strArr(2) & "' AND SCHOOLBRANCHID='" & strArr(3) & "' "
+
+            //        rs = obj.SingleSelectStat(sqlStr)
+
+            //        if obj.ConnError = "Connected" then
+
+            //            if not rs.BOF and not rs.EOF then
+
+            //                strResult = rs(0).value + "~" + rs(1).value + "~" + rs(2).value + "~" + rs(3).value + "~" + rs(4).value + "~" + rs(5).value + "~" + rs(6).value + "~" + rs(7).value + "~" + rs(8).value + "~" + rs(9).value + "~" + rs(10).value + "~" + rs(11).value + "~" + rs(12).value + "~" + rs(13).value + "~" + rs(14).value
+
+            //                sqlStr = "SELECT NAME FROM " & rs(10).value & "MST WHERE ACCNO='" & rs(14).value & "' AND GLCODE='" & rs(12).value & "' AND BRANCHCODE='" & rs(8).value & "'"
+
+            //                rs1 = Server.CreateObject("adodb.recordset")
+
+            //                rs1 = obj1.SingleSelectStat(sqlStr)
+
+            //                if obj1.ConnError = "Connected" then
+
+            //                    if not rs1.BOF and not rs1.EOF then
+
+            //                        strResult = strResult & "~" & rs1(0).value
+
+            //                    else
+            //                strResult = strResult & "~"
+
+            //                    end if
+
+            //                end if
+
+            //                rs1 = nothing
+
+            //                obj1 = nothing
+
+            //            end if
+
+            //        end if
+
+            //        rs = nothing
+
+            //    elseif strArr(0)= "GETLOANNPAINT" then
+            //        strResult = ""
+
+            //        obj = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+            //        ''commmented by Mahender for loan lastintcal date on 08 - Feb - 2017
+
+
+            //        'sqlStr="SELECT ABS(NPAINTBAL) FROM LOANBALANCE WHERE ACCNO='" & strArr(5) & "' AND GLCODE='" & strArr(4) & "' AND BRANCHCODE='" & strArr(1) & "'"
+
+            //        'rs=obj.SingleSelectStat(sqlStr)
+
+            //        'if obj.ConnError="Connected" then
+
+            //        '	if not rs.BOF and not rs.EOF then
+
+            //        '		strResult=rs(0).value
+
+            //        '	else 
+
+            //        '		strResult="0"
+
+            //        '	end if
+
+            //        'end if
+
+            //        'rs=nothing
+
+
+            //        sqlStr = "SELECT ABS(NPAINTBAL),TO_CHAR(LASTINTCALCDATE,'DD-MON-YYYY') FROM LOANBALANCE a,loanmst b WHERE a.accno=b.accno AND a.glcode=b.glcode AND a.branchcode=b.branchcode AND a.ACCNO='" & strArr(5) & "' AND a.GLCODE='" & strArr(4) & "' AND a.BRANCHCODE='" & strArr(1) & "'"
+
+            //        rs = obj.SingleSelectStat(sqlStr)
+
+            //        if obj.ConnError = "Connected" then
+
+            //            if not rs.BOF and not rs.EOF then
+
+            //                strResult = rs(0).value & "~" & rs(1).value
+
+            //            else
+            //                strResult = "0~"
+
+            //            end if
+
+            //        end if
+
+            //        rs = nothing
+
+
+            //    elseif strArr(0)= "GETAMOUNTDTLS" then
+            //    strResult = ""
+
+            //    obj = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+            //    ''BRANCHCODE,CURRENCYCODE,MODULEID,GLCODE,ACCNO,APPLICATIONDATE
+            //    sqlStr = "SELECT GETANYDAYBAL('" & strArr(1) & "','" & strArr(2) & "','" & strArr(3) & "','" & strArr(4) & "','" & strArr(5) & "','" & strArr(6) & "') FROM DUAL"
+
+            //    rs = obj.SingleSelectStat(sqlStr)
+
+            //    if obj.ConnError = "Connected" then
+
+            //        if not rs.BOF and not rs.EOF then
+
+            //            strResult = rs(0).value
+
+            //        else
+            //                strResult = "0"
+
+            //        end if
+
+            //    end if
+
+            //    rs = nothing
+
+
+            //    elseif strArr(0)= "GETAMOUNTDTLSLMTAMT" then
+            //    dim dblCurbal5, dbllimitamt5
+            //    dblCurbal5 = 0
+
+            //    dbllimitamt5 = 0
+
+            //    strResult = ""
+
+            //    obj = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+            //    sqlStr = "SELECT GETANYDAYBAL('" & strArr(1) & "','" & strArr(2) & "','" & strArr(3) & "','" & strArr(4) & "','" & strArr(5) & "','" & strArr(6) & "') FROM DUAL"
+
+            //    rs = obj.SingleSelectStat(sqlStr)
+
+            //    if obj.ConnError = "Connected" then
+
+            //        if not rs.BOF and not rs.EOF then
+
+            //            dblCurbal5 = rs(0).value
+
+            //        else
+            //                dblCurbal5 = "0"
+
+            //        end if
+
+            //    end if
+
+            //    rs = nothing
+
+            //    '' modid = "CC"
+
+            //    if strArr(3) = "CC" then
+            //    sqlStr = "SELECT AMOUNT FROM GENLIMITMST G, GENLIMITLNK L,CCMST M WHERE G.LIMITID = L.LIMITID AND G.BRANCHCODE = L.BRANCHCODE AND G.CURRENCYCODE = L.CURRENCYCODE AND G.CUSTOMERID = M.CUSTOMERID AND G.BRANCHCODE = M.BRANCHCODE AND G.CURRENCYCODE = M.CURRENCYCODE AND  M.ACCNO = '" & strArr(5) & "' AND M.GLCODE = '" & strArr(4) & "' AND m.branchcode = '" & strArr(1) & "'  AND L.STATUS = 'R'"
+
+
+            //    rs = obj.SingleSelectStat(sqlStr)
+
+            //    if obj.ConnError = "Connected" then
+
+            //        if not rs.BOF and not rs.EOF then
+
+            //            dbllimitamt5 = rs(0).value
+
+            //        else
+            //                dbllimitamt5 = "0"
+
+            //        end if
+
+            //    end if
+
+            //    rs = nothing
+
+            //    end if
+
+            //    strResult = dblCurbal5 & "|" & dbllimitamt5
+
+
+            //    elseif strArr(0)= "GETSBCADRCRLIENDTLS" then
+            //    strResult = ""
+
+            //    obj = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+            //    sqlStr = "SELECT a.DRLIENYN,a.CRLIENYN,b.DRLIENAMT, b.CRLIENAMT, b.REASON  FROM (SELECT  BRANCHCODE, CURRENCYCODE, GLCODE, ACCNO,DRLIENYN, CRLIENYN FROM " & strArr(3) & "mst WHERE accno = '" & strArr(5) & "' AND glcode = '" & strArr(4) & "' AND currencycode = '" & strArr(2) & "' and  branchcode = '" & strArr(1) & "' ) a,(SELECT BRANCHCODE, CURRENCYCODE, GLCODE, ACCNO,DRLIENAMT, CRLIENAMT, REASON FROM SBCALIENDTLS WHERE accno = '" & strArr(5) & "' AND glcode = '" & strArr(4) & "' AND currencycode = '" & strArr(2) & "' AND branchcode = '" & strArr(1) & "') b WHERE b.accno =  a.accno AND b.glcode = a.glcode AND b.currencycode = a.CURRENCYCODE AND  b.BRANCHCODE= a.branchcode"
+
+
+            //    rs = obj.SingleSelectStat(sqlStr)
+
+
+            //    if obj.ConnError = "Connected" then
+
+            //        if not rs.BOF and not rs.EOF then
+
+            //            do until rs.EOF
+
+            //                strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "|"
+
+            //                rs.movenext()
+
+            //            loop
+            //            strResult = mid(strResult, 1, strResult.length - 1)
+
+            //        else
+            //                strResult = "0"
+
+            //        end if
+
+            //    end if
+
+            //    rs = nothing
+
+
+
+            //elseif strArr(0)= "GETAMOUNTDTLSBRIFSCCODEMINAMT" then
+            //dim recGL
+            //dim objGL
+            // recGL = server.CreateObject("adodb.recordset")
+            // objGL = server.CreateObject("GeneralTranQueries.TransParameters")
+
+            //    strResult = ""
+
+            //    '' min amount
+
+            //    dblminamount = 0
+
+            //    if strArr(3) = "SB" or strArr(3)= "CA" then
+            //    recGL = objGL.AccNoTransactionParameters(cstr(strArr(1)), cstr(strArr(3)), cstr(strArr(4)), _
+            //                       cstr(strArr(6)), cstr(strArr(2)), cstr(strArr(5)),,,,, cstr(session("userid")), cstr(session("machineid")))
+            //                        if recGL.RecordCount > 0 then
+
+            //                            if not recGL.eof and not recGL.bof then
+
+            //                            dblminamount = recGL("MINAMOUNT").value
+
+            //                            else
+            //                dblminamount = 0
+
+            //                            end if
+            //                       end if
+            //    end if   '' strArr(3) = "SB" or strArr(3)= "CA"
+
+            //    obj = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+            //    ''BRANCHCODE,CURRENCYCODE,MODULEID,GLCODE,ACCNO,APPLICATIONDATE
+            //    sqlStr = "SELECT GETANYDAYBAL('" & strArr(1) & "','" & strArr(2) & "','" & strArr(3) & "','" & strArr(4) & "','" & strArr(5) & "','" & strArr(6) & "'),(select distinct ifsccode from genbankbranchmst where branchcode = '" & strArr(1) & "') FROM DUAL"
+
+            //    rs = obj.SingleSelectStat(sqlStr)
+
+
+            //    if obj.ConnError = "Connected" then
+
+            //        if not rs.BOF and not rs.EOF then
+
+            //            strResult = rs(0).value & "~" & rs(1).value & "~" & dblminamount
+
+            //        else
+            //                strResult = "0"
+
+            //        end if
+
+            //    end if
+
+            //    rs = nothing
+
+
+            //elseif strArr(0)= "GETAMOUNTDTLSBRIFSCCODE" then
+
+
+            //    obj = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+            //    ''BRANCHCODE,CURRENCYCODE,MODULEID,GLCODE,ACCNO,APPLICATIONDATE
+            //    sqlStr = "SELECT GETANYDAYBAL('" & strArr(1) & "','" & strArr(2) & "','" & strArr(3) & "','" & strArr(4) & "','" & strArr(5) & "','" & strArr(6) & "'),(select distinct ifsccode from genbankbranchmst where branchcode = '" & strArr(1) & "') FROM DUAL"
+
+            //    rs = obj.SingleSelectStat(sqlStr)
+
+
+            //    if obj.ConnError = "Connected" then
+
+            //        if not rs.BOF and not rs.EOF then
+
+            //            strResult = rs(0).value & "~" & rs(1).value
+
+            //        else
+            //                strResult = "0"
+
+            //        end if
+
+            //    end if
+
+            //    rs = nothing
+
+
+            //elseif strArr(0)= "GETBRIFSCCODE" then
+            //    strResult = ""
+
+            //    obj = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+            //    ''BRANCHCODE,CURRENCYCODE,MODULEID,GLCODE,ACCNO,APPLICATIONDATE
+            //    sqlStr = "select distinct ifsccode from genbankbranchmst where branchcode = '" & strArr(1) & "'"
+
+            //    rs = obj.SingleSelectStat(sqlStr)
+
+            //    if obj.ConnError = "Connected" then
+
+            //        if not rs.BOF and not rs.EOF then
+
+            //            strResult = rs(0).value
+
+            //        else
+            //                strResult = "0"
+
+            //        end if
+
+            //    end if
+
+            //    rs = nothing
+
+
+
+            //elseif strArr(0)= "GETDrMobileNo" then
+
+            //    strResult = ""
+
+            //    obj = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+
+            //    sqlStr = "select neftmobile from  genbankbranchmst a where branchcode = '" & strArr(1) & "'"
+
+
+            //    rs = obj.SingleSelectStat(sqlStr)
+
+            //    if obj.ConnError = "Connected" then
+
+            //        if not rs.BOF and not rs.EOF then
+
+            //            strResult = iif(isdbnull(rs(0).value), "", rs(0).value)
+
+            //        else
+            //                strResult = ""
+
+            //        end if
+
+            //    end if
+
+            //    rs = nothing
+
+
+            //elseif strArr(0)= "SetMobileNo" then
+
+            //    strResult = ""
+
+            //    obj = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+            //    ''BRANCHCODE,CURRENCYCODE,MODULEID,GLCODE,ACCNO,APPLICATIONDATE
+            //    sqlStr = "SELECT CUSTMOBILE FROM gencustinfomst where customerid in (SELECT customerid FROM " & strArr(3) & "mst where accno = '" & strArr(5) & "' and glcode = '" & strArr(4) & "' and branchcode = '" & strArr(1) & "' and currencycode ='" & strArr(2) & "')"
+
+
+            //    rs = obj.SingleSelectStat(sqlStr)
+
+            //    if obj.ConnError = "Connected" then
+
+            //        if not rs.BOF and not rs.EOF then
+
+            //            strResult = iif(isdbnull(rs(0).value), "", rs(0).value)
+
+            //        else
+            //                strResult = "0"
+
+            //        end if
+
+            //    end if
+
+            //    rs = nothing
+
+            //elseif strArr(0)= "SetMobileNoNEFTRTGS" then
+
+            //    strResult = ""
+
+            //    obj = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+            //    ''BRANCHCODE,CURRENCYCODE,MODULEID,GLCODE,ACCNO,APPLICATIONDATE
+
+            //    if strArr(6) = "INV" or strArr(6) = "MISC" or strArr(6) = "PL" then
+            //    sqlStr = "SELECT NEFTMOBILE FROM genbankbranchmst where branchcode =	'" & strArr(1) & "'"
+
+            //    else
+            //                sqlStr = "SELECT CUSTMOBILE FROM gencustinfomst where customerid in (SELECT customerid FROM " & strArr(3) & "mst where accno = '" & strArr(5) & "' and glcode = '" & strArr(4) & "' and branchcode = '" & strArr(1) & "' and currencycode ='" & strArr(2) & "')"
+
+            //    end if
+
+            //    rs = obj.SingleSelectStat(sqlStr)
+
+            //    if obj.ConnError = "Connected" then
+
+            //        if not rs.BOF and not rs.EOF then
+
+            //            strResult = iif(isdbnull(rs(0).value), "", rs(0).value)
+
+            //        else
+            //                strResult = "0"
+
+            //        end if
+
+            //    end if
+
+            //    rs = nothing
+
+            //    elseif strArr(0)= "QUE15GA" then
+            //    strResult = ""
+
+            //    obj = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+
+            //    if strArr(6) = "0" then
+
+            //        sqlStr = "SELECT A.CUSTOMERID,A.GLCODE, A.ACCNO, B.NAME, TO_CHAR(B.OPDATE,'DD-Mon-YYYY'), B.OPBAL, B.MATURITYVALUE,TO_CHAR(B.MATURITYDATE,'DD-Mon-YYYY'), A.INTEREST, TO_CHAR(A.SUBMITDATE,'DD-Mon-YYYY'), A.STATUS,(SELECT PANNO FROM GENCUSTINFOMST d WHERE d.CUSTOMERID=a.CUSTOMERID AND d.KYCID='2') PANNO FROM FORM15GHTRACKINGDTLS A ,DEPMST B WHERE A.ACCNO=B.ACCNO AND A.GLCODE=B.GLCODE AND A.BRANCHCODE=B.BRANCHCODE AND A.ASSESYEAR='" & strArr(4) & "' AND A.FORM15GYN='" & strArr(3) & "' AND B.FORMS15G='Y' AND A.STATUS='R' " & strArr(5) & " AND A.BRANCHCODE='" & strArr(1) & "' ORDER BY  A.SUBMITDATE "
+
+
+            //    else
+
+            //                sqlStr = "SELECT A.BRANCHCODE,A.CUSTOMERID,A.GLCODE, A.ACCNO, B.NAME, TO_CHAR(B.OPDATE,'DD-Mon-YYYY'), B.OPBAL, B.MATURITYVALUE,TO_CHAR(B.MATURITYDATE,'DD-Mon-YYYY'), A.INTEREST, TO_CHAR(A.SUBMITDATE,'DD-Mon-YYYY'), A.STATUS,(SELECT PANNO FROM GENCUSTINFOMST d WHERE d.CUSTOMERID=a.CUSTOMERID AND d.KYCID='2') PANNO FROM FORM15GHTRACKINGDTLS A ,DEPMST B WHERE A.ACCNO=B.ACCNO AND A.GLCODE=B.GLCODE AND A.BRANCHCODE=B.BRANCHCODE AND A.ASSESYEAR='" & strArr(4) & "' AND A.FORM15GYN='" & strArr(3) & "' AND B.FORMS15G='Y' AND A.STATUS='R' " & strArr(5) & " AND a.customerid IN (SELECT customerid FROM gencustinfomst WHERE branchcode='" & strArr(1) & "') ORDER BY  A.SUBMITDATE "
+
+
+            //    end if
+
+
+            //    rs = obj.SingleSelectStat(sqlStr)
+
+
+            //    if obj.ConnError = "Connected" then
+
+            //        if not rs.BOF and not rs.EOF then
+
+            //            do until rs.EOF
+
+
+            //                if strArr(6) = "0" then
+            //                    strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "~" & rs(7).value & "~" & rs(8).value & "~" & rs(9).value & "~" & rs(10).value & "~" & rs(11).value & "|"
+
+            //                else
+            //                strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "~" & rs(7).value & "~" & rs(8).value & "~" & rs(9).value & "~" & rs(10).value & "~" & rs(11).value & "~" & rs(12).value & "|"
+
+            //                end if
+
+
+            //                rs.movenext()
+
+            //            loop
+            //            strResult = mid(strResult, 1, strResult.length - 1)
+
+            //        'else 
+
+            //        'strResult="0"
+
+            //        end if
+
+            //    end if
+
+            //    rs = nothing
+
+
+            //    elseif strArr(0)= "QUE15GC" then
+            //    strResult = ""
+
+            //    obj = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+
+            //    if strArr(7) = "0" then
+
+            //        sqlStr = "SELECT A.CUSTOMERID,A.GLCODE, A.ACCNO, B.NAME, TO_CHAR(B.OPDATE,'DD-Mon-YYYY'), B.OPBAL, B.MATURITYVALUE,TO_CHAR(B.MATURITYDATE,'DD-Mon-YYYY'), A.INTEREST, TO_CHAR(A.SUBMITDATE,'DD-Mon-YYYY'), A.STATUS,(SELECT PANNO FROM GENCUSTINFOMST d WHERE d.CUSTOMERID=a.CUSTOMERID AND d.KYCID='2')  PANNO FROM FORM15GHTRACKINGDTLS A ,DEPMST B WHERE A.ACCNO=B.ACCNO AND A.GLCODE=B.GLCODE AND A.BRANCHCODE=B.BRANCHCODE AND A.ASSESYEAR='" & strArr(4) & "' AND A.FORM15GYN='" & strArr(3) & "' AND B.FORMS15G='Y' AND A.STATUS='R' AND A.CUSTOMERID='" & strArr(6) & "' " & strArr(5) & " AND A.BRANCHCODE='" & strArr(1) & "' ORDER BY  A.SUBMITDATE "
+
+
+            //    else
+
+            //                sqlStr = "SELECT A.BRANCHCODE,A.CUSTOMERID,A.GLCODE, A.ACCNO, B.NAME, TO_CHAR(B.OPDATE,'DD-Mon-YYYY'), B.OPBAL, B.MATURITYVALUE,TO_CHAR(B.MATURITYDATE,'DD-Mon-YYYY'), A.INTEREST, TO_CHAR(A.SUBMITDATE,'DD-Mon-YYYY'), A.STATUS,(SELECT PANNO FROM GENCUSTINFOMST d WHERE d.CUSTOMERID=a.CUSTOMERID AND d.KYCID='2')  PANNO FROM FORM15GHTRACKINGDTLS A ,DEPMST B WHERE A.ACCNO=B.ACCNO AND A.GLCODE=B.GLCODE AND A.BRANCHCODE=B.BRANCHCODE AND A.ASSESYEAR='" & strArr(4) & "' AND A.FORM15GYN='" & strArr(3) & "' AND B.FORMS15G='Y' AND A.STATUS='R' AND A.CUSTOMERID='" & strArr(6) & "' " & strArr(5) & " AND a.customerid IN (SELECT customerid FROM gencustinfomst WHERE branchcode='" & strArr(1) & "') ORDER BY  A.SUBMITDATE "
+
+
+            //    end if
+
+
+
+
+            //    rs = obj.SingleSelectStat(sqlStr)
+
+
+            //    if obj.ConnError = "Connected" then
+
+            //        if not rs.BOF and not rs.EOF then
+
+            //            do until rs.EOF
+
+
+            //                if strArr(7) = "0" then
+
+            //                    strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "~" & rs(7).value & "~" & rs(8).value & "~" & rs(9).value & "~" & rs(10).value & "~" & rs(11).value & "|"
+
+
+            //                else
+
+            //                strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "~" & rs(7).value & "~" & rs(8).value & "~" & rs(9).value & "~" & rs(10).value & "~" & rs(11).value & "~" & rs(12).value & "|"
+
+
+            //                end if
+
+
+            //                rs.movenext()
+
+            //            loop
+            //            strResult = mid(strResult, 1, strResult.length - 1)
+
+            //        'else 
+
+            //        'strResult="0"
+
+            //        end if
+
+            //    end if
+
+            //    rs = nothing
+
+
+            //    elseif strArr(0)= "QUE15GAC" then
+            //    strResult = ""
+
+            //    obj = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+
+            //    if strArr(8) = "0" then
+
+            //        sqlStr = "SELECT A.CUSTOMERID,A.GLCODE, A.ACCNO, B.NAME, TO_CHAR(B.OPDATE,'DD-Mon-YYYY'), B.OPBAL, B.MATURITYVALUE,TO_CHAR(B.MATURITYDATE,'DD-Mon-YYYY'), A.INTEREST, TO_CHAR(A.SUBMITDATE,'DD-Mon-YYYY'), A.STATUS ,(SELECT PANNO FROM GENCUSTINFOMST d WHERE d.CUSTOMERID=a.CUSTOMERID AND d.KYCID='2') PANNO   FROM FORM15GHTRACKINGDTLS A ,DEPMST B WHERE A.ACCNO=B.ACCNO AND A.GLCODE=B.GLCODE AND A.BRANCHCODE=B.BRANCHCODE AND A.ASSESYEAR='" & strArr(4) & "' AND A.FORM15GYN='" & strArr(3) & "' AND B.FORMS15G='Y' AND A.STATUS='R' AND A.GLCODE='" & strArr(6) & "' AND A.ACCNO='" & strArr(7) & "'  " & strArr(5) & "  AND A.BRANCHCODE='" & strArr(1) & "' ORDER BY  A.SUBMITDATE "
+
+
+            //    else
+
+            //                sqlStr = "SELECT A.BRANCHCODE,A.CUSTOMERID,A.GLCODE, A.ACCNO, B.NAME, TO_CHAR(B.OPDATE,'DD-Mon-YYYY'), B.OPBAL, B.MATURITYVALUE,TO_CHAR(B.MATURITYDATE,'DD-Mon-YYYY'), A.INTEREST, TO_CHAR(A.SUBMITDATE,'DD-Mon-YYYY'), A.STATUS ,(SELECT PANNO FROM GENCUSTINFOMST d WHERE d.CUSTOMERID=a.CUSTOMERID AND d.KYCID='2') PANNO   FROM FORM15GHTRACKINGDTLS A ,DEPMST B WHERE A.ACCNO=B.ACCNO AND A.GLCODE=B.GLCODE AND A.BRANCHCODE=B.BRANCHCODE AND A.ASSESYEAR='" & strArr(4) & "' AND A.FORM15GYN='" & strArr(3) & "' AND B.FORMS15G='Y' AND A.STATUS='R' AND A.GLCODE='" & strArr(6) & "' AND A.ACCNO='" & strArr(7) & "'  " & strArr(5) & "  ORDER BY  A.SUBMITDATE "
+
+
+            //    end if
+
+
+
+
+            //    rs = obj.SingleSelectStat(sqlStr)
+
+
+            //    if obj.ConnError = "Connected" then
+
+            //        if not rs.BOF and not rs.EOF then
+
+            //            do until rs.EOF
+
+            //                if strArr(8) = "0" then
+            //                    strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "~" & rs(7).value & "~" & rs(8).value & "~" & rs(9).value & "~" & rs(10).value & "~" & rs(11).value & "|"
+
+            //                else
+            //                strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "~" & rs(7).value & "~" & rs(8).value & "~" & rs(9).value & "~" & rs(10).value & "~" & rs(11).value & "~" & rs(12).value & "|"
+
+            //                end if
+
+            //                rs.movenext()
+
+            //            loop
+            //            strResult = mid(strResult, 1, strResult.length - 1)
+
+            //        'else 
+
+            //        'strResult="0"
+
+            //        end if
+
+            //    end if
+
+            //    rs = nothing
+
+
+            //    elseif strArr(0)= "QUE15HA" then
+            //    strResult = ""
+
+            //    obj = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+
+            //    if strArr(6) = "0" then
+            //        sqlStr = "SELECT A.CUSTOMERID,A.GLCODE, A.ACCNO, B.NAME, TO_CHAR(B.OPDATE,'DD-Mon-YYYY'), B.OPBAL, B.MATURITYVALUE,TO_CHAR(B.MATURITYDATE,'DD-Mon-YYYY'), A.INTEREST, TO_CHAR(A.SUBMITDATE,'DD-Mon-YYYY'), A.STATUS,(SELECT PANNO FROM GENCUSTINFOMST d WHERE d.CUSTOMERID=a.CUSTOMERID AND d.KYCID='2') PANNO   FROM FORM15GHTRACKINGDTLS A ,DEPMST B WHERE A.ACCNO=B.ACCNO AND A.GLCODE=B.GLCODE AND A.BRANCHCODE=B.BRANCHCODE AND A.ASSESYEAR='" & strArr(4) & "' AND A.FORM15HYN='" & strArr(3) & "' AND B.EXMPFORMSRECYN='Y' AND A.STATUS='R' " & strArr(5) & " AND A.BRANCHCODE='" & strArr(1) & "' ORDER BY  A.SUBMITDATE "
+
+            //    else
+            //                sqlStr = "SELECT A.BRANCHCODE,A.CUSTOMERID,A.GLCODE, A.ACCNO, B.NAME, TO_CHAR(B.OPDATE,'DD-Mon-YYYY'), B.OPBAL, B.MATURITYVALUE,TO_CHAR(B.MATURITYDATE,'DD-Mon-YYYY'), A.INTEREST, TO_CHAR(A.SUBMITDATE,'DD-Mon-YYYY'), A.STATUS,(SELECT PANNO FROM GENCUSTINFOMST d WHERE d.CUSTOMERID=a.CUSTOMERID AND d.KYCID='2') PANNO   FROM FORM15GHTRACKINGDTLS A ,DEPMST B WHERE A.ACCNO=B.ACCNO AND A.GLCODE=B.GLCODE AND A.BRANCHCODE=B.BRANCHCODE AND A.ASSESYEAR='" & strArr(4) & "' AND A.FORM15HYN='" & strArr(3) & "' AND B.EXMPFORMSRECYN='Y' AND A.STATUS='R' " & strArr(5) & " AND a.customerid IN (SELECT customerid FROM gencustinfomst WHERE branchcode='" & strArr(1) & "') ORDER BY  A.SUBMITDATE "
+
+            //    end if
+
+
+            //    rs = obj.SingleSelectStat(sqlStr)
+
+
+            //    if obj.ConnError = "Connected" then
+
+            //        if not rs.BOF and not rs.EOF then
+
+            //            do until rs.EOF
+
+
+            //                if strArr(6) = "0" then
+            //                    strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "~" & rs(7).value & "~" & rs(8).value & "~" & rs(9).value & "~" & rs(10).value & "~" & rs(11).value & "|"
+
+            //                else
+            //                strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "~" & rs(7).value & "~" & rs(8).value & "~" & rs(9).value & "~" & rs(10).value & "~" & rs(11).value & "~" & rs(12).value & "|"
+
+            //                end if
+
+
+            //                rs.movenext()
+
+            //            loop
+            //            strResult = mid(strResult, 1, strResult.length - 1)
+
+            //        'else 
+
+            //        'strResult="0"
+
+            //        end if
+
+            //    end if
+
+            //    rs = nothing
+
+
+            //    elseif strArr(0)= "QUE15HC" then
+            //    strResult = ""
+
+            //    obj = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+
+            //    if strArr(7) = "0" then
+            //        sqlStr = "SELECT A.CUSTOMERID,A.GLCODE, A.ACCNO, B.NAME, TO_CHAR(B.OPDATE,'DD-Mon-YYYY'), B.OPBAL, B.MATURITYVALUE,TO_CHAR(B.MATURITYDATE,'DD-Mon-YYYY'), A.INTEREST, TO_CHAR(A.SUBMITDATE,'DD-Mon-YYYY'), A.STATUS ,(SELECT PANNO FROM GENCUSTINFOMST d WHERE d.CUSTOMERID=a.CUSTOMERID AND d.KYCID='2') PANNO  FROM FORM15GHTRACKINGDTLS A ,DEPMST B  WHERE A.ACCNO=B.ACCNO AND A.GLCODE=B.GLCODE AND A.BRANCHCODE=B.BRANCHCODE AND A.ASSESYEAR='" & strArr(4) & "' AND A.FORM15HYN='" & strArr(3) & "' AND B.EXMPFORMSRECYN='Y' AND A.STATUS='R' " & strArr(5) & " AND A.CUSTOMERID='" & strArr(6) & "' AND A.BRANCHCODE='" & strArr(1) & "' ORDER BY  A.SUBMITDATE "
+
+            //    else
+            //                sqlStr = "SELECT A.BRANCHCODE,A.CUSTOMERID,A.GLCODE, A.ACCNO, B.NAME, TO_CHAR(B.OPDATE,'DD-Mon-YYYY'), B.OPBAL, B.MATURITYVALUE,TO_CHAR(B.MATURITYDATE,'DD-Mon-YYYY'), A.INTEREST, TO_CHAR(A.SUBMITDATE,'DD-Mon-YYYY'), A.STATUS ,(SELECT PANNO FROM GENCUSTINFOMST d WHERE d.CUSTOMERID=a.CUSTOMERID AND d.KYCID='2') PANNO  FROM FORM15GHTRACKINGDTLS A ,DEPMST B  WHERE A.ACCNO=B.ACCNO AND A.GLCODE=B.GLCODE AND A.BRANCHCODE=B.BRANCHCODE AND A.ASSESYEAR='" & strArr(4) & "' AND A.FORM15HYN='" & strArr(3) & "' AND B.EXMPFORMSRECYN='Y' AND A.STATUS='R' " & strArr(5) & " AND A.CUSTOMERID='" & strArr(6) & "' ORDER BY  A.SUBMITDATE "
+
+
+            //    end if
+
+
+            //    rs = obj.SingleSelectStat(sqlStr)
+
+
+            //    if obj.ConnError = "Connected" then
+
+            //        if not rs.BOF and not rs.EOF then
+
+            //            do until rs.EOF
+
+            //                if strArr(7) = "0" then
+            //                    strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "~" & rs(7).value & "~" & rs(8).value & "~" & rs(9).value & "~" & rs(10).value & "~" & rs(11).value & "|"
+
+            //                else
+            //                strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "~" & rs(7).value & "~" & rs(8).value & "~" & rs(9).value & "~" & rs(10).value & "~" & rs(11).value & "~" & rs(12).value & "|"
+
+            //                end if
+
+
+            //                rs.movenext()
+
+            //            loop
+            //            strResult = mid(strResult, 1, strResult.length - 1)
+
+            //        'else 
+
+            //        'strResult="0"
+
+            //        end if
+
+            //    end if
+
+            //    rs = nothing
+
+
+            //    elseif strArr(0)= "QUE15HAC" then
+            //    strResult = ""
+
+            //    obj = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+
+            //    if strArr(8) = "0" then
+
+            //        sqlStr = "SELECT A.CUSTOMERID,A.GLCODE, A.ACCNO, B.NAME, TO_CHAR(B.OPDATE,'DD-Mon-YYYY'), B.OPBAL, B.MATURITYVALUE,TO_CHAR(B.MATURITYDATE,'DD-Mon-YYYY'), A.INTEREST, TO_CHAR(A.SUBMITDATE,'DD-Mon-YYYY'), A.STATUS ,(SELECT PANNO FROM GENCUSTINFOMST d WHERE d.CUSTOMERID=a.CUSTOMERID AND d.KYCID='2' ) PANNO  FROM FORM15GHTRACKINGDTLS A ,DEPMST B WHERE A.ACCNO=B.ACCNO AND A.GLCODE=B.GLCODE AND A.BRANCHCODE=B.BRANCHCODE AND A.ASSESYEAR='" & strArr(4) & "' AND A.FORM15HYN='" & strArr(3) & "' AND B.EXMPFORMSRECYN='Y' AND A.STATUS='R' " & strArr(5) & " AND A.GLCODE='" & strArr(6) & "' AND A.ACCNO='" & strArr(7) & "' AND A.BRANCHCODE='" & strArr(1) & "' ORDER BY  A.SUBMITDATE "
+
+
+            //    else
+
+            //                sqlStr = "SELECT A.BRANCHCODE,A.CUSTOMERID,A.GLCODE, A.ACCNO, B.NAME, TO_CHAR(B.OPDATE,'DD-Mon-YYYY'), B.OPBAL, B.MATURITYVALUE,TO_CHAR(B.MATURITYDATE,'DD-Mon-YYYY'), A.INTEREST, TO_CHAR(A.SUBMITDATE,'DD-Mon-YYYY'), A.STATUS ,(SELECT PANNO FROM GENCUSTINFOMST d WHERE d.CUSTOMERID=a.CUSTOMERID AND d.KYCID='2' ) PANNO  FROM FORM15GHTRACKINGDTLS A ,DEPMST B WHERE A.ACCNO=B.ACCNO AND A.GLCODE=B.GLCODE AND A.BRANCHCODE=B.BRANCHCODE AND A.ASSESYEAR='" & strArr(4) & "' AND A.FORM15HYN='" & strArr(3) & "' AND B.EXMPFORMSRECYN='Y' AND A.STATUS='R' " & strArr(5) & " AND A.GLCODE='" & strArr(6) & "' AND A.ACCNO='" & strArr(7) & "' ORDER BY  A.SUBMITDATE "
+
+
+            //    end if
+
+
+            //    rs = obj.SingleSelectStat(sqlStr)
+
+
+            //    if obj.ConnError = "Connected" then
+
+            //        if not rs.BOF and not rs.EOF then
+
+            //            do until rs.EOF
+
+
+            //                if strArr(8) = "0" then
+            //                    strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "~" & rs(7).value & "~" & rs(8).value & "~" & rs(9).value & "~" & rs(10).value & "~" & rs(11).value & "|"
+
+            //                else
+            //                strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "~" & rs(7).value & "~" & rs(8).value & "~" & rs(9).value & "~" & rs(10).value & "~" & rs(11).value & "~" & rs(12).value & "|"
+
+            //                end if
+
+
+            //                rs.movenext()
+
+            //            loop
+            //            strResult = mid(strResult, 1, strResult.length - 1)
+
+            //        'else 
+
+            //        'strResult="0"
+
+            //        end if
+
+            //    end if
+
+            //    rs = nothing
+
+
+            //    elseif strArr(0)= "QUE15GAN" then
+            //    strResult = ""
+
+            //    obj = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+
+            //    if strArr(6) = "0" then
+            //        sqlStr = "SELECT A.CUSTOMERID,A.GLCODE, A.ACCNO, B.NAME, TO_CHAR(B.OPDATE,'DD-Mon-YYYY'), B.OPBAL, B.MATURITYVALUE,TO_CHAR(B.MATURITYDATE,'DD-Mon-YYYY'), A.INTEREST, C.CUSTMOBILE, A.STATUS,(SELECT PANNO FROM GENCUSTINFOMST d WHERE d.CUSTOMERID=a.CUSTOMERID AND d.KYCID='2') PANNO  FROM FORM15GHTRACKINGDTLS A ,DEPMST B,GENCUSTINFOMST C WHERE A.ACCNO=B.ACCNO AND A.CUSTOMERID=C.CUSTOMERID AND A.GLCODE=B.GLCODE AND A.BRANCHCODE=B.BRANCHCODE AND  A.ASSESYEAR='" & strArr(4) & "' AND A.FORM15GYN='" & strArr(3) & "' AND B.FORMS15G='Y' AND A.STATUS='R' AND A.BRANCHCODE='" & strArr(1) & "'"
+
+            //    else
+            //                sqlStr = "SELECT A.BRANCHCODE,A.CUSTOMERID,A.GLCODE, A.ACCNO, B.NAME, TO_CHAR(B.OPDATE,'DD-Mon-YYYY'), B.OPBAL, B.MATURITYVALUE,TO_CHAR(B.MATURITYDATE,'DD-Mon-YYYY'), A.INTEREST, C.CUSTMOBILE, A.STATUS,(SELECT PANNO FROM GENCUSTINFOMST d WHERE d.CUSTOMERID=a.CUSTOMERID AND d.KYCID='2') PANNO  FROM FORM15GHTRACKINGDTLS A ,DEPMST B,GENCUSTINFOMST C WHERE A.ACCNO=B.ACCNO AND A.CUSTOMERID=C.CUSTOMERID AND A.GLCODE=B.GLCODE AND A.BRANCHCODE=B.BRANCHCODE AND  A.ASSESYEAR='" & strArr(4) & "' AND A.FORM15GYN='" & strArr(3) & "' AND B.FORMS15G='Y' AND A.STATUS='R' AND a.customerid IN (SELECT customerid FROM gencustinfomst WHERE branchcode='" & strArr(1) & "')"
+
+            //    end if
+
+
+            //    rs = obj.SingleSelectStat(sqlStr)
+
+
+            //    if obj.ConnError = "Connected" then
+
+            //        if not rs.BOF and not rs.EOF then
+
+            //            do until rs.EOF
+
+            //                if strArr(6) = "0" then
+            //                    strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "~" & rs(7).value & "~" & rs(8).value & "~" & rs(9).value & "~" & rs(10).value & "~" & rs(11).value & "|"
+
+            //                else
+            //                strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "~" & rs(7).value & "~" & rs(8).value & "~" & rs(9).value & "~" & rs(10).value & "~" & rs(11).value & "~" & rs(12).value & "|"
+
+            //                end if
+
+
+            //                rs.movenext()
+
+            //            loop
+            //            strResult = mid(strResult, 1, strResult.length - 1)
+
+            //        'else 
+
+            //        'strResult="0"
+
+            //        end if
+
+            //    end if
+
+            //    rs = nothing
+
+
+            //    elseif strArr(0)= "QUE15GNC" then
+            //    strResult = ""
+
+            //    obj = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+
+            //    if strArr(7) = "0" then
+            //        sqlStr = "SELECT A.CUSTOMERID,A.GLCODE, A.ACCNO, B.NAME, TO_CHAR(B.OPDATE,'DD-Mon-YYYY'), B.OPBAL, B.MATURITYVALUE,TO_CHAR(B.MATURITYDATE,'DD-Mon-YYYY'), A.INTEREST, C.CUSTMOBILE, A.STATUS,(SELECT PANNO FROM GENCUSTINFOMST d WHERE d.CUSTOMERID=a.CUSTOMERID AND d.KYCID='2') PANNO  FROM FORM15GHTRACKINGDTLS A ,DEPMST B,GENCUSTINFOMST C WHERE  A.ACCNO=B.ACCNO AND A.CUSTOMERID=C.CUSTOMERID AND A.GLCODE=B.GLCODE AND A.BRANCHCODE=B.BRANCHCODE AND A.ASSESYEAR='" & strArr(4) & "' AND A.FORM15GYN='" & strArr(3) & "' AND B.FORMS15G='Y' AND A.STATUS='R' AND A.CUSTOMERID='" & strArr(6) & "' AND A.BRANCHCODE='" & strArr(1) & "' "
+
+            //    else
+            //                sqlStr = "SELECT A.BRANCHCODE,A.CUSTOMERID,A.GLCODE, A.ACCNO, B.NAME, TO_CHAR(B.OPDATE,'DD-Mon-YYYY'), B.OPBAL, B.MATURITYVALUE,TO_CHAR(B.MATURITYDATE,'DD-Mon-YYYY'), A.INTEREST, C.CUSTMOBILE, A.STATUS,(SELECT PANNO FROM GENCUSTINFOMST d WHERE d.CUSTOMERID=a.CUSTOMERID AND d.KYCID='2' AND d.branchcode=a.branchcode) PANNO  FROM FORM15GHTRACKINGDTLS A ,DEPMST B,GENCUSTINFOMST C WHERE  A.ACCNO=B.ACCNO AND A.CUSTOMERID=C.CUSTOMERID AND A.GLCODE=B.GLCODE AND A.BRANCHCODE=B.BRANCHCODE AND A.ASSESYEAR='" & strArr(4) & "' AND A.FORM15GYN='" & strArr(3) & "' AND B.FORMS15G='Y' AND A.STATUS='R' AND A.CUSTOMERID='" & strArr(6) & "' "
+
+            //    end if
+
+
+
+
+            //    rs = obj.SingleSelectStat(sqlStr)
+
+
+            //    if obj.ConnError = "Connected" then
+
+            //        if not rs.BOF and not rs.EOF then
+
+            //            do until rs.EOF
+
+            //                if strArr(7) = "0" then
+            //                    strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "~" & rs(7).value & "~" & rs(8).value & "~" & rs(9).value & "~" & rs(10).value & "~" & rs(11).value & "|"
+
+            //                else
+            //                strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "~" & rs(7).value & "~" & rs(8).value & "~" & rs(9).value & "~" & rs(10).value & "~" & rs(11).value & "~" & rs(12).value & "|"
+
+            //                end if
+
+
+            //                rs.movenext()
+
+            //            loop
+            //            strResult = mid(strResult, 1, strResult.length - 1)
+
+            //        'else 
+
+            //        'strResult="0"
+
+            //        end if
+
+            //    end if
+
+            //    rs = nothing
+
+
+            //    elseif strArr(0)= "QUE15GNA" then
+            //    strResult = ""
+
+            //    obj = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+
+            //    if strArr(8) = "0" then
+            //        sqlStr = "SELECT A.CUSTOMERID,A.GLCODE, A.ACCNO, B.NAME, TO_CHAR(B.OPDATE,'DD-Mon-YYYY'), B.OPBAL, B.MATURITYVALUE,TO_CHAR(B.MATURITYDATE,'DD-Mon-YYYY'), A.INTEREST, C.CUSTMOBILE, A.STATUS ,(SELECT PANNO FROM GENCUSTINFOMST d WHERE d.CUSTOMERID=a.CUSTOMERID AND d.KYCID='2') PANNO FROM FORM15GHTRACKINGDTLS A ,DEPMST B,GENCUSTINFOMST C WHERE A.ACCNO=B.ACCNO AND A.CUSTOMERID=C.CUSTOMERID AND A.GLCODE=B.GLCODE AND A.BRANCHCODE=B.BRANCHCODE AND A.ASSESYEAR='" & strArr(4) & "' AND A.FORM15GYN='" & strArr(3) & "' AND B.FORMS15G='Y' AND A.STATUS='R' AND A.GLCODE='" & strArr(6) & "' AND A.ACCNO='" & strArr(7) & "' AND A.BRANCHCODE='" & strArr(1) & "'  "
+
+            //    else
+            //                sqlStr = "SELECT A.BRANCHCODE,A.CUSTOMERID,A.GLCODE, A.ACCNO, B.NAME, TO_CHAR(B.OPDATE,'DD-Mon-YYYY'), B.OPBAL, B.MATURITYVALUE,TO_CHAR(B.MATURITYDATE,'DD-Mon-YYYY'), A.INTEREST, C.CUSTMOBILE, A.STATUS ,(SELECT PANNO FROM GENCUSTINFOMST d WHERE d.CUSTOMERID=a.CUSTOMERID AND d.KYCID='2') PANNO FROM FORM15GHTRACKINGDTLS A ,DEPMST B,GENCUSTINFOMST C WHERE A.ACCNO=B.ACCNO AND A.CUSTOMERID=C.CUSTOMERID AND A.GLCODE=B.GLCODE AND A.BRANCHCODE=B.BRANCHCODE AND A.ASSESYEAR='" & strArr(4) & "' AND A.FORM15GYN='" & strArr(3) & "' AND B.FORMS15G='Y' AND A.STATUS='R' AND A.GLCODE='" & strArr(6) & "' AND A.ACCNO='" & strArr(7) & "' "
+
+            //    end if
+
+
+
+
+            //    rs = obj.SingleSelectStat(sqlStr)
+
+
+            //    if obj.ConnError = "Connected" then
+
+            //        if not rs.BOF and not rs.EOF then
+
+            //            do until rs.EOF
+
+            //                if strArr(8) = "0" then
+            //                    strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "~" & rs(7).value & "~" & rs(8).value & "~" & rs(9).value & "~" & rs(10).value & "~" & rs(11).value & "|"
+
+            //                else
+            //                strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "~" & rs(7).value & "~" & rs(8).value & "~" & rs(9).value & "~" & rs(10).value & "~" & rs(11).value & "~" & rs(12).value & "|"
+
+            //                end if
+
+
+            //                rs.movenext()
+
+            //            loop
+            //            strResult = mid(strResult, 1, strResult.length - 1)
+
+            //        'else 
+
+            //        'strResult="0"
+
+            //        end if
+
+            //    end if
+
+            //    rs = nothing
+
+
+            //    elseif strArr(0)= "QUE15GCU" then
+            //    strResult = ""
+
+            //    obj = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+
+            //    if strArr(6) = "0" then
+            //        sqlStr = "SELECT A.GLCODE, A.ACCNO, B.NAME,A.FORM15GYN, TO_CHAR(B.OPDATE,'DD-Mon-YYYY'), B.OPBAL, B.MATURITYVALUE,TO_CHAR(B.MATURITYDATE,'DD-Mon-YYYY'), A.INTEREST, C.CUSTMOBILE, TO_CHAR(A.SUBMITDATE,'DD-Mon-YYYY'), A.STATUS ,(SELECT PANNO FROM GENCUSTINFOMST d WHERE d.CUSTOMERID=a.CUSTOMERID AND d.KYCID='2') PANNO FROM FORM15GHTRACKINGDTLS A ,DEPMST B,GENCUSTINFOMST C WHERE A.ACCNO=B.ACCNO AND A.CUSTOMERID=C.CUSTOMERID AND A.GLCODE=B.GLCODE AND A.BRANCHCODE=B.BRANCHCODE AND A.ASSESYEAR='" & strArr(3) & "' AND A.CUSTOMERID='" & strArr(5) & "' AND B.FORMS15G='Y' AND A.BRANCHCODE='" & strArr(1) & "' ORDER BY  A.SUBMITDATE "
+
+            //    else
+            //                sqlStr = "SELECT A.BRANCHCODE,A.GLCODE, A.ACCNO, B.NAME,A.FORM15GYN, TO_CHAR(B.OPDATE,'DD-Mon-YYYY'), B.OPBAL, B.MATURITYVALUE,TO_CHAR(B.MATURITYDATE,'DD-Mon-YYYY'), A.INTEREST, C.CUSTMOBILE, TO_CHAR(A.SUBMITDATE,'DD-Mon-YYYY'), A.STATUS ,(SELECT PANNO FROM GENCUSTINFOMST d WHERE d.CUSTOMERID=a.CUSTOMERID AND d.KYCID='2') PANNO FROM FORM15GHTRACKINGDTLS A ,DEPMST B,GENCUSTINFOMST C WHERE A.ACCNO=B.ACCNO AND A.CUSTOMERID=C.CUSTOMERID AND A.GLCODE=B.GLCODE AND A.BRANCHCODE=B.BRANCHCODE AND A.ASSESYEAR='" & strArr(3) & "' AND A.CUSTOMERID='" & strArr(5) & "' AND B.FORMS15G='Y' ORDER BY  A.SUBMITDATE "
+
+            //    end if
+
+
+
+
+            //    rs = obj.SingleSelectStat(sqlStr)
+
+
+            //    if obj.ConnError = "Connected" then
+
+            //        if not rs.BOF and not rs.EOF then
+
+            //            do until rs.EOF
+
+            //                if strArr(6) = "0" then
+            //                    strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "~" & rs(7).value & "~" & rs(8).value & "~" & rs(9).value & "~" & rs(10).value & "~" & rs(11).value & "~" & rs(12).value & "|"
+
+            //                else
+            //                strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "~" & rs(7).value & "~" & rs(8).value & "~" & rs(9).value & "~" & rs(10).value & "~" & rs(11).value & "~" & rs(12).value & "~" & rs(13).value & "|"
+
+            //                end if
+
+
+            //                rs.movenext()
+
+            //            loop
+            //            strResult = mid(strResult, 1, strResult.length - 1)
+
+            //        'else 
+
+            //        'strResult="0"
+
+            //        end if
+
+            //    end if
+
+            //    rs = nothing
+
+
+            //    elseif strArr(0)= "QUE15HCU" then
+            //    strResult = ""
+
+            //    obj = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+
+            //    if strArr(6) = "0" then
+            //        sqlStr = "SELECT A.GLCODE, A.ACCNO, B.NAME,A.FORM15GYN, TO_CHAR(B.OPDATE,'DD-Mon-YYYY'), B.OPBAL, B.MATURITYVALUE,TO_CHAR(B.MATURITYDATE,'DD-Mon-YYYY'), A.INTEREST, C.CUSTMOBILE, TO_CHAR(A.SUBMITDATE,'DD-Mon-YYYY'), A.STATUS ,(SELECT PANNO FROM GENCUSTINFOMST d WHERE d.CUSTOMERID=a.CUSTOMERID AND d.KYCID='2') PANNO FROM FORM15GHTRACKINGDTLS A ,DEPMST B,GENCUSTINFOMST C WHERE A.ACCNO=B.ACCNO AND A.CUSTOMERID=C.CUSTOMERID AND A.GLCODE=B.GLCODE AND A.BRANCHCODE=B.BRANCHCODE AND A.ASSESYEAR='" & strArr(3) & "' AND A.CUSTOMERID='" & strArr(5) & "' AND B.EXMPFORMSRECYN='Y' AND A.BRANCHCODE='" & strArr(1) & "' ORDER BY  A.SUBMITDATE "
+
+            //    else
+            //                sqlStr = "SELECT A.BRANCHCODE,A.GLCODE, A.ACCNO, B.NAME,A.FORM15GYN, TO_CHAR(B.OPDATE,'DD-Mon-YYYY'), B.OPBAL, B.MATURITYVALUE,TO_CHAR(B.MATURITYDATE,'DD-Mon-YYYY'), A.INTEREST, C.CUSTMOBILE, TO_CHAR(A.SUBMITDATE,'DD-Mon-YYYY'), A.STATUS ,(SELECT PANNO FROM GENCUSTINFOMST d WHERE d.CUSTOMERID=a.CUSTOMERID AND d.KYCID='2') PANNO FROM FORM15GHTRACKINGDTLS A ,DEPMST B,GENCUSTINFOMST C WHERE A.ACCNO=B.ACCNO AND A.CUSTOMERID=C.CUSTOMERID AND A.GLCODE=B.GLCODE AND A.BRANCHCODE=B.BRANCHCODE AND A.ASSESYEAR='" & strArr(3) & "' AND A.CUSTOMERID='" & strArr(5) & "' AND B.EXMPFORMSRECYN='Y' ORDER BY  A.SUBMITDATE "
+
+            //    end if
+
+
+
+
+            //    rs = obj.SingleSelectStat(sqlStr)
+
+
+            //    if obj.ConnError = "Connected" then
+
+            //        if not rs.BOF and not rs.EOF then
+
+            //            do until rs.EOF
+
+
+            //                if strArr(6) = "0" then
+            //                    strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "~" & rs(7).value & "~" & rs(8).value & "~" & rs(9).value & "~" & rs(10).value & "~" & rs(11).value & "~" & rs(12).value & "|"
+
+            //                else
+            //                strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "~" & rs(7).value & "~" & rs(8).value & "~" & rs(9).value & "~" & rs(10).value & "~" & rs(11).value & "~" & rs(12).value & "~" & rs(13).value & "|"
+
+            //                end if
+
+
+            //                rs.movenext()
+
+            //            loop
+            //            strResult = mid(strResult, 1, strResult.length - 1)
+
+            //        'else 
+
+            //        'strResult="0"
+
+            //        end if
+
+            //    end if
+
+            //    rs = nothing
+
+
+            //    elseif strArr(0)= "QUE15HAN" then
+            //    strResult = ""
+
+            //    obj = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+
+            //    if strArr(6) = "0" then
+            //        sqlStr = "SELECT A.CUSTOMERID,A.GLCODE, A.ACCNO, B.NAME, TO_CHAR(B.OPDATE,'DD-Mon-YYYY'), B.OPBAL, B.MATURITYVALUE,TO_CHAR(B.MATURITYDATE,'DD-Mon-YYYY'), A.INTEREST, C.CUSTMOBILE, A.STATUS,(SELECT PANNO FROM GENCUSTINFOMST d WHERE d.CUSTOMERID=a.CUSTOMERID AND d.KYCID='2') PANNO  FROM FORM15GHTRACKINGDTLS A ,DEPMST B,GENCUSTINFOMST C WHERE A.ACCNO=B.ACCNO AND A.CUSTOMERID=C.CUSTOMERID AND A.GLCODE=B.GLCODE AND A.BRANCHCODE=B.BRANCHCODE AND A.ASSESYEAR='" & strArr(4) & "' AND A.FORM15HYN='" & strArr(3) & "' AND B.EXMPFORMSRECYN='Y' AND A.STATUS='R' AND A.BRANCHCODE='" & strArr(1) & "' "
+
+            //    else
+            //                sqlStr = "SELECT A.BRANCHCODE,A.CUSTOMERID,A.GLCODE, A.ACCNO, B.NAME, TO_CHAR(B.OPDATE,'DD-Mon-YYYY'), B.OPBAL, B.MATURITYVALUE,TO_CHAR(B.MATURITYDATE,'DD-Mon-YYYY'), A.INTEREST, C.CUSTMOBILE, A.STATUS,(SELECT PANNO FROM GENCUSTINFOMST d WHERE d.CUSTOMERID=a.CUSTOMERID AND d.KYCID='2') PANNO  FROM FORM15GHTRACKINGDTLS A ,DEPMST B,GENCUSTINFOMST C WHERE A.ACCNO=B.ACCNO AND A.CUSTOMERID=C.CUSTOMERID AND A.GLCODE=B.GLCODE AND A.BRANCHCODE=B.BRANCHCODE AND A.ASSESYEAR='" & strArr(4) & "' AND A.FORM15HYN='" & strArr(3) & "' AND B.EXMPFORMSRECYN='Y' AND A.STATUS='R' AND a.customerid IN (SELECT customerid FROM gencustinfomst WHERE branchcode='" & strArr(1) & "') "
+
+            //    end if
+
+
+            //    rs = obj.SingleSelectStat(sqlStr)
+
+
+            //    if obj.ConnError = "Connected" then
+
+            //        if not rs.BOF and not rs.EOF then
+
+            //            do until rs.EOF
+
+            //                if strArr(6) = "0" then
+            //                    strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "~" & rs(7).value & "~" & rs(8).value & "~" & rs(9).value & "~" & rs(10).value & "~" & rs(11).value & "|"
+
+            //                else
+            //                strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "~" & rs(7).value & "~" & rs(8).value & "~" & rs(9).value & "~" & rs(10).value & "~" & rs(11).value & "~" & rs(12).value & "|"
+
+            //                end if
+
+
+            //                rs.movenext()
+
+            //            loop
+            //            strResult = mid(strResult, 1, strResult.length - 1)
+
+            //        'else 
+
+            //        'strResult="0"
+
+            //        end if
+
+            //    end if
+
+            //    rs = nothing
+
+
+            //    elseif strArr(0)= "QUE15HANC" then
+            //    strResult = ""
+
+            //    obj = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+
+            //    if strArr(7) = "0" then
+            //        sqlStr = "SELECT A.CUSTOMERID,A.GLCODE, A.ACCNO, B.NAME, TO_CHAR(B.OPDATE,'DD-Mon-YYYY'), B.OPBAL, B.MATURITYVALUE,TO_CHAR(B.MATURITYDATE,'DD-Mon-YYYY'), A.INTEREST, C.CUSTMOBILE, A.STATUS,(SELECT PANNO FROM GENCUSTINFOMST d WHERE d.CUSTOMERID=a.CUSTOMERID AND d.KYCID='2') PANNO  FROM FORM15GHTRACKINGDTLS A ,DEPMST B,GENCUSTINFOMST C WHERE A.ACCNO=B.ACCNO AND A.CUSTOMERID=C.CUSTOMERID AND A.GLCODE=B.GLCODE AND A.BRANCHCODE=B.BRANCHCODE AND A.ASSESYEAR='" & strArr(4) & "' AND A.FORM15HYN='" & strArr(3) & "' AND B.EXMPFORMSRECYN='Y' AND A.STATUS='R' AND A.CUSTOMERID='" & strArr(6) & "' AND A.BRANCHCODE='" & strArr(1) & "' "
+
+            //    else
+            //                sqlStr = "SELECT A.BRANCHCODE,A.CUSTOMERID,A.GLCODE, A.ACCNO, B.NAME, TO_CHAR(B.OPDATE,'DD-Mon-YYYY'), B.OPBAL, B.MATURITYVALUE,TO_CHAR(B.MATURITYDATE,'DD-Mon-YYYY'), A.INTEREST, C.CUSTMOBILE, A.STATUS,(SELECT PANNO FROM GENCUSTINFOMST d WHERE d.CUSTOMERID=a.CUSTOMERID AND d.KYCID='2') PANNO  FROM FORM15GHTRACKINGDTLS A ,DEPMST B,GENCUSTINFOMST C WHERE A.ACCNO=B.ACCNO AND A.CUSTOMERID=C.CUSTOMERID AND A.GLCODE=B.GLCODE AND A.BRANCHCODE=B.BRANCHCODE AND A.ASSESYEAR='" & strArr(4) & "' AND A.FORM15HYN='" & strArr(3) & "' AND B.EXMPFORMSRECYN='Y' AND A.STATUS='R' AND A.CUSTOMERID='" & strArr(6) & "' "
+
+            //    end if
+
+
+            //    rs = obj.SingleSelectStat(sqlStr)
+
+
+            //    if obj.ConnError = "Connected" then
+
+            //        if not rs.BOF and not rs.EOF then
+
+            //            do until rs.EOF
+
+
+            //                if strArr(7) = "0" then
+            //                    strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "~" & rs(7).value & "~" & rs(8).value & "~" & rs(9).value & "~" & rs(10).value & "~" & rs(11).value & "|"
+
+            //                else
+            //                strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "~" & rs(7).value & "~" & rs(8).value & "~" & rs(9).value & "~" & rs(10).value & "~" & rs(11).value & "~" & rs(12).value & "|"
+
+            //                end if
+
+
+            //                rs.movenext()
+
+            //            loop
+            //            strResult = mid(strResult, 1, strResult.length - 1)
+
+            //        'else 
+
+            //        'strResult="0"
+
+            //        end if
+
+            //    end if
+
+            //    rs = nothing
+
+
+            //    elseif strArr(0)= "QUE15HANA" then
+            //    strResult = ""
+
+            //    obj = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+
+            //    if strArr(8) = "0" then
+            //        sqlStr = "SELECT A.CUSTOMERID,A.GLCODE, A.ACCNO, B.NAME, TO_CHAR(B.OPDATE,'DD-Mon-YYYY'), B.OPBAL, B.MATURITYVALUE,TO_CHAR(B.MATURITYDATE,'DD-Mon-YYYY'), A.INTEREST, C.CUSTMOBILE, A.STATUS,(SELECT PANNO FROM GENCUSTINFOMST d WHERE d.CUSTOMERID=a.CUSTOMERID AND d.KYCID='2') PANNO  FROM FORM15GHTRACKINGDTLS A ,DEPMST B,GENCUSTINFOMST C WHERE A.ACCNO=B.ACCNO AND A.CUSTOMERID=C.CUSTOMERID AND A.GLCODE=B.GLCODE AND A.BRANCHCODE=B.BRANCHCODE AND A.ASSESYEAR='" & strArr(4) & "' AND A.FORM15HYN='" & strArr(3) & "' AND B.EXMPFORMSRECYN='Y' AND A.STATUS='R' AND A.GLCODE='" & strArr(6) & "' AND A.ACCNO='" & strArr(7) & "' AND A.BRANCHCODE='" & strArr(1) & "' "
+
+            //    else
+            //                sqlStr = "SELECT A.BRANCHCODE,A.CUSTOMERID,A.GLCODE, A.ACCNO, B.NAME, TO_CHAR(B.OPDATE,'DD-Mon-YYYY'), B.OPBAL, B.MATURITYVALUE,TO_CHAR(B.MATURITYDATE,'DD-Mon-YYYY'), A.INTEREST, C.CUSTMOBILE, A.STATUS,(SELECT PANNO FROM GENCUSTINFOMST d WHERE d.CUSTOMERID=a.CUSTOMERID AND d.KYCID='2') PANNO  FROM FORM15GHTRACKINGDTLS A ,DEPMST B,GENCUSTINFOMST C WHERE A.ACCNO=B.ACCNO AND A.CUSTOMERID=C.CUSTOMERID AND A.GLCODE=B.GLCODE AND A.BRANCHCODE=B.BRANCHCODE AND A.ASSESYEAR='" & strArr(4) & "' AND A.FORM15HYN='" & strArr(3) & "' AND B.EXMPFORMSRECYN='Y' AND A.STATUS='R' AND A.GLCODE='" & strArr(6) & "' AND A.ACCNO='" & strArr(7) & "' "
+
+            //    end if
+
+
+            //    rs = obj.SingleSelectStat(sqlStr)
+
+
+            //    if obj.ConnError = "Connected" then
+
+            //        if not rs.BOF and not rs.EOF then
+
+            //            do until rs.EOF
+
+            //                if strArr(8) = "0" then
+            //                    strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "~" & rs(7).value & "~" & rs(8).value & "~" & rs(9).value & "~" & rs(10).value & "~" & rs(11).value & "|"
+
+            //                else
+            //                strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "~" & rs(7).value & "~" & rs(8).value & "~" & rs(9).value & "~" & rs(10).value & "~" & rs(11).value & "~" & rs(12).value & "|"
+
+            //                end if
+
+
+            //                rs.movenext()
+
+            //            loop
+            //            strResult = mid(strResult, 1, strResult.length - 1)
+
+            //        'else 
+
+            //        'strResult="0"
+
+            //        end if
+
+            //    end if
+
+            //    rs = nothing
+
+            //    '''TDS REPORT
+
+            //    elseif strArr(0)= "FRMTDS" then
+            //    strResult = ""
+
+            //    obj = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+
+            //    if strArr(5) = "0" then
+            //        sqlStr = "SELECT A.CUSTOMERID,A.GLCODE, A.ACCNO, A.NAME, TO_CHAR(A.OPDATE,'DD-Mon-YYYY'), A.OPBAL, A.MATURITYVALUE,TO_CHAR(A.MATURITYDATE,'DD-Mon-YYYY'), B.PANNO,A.STATUS FROM DEPMST A , GENCUSTINFOMST B WHERE A.CUSTOMERID=B.CUSTOMERID " & strArr(4) & " AND A.TDSYN='" & strArr(3) & "' AND B.KYCID='2' AND A.BRANCHCODE='" & strArr(1) & "' ORDER BY TO_NUMBER(CUSTOMERID),TO_NUMBER(GLCODE),TO_NUMBER(ACCNO)"
+
+            //    else
+            //                sqlStr = "SELECT A.BRANCHCODE,A.CUSTOMERID,A.GLCODE, A.ACCNO, A.NAME, TO_CHAR(A.OPDATE,'DD-Mon-YYYY'), A.OPBAL, A.MATURITYVALUE,TO_CHAR(A.MATURITYDATE,'DD-Mon-YYYY'), B.PANNO,A.STATUS FROM DEPMST A , GENCUSTINFOMST B WHERE A.CUSTOMERID=B.CUSTOMERID " & strArr(4) & " AND A.TDSYN='" & strArr(3) & "' AND B.KYCID='2' AND a.customerid IN (SELECT customerid FROM gencustinfomst WHERE branchcode='" & strArr(1) & "') ORDER BY TO_NUMBER(CUSTOMERID),TO_NUMBER(GLCODE),TO_NUMBER(ACCNO)"
+
+            //    end if
+
+
+            //    rs = obj.SingleSelectStat(sqlStr)
+
+
+            //    if obj.ConnError = "Connected" then
+
+            //        if not rs.BOF and not rs.EOF then
+
+            //            do until rs.EOF
+
+            //                if strArr(5) = "0" then
+            //                    strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "~" & rs(7).value & "~" & rs(8).value & "~" & rs(9).value & "|"
+
+            //                else
+            //                strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "~" & rs(7).value & "~" & rs(8).value & "~" & rs(9).value & "~" & rs(10).value & "|"
+
+            //                end if
+
+
+            //                rs.movenext()
+
+            //            loop
+            //            strResult = mid(strResult, 1, strResult.length - 1)
+
+            //        'else 
+
+            //        'strResult="0"
+
+            //        end if
+
+            //    end if
+
+            //    rs = nothing
+
+            //    ''' NON TDS 
+
+            //    elseif strArr(0)= "FRMNONTDS" then
+            //    strResult = ""
+
+            //    obj = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+
+            //    if strArr(5) = "0" then
+            //        sqlStr = "SELECT A.CUSTOMERID,A.GLCODE, A.ACCNO, A.NAME, TO_CHAR(A.OPDATE,'DD-Mon-YYYY'), A.OPBAL, A.MATURITYVALUE,TO_CHAR(A.MATURITYDATE,'DD-Mon-YYYY'), B.PANNO,A.STATUS FROM DEPMST A , GENCUSTINFOMST B WHERE  A.CUSTOMERID=B.CUSTOMERID " & strArr(4) & " AND A.NONTDS='" & strArr(3) & "' AND B.KYCID='2' AND A.BRANCHCODE='" & strArr(1) & "' ORDER BY TO_NUMBER(CUSTOMERID),TO_NUMBER(GLCODE),TO_NUMBER(ACCNO)"
+
+            //    else
+            //                sqlStr = "SELECT A.BRANCHCODE,A.CUSTOMERID,A.GLCODE, A.ACCNO, A.NAME, TO_CHAR(A.OPDATE,'DD-Mon-YYYY'), A.OPBAL, A.MATURITYVALUE,TO_CHAR(A.MATURITYDATE,'DD-Mon-YYYY'), B.PANNO,A.STATUS FROM DEPMST A , GENCUSTINFOMST B WHERE  A.CUSTOMERID=B.CUSTOMERID " & strArr(4) & " AND A.NONTDS='" & strArr(3) & "' AND B.KYCID='2' AND a.customerid IN (SELECT customerid FROM gencustinfomst WHERE branchcode='" & strArr(1) & "') ORDER BY TO_NUMBER(CUSTOMERID),TO_NUMBER(GLCODE),TO_NUMBER(ACCNO)"
+
+            //    end if
+
+
+            //    rs = obj.SingleSelectStat(sqlStr)
+
+
+            //    if obj.ConnError = "Connected" then
+
+            //        if not rs.BOF and not rs.EOF then
+
+            //            do until rs.EOF
+
+
+            //                if strArr(5) = "0" then
+            //                    strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "~" & rs(7).value & "~" & rs(8).value & "~" & rs(9).value & "|"
+
+            //                else
+            //                strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "~" & rs(7).value & "~" & rs(8).value & "~" & rs(9).value & "~" & rs(10).value & "|"
+
+            //                end if
+
+
+            //                rs.movenext()
+
+            //            loop
+            //            strResult = mid(strResult, 1, strResult.length - 1)
+
+            //        'else 
+
+            //        'strResult="0"
+
+            //        end if
+
+            //    end if
+
+            //    rs = nothing
+
+
+            //    elseif strArr(0)= "AadhaFileName" then
+            //    strResult = ""
+
+            //    obj = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+            //    sqlStr = "SELECT INWARDFILENAME FROM AADHARHEADERINWRTNDTLS where (SUBSTR(INWARDFILENAME,36,38)='xls' OR SUBSTR(INWARDFILENAME,36,38)='xlsx') AND APPLICATIONDATE='" & strArr(3) & "' "
+
+            //    'sqlStr="SELECT INWARDFILENAME FROM AADHARHEADERINWRTNDTLS where APPLICATIONDATE='" & strArr(3) & "' "
+
+
+            //    rs = obj.SingleSelectStat(sqlStr)
+
+
+            //    strResult = "Select" & "|"
+
+
+            //    if obj.ConnError = "Connected" then
+
+            //        if not rs.BOF and not rs.EOF then
+
+
+            //            do until rs.EOF
+
+            //                strResult = strResult & rs(0).value & "|"
+
+            //                rs.movenext()
+
+            //            loop
+            //            strResult = mid(strResult, 1, strResult.length - 1)
+
+            //        end if
+
+            //    end if
+
+            //    rs = nothing
+
+
+            //    elseif strArr(0)= "AadhaFName" then
+            //    strResult = ""
+
+            //    obj = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+            //    sqlStr = "SELECT INWARDFILENAME FROM AADHARHEADERINWRTNDTLS where (SUBSTR(INWARDFILENAME,36,38)='xls' OR SUBSTR(INWARDFILENAME,36,38)='xlsx') AND APPLICATIONDATE='" & strArr(3) & "' "
+
+            //    'sqlStr="SELECT INWARDFILENAME FROM AADHARHEADERINWRTNDTLS where APPLICATIONDATE='" & strArr(3) & "' "
+
+
+            //    rs = obj.SingleSelectStat(sqlStr)
+
+
+            //    strResult = "Select" & "|"
+
+
+            //    if obj.ConnError = "Connected" then
+
+            //        if not rs.BOF and not rs.EOF then
+
+
+            //            do until rs.EOF
+
+            //                strResult = strResult & rs(0).value & "|"
+
+            //                rs.movenext()
+
+            //            loop
+            //            strResult = mid(strResult, 1, strResult.length - 1)
+
+            //        end if
+
+            //    end if
+
+            //    rs = nothing
+
+
+            //    elseif strArr(0)= "AadharExp" then
+            //    strResult = ""
+
+            //    obj = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+
+            //    sqlStr = "SELECT TNXCODE, LPAD(BANKIIN,9,0), DESTACCTYPE, LFNO, LPAD(AADHARID,15,0), NAME, LPAD(SPONSORBANKIIN,9,0),USERNO, NARRATION, USERCRDITREF, LPAD(AMOUNT,13,0),ACHITEMNO, CHECKSUM, FLAGCRDR, ACCNO, RTNREASON FROM AADHARINWRTNDTLS WHERE INWARDFILENAME='" & strArr(3) & "'"
+
+
+            //    rs = obj.SingleSelectStat(sqlStr)
+
+            //        if obj.ConnError = "Connected" then
+
+            //            if not rs.BOF and not rs.EOF then
+
+            //            do until rs.EOF
+
+            //                strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "~" & rs(7).value & "~" & rs(8).value & "~" & rs(9).value & "~" & rs(10).value & "~" & rs(11).value & "~" & rs(12).value & "~" & rs(13).value & "~" & rs(14).value & "~" & rs(15).value & "|"
+
+            //                rs.movenext()
+
+            //            loop
+            //            strResult = mid(strResult, 1, strResult.length - 1)
+
+            //            end if
+
+            //        end if
+
+            //        rs = nothing
+
+
+            //    rs = Server.CreateObject("adodb.recordset")
+
+
+            //    sqlStr = "SELECT RPAD(HEADERID,9,0), LPAD(BANKIIN,7,0),LPAD(NOOFRECORDS,9,0) ,LPAD(TOTALAMT,13,0) ,TO_CHAR(DATAOFINPUT,'DD-Mon-YYYY') FROM AADHARHEADERINWRTNDTLS WHERE INWARDFILENAME='" & strArr(3) & "'"
+
+
+            //    rs = obj.SingleSelectStat(sqlStr)
+
+
+            //    dim strAhd as string
+
+            //        strAhd = ""
+
+
+            //    if obj.ConnError = "Connected" then
+
+            //        if not rs.BOF and not rs.EOF then
+
+            //            do until rs.EOF
+
+            //                strAhd = strAhd & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value
+
+            //                rs.movenext()
+
+            //            loop
+
+            //            strResult = strResult & "$" & strAhd
+
+            //            else
+
+            //                strResult = strResult & "~"
+
+            //        'else 
+
+            //        'strResult="0"
+
+            //        end if
+
+            //    end if
+
+            //    rs = nothing
+
+
+            //    rs = Server.CreateObject("adodb.recordset")
+
+
+            //    sqlStr = "SELECT COUNT(*) FROM AADHARINWRTNDTLS WHERE INWARDFILENAME='" & strArr(3) & "'"
+
+
+            //    rs = obj.SingleSelectStat(sqlStr)
+
+
+            //    dim strCnt as string
+
+            //        strCnt = ""
+
+
+            //    if obj.ConnError = "Connected" then
+
+            //        if not rs.BOF and not rs.EOF then
+
+            //            do until rs.EOF
+
+            //                strCnt = strCnt & rs(0).value
+
+            //                rs.movenext()
+
+            //            loop
+
+            //            strResult = strResult & "@" & strCnt
+
+            //            else
+
+            //                strResult = strResult & "~"
+
+            //        'else 
+
+            //        'strResult="0"
+
+            //        end if
+
+            //    end if
+
+            //    rs = nothing
+
+
+            //    rs = Server.CreateObject("adodb.recordset")
+
+
+            //    sqlStr = "SELECT COUNT(*) FROM AADHARINWRTNDTLS WHERE INWARDFILENAME='" & strArr(3) & "' AND POSTYN='Y'"
+
+
+            //    rs = obj.SingleSelectStat(sqlStr)
+
+
+            //    dim strCntY as string
+
+            //        strCntY = ""
+
+
+            //    if obj.ConnError = "Connected" then
+
+            //        if not rs.BOF and not rs.EOF then
+
+            //            do until rs.EOF
+
+            //                strCntY = strCntY & rs(0).value
+
+            //                rs.movenext()
+
+            //            loop
+
+            //            strResult = strResult & "*" & strCntY
+
+            //            else
+
+            //                strResult = strResult & "~"
+
+            //        'else 
+
+            //        'strResult="0"
+
+            //        end if
+
+            //    end if
+
+            //    rs = nothing
+
+            //    elseif strArr(0)= "ToatalAadharRec" then
+            //    strResult = ""
+
+            //    obj = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+
+            //    'sqlStr="SELECT TNXCODE, LPAD(BANKIIN,9,0), DESTACCTYPE, LFNO, LPAD(AADHARID,15,0), NAME, LPAD(SPONSORBANKIIN,9,0),USERNO, NARRATION, USERCRDITREF, LPAD(AMOUNT,13,0),ACHITEMNO, CHECKSUM, FLAGCRDR, ACCNO, RTNREASON FROM AADHARINWRTNDTLS WHERE INWARDFILENAME='" & strArr(3) & "' "
+
+            //    sqlStr = "SELECT ACCNO,NAME,AADHARID,AMOUNT/100,LFNO,USERCRDITREF FROM AADHARINWRTNDTLS WHERE INWARDFILENAME='" & strArr(3) & "'"
+
+
+            //    rs = obj.SingleSelectStat(sqlStr)
+
+            //        if obj.ConnError = "Connected" then
+
+            //            if not rs.BOF and not rs.EOF then
+
+            //            do until rs.EOF
+
+            //                'strResult=strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "~" & rs(7).value & "~" & rs(8).value & "~" & rs(9).value & "~" & rs(10).value & "~" & rs(11).value & "~" & rs(12).value & "~" & rs(13).value & "~" & rs(14).value & "~" & rs(15).value & "|"
+
+            //                strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "|"
+
+            //                rs.movenext()
+
+            //            loop
+            //            strResult = mid(strResult, 1, strResult.length - 1)
+
+            //            end if
+
+            //        end if
+
+            //        rs = nothing
+
+
+            //    elseif strArr(0)= "AadharPosted" then
+            //    strResult = ""
+
+            //    obj = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+
+            //    'sqlStr="SELECT TNXCODE, LPAD(BANKIIN,9,0), DESTACCTYPE, LFNO, LPAD(AADHARID,15,0), NAME, LPAD(SPONSORBANKIIN,9,0),USERNO, NARRATION, USERCRDITREF, LPAD(AMOUNT,13,0),ACHITEMNO, CHECKSUM, FLAGCRDR, ACCNO, RTNREASON FROM AADHARINWRTNDTLS WHERE INWARDFILENAME='" & strArr(3) & "'AND ACCNO NOT LIKE ' % ' AND NAME NOT LIKE ' % ' AND POSTYN='Y' "
+
+            //    sqlStr = "SELECT ACCNO,NAME,AADHARID,AMOUNT/100,LFNO,USERCRDITREF FROM AADHARINWRTNDTLS WHERE INWARDFILENAME='" & strArr(3) & "' AND POSTYN='Y'"
+
+
+            //    rs = obj.SingleSelectStat(sqlStr)
+
+            //        if obj.ConnError = "Connected" then
+
+            //            if not rs.BOF and not rs.EOF then
+
+            //            do until rs.EOF
+
+            //                'strResult=strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "~" & rs(7).value & "~" & rs(8).value & "~" & rs(9).value & "~" & rs(10).value & "~" & rs(11).value & "~" & rs(12).value & "~" & rs(13).value & "~" & rs(14).value & "~" & rs(15).value & "|"
+
+            //                strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "|"
+
+            //                rs.movenext()
+
+            //            loop
+            //            strResult = mid(strResult, 1, strResult.length - 1)
+
+            //            end if
+
+            //        end if
+
+            //        rs = nothing
+
+
+            //    elseif strArr(0)= "AadharNonPosted" then
+            //    strResult = ""
+
+            //    obj = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+
+            //    'sqlStr="SELECT TNXCODE, LPAD(BANKIIN,9,0), DESTACCTYPE, LFNO, LPAD(AADHARID,15,0), NAME, LPAD(SPONSORBANKIIN,9,0),USERNO, NARRATION, USERCRDITREF, LPAD(AMOUNT,13,0),ACHITEMNO, CHECKSUM, FLAGCRDR, ACCNO, RTNREASON FROM AADHARINWRTNDTLS WHERE INWARDFILENAME='" & strArr(3) & "' AND POSTYN='N'AND name LIKE ' % ' AND accno LIKE ' % ' "
+
+            //    sqlStr = "SELECT ACCNO,NAME,AADHARID,AMOUNT/100,LFNO,USERCRDITREF FROM AADHARINWRTNDTLS WHERE INWARDFILENAME='" & strArr(3) & "' AND POSTYN='N'"
+
+
+            //    rs = obj.SingleSelectStat(sqlStr)
+
+            //        if obj.ConnError = "Connected" then
+
+            //            if not rs.BOF and not rs.EOF then
+
+            //            do until rs.EOF
+
+            //                'strResult=strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "~" & rs(7).value & "~" & rs(8).value & "~" & rs(9).value & "~" & rs(10).value & "~" & rs(11).value & "~" & rs(12).value & "~" & rs(13).value & "~" & rs(14).value & "~" & rs(15).value & "|"
+
+            //                strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "|"
+
+            //                rs.movenext()
+
+            //            loop
+            //            strResult = mid(strResult, 1, strResult.length - 1)
+
+            //            end if
+
+            //        end if
+
+            //        rs = nothing
+
+
+            //    elseif strArr(0)= "AadharPay" then
+            //    strResult = ""
+
+            //    obj = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+
+            //    sqlStr = "SELECT B.BRANCHCODE,B.GLCODE,B.MODULEID,A.ACCNO,B.NAME ,A.AMOUNT/100, A.NARRATION,A.USERCRDITREF  FROM AADHARINWRTNDTLS A,GENCUSTAADHARLNK B WHERE a.POSTYN='N' AND a.inwardfilename='" & strArr(3) & "' AND a.ACCNO=b.ACCNO "
+
+
+            //    rs = obj.SingleSelectStat(sqlStr)
+
+            //        if obj.ConnError = "Connected" then
+
+            //            if not rs.BOF and not rs.EOF then
+
+            //            do until rs.EOF
+
+            //                strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "~" & rs(7).value & "|"
+
+            //                rs.movenext()
+
+            //            loop
+            //            strResult = mid(strResult, 1, strResult.length - 1)
+
+            //            end if
+
+            //        end if
+
+            //        rs = nothing
+
+
+            //    elseif strArr(0)= "Form15G" then
+            //    strResult = ""
+
+            //    obj = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+            //    sqlStr = "SELECT B.GLDESCRIPTION,A.ACCNO,C.NAME,A.STATUS,A.TRANSTATUS,A.ASSESYEAR,A.CUSTOMERID,A.USERID,A.MACHINEID FROM FORM15GHTRACKINGDTLS A,GENGLMASTMST B,DEPMST C WHERE A.GLCODE=B.GLCODE AND A.ACCNO=C.ACCNO AND A.CUSTOMERID=C.CUSTOMERID  AND A.FORM15GYN='Y'AND A.submitdate='" & strArr(3) & "' AND A.transtatus='P' AND A.branchcode='" & strArr(1) & "'"
+
+
+            //    rs = obj.SingleSelectStat(sqlStr)
+
+
+            //    if obj.ConnError = "Connected" then
+
+            //        if not rs.BOF and not rs.EOF then
+
+
+            //            do until rs.EOF
+
+            //                strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "~" & rs(7).value & "~" & rs(8).value & "|"
+
+            //                rs.movenext()
+
+            //            loop
+            //            strResult = mid(strResult, 1, strResult.length - 1)
+
+            //        end if
+
+            //    end if
+
+            //    rs = nothing
+
+
+            //    elseif strArr(0)= "Form15H" then
+            //    strResult = ""
+
+            //    obj = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+            //    sqlStr = "SELECT B.GLDESCRIPTION,A.ACCNO,C.NAME,A.STATUS,A.TRANSTATUS,A.ASSESYEAR,A.CUSTOMERID,A.USERID,A.MACHINEID FROM FORM15GHTRACKINGDTLS A,GENGLMASTMST B,DEPMST C WHERE A.GLCODE=B.GLCODE AND A.ACCNO=C.ACCNO AND A.CUSTOMERID=C.CUSTOMERID  AND A.FORM15HYN='Y'AND A.submitdate='" & strArr(3) & "' AND A.transtatus='P' AND A.branchcode='" & strArr(1) & "'"
+
+
+            //    rs = obj.SingleSelectStat(sqlStr)
+
+
+            //    if obj.ConnError = "Connected" then
+
+            //        if not rs.BOF and not rs.EOF then
+
+
+            //            do until rs.EOF
+
+            //                strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "~" & rs(7).value & "~" & rs(8).value & "|"
+
+            //                rs.movenext()
+
+            //            loop
+            //            strResult = mid(strResult, 1, strResult.length - 1)
+
+            //        end if
+
+            //    end if
+
+            //    rs = nothing
+
+
+            //    '''for loan details
+
+            //    elseif strArr(0)= "NORTRAN" then
+            //    strResult = ""
+
+
+            //        obj = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+
+            //        sqlStr = "SELECT A.BRANCHCODE,A.GLCODE, A.ACCNO, A.NAME, A.CUSTOMERID, A.CREDITTYPE, NVL((a.SANCTIONAMT-NVL((SELECT NVL(SUM(C.TOTCHRGS),0) FROM LOANCHARGEPOSTDTLS C WHERE C.ACCNO=A.ACCNO AND C.POSTYN='N' AND C.moduleid='LOAN'  AND C.GLCODE=A.GLCODE AND C.BRANCHCODE=A.BRANCHCODE),'0')),'0')NETPAYMENT, A.POSTYN, A.CREDITBRANCHCODE, A.CREDITMODULEID, A.CREDITGLCODE, A.CREDITACCNO, A.CREDITNAME, A.CREDITCUSTOMERID, A.PAYEENAME, A.PAYEEACCNO, A.INSTACCTYPE, A.IFSCCODE, A.CITY, A.PAYEEBANK, A.PAYEEBRANCH,NVL((SELECT NVL(SUM(C.TOTCHRGS),0) FROM LOANCHARGEPOSTDTLS C WHERE C.ACCNO=A.ACCNO AND C.POSTYN='N' AND C.moduleid='LOAN'  AND C.GLCODE=A.GLCODE AND C.BRANCHCODE=A.BRANCHCODE),'0')CHRGAMT,NVL(A.SANCTIONAMT,'0')SANCTIONAMT FROM LOANPAYMENTDTLS A,LOANDISBURSEMENTDTLS B WHERE A.postyn='N' AND A.TRANSTATUS='A' AND B.DISBURSMENETSTATUS='P' AND A.credittype IN ('T') AND A.moduleid=B.moduleid AND A.GLCODE=B.GLCODE AND A.ACCNO=B.ACCNO AND B.DISBURSEDDATE IS NULL AND A.applicationdate='" & strArr(4) & "' AND A.BRANCHCODE=A.CREDITBRANCHCODE AND A.branchcode=A.BRANCHCODE AND A.BRANCHCODE='" & strArr(1) & "'"
+
+
+            //        rs = obj.SingleSelectStat(sqlStr)
+
+
+            //        if obj.ConnError = "Connected" then
+
+            //            if not rs.BOF and not rs.EOF then
+
+
+            //                do until rs.EOF
+
+            //                    strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "~" & rs(7).value & "~" & rs(8).value & "~" & rs(9).value & "~" & rs(10).value & "~" & rs(11).value & "~" & rs(12).value & "~" & rs(13).value & "~" & rs(14).value & "~" & rs(15).value & "~" & rs(16).value & "~" & rs(17).value & "~" & rs(18).value & "~" & rs(19).value & "~" & rs(20).value & "~" & rs(21).value & "~" & rs(22).value & "|"
+
+
+            //                    rs.movenext()
+
+            //                loop
+            //                strResult = mid(strResult, 1, strResult.length - 1)
+
+            //            end if
+
+            //        end if
+
+            //    rs = nothing
+
+
+            //    elseif strArr(0)= "NORTRANNR" then
+
+            //    strResult = ""
+
+
+            //        obj = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+
+            //        sqlStr = "SELECT A.BRANCHCODE,A.GLCODE, A.ACCNO, A.NAME, A.CUSTOMERID, A.CREDITTYPE, NVL((a.SANCTIONAMT-NVL((SELECT NVL(SUM(C.TOTCHRGS),0) FROM LOANCHARGEPOSTDTLS C WHERE C.ACCNO=A.ACCNO AND C.POSTYN='N' AND C.moduleid='LOAN'  AND C.GLCODE=A.GLCODE AND C.BRANCHCODE=A.BRANCHCODE),'0')),'0')NETPAYMENT, A.POSTYN, A.CREDITBRANCHCODE, A.CREDITMODULEID, A.CREDITGLCODE, A.CREDITACCNO, A.CREDITNAME, A.CREDITCUSTOMERID, A.PAYEENAME, A.PAYEEACCNO, A.INSTACCTYPE, A.IFSCCODE, A.CITY, A.PAYEEBANK, A.PAYEEBRANCH,NVL((SELECT NVL(SUM(C.TOTCHRGS),0) FROM LOANCHARGEPOSTDTLS C WHERE C.ACCNO=A.ACCNO AND C.POSTYN='N' AND C.moduleid='LOAN'  AND C.GLCODE=A.GLCODE AND C.BRANCHCODE=A.BRANCHCODE),'0')CHRGAMT,NVL(A.SANCTIONAMT,'0')SANCTIONAMT FROM LOANPAYMENTDTLS A,LOANDISBURSEMENTDTLS B WHERE A.postyn='N' AND A.TRANSTATUS='A' AND B.DISBURSMENETSTATUS='P' AND A.credittype IN ('R','N') AND A.moduleid=B.moduleid AND A.GLCODE=B.GLCODE AND A.ACCNO=B.ACCNO AND B.DISBURSEDDATE IS NULL AND A.applicationdate='" & strArr(4) & "' AND A.BRANCHCODE=A.CREDITBRANCHCODE AND A.branchcode=A.BRANCHCODE AND A.BRANCHCODE='" & strArr(1) & "'"
+
+
+            //        rs = obj.SingleSelectStat(sqlStr)
+
+
+            //        if obj.ConnError = "Connected" then
+
+            //            if not rs.BOF and not rs.EOF then
+
+
+            //                do until rs.EOF
+
+            //                    strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "~" & rs(7).value & "~" & rs(8).value & "~" & rs(9).value & "~" & rs(10).value & "~" & rs(11).value & "~" & rs(12).value & "~" & rs(13).value & "~" & rs(14).value & "~" & rs(15).value & "~" & rs(16).value & "~" & rs(17).value & "~" & rs(18).value & "~" & rs(19).value & "~" & rs(20).value & "~" & rs(21).value & "~" & rs(22).value & "|"
+
+
+            //                    rs.movenext()
+
+            //                loop
+            //                strResult = mid(strResult, 1, strResult.length - 1)
+
+            //            end if
+
+            //        end if
+
+            //    rs = nothing
+
+
+            //    elseif strArr(0)= "NORABBTRAN" then
+            //    strResult = ""
+
+
+            //        obj = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+
+            //         sqlStr = "SELECT A.BRANCHCODE,A.GLCODE, A.ACCNO, A.NAME, A.CUSTOMERID, A.CREDITTYPE, NVL((a.SANCTIONAMT-NVL((SELECT NVL(SUM(C.TOTCHRGS),0) FROM LOANCHARGEPOSTDTLS C WHERE C.ACCNO=A.ACCNO AND C.POSTYN='N' AND C.moduleid='LOAN'  AND C.GLCODE=A.GLCODE AND C.BRANCHCODE=A.BRANCHCODE),'0')),'0')NETPAYMENT, A.POSTYN, A.CREDITBRANCHCODE, A.CREDITMODULEID, A.CREDITGLCODE, A.CREDITACCNO, A.CREDITNAME, A.CREDITCUSTOMERID, A.PAYEENAME, A.PAYEEACCNO, A.INSTACCTYPE, A.IFSCCODE, A.CITY, A.PAYEEBANK, A.PAYEEBRANCH,NVL((SELECT NVL(SUM(C.TOTCHRGS),0) FROM LOANCHARGEPOSTDTLS C WHERE C.ACCNO=A.ACCNO AND C.POSTYN='N' AND C.moduleid='LOAN'  AND C.GLCODE=A.GLCODE AND C.BRANCHCODE=A.BRANCHCODE),'0')CHRGAMT,NVL(A.SANCTIONAMT,'0')SANCTIONAMT FROM LOANPAYMENTDTLS A,LOANDISBURSEMENTDTLS B WHERE A.postyn='N' AND A.TRANSTATUS='A' AND B.DISBURSMENETSTATUS='P' AND A.credittype IN ('T') AND A.moduleid=B.moduleid AND A.GLCODE=B.GLCODE AND A.ACCNO=B.ACCNO AND B.DISBURSEDDATE IS NULL AND A.applicationdate='" & strArr(4) & "' AND A.BRANCHCODE<>A.CREDITBRANCHCODE AND A.branchcode=A.BRANCHCODE AND A.BRANCHCODE='" & strArr(1) & "'"
+
+
+            //        rs = obj.SingleSelectStat(sqlStr)
+
+
+            //        if obj.ConnError = "Connected" then
+
+            //            if not rs.BOF and not rs.EOF then
+
+
+            //                do until rs.EOF
+
+            //                    strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "~" & rs(7).value & "~" & rs(8).value & "~" & rs(9).value & "~" & rs(10).value & "~" & rs(11).value & "~" & rs(12).value & "~" & rs(13).value & "~" & rs(14).value & "~" & rs(15).value & "~" & rs(16).value & "~" & rs(17).value & "~" & rs(18).value & "~" & rs(19).value & "~" & rs(20).value & "~" & rs(21).value & "~" & rs(22).value & "|"
+
+
+            //                    rs.movenext()
+
+            //                loop
+            //                strResult = mid(strResult, 1, strResult.length - 1)
+
+            //            end if
+
+            //        end if
+
+            //    rs = nothing
+
+
+            //    elseif strArr(0)= "NORABBTRANNR" then
+            //    strResult = ""
+
+
+            //        obj = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+
+            //         sqlStr = "SELECT A.BRANCHCODE,A.GLCODE, A.ACCNO, A.NAME, A.CUSTOMERID, A.CREDITTYPE, NVL((a.SANCTIONAMT-NVL((SELECT NVL(SUM(C.TOTCHRGS),0) FROM LOANCHARGEPOSTDTLS C WHERE C.ACCNO=A.ACCNO AND C.POSTYN='N' AND C.moduleid='LOAN'  AND C.GLCODE=A.GLCODE AND C.BRANCHCODE=A.BRANCHCODE),'0')),'0')NETPAYMENT, A.POSTYN, A.CREDITBRANCHCODE, A.CREDITMODULEID, A.CREDITGLCODE, A.CREDITACCNO, A.CREDITNAME, A.CREDITCUSTOMERID, A.PAYEENAME, A.PAYEEACCNO, A.INSTACCTYPE, A.IFSCCODE, A.CITY, A.PAYEEBANK, A.PAYEEBRANCH,NVL((SELECT NVL(SUM(C.TOTCHRGS),0) FROM LOANCHARGEPOSTDTLS C WHERE C.ACCNO=A.ACCNO AND C.POSTYN='N' AND C.moduleid='LOAN'  AND C.GLCODE=A.GLCODE AND C.BRANCHCODE=A.BRANCHCODE),'0')CHRGAMT,NVL(A.SANCTIONAMT,'0')SANCTIONAMT FROM LOANPAYMENTDTLS A,LOANDISBURSEMENTDTLS B WHERE A.postyn='N' AND A.TRANSTATUS='A' AND B.DISBURSMENETSTATUS='P' AND A.credittype IN ('R','N') AND A.moduleid=B.moduleid AND A.GLCODE=B.GLCODE AND A.ACCNO=B.ACCNO AND B.DISBURSEDDATE IS NULL AND A.applicationdate='" & strArr(4) & "' AND A.BRANCHCODE<>A.CREDITBRANCHCODE AND A.branchcode=A.BRANCHCODE AND A.BRANCHCODE='" & strArr(1) & "'"
+
+
+            //        rs = obj.SingleSelectStat(sqlStr)
+
+
+            //        if obj.ConnError = "Connected" then
+
+            //            if not rs.BOF and not rs.EOF then
+
+
+            //                do until rs.EOF
+
+            //                    strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "~" & rs(7).value & "~" & rs(8).value & "~" & rs(9).value & "~" & rs(10).value & "~" & rs(11).value & "~" & rs(12).value & "~" & rs(13).value & "~" & rs(14).value & "~" & rs(15).value & "~" & rs(16).value & "~" & rs(17).value & "~" & rs(18).value & "~" & rs(19).value & "~" & rs(20).value & "~" & rs(21).value & "~" & rs(22).value & "|"
+
+
+            //                    rs.movenext()
+
+            //                loop
+            //                strResult = mid(strResult, 1, strResult.length - 1)
+
+            //            end if
+
+            //        end if
+
+            //    rs = nothing
+
+            //    elseif strArr(0)= "NORCAS" then
+            //    strResult = ""
+
+
+            //        obj = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+            //        'sqlStr="SELECT BRANCHCODE, GLCODE, ACCNO, NAME, CUSTOMERID, CREDITTYPE, SANCTIONAMT, POSTYN,TOKENNO FROM LOANPAYMENTDTLS WHERE credittype='C' AND postyn='N' AND TRANSTATUS='A' AND moduleid='" & strArr(3) & "' AND applicationdate='" & strArr(4) & "' AND branchcode='" & strArr(1) & "'"
+
+
+            //         ''sqlStr = "SELECT A.BRANCHCODE, A.GLCODE, A.ACCNO, A.NAME, A.CUSTOMERID, A.CREDITTYPE, NVL(a.NETPAYMENT,'0')NETPAYMENT , A.POSTYN,A.TOKENNO, NVL(a.CHRGAMT,'0')CHRGAMT, NVL(A.SANCTIONAMT,'0')SANCTIONAMT FROM LOANPAYMENTDTLS A,LOANDISBURSEMENTDTLS B WHERE A.credittype='C' AND A.postyn='N' AND A.TRANSTATUS='A' AND A.moduleid=B.moduleid AND A.GLCODE=B.GLCODE AND A.ACCNO=B.ACCNO AND B.DISBURSEDDATE IS NULL AND A.moduleid='" & strArr(3) & "' AND A.applicationdate='" & strArr(4) & "' AND A.branchcode='" & strArr(1) & "'"
+
+
+            //         sqlStr = "SELECT A.BRANCHCODE, A.GLCODE, A.ACCNO, A.NAME, A.CUSTOMERID, A.CREDITTYPE, NVL((a.SANCTIONAMT-NVL((SELECT NVL(SUM(C.TOTCHRGS),0) FROM LOANCHARGEPOSTDTLS C WHERE C.ACCNO=A.ACCNO AND C.POSTYN='N' AND C.moduleid='LOAN'  AND C.GLCODE=A.GLCODE AND C.BRANCHCODE=A.BRANCHCODE),'0')),'0')NETPAYMENT , A.POSTYN,A.TOKENNO, NVL((SELECT NVL(SUM(C.TOTCHRGS),0) FROM LOANCHARGEPOSTDTLS C WHERE C.ACCNO=A.ACCNO AND C.POSTYN='N' AND C.moduleid='LOAN'  AND C.GLCODE=A.GLCODE AND C.BRANCHCODE=A.BRANCHCODE),'0')CHRGAMT, NVL(A.SANCTIONAMT,'0')SANCTIONAMT FROM LOANPAYMENTDTLS A,LOANDISBURSEMENTDTLS B WHERE A.credittype='C' AND A.postyn='N' AND A.TRANSTATUS='A' AND A.moduleid=B.moduleid AND A.GLCODE=B.GLCODE AND A.ACCNO=B.ACCNO AND B.DISBURSEDDATE IS NULL AND A.moduleid='" & strArr(3) & "' AND A.applicationdate='" & strArr(4) & "' AND A.branchcode='" & strArr(1) & "'"
+
+
+            //        rs = obj.SingleSelectStat(sqlStr)
+
+
+            //        if obj.ConnError = "Connected" then
+
+            //            if not rs.BOF and not rs.EOF then
+
+
+            //                do until rs.EOF
+
+            //                    strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "~" & rs(7).value & "~" & rs(8).value & "~" & rs(9).value & "~" & rs(10).value & "|"
+
+            //                    rs.movenext()
+
+            //                loop
+            //                strResult = mid(strResult, 1, strResult.length - 1)
+
+            //            end if
+
+            //        end if
+
+            //    rs = nothing
+
+
+            //    elseif strArr(0)= "CUSTID" then
+            //    strResult = ""
+
+
+            //        obj = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+            //        sqlStr = "SELECT CUSTOMERID FROM " & strArr(2) & "MST WHERE ACCNO='" & strArr(4) & "' AND GLCODE='" & strArr(3) & "' and STATUS='R' AND BRANCHCODE='" & strArr(1) & "'"
+
+
+            //        rs = obj.SingleSelectStat(sqlStr)
+
+
+            //        if obj.ConnError = "Connected" then
+
+            //            if not rs.BOF and not rs.EOF then
+
+            //                    strResult = strResult & rs(0).value
+
+            //            end if
+
+            //        end if
+
+            //    rs = nothing
+
+
+            //    elseif strArr(0)= "FRM26TDSCUST" or strArr(0)= "FRM26TDSWISEACC"  or strArr(0)= "FRM26TDSACC" then
+            //    strResult = ""
+
+            //        dim rsmain, rschk
+
+            //        Dim frmdate
+
+            //        Dim strmon
+
+            //        Dim stryear
+
+            //        dim frmdate1, todate1, todate2
+
+            //        dim todatetemp
+
+            //        dim dblinterest
+
+            //        dblinterest = 0
+            //        strmon = Month(Session("applicationdate"))
+            //        stryear = Year(Session("applicationdate"))
+
+
+            //        stYar = Year(strArr(4))
+            //        stMon = Month(strArr(4))
+
+
+            //        if (strArr(8) = "1")
+
+            //                if (stYar = stryear) and(stMon > 3) then
+
+            //                    If strmon <= 3 Then
+            //                        frmdate = Format(CDate("01-Apr-" & stryear - 1), "dd-MMM-yyyy")
+
+            //                Else
+            //                    frmdate = Format(CDate("01-Apr-" & stryear), "dd-MMM-yyyy")
+
+            //                End If ''strmon <= 3
+
+            //            else
+
+            //                frmdate = strArr(4)
+
+            //            end if
+
+            //        else
+            //                    frmdate = strArr(4)
+
+            //        end if
+
+
+            //        rsmain = Server.CreateObject("adodb.recordset")
+
+            //        rschk = Server.CreateObject("adodb.recordset")
+
+            //        rschk1 = Server.CreateObject("adodb.recordset")
+
+            //            dim x1
+
+            //        obj = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+
+            //        if strArr(0) = "FRM26TDSCUST" or strArr(0)= "FRM26TDSWISEACC"  then
+
+
+            //            if strArr(7) = "0" then
+            //                sqlstr = "SELECT distinct branchcode,customerid,accno,glcode FROM tdsdtls WHERE applicationdate between '" & frmdate & "' and '" & strArr(5) & "' and branchcode = '" & strArr(1) & "' " & strArr(3) & " AND status = 'R' ORDER BY TO_NUMBER(branchcode),TO_NUMBER(customerid)"
+
+            //            else
+            //                sqlstr = "SELECT distinct branchcode,customerid,accno,glcode FROM tdsdtls WHERE applicationdate between '" & frmdate & "' and '" & strArr(5) & "' " & strArr(3) & "  AND customerid IN (SELECT customerid FROM gencustinfomst WHERE 1=1 " & strArr(3) & ") AND status = 'R' ORDER BY TO_NUMBER(branchcode),TO_NUMBER(customerid)"
+
+            //            end if
+
+
+            //        else '' FRM26TDSACC
+
+            //            if strArr(7) = "0" then
+            //                sqlstr = "SELECT distinct branchcode,customerid,accno,glcode FROM tdsdtls WHERE applicationdate between '" & strArr(4) & "' and '" & strArr(5) & "' and branchcode = '" & strArr(1) & "' and currencycode =  '" & strArr(2) & "' and glcode = '" & strArr(3) & "' and accno = '" & strArr(6) & "' AND status = 'R' ORDER BY TO_NUMBER(branchcode),TO_NUMBER(customerid)"
+
+            //            else
+            //                sqlstr = "SELECT distinct branchcode,customerid,accno,glcode FROM tdsdtls WHERE applicationdate between '" & strArr(4) & "' and '" & strArr(5) & "' and currencycode =  '" & strArr(2) & "' and glcode = '" & strArr(3) & "' and accno = '" & strArr(6) & "' AND status = 'R' ORDER BY TO_NUMBER(branchcode),TO_NUMBER(customerid)"
+
+            //            end if
+
+            //        end if ''strArr(0) = "FRM26TDSCUST" or strArr(0)= "FRM26TDSWISEACC"
+
+
+            //        rsmain = obj.SingleSelectStat(sqlStr)
+
+            //        do until rsmain.EOF
+
+
+            //        sqlStr = "SELECT customerid,todate FROM tdsdtls WHERE applicationdate between '" & frmdate & "' and '" & strArr(5) & "' and customerid = '" & rsmain(1).value & "' AND todate <= '" & strArr(5) & "' and branchcode = '" & rsmain(0).value & "' and accno = '" & rsmain(2).value & "' and glcode ='" & rsmain(3).value & "' order by todate "
+
+            //        ''response.write(sqlStr)
+
+            //        rschk1 = obj.SingleSelectStat(sqlStr)
+
+            //        if rschk1.recordcount > 1 then
+
+            //        if not rschk1.eof and not rschk1.bof then
+
+            //        frmdate1 = ""
+
+            //        blnchk = false
+
+
+            //        do until rschk1.EOF
+
+
+            //        if frmdate1 = "" then
+
+            //        if (cdate(strArr(4)) <= cdate(rschk1(1).value)) then
+            //        frmdate1 = frmdate
+
+            //        else
+            //                frmdate1 = Format(cdate(strArr(4)), "dd-MMM-yyyy")
+
+            //        end if ''(cdate(strArr(4)) < cdate(rschk1(1).value))
+
+            //        end if ''frmdate1 = ""
+
+
+            //        if blnchk = true then
+            //        exit do
+            //                end if ''blnchk = true
+
+
+
+            //        sqlStr = "SELECT customerid FROM tdsdtls WHERE applicationdate between '" & frmdate & "' and '" & strArr(5) & "'  and customerid = '" & rsmain(1).value & "' and todate >= '" & Format(cdate(frmdate1), "dd-MMM-yyyy") & "' AND todate <= '" & Format(cdate(rschk1(1).value), "dd-MMM-yyyy") & "' and branchcode = '" & rsmain(0).value & "' and accno = '" & rsmain(2).value & "' and glcode ='" & rsmain(3).value & "'"
+
+
+            //        rschk = obj.SingleSelectStat(sqlStr)
+
+
+            //        if not rschk.eof and not rschk.bof then
+
+            //        todate2 = Format(cdate(rschk1(1).value), "dd-MMM-yyyy")
+
+            //        todate1 = Format(dateadd("d", 1, cdate(rschk1(1).value)), "dd-MMM-yyyy")
+
+
+
+            //         sqlStr = " SELECT T.BRANCHCODE, T.CUSTOMERID,T.glcode,T.accno,TRIM(T.NAME),T.PANNO,TO_CHAR(T.APPLICATIONDATE,'DD-Mon-YYYY'),nvl(SUM(nvl(T.INTEREST,0)),0),SUM(T.TDSAMT),TO_CHAR(T.CHALLANDATE,'DD-Mon-YYYY'),T.CHALLANNO,T.BSRCODE,T.Age FROM(SELECT A.BRANCHCODE,A.CUSTOMERID,a.glcode,A.accno,B.NAME,B.PANNO,A.APPLICATIONDATE,(SELECT (NVL((SELECT SUM(ABS(d.INTAMOUNT)) FROM DEPINTACCRUEDDTLS d WHERE d.ACCNO=a.ACCNO AND d.GLCODE=a.GLCODE AND d.INTAMOUNT>0 AND d.MODULEID='DEP' AND d.applicationdate BETWEEN '" & frmdate1 & "' AND '" & todate1 & "' AND d.BRANCHCODE=a.BRANCHCODE AND d.CURRENCYCODE=a.CURRENCYCODE AND (d.branchcode,d.glcode,d.accno,d.batchno,d.tranno) NOT IN (SELECT branchcode,glcode,accno,batchno,tranno FROM DEPINTACCRUEDDTLS C1 WHERE C1.ACCNO=d.ACCNO AND C1.GLCODE=d.GLCODE AND C1.BRANCHCODE=d.BRANCHCODE AND C1.CURRENCYCODE=d.CURRENCYCODE AND C1.INTAMOUNT>0 AND C1.MODULEID='DEP' AND C1.APPLICATIONDATE BETWEEN '" & frmdate1 & "' AND '" & todate1 & "'  AND (remarks LIKE 'TDS From%' OR remarks LIKE 'TDSREFUND%') AND C1.APPLICATIONDATE = (SELECT MAX(applicationdate) FROM DEPINTACCRUEDDTLS C2 WHERE C2.ACCNO=C1.ACCNO AND C2.GLCODE=C1.GLCODE AND C2.BRANCHCODE=C1.BRANCHCODE AND C2.CURRENCYCODE=C1.CURRENCYCODE AND C2.INTAMOUNT>0 AND C2.MODULEID='DEP' AND C2.APPLICATIONDATE BETWEEN '" & frmdate1 & "' AND '" & todate2 & "' AND (remarks LIKE 'TDS From%' OR remarks LIKE 'TDSREFUND%')))),0) + NVL((SELECT SUM(ABS(E.AMOUNT)) FROM DEPTRAN E WHERE E.CHQFVG = 'DEPIP' AND E.ACCNO=a.ACCNO AND E.GLCODE=a.GLCODE AND E.MODULEID='DEP' AND E.BRANCHCODE=a.BRANCHCODE  AND E.CURRENCYCODE=a.CURRENCYCODE AND E.applicationdate between '" & frmdate1 & "' AND '" & todate1 & "' AND (E.branchcode,E.glcode,E.accno,E.batchno,E.tranno) NOT IN (SELECT branchcode,glcode,accno,batchno,tranno FROM DEPTRAN C1 WHERE C1.ACCNO=E.ACCNO AND C1.GLCODE=E.GLCODE AND C1.BRANCHCODE=E.BRANCHCODE AND C1.CURRENCYCODE=E.CURRENCYCODE AND C1.MODULEID='DEP' AND C1.APPLICATIONDATE BETWEEN '" & frmdate1 & "' AND '" & todate1 & "'  AND (C1.remarks LIKE 'TDS From%' OR C1.remarks LIKE 'TDSREFUND%') AND C1.APPLICATIONDATE = (SELECT MAX(applicationdate) FROM DEPTRAN C2 WHERE C2.ACCNO=C1.ACCNO AND C2.GLCODE=C1.GLCODE AND C2.BRANCHCODE=C1.BRANCHCODE AND C2.CURRENCYCODE=C1.CURRENCYCODE AND  C2.MODULEID='DEP' AND C2.APPLICATIONDATE BETWEEN '" & frmdate1 & "' AND '" & todate2 & "' AND (remarks LIKE 'TDS From%' OR remarks LIKE 'TDSREFUND%')))),0) - NVL((SELECT NVL(sum(amount),0) intamount FROM DEPTRAN WHERE ACCNO = a.ACCNO AND GLCODE = a.GLCODE AND BRANCHCODE = a.BRANCHCODE AND AMOUNT>0 AND MODULEID='DEP' AND APPLICATIONDATE = '" & todate1 & "' AND (remarks LIKE 'TDS From%')),0) + NVL((SELECT NVL(AMOUNT,0) FROM DEPTRAN WHERE glcode=a.GLCODE AND accno=a.ACCNO AND EFFECTIVEDATE BETWEEN '" & frmdate1 & "' AND '" & todate1 & "' AND remarks LIKE 'Excess Int Rev To GL%' and AMOUNT<0 AND branchcode=a.BRANCHCODE),0) + NVL((SELECT NVL(INTAMOUNT,0) FROM DEPINTACCRUEDDTLS WHERE glcode=a.GLCODE AND accno=a.ACCNO AND TRANSFERTODEP BETWEEN '" & frmdate1 & "' AND '" & todate1 & "' AND (REMARKS LIKE 'Excess Interest Adjusted%'  OR REMARKS LIKE 'Excess Int Rev To GL%') AND branchcode=a.branchcode),0) - NVL((SELECT NVL(intamount,0)intamount FROM DEPINTACCRUEDDTLS C1 WHERE C1.ACCNO=a.ACCNO AND C1.GLCODE=a.GLCODE AND C1.BRANCHCODE=a.BRANCHCODE AND C1.INTAMOUNT>0 AND C1.MODULEID='DEP' AND C1.APPLICATIONDATE BETWEEN '" & frmdate1 & "' AND '" & todate1 & "'  AND (remarks LIKE 'TDSREFUND%')),0) - NVL((SELECT NVL(sum(intamount),0) intamount FROM DEPINTACCRUEDDTLS WHERE ACCNO = a.ACCNO AND GLCODE = a.GLCODE AND BRANCHCODE = a.BRANCHCODE AND INTAMOUNT>0 AND MODULEID='DEP' AND APPLICATIONDATE = '" & todate1 & "' AND (remarks LIKE 'TDS From%')),0)) INTAMT FROM DEPMST D WHERE D.BRANCHCODE=A.BRANCHCODE AND d.ACCNO=a.ACCNO AND D.GLCODE = a.GLCODE AND  d.CURRENCYCODE=a.CURRENCYCODE) interest, ABS(A.AMOUNT) TDSAMT,A.CHALLANDATE,A.CHALLANNO,A.BSRCODE, (SELECT ROUND(NVL((SYSDATE - M.CUSTDOB)/365.242199,0) ) FROM gencustinfomst M WHERE M.CUSTOMERID=a.CUSTOMERID) Age FROM TDSDTLS A, GENCUSTINFOMST B WHERE A.applicationdate between '" & frmdate1 & "' and '" & todate1 & "' AND A.customerid=b.customerid AND A.branchcode='" & rsmain(0).value & "' and a.customerid = '" & rsmain(1).value & "' and a.accno='" & rsmain(2).value & "' and a.glcode='" & rsmain(3).value & "')  T GROUP BY T.BRANCHCODE, T.CUSTOMERID, T.NAME ,T.panno,T.APPLICATIONDATE,T.CHALLANDATE,T.CHALLANNO,T.BSRCODE,T.glcode,T.accno,T.Age ORDER BY T.branchcode,T.customerid"
+
+
+            //         frmdate1 = Format(cdate(todate1), "dd-MMM-yyyy")
+
+            //         else
+
+
+            //                todate2 = Format(dateadd("d", -1, cdate(strArr(5))), "dd-MMM-yyyy")
+
+
+            //         sqlStr = " SELECT T.BRANCHCODE, T.CUSTOMERID,t.glcode,T.accno,TRIM(T.NAME),T.PANNO,TO_CHAR(T.APPLICATIONDATE,'DD-Mon-YYYY'),nvl(SUM(nvl(T.INTEREST,0)),0),SUM(T.TDSAMT),TO_CHAR(T.CHALLANDATE,'DD-Mon-YYYY'),T.CHALLANNO,T.BSRCODE,T.Age FROM(SELECT A.BRANCHCODE,A.CUSTOMERID,a.glcode,A.accno,B.NAME,B.PANNO,A.APPLICATIONDATE,(SELECT (NVL((SELECT SUM(ABS(C.INTAMOUNT)) FROM DEPINTACCRUEDDTLS C WHERE C.ACCNO=D.ACCNO AND C.GLCODE=D.GLCODE AND C.INTAMOUNT>0 AND C.MODULEID='DEP' AND C.applicationdate between '" & strArr(4) & "' and '" & strArr(5) & "'AND C.BRANCHCODE=D.BRANCHCODE AND C.CURRENCYCODE=D.CURRENCYCODE AND (C.branchcode,C.glcode,C.accno,C.batchno,C.tranno) NOT IN (SELECT branchcode,glcode,accno,batchno,tranno FROM DEPINTACCRUEDDTLS C1 WHERE C1.ACCNO=C.ACCNO AND C1.GLCODE=C.GLCODE AND C1.BRANCHCODE=C.BRANCHCODE AND C1.CURRENCYCODE=C.CURRENCYCODE AND C1.INTAMOUNT>0 AND C1.MODULEID='DEP' AND C1.APPLICATIONDATE BETWEEN '" & strArr(4) & "' and '" & strArr(5) & "'  AND (remarks LIKE 'TDS From%' or remarks LIKE 'TDSREFUND%') AND C1.APPLICATIONDATE = (SELECT MAX(applicationdate) FROM DEPINTACCRUEDDTLS C2 WHERE C2.ACCNO=C1.ACCNO AND C2.GLCODE=C1.GLCODE AND C2.BRANCHCODE=C1.BRANCHCODE AND C2.CURRENCYCODE=C1.CURRENCYCODE AND C2.INTAMOUNT>0 AND C2.MODULEID='DEP' AND C2.APPLICATIONDATE BETWEEN '" & strArr(4) & "' and '" & todate2 & "' AND (remarks LIKE 'TDS From%' or remarks LIKE 'TDSREFUND%')))),0) + NVL((SELECT SUM(ABS(E.AMOUNT)) FROM DEPTRAN E WHERE E.CHQFVG = 'DEPIP' AND E.ACCNO=D.ACCNO AND E.GLCODE=D.GLCODE AND E.MODULEID='DEP' AND E.BRANCHCODE=D.BRANCHCODE AND E.CURRENCYCODE=D.CURRENCYCODE AND E.applicationdate between '" & strArr(4) & "' and '" & strArr(5) & "' AND (E.branchcode,E.glcode,E.accno,E.batchno,E.tranno) NOT IN (SELECT branchcode,glcode,accno,batchno,tranno FROM DEPTRAN C1 WHERE C1.ACCNO=E.ACCNO AND C1.GLCODE=E.GLCODE AND C1.BRANCHCODE=E.BRANCHCODE AND C1.CURRENCYCODE=E.CURRENCYCODE AND C1.MODULEID='DEP' AND C1.APPLICATIONDATE BETWEEN '" & strArr(4) & "' and '" & strArr(5) & "'  AND (C1.remarks LIKE 'TDS From%' OR C1.remarks LIKE 'TDSREFUND%') AND C1.APPLICATIONDATE = (SELECT MAX(applicationdate) FROM DEPTRAN C2 WHERE C2.ACCNO=C1.ACCNO AND C2.GLCODE=C1.GLCODE AND C2.BRANCHCODE=C1.BRANCHCODE AND C2.CURRENCYCODE=C1.CURRENCYCODE AND  C2.MODULEID='DEP' AND C2.APPLICATIONDATE BETWEEN '" & strArr(4) & "' and '" & todate2 & "' AND (remarks LIKE 'TDS From%' OR remarks LIKE 'TDSREFUND%')))),0) - NVL((SELECT NVL(sum(amount),0) intamount FROM DEPTRAN WHERE ACCNO = D.ACCNO AND GLCODE = D.GLCODE AND BRANCHCODE = D.BRANCHCODE AND AMOUNT>0 AND MODULEID='DEP' AND APPLICATIONDATE = '" & strArr(5) & "' AND (remarks LIKE 'TDS From%')),0) + NVL((SELECT NVL(AMOUNT,0) FROM DEPTRAN WHERE ACCNO = D.ACCNO AND GLCODE = D.GLCODE AND EFFECTIVEDATE BETWEEN '" & strArr(4) & "' and '" & strArr(5) & "' AND remarks LIKE 'Excess Int Rev To GL%' AND AMOUNT<0 AND BRANCHCODE = D.BRANCHCODE),0) + NVL((SELECT NVL(INTAMOUNT,0) FROM DEPINTACCRUEDDTLS WHERE glcode=a.GLCODE AND accno=a.ACCNO AND TRANSFERTODEP BETWEEN '" & strArr(4) & "' and '" & strArr(5) & "' AND (REMARKS LIKE 'Excess Interest Adjusted%'  OR REMARKS LIKE 'Excess Int Rev To GL%') AND branchcode=A.BRANCHCODE),0) - NVL((SELECT NVL(intamount,0)intamount FROM DEPINTACCRUEDDTLS C1 WHERE C1.ACCNO=a.ACCNO AND C1.GLCODE=a.GLCODE AND C1.BRANCHCODE=a.BRANCHCODE AND C1.INTAMOUNT>0 AND C1.MODULEID='DEP' AND C1.APPLICATIONDATE BETWEEN '" & strArr(4) & "' AND '" & strArr(5) & "'  AND (remarks LIKE 'TDSREFUND%')),0) - NVL((SELECT NVL(sum(intamount),0) intamount FROM DEPINTACCRUEDDTLS WHERE ACCNO = a.ACCNO AND GLCODE = a.GLCODE AND BRANCHCODE = a.BRANCHCODE AND INTAMOUNT>0 AND MODULEID='DEP' AND APPLICATIONDATE = '" & strArr(5) & "' AND (remarks LIKE 'TDS From%')),0) ) INTAMT FROM DEPMST D WHERE D.BRANCHCODE=A.BRANCHCODE AND d.ACCNO=a.ACCNO AND D.GLCODE = a.GLCODE AND  d.CURRENCYCODE=a.CURRENCYCODE) interest, ABS(A.AMOUNT) TDSAMT,A.CHALLANDATE,A.CHALLANNO,A.BSRCODE,(SELECT ROUND(NVL((SYSDATE - M.CUSTDOB)/365.242199,0) ) FROM gencustinfomst M WHERE M.CUSTOMERID=a.CUSTOMERID) Age FROM TDSDTLS A, GENCUSTINFOMST B WHERE A.applicationdate between '" & strArr(4) & "' and '" & strArr(5) & "' AND A.customerid=b.customerid AND A.branchcode='" & rsmain(0).value & "' and a.customerid = '" & rsmain(1).value & "' and a.accno='" & rsmain(2).value & "'  and a.glcode='" & rsmain(3).value & "') T GROUP BY T.BRANCHCODE, T.CUSTOMERID, T.NAME ,T.panno,T.APPLICATIONDATE,T.CHALLANDATE,T.CHALLANNO,T.BSRCODE,T.glcode,T.accno,T.Age ORDER BY T.branchcode,T.customerid "
+
+
+            //         blnchk = true
+
+            //         end if ''not rschk.eof and not rschk.bof
+
+            //         rs = obj.SingleSelectStat(sqlStr)
+
+
+            //        if obj.ConnError = "Connected" then
+
+            //            if not rs.BOF and not rs.EOF then
+
+            //                do until rs.EOF
+
+            //                if strArr(0) = "FRM26TDSCUST" then ''FRM26TDSCUST
+
+            //                    strResult = strResult & "'" & rs(0).value & "','" & rs(1).value & "','" & rs(2).value & "','" & rs(3).value & "','" & rs(4).value & "','" & rs(5).value & "','" & rs(6).value & "'," & rs(7).value & "," & rs(8).value & ",'" & rs(9).value & "','" & rs(10).value & "','" & rs(11).value & "'|"
+
+            //                else '' FRM26TDSWISEACC or FRM26TDSACC
+            //                    strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "~" & rs(7).value & "~" & rs(8).value & "~" & rs(9).value & "~" & rs(10).value & "~" & rs(11).value & "~" & rs(12).value & "|"
+
+            //                end if
+
+            //                    rs.movenext()
+
+            //                loop
+
+            //            end if
+
+            //        end if
+
+
+            //         rschk1.movenext()
+
+            //         loop ''rschk1
+
+            //        end if ''not rschk1.eof and not rschk1.bof
+
+            //        '' end rschk1.recordcount > 1
+
+            //        else if rschk1.recordcount = 1 then ''rschk1.recordcount = 1
+
+
+            //        todate1 = Format(dateadd("d", 1, cdate(rschk1(1).value)), "dd-MMM-yyyy")
+
+            //        todate2 = Format(cdate(rschk1(1).value), "dd-MMM-yyyy")
+
+
+
+            //         sqlStr = " SELECT T.BRANCHCODE, T.CUSTOMERID,t.glcode,T.accno, SUBSTR(T.NAME,1,40),T.PANNO,TO_CHAR(T.APPLICATIONDATE,'DD-Mon-YYYY'),nvl(SUM(nvl(T.INTEREST,0)),0),SUM(T.TDSAMT),TO_CHAR(T.CHALLANDATE,'DD-Mon-YYYY'),T.CHALLANNO,T.BSRCODE,T.Age FROM(SELECT A.BRANCHCODE,A.CUSTOMERID,a.glcode,A.accno,B.NAME,B.PANNO,A.APPLICATIONDATE,(SELECT (NVL((SELECT SUM(ABS(C.INTAMOUNT)) FROM DEPINTACCRUEDDTLS C WHERE C.ACCNO=D.ACCNO AND C.GLCODE=D.GLCODE AND C.INTAMOUNT>0 AND C.MODULEID='DEP' AND C.applicationdate between '" & frmdate & "' and '" & todate1 & "' AND C.BRANCHCODE=D.BRANCHCODE AND C.CURRENCYCODE=D.CURRENCYCODE AND (C.branchcode,C.glcode,C.accno,C.batchno,C.tranno) NOT IN (SELECT branchcode,glcode,accno,batchno,tranno FROM DEPINTACCRUEDDTLS C1 WHERE C1.ACCNO=C.ACCNO AND C1.GLCODE=C.GLCODE AND C1.BRANCHCODE=C.BRANCHCODE AND C1.CURRENCYCODE=C.CURRENCYCODE AND C1.INTAMOUNT>0 AND C1.MODULEID='DEP' AND C1.APPLICATIONDATE BETWEEN '" & frmdate & "' and '" & todate1 & "'  AND (remarks LIKE 'TDS From%' or remarks LIKE 'TDSREFUND%') AND C1.APPLICATIONDATE = (SELECT MAX(applicationdate) FROM DEPINTACCRUEDDTLS C2 WHERE C2.ACCNO=C1.ACCNO AND C2.GLCODE=C1.GLCODE AND C2.BRANCHCODE=C1.BRANCHCODE AND C2.CURRENCYCODE=C1.CURRENCYCODE AND C2.INTAMOUNT>0 AND C2.MODULEID='DEP' AND C2.APPLICATIONDATE BETWEEN '" & frmdate & "' and '" & todate1 & "' AND (remarks LIKE 'TDS From%' or remarks LIKE 'TDSREFUND%')))),0) + NVL((SELECT SUM(ABS(E.AMOUNT)) FROM DEPTRAN E WHERE E.CHQFVG = 'DEPIP' AND E.ACCNO=D.ACCNO AND E.GLCODE=D.GLCODE AND E.MODULEID='DEP' AND E.BRANCHCODE=D.BRANCHCODE AND E.CURRENCYCODE=D.CURRENCYCODE AND E.applicationdate between '" & frmdate & "' and '" & todate2 & "' AND (E.branchcode,E.glcode,E.accno,E.batchno,E.tranno) NOT IN (SELECT branchcode,glcode,accno,batchno,tranno FROM DEPTRAN C1 WHERE C1.ACCNO=E.ACCNO AND C1.GLCODE=E.GLCODE AND C1.BRANCHCODE=E.BRANCHCODE AND C1.CURRENCYCODE=E.CURRENCYCODE AND C1.MODULEID='DEP' AND C1.APPLICATIONDATE BETWEEN '" & frmdate & "' and '" & todate1 & "'  AND (C1.remarks LIKE 'TDS From%' OR C1.remarks LIKE 'TDSREFUND%') AND C1.APPLICATIONDATE = (SELECT MAX(applicationdate) FROM DEPTRAN C2 WHERE C2.ACCNO=C1.ACCNO AND C2.GLCODE=C1.GLCODE AND C2.BRANCHCODE=C1.BRANCHCODE AND C2.CURRENCYCODE=C1.CURRENCYCODE AND  C2.MODULEID='DEP' AND C2.APPLICATIONDATE BETWEEN '" & frmdate & "' and '" & todate2 & "' AND (remarks LIKE 'TDS From%' OR remarks LIKE 'TDSREFUND%')))),0) - NVL((SELECT NVL(sum(amount),0) intamount FROM DEPTRAN WHERE ACCNO = D.ACCNO AND GLCODE = D.GLCODE AND BRANCHCODE = D.BRANCHCODE AND AMOUNT>0 AND MODULEID='DEP' AND APPLICATIONDATE = '" & todate1 & "' AND (remarks LIKE 'TDS From%')),0) + NVL((SELECT NVL(AMOUNT,0) FROM DEPTRAN WHERE ACCNO = D.ACCNO AND GLCODE = D.GLCODE AND EFFECTIVEDATE BETWEEN '" & frmdate & "' and '" & todate1 & "' AND remarks LIKE 'Excess Int Rev To GL%' AND AMOUNT<0 AND BRANCHCODE = D.BRANCHCODE),0) +  NVL((SELECT NVL(INTAMOUNT,0) FROM DEPINTACCRUEDDTLS WHERE glcode=a.GLCODE AND accno=a.ACCNO AND TRANSFERTODEP BETWEEN '" & frmdate & "' and '" & todate1 & "' AND (REMARKS LIKE 'Excess Interest Adjusted%'  OR REMARKS LIKE 'Excess Int Rev To GL%') AND branchcode=A.BRANCHCODE),0) - NVL((SELECT NVL(intamount,0)intamount FROM DEPINTACCRUEDDTLS C1 WHERE C1.ACCNO=a.ACCNO AND C1.GLCODE=a.GLCODE AND C1.BRANCHCODE=a.BRANCHCODE AND C1.INTAMOUNT>0 AND C1.MODULEID='DEP' AND C1.APPLICATIONDATE BETWEEN '" & frmdate & "' and '" & todate1 & "'  AND (remarks LIKE 'TDSREFUND%')),0) - NVL((SELECT NVL(sum(intamount),0) intamount FROM DEPINTACCRUEDDTLS WHERE ACCNO = a.ACCNO AND GLCODE = a.GLCODE AND BRANCHCODE = a.BRANCHCODE AND INTAMOUNT>0 AND MODULEID='DEP' AND APPLICATIONDATE = '" & todate1 & "' AND (remarks LIKE 'TDS From%')),0) ) INTAMT FROM DEPMST D WHERE D.BRANCHCODE=A.BRANCHCODE AND d.ACCNO=a.ACCNO AND D.GLCODE = a.GLCODE AND  d.CURRENCYCODE=a.CURRENCYCODE) interest, ABS(A.AMOUNT) TDSAMT,A.CHALLANDATE,A.CHALLANNO,A.BSRCODE,(SELECT ROUND(NVL((SYSDATE - M.CUSTDOB)/365.242199,0) ) FROM gencustinfomst M WHERE M.CUSTOMERID=a.CUSTOMERID ) Age FROM TDSDTLS A, GENCUSTINFOMST B WHERE A.applicationdate between '" & frmdate & "' and '" & todate1 & "'  AND A.customerid=b.customerid AND A.branchcode='" & rsmain(0).value & "' and a.customerid = '" & rsmain(1).value & "' and a.accno='" & rsmain(2).value & "'  and a.glcode='" & rsmain(3).value & "') T GROUP BY T.BRANCHCODE, T.CUSTOMERID, T.NAME ,T.panno,T.APPLICATIONDATE,T.CHALLANDATE,T.CHALLANNO,T.BSRCODE,T.glcode,T.accno,T.Age ORDER BY T.branchcode,T.customerid "
+
+
+            //        rs = obj.SingleSelectStat(sqlStr)
+
+
+
+            //        if obj.ConnError = "Connected" then
+
+            //            if not rs.BOF and not rs.EOF then
+
+            //                do until rs.EOF
+
+            //                if strArr(0) = "FRM26TDSCUST" then ''FRM26TDSCUST
+
+            //                    strResult = strResult & "'" & rs(0).value & "','" & rs(1).value & "','" & rs(2).value & "','" & rs(3).value & "','" & rs(4).value & "','" & rs(5).value & "','" & rs(6).value & "'," & rs(7).value & "," & rs(8).value & ",'" & rs(9).value & "','" & rs(10).value & "','" & rs(11).value & "'|"
+
+            //                else '' FRM26TDSWISEACC or FRM26TDSACC
+            //                    strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "~" & rs(7).value & "~" & rs(8).value & "~" & rs(9).value & "~" & rs(10).value & "~" & rs(11).value & "~" & rs(12).value & "|"
+
+            //                end if  ''strArr(0) = "FRM26TDSCUST"
+
+            //                    rs.movenext()
+
+            //                loop
+            //            end if
+
+            //        end if
+
+
+
+            //        end if ''rschk1.recordcount = 1
+
+
+            //    rsmain.movenext()
+
+            //    loop
+
+            //    if strResult<> "" then
+            //    strResult = mid(strResult, 1, strResult.length - 1)
+
+            //    end if
+
+            //    rsmain = nothing
+
+            //    rs = nothing
+
+            //    rschk = nothing
+
+
+            //    if strArr(0) = "FRM26TDSCUST" then
+            //    dim obj2, condStbr
+
+            //    obj2 = SERVER.CreateObject("GeneralTransactions.DBTransactions")
+
+            //    rscnt = Server.CreateObject("adodb.recordset")
+
+            //    Dim ArrTran(2,4)
+            //	p = 0
+
+            //    strinscnt = ""
+
+            //    strdelcnt = ""
+
+
+            //    if strArr(7) = "0" then
+            //        sqlStr = "SELECT count(*) cnt FROM tdsreporttemp where branchcode = '" & strArr(1) & "'"
+
+            //    else
+            //                sqlStr = "SELECT count(*) cnt FROM tdsreporttemp "
+
+            //    end if
+
+
+            //    rscnt = obj.SingleSelectStat(sqlStr)
+
+
+            //    if rscnt.recordcount > 0 then
+
+            //    if rscnt(0).value > 0 then
+            //    strdelcnt = "Y"
+
+
+            //    if strArr(7) = "0" then
+
+            //        ArrTran(p, 0) = "D"
+
+            //        ArrTran(p, 1) = "tdsreporttemp"
+
+            //        ArrTran(p, 2) = ""
+
+            //        ArrTran(p, 3) = ""
+
+            //        ArrTran(p, 4) = " branchcode = '" & strArr(1) & "' "
+
+            //    else
+            //                ArrTran(p, 0) = "D"
+
+            //        ArrTran(p, 1) = "tdsreporttemp"
+
+            //        ArrTran(p, 2) = ""
+
+            //        ArrTran(p, 3) = ""
+
+            //        ArrTran(p, 4) = ""
+
+            //    end if
+
+
+
+            //    end if ''rscnt(0).value > 0
+
+            //    end if ''rscnt.recordcount > 0
+
+
+            //    if strdelcnt = "Y" then
+            //    Strmsg = obj2.DataTransactions(ArrTran)
+
+            //    end if ''strdelcnt = "Y"
+
+
+            //    if strResult<> "" then
+            //    p = 0
+
+
+            //    strinscnt = "Y"
+
+            //    ArrTran(p, 0) = "I"
+
+            //    ArrTran(p, 1) = "tdsreporttemp"
+
+            //    ArrTran(p, 2) = "BRANCHCODE, CUSTOMERID, GLCODE, ACCNO, NAME, PANNO, APPLICATIONDATE, INTEREST, AMOUNT, CHALLANDATE, CHALLANNO, BSRCODE"
+
+            //    ArrTran(p, 3) = strResult
+
+            //    ArrTran(p, 4) = ""
+
+            //    end if ''strResult<> ""
+
+
+            //    if strinscnt = "Y" then
+
+            //    if strdelcnt = "Y" then
+
+            //    if Strmsg = "Transaction Sucessful."  then
+            //    Strmsg = obj2.DataTransactions(ArrTran)
+
+            //    else
+            //                strResult = Strmsg
+
+            //    end if '' Strmsg = "Transaction Sucessful."
+
+            //    else
+            //                Strmsg = obj2.DataTransactions(ArrTran)
+
+            //    end if ''strdelcnt = "Y"
+
+            //    else
+            //                strResult = Strmsg
+
+            //    end if ''strinscnt = "Y"
+
+
+            //    if Strmsg = "Transaction Sucessful." then
+            //    strResult = ""
+
+
+            //    if strArr(7) = "0" then
+            //        sqlStr = "SELECT  T.BRANCHCODE,T.CUSTOMERID, SUBSTR(T.NAME,1,40), T.PANNO, TO_CHAR(T.APPLICATIONDATE,'DD-Mon-YYYY'), SUM(T.INTEREST), SUM(T.AMOUNT), TO_CHAR(T.CHALLANDATE,'DD-Mon-YYYY'), T.CHALLANNO, T.BSRCODE, (SELECT ROUND(NVL((SYSDATE - a.CUSTDOB)/365.242199,0) ) age FROM gencustinfomst a WHERE a.CUSTOMERID=T.CUSTOMERID) age FROM tdsreporttemp T where T.branchcode = '" & strArr(1) & "' GROUP BY T.BRANCHCODE, T.CUSTOMERID, T.NAME ,T.panno,T.APPLICATIONDATE,T.CHALLANDATE,T.CHALLANNO,T.BSRCODE ORDER BY  T.BRANCHCODE,T.CUSTOMERID"
+
+            //    else
+            //                sqlStr = "SELECT  T.BRANCHCODE,T.CUSTOMERID, SUBSTR(T.NAME,1,40), T.PANNO, TO_CHAR(T.APPLICATIONDATE,'DD-Mon-YYYY'), SUM(T.INTEREST), SUM(T.AMOUNT), TO_CHAR(T.CHALLANDATE,'DD-Mon-YYYY'), T.CHALLANNO, T.BSRCODE, (SELECT ROUND(NVL((SYSDATE - a.CUSTDOB)/365.242199,0) ) age FROM gencustinfomst a WHERE a.CUSTOMERID=T.CUSTOMERID) age FROM tdsreporttemp T GROUP BY T.BRANCHCODE, T.CUSTOMERID, T.NAME ,T.panno,T.APPLICATIONDATE,T.CHALLANDATE,T.CHALLANNO,T.BSRCODE ORDER BY  T.BRANCHCODE,T.CUSTOMERID"
+
+            //    end if
+
+
+
+            //    rs = obj.SingleSelectStat(sqlStr)
+
+
+            //    if not rs.BOF and not rs.EOF then
+
+            //        do until rs.EOF
+
+            //        strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "~" & rs(7).value & "~" & rs(8).value & "~" & rs(9).value & "~" & rs(10).value & "|"
+
+            //        rs.movenext()
+
+            //        loop
+            //    end if ''not rs.BOF and not rs.EOF
+
+            //    if strResult<> "" then
+            //    strResult = mid(strResult, 1, strResult.length - 1)
+
+            //    end if
+
+            //    rs = nothing
+
+            //    else
+            //                    strResult = Strmsg
+
+            //    end if ''Strmsg = "Transaction Sucessful."
+
+            //    rscnt = nothing
+
+            //    end if ''strArr(0) = "FRM26TDSCUST"
+
+
+
+            //    elseif strArr(0)= "FRM2615GHCUST" then
+
+
+            //''/**'NOTES  -- form26Q -  data getting
+            //'Data will get from depmst based given input as form15g/h (It will not verify whether form15gh submitted or not)
+            //'Interest will get from depintaccruedtdtls/deptran based on date range
+            //'Applicationdate - Date will get from FORM15GHTRACKINGDTLS details based on financial year
+            //'tds amount from tdsdtls table  */
+
+            //    strResult = ""
+
+
+
+            //obj = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+            //if strArr(8) = "0" then
+            //    sqlstr = " SELECT y.BRANCHCODE,y.CUSTOMERID,y.GLCODE,y.ACCNO,y.name,y.PANNO,TO_CHAR(y.APPLICATIONDATE,'DD-Mon-YYYY'),SUM(y.intamt) intamt ,y.TDS,y.CHALLANDATE,y.CHALLANNO,y.BSRCODE FROM (SELECT x.BRANCHCODE,x.CURRENCYCODE,  x.CUSTOMERID, x.GLCODE, x.ACCNO,x.name,x.PANNO,x.APPLICATIONDATE, (CASE WHEN ((x.intcompyn <> 'N' AND comprevyn = 'Y') OR  (x.intcompyn = 'N' AND comprevyn = 'N') OR  (x.intcompyn <> 'N' AND comprevyn = 'N'))  THEN ((NVL((SELECT NVL(SUM(ABS(C.INTAMOUNT)),0) FROM DEPINTACCRUEDDTLS C WHERE C.ACCNO=x.ACCNO AND C.GLCODE=x.GLCODE AND C.INTAMOUNT>0 AND C.MODULEID='DEP' AND C.APPLICATIONDATE BETWEEN '" & strArr(4) & "' AND '" & strArr(5) & "' AND C.BRANCHCODE=x.BRANCHCODE AND C.CURRENCYCODE=x.CURRENCYCODE AND (branchcode,glcode,accno,batchno,tranno) NOT IN (SELECT branchcode,glcode,accno,batchno,tranno FROM DEPINTACCRUEDDTLS WHERE ACCNO=x.ACCNO AND GLCODE=x.GLCODE AND BRANCHCODE=x.BRANCHCODE AND INTAMOUNT>0 AND  MODULEID='DEP' AND APPLICATIONDATE BETWEEN  '" & strArr(4) & "' AND '" & strArr(5) & "'  AND (remarks LIKE 'TDS From%' OR remarks LIKE 'TDSREFUND%') AND '" & strArr(5) & "' = (SELECT MAX(applicationdate) FROM DEPINTACCRUEDDTLS WHERE ACCNO=x.ACCNO AND GLCODE=x.GLCODE AND BRANCHCODE=x.BRANCHCODE AND INTAMOUNT>0  AND MODULEID='DEP' AND APPLICATIONDATE BETWEEN '" & strArr(4) & "' AND '" & strArr(5) & "' AND (remarks LIKE 'TDS From%' OR remarks LIKE 'TDSREFUND%')))),0) + NVL((SELECT NVL(sum(INTAMOUNT),0) FROM DEPINTACCRUEDDTLS WHERE ACCNO = x.ACCNO AND GLCODE = x.GLCODE AND NVL(TRANSFERTODEP , applicationdate) BETWEEN '" & strArr(4) & "' AND '" & strArr(5) & "' AND (REMARKS LIKE 'Excess Interest Adjusted%'  OR REMARKS LIKE 'Excess Int Rev To GL%') AND BRANCHCODE = x.BRANCHCODE),0) )) + NVL((SELECT SUM(intamount) FROM DEPINTACCRUEDDTLS WHERE accno = x.accno AND glcode = x.glcode AND branchcode = x.branchcode   and intamount > 0 AND NVL(TRANSFERTODEP , applicationdate) BETWEEN '" & strArr(4) & "' AND '" & strArr(5) & "' AND (REMARKS LIKE 'Excess Interest Adjusted%'  OR REMARKS LIKE 'Excess Int Rev From%')),0) 	else 	((NVL((SELECT NVL(SUM(ABS(E.AMOUNT)),0) FROM DEPTRAN E WHERE E.CHQFVG = 'DEPIP' AND E.ACCNO=X.ACCNO AND E.GLCODE=X.GLCODE AND E.MODULEID='DEP' AND E.BRANCHCODE=X.BRANCHCODE AND E.CURRENCYCODE=X.CURRENCYCODE AND E.APPLICATIONDATE BETWEEN '" & strArr(4) & "' AND '" & strArr(5) & "' AND (branchcode,glcode,accno,batchno,tranno) NOT IN (SELECT branchcode,glcode,accno,batchno,tranno FROM DEPTRAN WHERE ACCNO=x.ACCNO AND GLCODE=x.GLCODE AND BRANCHCODE=x.BRANCHCODE AND MODULEID='DEP' AND APPLICATIONDATE BETWEEN '" & strArr(4) & "' AND '" & strArr(5) & "'  AND (remarks LIKE 'TDS From%' OR remarks LIKE 'TDSREFUND%') AND '" & strArr(5) & "' = (SELECT MAX(applicationdate) FROM DEPTRAN  WHERE ACCNO=x.ACCNO AND GLCODE=x.GLCODE AND BRANCHCODE=x.BRANCHCODE AND MODULEID='DEP' AND APPLICATIONDATE BETWEEN '" & strArr(4) & "' AND '" & strArr(5) & "' AND (remarks LIKE 'TDS From%' OR remarks LIKE 'TDSREFUND%')))),0)) + NVL((SELECT NVL(AMOUNT,0) FROM DEPTRAN WHERE ACCNO = x.ACCNO AND GLCODE = x.GLCODE AND EFFECTIVEDATE BETWEEN '" & strArr(4) & "' AND '" & strArr(5) & "' AND remarks LIKE 'Excess Int Rev To GL%' AND AMOUNT<0 AND BRANCHCODE = x.BRANCHCODE),0))  END ) intamt,0 TDS ,'' CHALLANDATE ,'' CHALLANNO ,'' BSRCODE FROM (SELECT  C.BRANCHCODE,C.CURRENCYCODE,  C.CUSTOMERID, C.GLCODE, C.ACCNO,b.name,B.PANNO,A.APPLICATIONDATE, (SELECT INTCOMPOUNDYN FROM deptypemst WHERE glcode = C.glcode) intcompyn, (SELECT COMPINTACCRREVSEYN FROM deptypemst WHERE glcode = C.glcode) comprevyn FROM FORM15GHTRACKINGDTLS A,GENCUSTINFOMST B,depmst c  WHERE A.ASSESYEAR='" & strArr(7) & "' " & strArr(6) & " AND A.STATUS='R' AND C.BRANCHCODE='" & strArr(1) & "' AND C.CURRENCYCODE='" & strArr(2) & "' " & strArr(3) & "  and b.customerid not in (select customerid from gencustinfomst where  PAN206AAYN = 'N' or  PAN206ABYN = 'Y') AND A.CUSTOMERID=B.CUSTOMERID AND A.CUSTOMERID=C.CUSTOMERID AND A.BRANCHCODE=C.BRANCHCODE AND a.glcode=c.glcode AND a.accno=c.accno AND B.CUSTOMERID=C.CUSTOMERID ) x ) y WHERE y.intamt <> 0 GROUP BY y.BRANCHCODE,y.CUSTOMERID,y.glcode,y.accno, y.NAME, y.PANNO, y.APPLICATIONDATE,y.TDS,y.CHALLANDATE,y.CHALLANNO,y.BSRCODE "
+            //else
+
+
+            //                sqlstr = " SELECT y.BRANCHCODE,y.CUSTOMERID,y.GLCODE,y.ACCNO,y.name,y.PANNO,TO_CHAR(y.APPLICATIONDATE,'DD-Mon-YYYY'),SUM(y.intamt) intamt ,y.TDS,y.CHALLANDATE,y.CHALLANNO,y.BSRCODE FROM (SELECT x.BRANCHCODE,x.CURRENCYCODE,  x.CUSTOMERID, x.GLCODE, x.ACCNO,x.name,x.PANNO,x.APPLICATIONDATE, (CASE WHEN ((x.intcompyn <> 'N' AND comprevyn = 'Y') OR  (x.intcompyn = 'N' AND comprevyn = 'N') OR  (x.intcompyn <> 'N' AND comprevyn = 'N')) THEN ((NVL((SELECT NVL(SUM(ABS(C.INTAMOUNT)),0) FROM DEPINTACCRUEDDTLS C WHERE C.ACCNO=x.ACCNO AND C.GLCODE=x.GLCODE AND C.INTAMOUNT>0 AND C.MODULEID='DEP' AND C.APPLICATIONDATE BETWEEN '" & strArr(4) & "' AND '" & strArr(5) & "' AND C.BRANCHCODE=x.BRANCHCODE AND C.CURRENCYCODE=x.CURRENCYCODE AND (branchcode,glcode,accno,batchno,tranno) NOT IN (SELECT branchcode,glcode,accno,batchno,tranno FROM DEPINTACCRUEDDTLS WHERE ACCNO=x.ACCNO AND GLCODE=x.GLCODE AND BRANCHCODE=x.BRANCHCODE AND INTAMOUNT>0 AND  MODULEID='DEP' AND APPLICATIONDATE BETWEEN  '" & strArr(4) & "' AND '" & strArr(5) & "'  AND (remarks LIKE 'TDS From%' OR remarks LIKE 'TDSREFUND%') AND '" & strArr(5) & "' = (SELECT MAX(applicationdate) FROM DEPINTACCRUEDDTLS WHERE ACCNO=x.ACCNO AND GLCODE=x.GLCODE AND BRANCHCODE=x.BRANCHCODE AND INTAMOUNT>0  AND MODULEID='DEP' AND APPLICATIONDATE BETWEEN '" & strArr(4) & "' AND '" & strArr(5) & "' AND (remarks LIKE 'TDS From%' OR remarks LIKE 'TDSREFUND%')))),0) + NVL((SELECT NVL(sum(INTAMOUNT),0) FROM DEPINTACCRUEDDTLS WHERE ACCNO = x.ACCNO AND GLCODE = x.GLCODE AND NVL(TRANSFERTODEP , applicationdate) BETWEEN '" & strArr(4) & "' AND '" & strArr(5) & "' AND (REMARKS LIKE 'Excess Interest Adjusted%'  OR REMARKS LIKE 'Excess Int Rev To GL%') AND BRANCHCODE = x.BRANCHCODE),0) ))  + NVL((SELECT SUM(intamount) FROM DEPINTACCRUEDDTLS WHERE accno = x.accno AND glcode = x.glcode AND branchcode = x.branchcode   and intamount > 0 AND NVL(TRANSFERTODEP , applicationdate) BETWEEN '" & strArr(4) & "' AND '" & strArr(5) & "' AND (REMARKS LIKE 'Excess Interest Adjusted%'  OR REMARKS LIKE 'Excess Int Rev From%')),0) else  ((NVL((SELECT NVL(SUM(ABS(E.AMOUNT)),0) FROM DEPTRAN E WHERE E.CHQFVG = 'DEPIP' AND E.ACCNO=X.ACCNO AND E.GLCODE=X.GLCODE AND E.MODULEID='DEP' AND E.BRANCHCODE=X.BRANCHCODE AND E.CURRENCYCODE=X.CURRENCYCODE AND E.APPLICATIONDATE BETWEEN '" & strArr(4) & "' AND '" & strArr(5) & "' AND (branchcode,glcode,accno,batchno,tranno) NOT IN (SELECT branchcode,glcode,accno,batchno,tranno FROM DEPTRAN WHERE ACCNO=x.ACCNO AND GLCODE=x.GLCODE AND BRANCHCODE=x.BRANCHCODE AND MODULEID='DEP' AND APPLICATIONDATE BETWEEN '" & strArr(4) & "' AND '" & strArr(5) & "'  AND (remarks LIKE 'TDS From%' OR remarks LIKE 'TDSREFUND%') AND '" & strArr(5) & "' = (SELECT MAX(applicationdate) FROM DEPTRAN  WHERE ACCNO=x.ACCNO AND GLCODE=x.GLCODE AND BRANCHCODE=x.BRANCHCODE AND MODULEID='DEP' AND APPLICATIONDATE BETWEEN '" & strArr(4) & "' AND '" & strArr(5) & "' AND (remarks LIKE 'TDS From%' OR remarks LIKE 'TDSREFUND%')))),0)) + NVL((SELECT NVL(sum(AMOUNT),0) FROM DEPTRAN WHERE ACCNO = x.ACCNO AND GLCODE = x.GLCODE AND EFFECTIVEDATE BETWEEN '" & strArr(4) & "' AND '" & strArr(5) & "' AND remarks LIKE 'Excess Int Rev To GL%' AND AMOUNT<0 AND BRANCHCODE = x.BRANCHCODE),0))  END ) intamt,0 TDS ,'' CHALLANDATE ,'' CHALLANNO ,'' BSRCODE FROM (SELECT  C.BRANCHCODE,C.CURRENCYCODE,  C.CUSTOMERID, C.GLCODE, C.ACCNO,b.name,B.PANNO,A.APPLICATIONDATE, (SELECT INTCOMPOUNDYN FROM deptypemst WHERE glcode = C.glcode) intcompyn, (SELECT COMPINTACCRREVSEYN FROM deptypemst WHERE glcode = C.glcode) comprevyn FROM FORM15GHTRACKINGDTLS A,GENCUSTINFOMST B,depmst c  WHERE A.ASSESYEAR='" & strArr(7) & "' " & strArr(6) & "   and b.customerid not in (select customerid from gencustinfomst where  PAN206AAYN = 'N' or  PAN206ABYN = 'Y') AND A.STATUS='R' AND C.CURRENCYCODE='" & strArr(2) & "' " & strArr(3) & " AND A.CUSTOMERID=B.CUSTOMERID AND A.CUSTOMERID=C.CUSTOMERID AND A.BRANCHCODE=C.BRANCHCODE AND a.glcode=c.glcode AND a.accno=c.accno AND B.CUSTOMERID=C.CUSTOMERID ) x ) y WHERE y.intamt <> 0 GROUP BY y.BRANCHCODE,y.CUSTOMERID,y.glcode,y.accno, y.NAME, y.PANNO, y.APPLICATIONDATE,y.TDS,y.CHALLANDATE,y.CHALLANNO,y.BSRCODE "
+
+            //end if
+
+
+
+
+            //        rs = obj.SingleSelectStat(sqlStr)
+
+
+            //        if obj.ConnError = "Connected" then
+
+            //            if not rs.BOF and not rs.EOF then
+
+            //                do until rs.EOF
+
+            //                    strResult = strResult & "'" & rs(0).value & "','" & rs(1).value & "','" & rs(2).value & "','" & rs(3).value & "','" & rs(4).value & "','" & rs(5).value & "','" & rs(6).value & "'," & rs(7).value & "," & rs(8).value & ",'" & rs(9).value & "','" & rs(10).value & "','" & rs(11).value & "'|"
+
+            //                    rs.movenext()
+
+            //                loop
+            //                strResult = mid(strResult, 1, strResult.length - 1)
+
+            //            end if
+
+            //        end if
+
+            //    rs = nothing
+
+
+            //    '' INSERT INTO tdsreporttemp
+            //    dim obj2
+
+            //    obj2 = SERVER.CreateObject("GeneralTransactions.DBTransactions")
+
+            //    rscnt = Server.CreateObject("adodb.recordset")
+
+            //    Dim ArrTran(2,4)
+            //	p = 0
+
+            //    strinscnt = ""
+
+            //    strdelcnt = ""
+
+
+            //    if strArr(8) = "0" then
+            //        sqlStr = "SELECT count(*) cnt FROM tdsreporttemp where branchcode = '" & strArr(1) & "'"
+
+            //    else
+            //                sqlStr = "SELECT count(*) cnt FROM tdsreporttemp "
+
+            //    end if
+
+
+            //    rscnt = obj.SingleSelectStat(sqlStr)
+
+
+            //    if rscnt.recordcount > 0 then
+
+            //    if rscnt(0).value > 0 then
+            //    strdelcnt = "Y"
+
+
+            //    if strArr(8) = "0" then
+
+            //        ArrTran(p, 0) = "D"
+
+            //        ArrTran(p, 1) = "tdsreporttemp"
+
+            //        ArrTran(p, 2) = ""
+
+            //        ArrTran(p, 3) = ""
+
+            //        ArrTran(p, 4) = "branchcode = '" & strArr(1) & "'"
+
+            //    else
+            //                ArrTran(p, 0) = "D"
+
+            //        ArrTran(p, 1) = "tdsreporttemp"
+
+            //        ArrTran(p, 2) = ""
+
+            //        ArrTran(p, 3) = ""
+
+            //        ArrTran(p, 4) = ""
+
+            //    end if
+
+
+
+            //    end if ''rscnt(0).value > 0
+
+            //    end if ''rscnt.recordcount > 0
+
+
+            //    if strdelcnt = "Y" then
+            //    Strmsg = obj2.DataTransactions(ArrTran)
+
+            //    end if ''strdelcnt = "Y"
+
+
+            //    if strResult<> "" then
+            //    p = 0
+
+
+            //    strinscnt = "Y"
+
+            //    ArrTran(p, 0) = "I"
+
+            //    ArrTran(p, 1) = "tdsreporttemp"
+
+            //    ArrTran(p, 2) = "BRANCHCODE, CUSTOMERID, GLCODE, ACCNO, NAME, PANNO, APPLICATIONDATE, INTEREST, AMOUNT, CHALLANDATE, CHALLANNO, BSRCODE"
+
+            //    ArrTran(p, 3) = strResult
+
+            //    ArrTran(p, 4) = ""
+
+            //    end if ''strResult<> ""
+
+
+            //    if strinscnt = "Y" then
+
+            //    if strdelcnt = "Y" then
+
+            //    if Strmsg = "Transaction Sucessful."  then
+            //    Strmsg = obj2.DataTransactions(ArrTran)
+
+            //    else
+            //                strResult = Strmsg
+
+            //    end if '' Strmsg = "Transaction Sucessful."
+
+            //    else
+            //                Strmsg = obj2.DataTransactions(ArrTran)
+
+            //    end if ''strdelcnt = "Y"
+
+            //    else
+            //                strResult = Strmsg
+
+            //    end if ''strinscnt = "Y"
+
+
+            //    if Strmsg = "Transaction Sucessful." then
+            //    strResult = ""
+
+
+            //        if strArr(8) = "0" then
+            //        sqlStr = "SELECT  T.BRANCHCODE,T.CUSTOMERID, SUBSTR(T.NAME,1,40), T.PANNO, TO_CHAR(T.APPLICATIONDATE,'DD-Mon-YYYY'), SUM(T.INTEREST), SUM(T.AMOUNT), TO_CHAR(T.CHALLANDATE,'DD-Mon-YYYY'), T.CHALLANNO, T.BSRCODE, (SELECT ROUND(NVL((SYSDATE - a.CUSTDOB)/365.242199,0) ) age FROM gencustinfomst a WHERE a.CUSTOMERID=T.CUSTOMERID ) age FROM tdsreporttemp T where T.branchcode = '" & strArr(1) & "' GROUP BY T.BRANCHCODE, T.CUSTOMERID, T.NAME ,T.panno,T.APPLICATIONDATE,T.CHALLANDATE,T.CHALLANNO,T.BSRCODE ORDER BY  T.BRANCHCODE,T.CUSTOMERID"
+
+            //    else
+            //                sqlStr = "SELECT  T.BRANCHCODE,T.CUSTOMERID, SUBSTR(T.NAME,1,40), T.PANNO, TO_CHAR(T.APPLICATIONDATE,'DD-Mon-YYYY'), SUM(T.INTEREST), SUM(T.AMOUNT), TO_CHAR(T.CHALLANDATE,'DD-Mon-YYYY'), T.CHALLANNO, T.BSRCODE, (SELECT ROUND(NVL((SYSDATE - a.CUSTDOB)/365.242199,0) ) age FROM gencustinfomst a WHERE a.CUSTOMERID=T.CUSTOMERID ) age FROM tdsreporttemp T  GROUP BY T.BRANCHCODE, T.CUSTOMERID, T.NAME ,T.panno,T.APPLICATIONDATE,T.CHALLANDATE,T.CHALLANNO,T.BSRCODE ORDER BY  T.BRANCHCODE,T.CUSTOMERID"
+
+            //    end if
+
+
+            //    rs = obj.SingleSelectStat(sqlStr)
+
+
+            //    if not rs.BOF and not rs.EOF then
+
+            //        do until rs.EOF
+
+            //        strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "~" & rs(7).value & "~" & rs(8).value & "~" & rs(9).value & "~" & rs(10).value & "|"
+
+            //        rs.movenext()
+
+            //        loop
+            //    end if ''not rs.BOF and not rs.EOF
+
+            //    if strResult<> "" then
+            //    strResult = mid(strResult, 1, strResult.length - 1)
+
+            //    end if
+
+            //    rs = nothing
+
+            //    else
+            //                    strResult = Strmsg
+
+            //    end if ''Strmsg = "Transaction Sucessful."
+
+            //    rscnt = nothing
+
+
+            //    elseif strArr(0)= "FRM2615GHACC" then
+            //    strResult = ""
+
+
+            //        obj = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+            //if strArr(3) = "" and strArr(4) = "" then
+
+
+            //    if strArr(9) = "0" then
+            //        sqlstr = " SELECT y.BRANCHCODE,y.CUSTOMERID,y.GLCODE,y.ACCNO,y.name,y.PANNO,TO_CHAR(y.APPLICATIONDATE,'DD-Mon-YYYY'),SUM(y.intamt) intamt ,y.TDS,y.CHALLANDATE,y.CHALLANNO,y.BSRCODE,y.age FROM (SELECT x.BRANCHCODE,x.CURRENCYCODE,  x.CUSTOMERID, x.GLCODE, x.ACCNO,x.name,x.PANNO,x.APPLICATIONDATE, (CASE WHEN ((x.intcompyn <> 'N' AND comprevyn = 'Y') OR  (x.intcompyn = 'N' AND comprevyn = 'N') OR  (x.intcompyn <> 'N' AND comprevyn = 'N')) THEN ((NVL((SELECT NVL(SUM(ABS(C.INTAMOUNT)),0) FROM DEPINTACCRUEDDTLS C WHERE C.ACCNO=x.ACCNO AND C.GLCODE=x.GLCODE AND C.INTAMOUNT>0 AND C.MODULEID='DEP' AND C.APPLICATIONDATE BETWEEN '" & strArr(5) & "' AND '" & strArr(6) & "' AND C.BRANCHCODE=x.BRANCHCODE AND C.CURRENCYCODE=x.CURRENCYCODE AND (branchcode,glcode,accno,batchno,tranno) NOT IN (SELECT branchcode,glcode,accno,batchno,tranno FROM DEPINTACCRUEDDTLS WHERE ACCNO=x.ACCNO AND GLCODE=x.GLCODE AND BRANCHCODE=x.BRANCHCODE AND INTAMOUNT>0 AND  MODULEID='DEP' AND APPLICATIONDATE BETWEEN '" & strArr(5) & "' AND '" & strArr(6) & "'  AND (remarks LIKE 'TDS From%' OR remarks LIKE 'TDSREFUND%') AND '" & strArr(5) & "' = (SELECT MAX(applicationdate) FROM DEPINTACCRUEDDTLS WHERE ACCNO=x.ACCNO AND GLCODE=x.GLCODE AND BRANCHCODE=x.BRANCHCODE AND INTAMOUNT>0  AND MODULEID='DEP' AND APPLICATIONDATE BETWEEN '" & strArr(5) & "' AND '" & strArr(6) & "' AND (remarks LIKE 'TDS From%' OR remarks LIKE 'TDSREFUND%')))),0) + NVL((SELECT NVL(sum(INTAMOUNT),0) FROM DEPINTACCRUEDDTLS WHERE ACCNO = x.ACCNO AND GLCODE = x.GLCODE AND NVL(TRANSFERTODEP , applicationdate) BETWEEN '" & strArr(5) & "' AND '" & strArr(6) & "' AND (REMARKS LIKE 'Excess Interest Adjusted%'  OR REMARKS LIKE 'Excess Int Rev To GL%') AND BRANCHCODE = x.BRANCHCODE),0) ))  + NVL((SELECT SUM(intamount) FROM DEPINTACCRUEDDTLS WHERE accno = x.accno AND glcode = x.glcode AND branchcode = x.branchcode   and intamount > 0 AND NVL(TRANSFERTODEP , applicationdate) BETWEEN '" & strArr(5) & "' AND '" & strArr(6) & "' AND (REMARKS LIKE 'Excess Interest Adjusted%'  OR REMARKS LIKE 'Excess Int Rev From%')),0) else ((NVL((SELECT NVL(SUM(ABS(E.AMOUNT)),0) FROM DEPTRAN E WHERE E.CHQFVG = 'DEPIP' AND E.ACCNO=X.ACCNO AND E.GLCODE=X.GLCODE AND E.MODULEID='DEP' AND E.BRANCHCODE=X.BRANCHCODE AND E.CURRENCYCODE=X.CURRENCYCODE AND E.APPLICATIONDATE BETWEEN '" & strArr(5) & "' AND '" & strArr(6) & "' AND (branchcode,glcode,accno,batchno,tranno) NOT IN (SELECT branchcode,glcode,accno,batchno,tranno FROM DEPTRAN WHERE ACCNO=x.ACCNO AND GLCODE=x.GLCODE AND BRANCHCODE=x.BRANCHCODE AND MODULEID='DEP' AND APPLICATIONDATE BETWEEN '" & strArr(5) & "' AND '" & strArr(6) & "'  AND (remarks LIKE 'TDS From%' OR remarks LIKE 'TDSREFUND%') AND '" & strArr(6) & "' = (SELECT MAX(applicationdate) FROM DEPTRAN  WHERE ACCNO=x.ACCNO AND GLCODE=x.GLCODE AND BRANCHCODE=x.BRANCHCODE AND MODULEID='DEP' AND APPLICATIONDATE BETWEEN '" & strArr(5) & "' AND '" & strArr(6) & "' AND (remarks LIKE 'TDS From%' OR remarks LIKE 'TDSREFUND%')))),0)) + NVL((SELECT NVL(AMOUNT,0) FROM DEPTRAN WHERE ACCNO = x.ACCNO AND GLCODE = x.GLCODE AND EFFECTIVEDATE BETWEEN '" & strArr(5) & "' AND '" & strArr(6) & "' AND remarks LIKE 'Excess Int Rev To GL%' AND AMOUNT<0 AND BRANCHCODE = x.BRANCHCODE),0))  END ) intamt,0 TDS ,'' CHALLANDATE ,'' CHALLANNO ,'' BSRCODE,(SELECT ROUND(NVL((SYSDATE - M.CUSTDOB)/365.242199,0)) FROM gencustinfomst M WHERE M.CUSTOMERID=x.CUSTOMERID ) age FROM (SELECT  C.BRANCHCODE,C.CURRENCYCODE,  C.CUSTOMERID, C.GLCODE, C.ACCNO,b.name,B.PANNO,A.APPLICATIONDATE, (SELECT INTCOMPOUNDYN FROM deptypemst WHERE glcode = C.glcode) intcompyn,(SELECT COMPINTACCRREVSEYN FROM deptypemst WHERE glcode = C.glcode) comprevyn FROM FORM15GHTRACKINGDTLS A,GENCUSTINFOMST B,DEPMST C  WHERE A.ASSESYEAR='" & strArr(8) & "' " & strArr(7) & " AND A.STATUS='R' AND C.BRANCHCODE='" & strArr(1) & "' AND C.CURRENCYCODE='" & strArr(2) & "'  and b.customerid not in (select customerid from gencustinfomst where  PAN206AAYN = 'N' or  PAN206ABYN = 'Y') AND A.CUSTOMERID=B.CUSTOMERID AND A.CUSTOMERID=C.CUSTOMERID AND A.BRANCHCODE=C.BRANCHCODE AND a.glcode=c.glcode AND a.accno=c.accno AND B.CUSTOMERID=C.CUSTOMERID ) x ) y WHERE y.intamt <> 0 GROUP BY y.BRANCHCODE,y.CUSTOMERID,y.glcode,y.accno, y.NAME, y.PANNO, y.APPLICATIONDATE,y.TDS,y.CHALLANDATE,y.CHALLANNO,y.BSRCODE,y.age "
+
+            //    else
+            //                sqlstr = " SELECT y.BRANCHCODE,y.CUSTOMERID,y.GLCODE,y.ACCNO,y.name,y.PANNO,TO_CHAR(y.APPLICATIONDATE,'DD-Mon-YYYY'),SUM(y.intamt) intamt ,y.TDS,y.CHALLANDATE,y.CHALLANNO,y.BSRCODE,y.age FROM (SELECT x.BRANCHCODE,x.CURRENCYCODE,  x.CUSTOMERID, x.GLCODE, x.ACCNO,x.name,x.PANNO,x.APPLICATIONDATE, (CASE WHEN ((x.intcompyn <> 'N' AND comprevyn = 'Y') OR  (x.intcompyn = 'N' AND comprevyn = 'N') OR  (x.intcompyn <> 'N' AND comprevyn = 'N')) THEN ((NVL((SELECT NVL(SUM(ABS(C.INTAMOUNT)),0) FROM DEPINTACCRUEDDTLS C WHERE C.ACCNO=x.ACCNO AND C.GLCODE=x.GLCODE AND C.INTAMOUNT>0 AND C.MODULEID='DEP' AND C.APPLICATIONDATE BETWEEN '" & strArr(5) & "' AND '" & strArr(6) & "' AND C.BRANCHCODE=x.BRANCHCODE AND C.CURRENCYCODE=x.CURRENCYCODE AND (branchcode,glcode,accno,batchno,tranno) NOT IN (SELECT branchcode,glcode,accno,batchno,tranno FROM DEPINTACCRUEDDTLS WHERE ACCNO=x.ACCNO AND GLCODE=x.GLCODE AND BRANCHCODE=x.BRANCHCODE AND INTAMOUNT>0 AND  MODULEID='DEP' AND APPLICATIONDATE BETWEEN '" & strArr(5) & "' AND '" & strArr(6) & "'  AND (remarks LIKE 'TDS From%' OR remarks LIKE 'TDSREFUND%') AND '" & strArr(5) & "' = (SELECT MAX(applicationdate) FROM DEPINTACCRUEDDTLS WHERE ACCNO=x.ACCNO AND GLCODE=x.GLCODE AND BRANCHCODE=x.BRANCHCODE AND INTAMOUNT>0  AND MODULEID='DEP' AND APPLICATIONDATE BETWEEN '" & strArr(5) & "' AND '" & strArr(6) & "' AND (remarks LIKE 'TDS From%' OR remarks LIKE 'TDSREFUND%')))),0) + NVL((SELECT NVL(sum(INTAMOUNT),0) FROM DEPINTACCRUEDDTLS WHERE ACCNO = x.ACCNO AND GLCODE = x.GLCODE AND NVL(TRANSFERTODEP , applicationdate) BETWEEN '" & strArr(5) & "' AND '" & strArr(6) & "' AND (REMARKS LIKE 'Excess Interest Adjusted%'  OR REMARKS LIKE 'Excess Int Rev To GL%') AND BRANCHCODE = x.BRANCHCODE),0) ))  + NVL((SELECT SUM(intamount) FROM DEPINTACCRUEDDTLS WHERE accno = x.accno AND glcode = x.glcode AND branchcode = x.branchcode   and intamount > 0 AND NVL(TRANSFERTODEP , applicationdate) BETWEEN '" & strArr(5) & "' AND '" & strArr(6) & "' AND (REMARKS LIKE 'Excess Interest Adjusted%'  OR REMARKS LIKE 'Excess Int Rev From%')),0) else ((NVL((SELECT NVL(SUM(ABS(E.AMOUNT)),0) FROM DEPTRAN E WHERE E.CHQFVG = 'DEPIP' AND E.ACCNO=X.ACCNO AND E.GLCODE=X.GLCODE AND E.MODULEID='DEP' AND E.BRANCHCODE=X.BRANCHCODE AND E.CURRENCYCODE=X.CURRENCYCODE AND E.APPLICATIONDATE BETWEEN '" & strArr(5) & "' AND '" & strArr(6) & "' AND (branchcode,glcode,accno,batchno,tranno) NOT IN (SELECT branchcode,glcode,accno,batchno,tranno FROM DEPTRAN WHERE ACCNO=x.ACCNO AND GLCODE=x.GLCODE AND BRANCHCODE=x.BRANCHCODE AND MODULEID='DEP' AND APPLICATIONDATE BETWEEN '" & strArr(5) & "' AND '" & strArr(6) & "'  AND (remarks LIKE 'TDS From%' OR remarks LIKE 'TDSREFUND%') AND '" & strArr(6) & "' = (SELECT MAX(applicationdate) FROM DEPTRAN  WHERE ACCNO=x.ACCNO AND GLCODE=x.GLCODE AND BRANCHCODE=x.BRANCHCODE AND MODULEID='DEP' AND APPLICATIONDATE BETWEEN '" & strArr(5) & "' AND '" & strArr(6) & "' AND (remarks LIKE 'TDS From%' OR remarks LIKE 'TDSREFUND%')))),0)) + NVL((SELECT NVL(AMOUNT,0) FROM DEPTRAN WHERE ACCNO = x.ACCNO AND GLCODE = x.GLCODE AND EFFECTIVEDATE BETWEEN '" & strArr(5) & "' AND '" & strArr(6) & "' AND remarks LIKE 'Excess Int Rev To GL%' AND AMOUNT<0 AND BRANCHCODE = x.BRANCHCODE),0))  END ) intamt,0 TDS ,'' CHALLANDATE ,'' CHALLANNO ,'' BSRCODE,(SELECT ROUND(NVL((SYSDATE - M.CUSTDOB)/365.242199,0)) FROM gencustinfomst M WHERE M.CUSTOMERID=x.CUSTOMERID ) age FROM (SELECT  C.BRANCHCODE,C.CURRENCYCODE,  C.CUSTOMERID, C.GLCODE, C.ACCNO,b.name,B.PANNO,A.APPLICATIONDATE, (SELECT INTCOMPOUNDYN FROM deptypemst WHERE glcode = C.glcode) intcompyn,(SELECT COMPINTACCRREVSEYN FROM deptypemst WHERE glcode = C.glcode) comprevyn FROM FORM15GHTRACKINGDTLS A,GENCUSTINFOMST B,DEPMST C  WHERE A.ASSESYEAR='" & strArr(8) & "' " & strArr(7) & " AND B.customerid not IN (SELECT customerid FROM gencustinfomst WHERE PAN206AAYN = 'N' or  PAN206ABYN = 'Y') AND A.STATUS='R' AND C.CURRENCYCODE='" & strArr(2) & "' AND A.CUSTOMERID=B.CUSTOMERID AND A.CUSTOMERID=C.CUSTOMERID AND A.BRANCHCODE=C.BRANCHCODE AND a.glcode=c.glcode AND a.accno=c.accno AND B.CUSTOMERID=C.CUSTOMERID ) x ) y WHERE y.intamt <> 0 GROUP BY y.BRANCHCODE,y.CUSTOMERID,y.glcode,y.accno, y.NAME, y.PANNO, y.APPLICATIONDATE,y.TDS,y.CHALLANDATE,y.CHALLANNO,y.BSRCODE,y.age "
+
+            //    end if
+            //else
+            //    if strArr(9) = "0" then
+            //        sqlstr = " SELECT y.BRANCHCODE,y.CUSTOMERID,y.GLCODE,y.ACCNO,y.name,y.PANNO,TO_CHAR(y.APPLICATIONDATE,'DD-Mon-YYYY'),SUM(y.intamt) intamt ,y.TDS,y.CHALLANDATE,y.CHALLANNO,y.BSRCODE,y.age FROM (SELECT x.BRANCHCODE,x.CURRENCYCODE,  x.CUSTOMERID, x.GLCODE, x.ACCNO,x.name,x.PANNO,x.APPLICATIONDATE, (CASE WHEN ((x.intcompyn <> 'N' AND comprevyn = 'Y') OR  (x.intcompyn = 'N' AND comprevyn = 'N') OR  (x.intcompyn = 'M' AND comprevyn = 'N')) THEN ((NVL((SELECT NVL(SUM(ABS(C.INTAMOUNT)),0) FROM DEPINTACCRUEDDTLS C WHERE C.ACCNO=x.ACCNO AND C.GLCODE=x.GLCODE AND C.INTAMOUNT>0 AND C.MODULEID='DEP' AND C.APPLICATIONDATE BETWEEN '" & strArr(5) & "' AND '" & strArr(6) & "' AND C.BRANCHCODE=x.BRANCHCODE AND C.CURRENCYCODE=x.CURRENCYCODE AND (branchcode,glcode,accno,batchno,tranno) NOT IN (SELECT branchcode,glcode,accno,batchno,tranno FROM DEPINTACCRUEDDTLS WHERE ACCNO=x.ACCNO AND GLCODE=x.GLCODE AND BRANCHCODE=x.BRANCHCODE AND INTAMOUNT>0 AND  MODULEID='DEP' AND APPLICATIONDATE BETWEEN '" & strArr(5) & "' AND '" & strArr(6) & "'  AND (remarks LIKE 'TDS From%' OR remarks LIKE 'TDSREFUND%') AND '" & strArr(5) & "' = (SELECT MAX(applicationdate) FROM DEPINTACCRUEDDTLS WHERE ACCNO=x.ACCNO AND GLCODE=x.GLCODE AND BRANCHCODE=x.BRANCHCODE AND INTAMOUNT>0  AND MODULEID='DEP' AND APPLICATIONDATE BETWEEN '" & strArr(5) & "' AND '" & strArr(6) & "' AND (remarks LIKE 'TDS From%' OR remarks LIKE 'TDSREFUND%')))),0) + NVL((SELECT NVL(sum(INTAMOUNT),0) FROM DEPINTACCRUEDDTLS WHERE ACCNO = x.ACCNO AND GLCODE = x.GLCODE AND NVL(TRANSFERTODEP , applicationdate) BETWEEN '" & strArr(5) & "' AND '" & strArr(6) & "' AND (REMARKS LIKE 'Excess Interest Adjusted%'  OR REMARKS LIKE 'Excess Int Rev To GL%') AND BRANCHCODE = x.BRANCHCODE),0) ))  + NVL((SELECT SUM(intamount) FROM DEPINTACCRUEDDTLS WHERE accno = x.accno AND glcode = x.glcode AND branchcode = x.branchcode   and intamount > 0 AND NVL(TRANSFERTODEP , applicationdate) BETWEEN '" & strArr(5) & "' AND '" & strArr(6) & "' AND (REMARKS LIKE 'Excess Interest Adjusted%'  OR REMARKS LIKE 'Excess Int Rev From%')),0) else ((NVL((SELECT NVL(SUM(ABS(E.AMOUNT)),0) FROM DEPTRAN E WHERE E.CHQFVG = 'DEPIP' AND E.ACCNO=X.ACCNO AND E.GLCODE=X.GLCODE AND E.MODULEID='DEP' AND E.BRANCHCODE=X.BRANCHCODE AND E.CURRENCYCODE=X.CURRENCYCODE AND E.APPLICATIONDATE BETWEEN '" & strArr(5) & "' AND '" & strArr(6) & "' AND (branchcode,glcode,accno,batchno,tranno) NOT IN (SELECT branchcode,glcode,accno,batchno,tranno FROM DEPTRAN WHERE ACCNO=x.ACCNO AND GLCODE=x.GLCODE AND BRANCHCODE=x.BRANCHCODE AND MODULEID='DEP' AND APPLICATIONDATE BETWEEN '" & strArr(5) & "' AND '" & strArr(6) & "'  AND (remarks LIKE 'TDS From%' OR remarks LIKE 'TDSREFUND%') AND '" & strArr(6) & "' = (SELECT MAX(applicationdate) FROM DEPTRAN  WHERE ACCNO=x.ACCNO AND GLCODE=x.GLCODE AND BRANCHCODE=x.BRANCHCODE AND MODULEID='DEP' AND APPLICATIONDATE BETWEEN '" & strArr(5) & "' AND '" & strArr(6) & "' AND (remarks LIKE 'TDS From%' OR remarks LIKE 'TDSREFUND%')))),0)) + NVL((SELECT NVL(AMOUNT,0) FROM DEPTRAN WHERE ACCNO = x.ACCNO AND GLCODE = x.GLCODE AND EFFECTIVEDATE BETWEEN '" & strArr(5) & "' AND '" & strArr(6) & "' AND remarks LIKE 'Excess Int Rev To GL%' AND AMOUNT<0 AND BRANCHCODE = x.BRANCHCODE),0))  END ) intamt,0 TDS ,'' CHALLANDATE ,'' CHALLANNO ,'' BSRCODE,(SELECT ROUND(NVL((SYSDATE - M.CUSTDOB)/365.242199,0)) FROM gencustinfomst M WHERE M.CUSTOMERID=x.CUSTOMERID ) age FROM ( SELECT  C.BRANCHCODE,C.CURRENCYCODE,  C.CUSTOMERID, C.GLCODE, C.ACCNO,b.name,B.PANNO,A.APPLICATIONDATE,(SELECT INTCOMPOUNDYN FROM deptypemst WHERE glcode = C.glcode) intcompyn,(SELECT COMPINTACCRREVSEYN FROM deptypemst WHERE glcode = C.glcode) comprevyn FROM FORM15GHTRACKINGDTLS A,GENCUSTINFOMST B,depmst c  WHERE A.ASSESYEAR='" & strArr(8) & "' " & strArr(7) & " AND A.STATUS='R' AND C.BRANCHCODE='" & strArr(1) & "' AND C.CURRENCYCODE='" & strArr(2) & "' AND C.GLCODE='" & strArr(3) & "' AND C.ACCNO='" & strArr(4) & "'  and b.customerid not in (select customerid from gencustinfomst where  PAN206AAYN = 'N' or  PAN206ABYN = 'Y') AND A.CUSTOMERID=B.CUSTOMERID AND A.CUSTOMERID=C.CUSTOMERID AND A.BRANCHCODE=C.BRANCHCODE AND a.glcode=c.glcode AND a.accno=c.accno AND B.CUSTOMERID=C.CUSTOMERID ) x ) y WHERE y.intamt <> 0 GROUP BY y.BRANCHCODE,y.CUSTOMERID,y.glcode,y.accno, y.NAME, y.PANNO, y.APPLICATIONDATE,y.TDS,y.CHALLANDATE,y.CHALLANNO,y.BSRCODE,y.age "
+
+            //    else
+            //                    sqlstr = " SELECT y.BRANCHCODE,y.CUSTOMERID,y.GLCODE,y.ACCNO,y.name,y.PANNO,TO_CHAR(y.APPLICATIONDATE,'DD-Mon-YYYY'),SUM(y.intamt) intamt ,y.TDS,y.CHALLANDATE,y.CHALLANNO,y.BSRCODE,y.age FROM (SELECT x.BRANCHCODE,x.CURRENCYCODE,  x.CUSTOMERID, x.GLCODE, x.ACCNO,x.name,x.PANNO,x.APPLICATIONDATE, (CASE WHEN ((x.intcompyn <> 'N' AND comprevyn = 'Y') OR  (x.intcompyn = 'N' AND comprevyn = 'N') OR  (x.intcompyn <> 'N' AND comprevyn = 'N'))  THEN ((NVL((SELECT NVL(SUM(ABS(C.INTAMOUNT)),0) FROM DEPINTACCRUEDDTLS C WHERE C.ACCNO=x.ACCNO AND C.GLCODE=x.GLCODE AND C.INTAMOUNT>0 AND C.MODULEID='DEP' AND C.APPLICATIONDATE BETWEEN '" & strArr(5) & "' AND '" & strArr(6) & "' AND C.BRANCHCODE=x.BRANCHCODE AND C.CURRENCYCODE=x.CURRENCYCODE AND (branchcode,glcode,accno,batchno,tranno) NOT IN (SELECT branchcode,glcode,accno,batchno,tranno FROM DEPINTACCRUEDDTLS WHERE ACCNO=x.ACCNO AND GLCODE=x.GLCODE AND BRANCHCODE=x.BRANCHCODE AND INTAMOUNT>0 AND  MODULEID='DEP' AND APPLICATIONDATE BETWEEN '" & strArr(5) & "' AND '" & strArr(6) & "'  AND (remarks LIKE 'TDS From%' OR remarks LIKE 'TDSREFUND%') AND '" & strArr(5) & "' = (SELECT MAX(applicationdate) FROM DEPINTACCRUEDDTLS WHERE ACCNO=x.ACCNO AND GLCODE=x.GLCODE AND BRANCHCODE=x.BRANCHCODE AND INTAMOUNT>0  AND MODULEID='DEP' AND APPLICATIONDATE BETWEEN '" & strArr(5) & "' AND '" & strArr(6) & "' AND (remarks LIKE 'TDS From%' OR remarks LIKE 'TDSREFUND%')))),0) + NVL((SELECT NVL(sum(INTAMOUNT),0) FROM DEPINTACCRUEDDTLS WHERE ACCNO = x.ACCNO AND GLCODE = x.GLCODE AND NVL(TRANSFERTODEP , applicationdate) BETWEEN '" & strArr(5) & "' AND '" & strArr(6) & "' AND (REMARKS LIKE 'Excess Interest Adjusted%'  OR REMARKS LIKE 'Excess Int Rev To GL%') AND BRANCHCODE = x.BRANCHCODE),0) ))  + NVL((SELECT SUM(intamount) FROM DEPINTACCRUEDDTLS WHERE accno = x.accno AND glcode = x.glcode AND branchcode = x.branchcode   and intamount > 0 AND NVL(TRANSFERTODEP , applicationdate) BETWEEN '" & strArr(5) & "' AND '" & strArr(6) & "' AND (REMARKS LIKE 'Excess Interest Adjusted%'  OR REMARKS LIKE 'Excess Int Rev From%')),0) else ((NVL((SELECT NVL(SUM(ABS(E.AMOUNT)),0) FROM DEPTRAN E WHERE E.CHQFVG = 'DEPIP' AND E.ACCNO=X.ACCNO AND E.GLCODE=X.GLCODE AND E.MODULEID='DEP' AND E.BRANCHCODE=X.BRANCHCODE AND E.CURRENCYCODE=X.CURRENCYCODE AND E.APPLICATIONDATE BETWEEN '" & strArr(5) & "' AND '" & strArr(6) & "' AND (branchcode,glcode,accno,batchno,tranno) NOT IN (SELECT branchcode,glcode,accno,batchno,tranno FROM DEPTRAN WHERE ACCNO=x.ACCNO AND GLCODE=x.GLCODE AND BRANCHCODE=x.BRANCHCODE AND MODULEID='DEP' AND APPLICATIONDATE BETWEEN '" & strArr(5) & "' AND '" & strArr(6) & "'  AND (remarks LIKE 'TDS From%' OR remarks LIKE 'TDSREFUND%') AND '" & strArr(6) & "' = (SELECT MAX(applicationdate) FROM DEPTRAN  WHERE ACCNO=x.ACCNO AND GLCODE=x.GLCODE AND BRANCHCODE=x.BRANCHCODE AND MODULEID='DEP' AND APPLICATIONDATE BETWEEN '" & strArr(5) & "' AND '" & strArr(6) & "' AND (remarks LIKE 'TDS From%' OR remarks LIKE 'TDSREFUND%')))),0)) + NVL((SELECT NVL(AMOUNT,0) FROM DEPTRAN WHERE ACCNO = x.ACCNO AND GLCODE = x.GLCODE AND EFFECTIVEDATE BETWEEN '" & strArr(5) & "' AND '" & strArr(6) & "' AND remarks LIKE 'Excess Int Rev To GL%' AND AMOUNT<0 AND BRANCHCODE = x.BRANCHCODE),0))  END ) intamt,0 TDS ,'' CHALLANDATE ,'' CHALLANNO ,'' BSRCODE,(SELECT ROUND(NVL((SYSDATE - M.CUSTDOB)/365.242199,0)) FROM gencustinfomst M WHERE M.CUSTOMERID=x.CUSTOMERID ) age FROM ( SELECT  C.BRANCHCODE,C.CURRENCYCODE,  C.CUSTOMERID, C.GLCODE, C.ACCNO,b.name,B.PANNO,A.APPLICATIONDATE,(SELECT INTCOMPOUNDYN FROM deptypemst WHERE glcode = C.glcode) intcompyn,(SELECT COMPINTACCRREVSEYN FROM deptypemst WHERE glcode = C.glcode) comprevyn FROM FORM15GHTRACKINGDTLS A,GENCUSTINFOMST B,depmst c  WHERE A.ASSESYEAR='" & strArr(8) & "' " & strArr(7) & " AND A.STATUS='R' AND C.CURRENCYCODE='" & strArr(2) & "' AND C.GLCODE='" & strArr(3) & "' AND C.ACCNO='" & strArr(4) & "' AND B.customerid not IN (SELECT customerid FROM gencustinfomst WHERE PAN206AAYN = 'N' or  PAN206ABYN = 'Y') AND A.CUSTOMERID=B.CUSTOMERID AND A.CUSTOMERID=C.CUSTOMERID AND A.BRANCHCODE=C.BRANCHCODE AND a.glcode=c.glcode AND a.accno=c.accno AND B.CUSTOMERID=C.CUSTOMERID ) x ) y WHERE y.intamt <> 0 GROUP BY y.BRANCHCODE,y.CUSTOMERID,y.glcode,y.accno, y.NAME, y.PANNO, y.APPLICATIONDATE,y.TDS,y.CHALLANDATE,y.CHALLANNO,y.BSRCODE,y.age "
+
+            //    end if
+
+
+            //end if
+
+
+
+            //rs = obj.SingleSelectStat(sqlStr)
+
+
+            //        if obj.ConnError = "Connected" then
+
+            //            if not rs.BOF and not rs.EOF then
+
+            //                do until rs.EOF
+
+            //                    strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "~" & rs(7).value & "~" & rs(8).value & "~" & rs(9).value & "~" & rs(10).value & "~" & rs(11).value & "~" & rs(12).value & "|"
+
+            //                    rs.movenext()
+
+            //                loop
+            //                strResult = mid(strResult, 1, strResult.length - 1)
+
+            //            end if
+
+            //        end if
+
+            //    rs = nothing
+
+
+            //    elseif strArr(0)= "TDSREF" then
+            //    strResult = ""
+
+
+            //        obj = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+            //        sqlStr = "select t.GLCODE, t.ACCNO, SUBSTR(t.NAME,1,40),t.CUSTOMERID, ABS(t.AMOUNT),TO_CHAR(t.FROMDATE,'DD-Mon-YYYY') FROMDATE,TO_CHAR(t.TODATE,'DD-Mon-YYYY') TODATE,t.ASSESYEAR,m.status FROM TDSDTLS t ,depmst m WHERE t.accno = m.accno AND t.glcode = m.glcode AND t.branchcode  = m.branchcode AND t.currencycode = m.currencycode AND t.STATUS='R' AND t.amount<>'0' AND t.CHALLANNO IS NULL AND t.CHALLANDATE IS   NULL " & strArr(3) & " AND t.branchcode='" & strArr(1) & "' ORDER BY t.glcode, TO_NUMBER(t.CUSTOMERID)"
+
+
+            //        rs = obj.SingleSelectStat(sqlStr)
+
+
+            //        if obj.ConnError = "Connected" then
+
+            //            if not rs.BOF and not rs.EOF then
+
+            //                do until rs.EOF
+
+            //                    strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "~" & rs(7).value & "~" & rs(8).value & "|"
+
+            //                    rs.movenext()
+
+            //                loop
+            //                strResult = mid(strResult, 1, strResult.length - 1)
+
+            //            end if
+
+            //        end if
+
+            //    rs = nothing
+
+
+            //    elseif strArr(0)= "SLNO" then
+            //    strResult = ""
+
+
+            //        rstim = Server.CreateObject("adodb.recordset")
+
+
+            //        obj = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+
+            //        sqlStr = "SELECT NVL(MAX(sno),0)+1 FROM LOCKEROPERATINGDTLS WHERE ACCNO='" & strArr(5) & "' AND applicationdate = '" & strArr(6) & "' AND  branchcode='" & strArr(1) & "' AND OUTTIME IS NOT NULL "
+
+
+            //        rs = obj.SingleSelectStat(sqlStr)
+
+
+            //        if obj.ConnError = "Connected" then
+
+            //            if not rs.BOF and not rs.EOF then
+
+
+            //                strResult = rs(0).value
+
+
+            //                sqlstr = ""
+
+
+            //                if strResult<>"0" then
+
+            //                    sqlStr = "SELECT TO_CHAR(INTIME,'hh:Mi:ss AM') intime FROM LOCKEROPERATINGDTLS WHERE ACCNO='" & strArr(5) & "' AND applicationdate = '" & strArr(6) & "' AND  branchcode='" & strArr(1) & "' AND OUTTIME IS NULL  "
+
+
+            //                    rstim = obj.SingleSelectStat(sqlStr)
+
+
+            //                    if obj.ConnError = "Connected" then
+
+            //                        if not rstim.BOF and not rstim.EOF then
+
+            //                            strResult = strResult & "~" & rstim(0).value
+
+            //                        else
+            //                strResult = strResult & "~" & "0"
+
+            //                        end if
+
+            //                    end if
+
+            //                else
+
+            //                        strResult = strResult & "~" & "0"
+
+            //                end if
+
+
+            //            end if
+
+            //        end if
+
+            //    rs = nothing
+
+
+            //    elseif strArr(0)= "FRM15GHREP" then
+            //    strResult = ""
+
+
+            //    dim stCon
+
+
+            //        obj = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+
+            //        if strArr(9) = "0" then
+
+            //            if strArr(7) = "" then
+            //                sqlStr = "SELECT x.customerid,x.name,y.opbal,x.interest,x.submitdate,x.panno,x.custmobile FROM(SELECT A.CUSTOMERID,c.NAME, SUM(A.INTEREST) INTEREST, TO_CHAR(A.SUBMITDATE,'DD-Mon-YYYY') SUBMITDATE, A.STATUS,C.PANNO,C.custmobile FROM FORM15GHTRACKINGDTLS A , GENCUSTINFOMST C WHERE A.ASSESYEAR='" & strArr(2) & "' AND A.FORM15GYN='" & strArr(3) & "' AND a.FORM15HYN='" & strArr(4) & "' AND A.CUSTOMERID=C.CUSTOMERID AND C.KYCID='2' AND A.STATUS='R' AND A.BRANCHCODE='" & strArr(1) & "' AND a.submitdate IS NOT NULL " & strArr(5) & " " & strArr(6) & " GROUP BY A.SUBMITDATE,A.CUSTOMERID,c.NAME,A.STATUS,C.PANNO,C.custmobile) x, (SELECT a.customerid,a.submitdate, SUM(b.opbal) opbal FROM depmst b , FORM15GHTRACKINGDTLS a WHERE a.accno=b.accno AND a.customerid=b.customerid AND a.branchcode=b.branchcode " & strArr(5) & " " & strArr(6) & "  AND b.status='R' AND a.submitdate IS NOT NULL GROUP BY a.submitdate,a.customerid ) y  WHERE x.customerid = y.customerid AND x.submitdate= y.submitdate"
+
+            //            else
+            //                sqlStr = "SELECT x.name,y.opbal,x.interest,x.panno,x.custmobile FROM (SELECT c.NAME, SUM(A.INTEREST) INTEREST, A.STATUS,C.PANNO,C.custmobile FROM FORM15GHTRACKINGDTLS A , GENCUSTINFOMST C WHERE A.ASSESYEAR='" & strArr(2) & "' AND A.FORM15GYN='" & strArr(3) & "' AND a.FORM15HYN='" & strArr(4) & "' AND A.CUSTOMERID=C.CUSTOMERID AND C.KYCID='2' AND A.STATUS='R' AND a.submitdate IS NOT NULL " & strArr(6) & " AND A.BRANCHCODE='" & strArr(1) & "' AND c.panno IS NOT NULL GROUP BY c.NAME,A.STATUS,C.PANNO,C.custmobile) x, (SELECT  SUM(b.opbal) opbal,C.PANNO FROM depmst b , FORM15GHTRACKINGDTLS a,GENCUSTINFOMST C WHERE a.accno=b.accno AND A.CUSTOMERID=C.CUSTOMERID AND a.customerid=b.customerid AND a.branchcode=b.branchcode AND C.KYCID='2' " & strArr(6) & "  AND b.status='R' AND c.panno IS NOT NULL AND a.submitdate IS NOT NULL GROUP BY C.PANNO ) y  WHERE x.panno=Y.panno ORDER BY PANNO"
+
+            //            end if
+
+            //        else
+
+            //            if strArr(5) = "" then
+            //                stCon = " AND  a.customerid IN (SELECT customerid FROM gencustinfomst WHERE branchcode='" & strArr(1) & "') "
+
+            //            else
+            //                    stCon = ""
+
+            //            end if
+
+
+
+            //            if strArr(7) = "" then
+            //                sqlStr = "SELECT x.customerid,x.name,y.opbal,x.interest,x.submitdate,x.panno,x.custmobile FROM(SELECT A.CUSTOMERID,c.NAME, SUM(A.INTEREST) INTEREST, TO_CHAR(A.SUBMITDATE,'DD-Mon-YYYY') SUBMITDATE, A.STATUS,C.PANNO,C.custmobile FROM FORM15GHTRACKINGDTLS A , GENCUSTINFOMST C WHERE A.ASSESYEAR='" & strArr(2) & "' AND A.FORM15GYN='" & strArr(3) & "' AND a.FORM15HYN='" & strArr(4) & "' AND A.CUSTOMERID=C.CUSTOMERID AND C.KYCID='2' AND A.STATUS='R' " & stCon & " AND a.submitdate IS NOT NULL " & strArr(5) & " " & strArr(6) & " GROUP BY A.SUBMITDATE,A.CUSTOMERID,c.NAME,A.STATUS,C.PANNO,C.custmobile) x, (SELECT a.customerid,a.submitdate, SUM(b.opbal) opbal FROM depmst b , FORM15GHTRACKINGDTLS a WHERE a.accno=b.accno AND a.customerid=b.customerid AND a.branchcode=b.branchcode " & strArr(5) & " " & strArr(6) & "  AND b.status='R' AND a.submitdate IS NOT NULL GROUP BY a.submitdate,a.customerid ) y  WHERE x.customerid = y.customerid AND x.submitdate= y.submitdate"
+
+            //            else
+            //                    sqlStr = "SELECT x.name,y.opbal,x.interest,x.panno,x.custmobile FROM (SELECT c.NAME, SUM(A.INTEREST) INTEREST, A.STATUS,C.PANNO,C.custmobile FROM FORM15GHTRACKINGDTLS A , GENCUSTINFOMST C WHERE A.ASSESYEAR='" & strArr(2) & "' AND A.FORM15GYN='" & strArr(3) & "' AND a.FORM15HYN='" & strArr(4) & "' AND A.CUSTOMERID=C.CUSTOMERID AND C.KYCID='2' AND A.STATUS='R' AND a.submitdate IS NOT NULL " & strArr(6) & " " & stCon & " AND c.panno IS NOT NULL GROUP BY c.NAME,A.STATUS,C.PANNO,C.custmobile) x, (SELECT  SUM(b.opbal) opbal,C.PANNO FROM depmst b , FORM15GHTRACKINGDTLS a,GENCUSTINFOMST C WHERE a.accno=b.accno AND A.CUSTOMERID=C.CUSTOMERID AND a.customerid=b.customerid AND C.KYCID='2' " & strArr(6) & "  AND b.status='R' AND c.panno IS NOT NULL AND a.submitdate IS NOT NULL GROUP BY C.PANNO ) y  WHERE x.panno=Y.panno ORDER BY PANNO"
+
+            //            end if
+
+
+            //        end if
+
+
+
+
+
+            //        rs = obj.SingleSelectStat(sqlStr)
+
+
+
+            //        if strArr(7) = "PAN" then
+
+
+            //            if obj.ConnError = "Connected" then
+
+            //                if not rs.BOF and not rs.EOF then
+
+            //                    do until rs.EOF
+
+            //                        strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "|"
+
+            //                        rs.movenext()
+
+            //                    loop
+            //                    strResult = mid(strResult, 1, strResult.length - 1)
+
+            //                end if
+
+            //            end if
+
+            //        elseif strArr(8) = "0" and strArr(7)= "" then
+
+
+            //            if obj.ConnError = "Connected" then
+
+            //                if not rs.BOF and not rs.EOF then
+
+            //                    do until rs.EOF
+
+            //                        strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(5).value & "~" & rs(6).value & "|"
+
+            //                        rs.movenext()
+
+            //                    loop
+            //                    strResult = mid(strResult, 1, strResult.length - 1)
+
+            //                end if
+
+            //            end if
+
+            //        else
+            //            if obj.ConnError = "Connected" then
+
+            //                if not rs.BOF and not rs.EOF then
+
+            //                    do until rs.EOF
+
+            //                        strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "|"
+
+            //                        rs.movenext()
+
+            //                    loop
+            //                    strResult = mid(strResult, 1, strResult.length - 1)
+
+            //                end if
+
+            //            end if
+
+            //        end if
+
+
+            //    rs = nothing
+
+
+            //    elseif strArr(0)= "GETCUSTCHECK" then
+            //    strResult = ""
+
+
+            //        obj = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+            //        sqlStr = "SELECT COUNT(*),customerid,name FROM GENCUSTFROZENDTLS WHERE customerid='" & strArr(3) & "' AND branchcode='" & strArr(1) & "' GROUP BY customerid,name"
+
+
+            //        rs = obj.SingleSelectStat(sqlStr)
+
+
+            //        if obj.ConnError = "Connected" then
+
+            //            if not rs.BOF and not rs.EOF then
+
+            //                'strResult=rs(0).value 
+
+            //                    strResult = rs(0).value & "~" & rs(1).value & "~" & rs(2).value
+
+            //            end if
+
+            //        end if
+
+            //    rs = nothing
+
+
+            //    elseif strArr(0)= "GETFROZDTLS" then
+            //    strResult = ""
+
+
+            //        obj = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+            //        sqlStr = "SELECT MODULEID, GLCODE, ACCNO, NAME, CUSTOMERID, STATUS, FROZENDTLS, UNFROZENDTLS, TO_CHAR(APPLICATIONDATE,'DD-Mon-YYYY') APPDATE, TO_CHAR(UNFROZEDATE,'DD-Mon-YYYY') UNFROZEDATE FROM GENCUSTFROZENDTLS WHERE " & strArr(5) & ">='" & strArr(3) & "' AND " & strArr(5) & "<='" & strArr(4) & "' " & strArr(6) & " and BRANCHCODE='" & strArr(1) & "' ORDER BY " & strArr(5) & " "
+
+
+            //        rs = obj.SingleSelectStat(sqlStr)
+
+
+            //        if obj.ConnError = "Connected" then
+
+            //            if not rs.BOF and not rs.EOF then
+
+            //                do until rs.EOF
+
+            //                    strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "~" & rs(7).value & "~" & rs(8).value & "~" & rs(9).value & "|"
+
+            //                    rs.movenext()
+
+            //                loop
+            //                strResult = mid(strResult, 1, strResult.length - 1)
+
+            //            end if
+
+            //        end if
+
+            //    rs = nothing
+
+
+            //    elseif strArr(0)= "BalDisplay" then
+            //    strResult = ""
+
+
+            //        obj = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+            //        ''sqlStr = "SELECT a.accno, a.CUSTOMERID,SUBSTR(a.name,1,33),NVL(b.CURBAL,0),NVL(b.CURBAL/(select amount from SHAREVALUESMST),0) noshares  FROM " & trim(strArr(3)) & "MST a," & trim(strArr(3)) & "balance b  WHERE a.glcode='" & strArr(4) & "' " & strArr(5) & " AND a.status='R' AND a.branchcode='" & strArr(1) & "' AND a.currencycode='" & strArr(2) & "' AND a.branchcode = b.branchcode AND a.currencycode = b.currencycode AND a.glcode = b.glcode  AND a.accno = b.accno AND NVL(b.CURBAL,0) <> 0 order by to_number(accno)"
+
+
+            //        sqlStr = "SELECT a.accno, a.CUSTOMERID,SUBSTR(a.name,1,33),NVL(b.CURBAL,0),NVL(b.CURBAL/(select amount from SHAREVALUESMST WHERE SHARETYPE='" & strArr(4) & "' ),0) noshares  FROM " & trim(strArr(3)) & "MST a," & trim(strArr(3)) & "balance b  WHERE a.glcode='" & strArr(4) & "' " & strArr(5) & " " & strArr(6) & " AND a.status='R' AND a.branchcode='" & strArr(1) & "' AND a.currencycode='" & strArr(2) & "' AND a.branchcode = b.branchcode AND a.currencycode = b.currencycode AND a.glcode = b.glcode  AND a.accno = b.accno AND NVL(b.CURBAL,0) <> 0 order by to_number(accno)"
+
+
+            //        rs = obj.SingleSelectStat(sqlStr)
+
+
+            //        if obj.ConnError = "Connected" then
+
+            //            if not rs.BOF and not rs.EOF then
+
+            //                do until rs.EOF
+
+            //                    strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "|"
+
+            //                    rs.movenext()
+
+            //                loop
+            //                strResult = mid(strResult, 1, strResult.length - 1)
+
+            //            end if
+
+            //        end if
+
+            //    rs = nothing
+
+
+            //    elseif strArr(0)= "ShareNotallot" then
+            //    strResult = ""
+
+
+            //        obj = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+            //        sqlStr = "SELECT TO_CHAR(applicationdate,'DD-Mon-YYYY') applicationdate, BATCHNO, TRANNO, AMOUNT, REMARKS FROM VIEWMISCTRAN a WHERE glcode=(SELECT suspenseglcode FROM sharetypemst WHERE glcode='" & strArr(4) & "') " & strArr(5) & " AND branchcode='" & strArr(1) & "' AND (branchcode,applicationdate,batchno,tranno) NOT IN (SELECT branchcode,tranapplicationdate,batchno, tranno FROM SHARESSUSPENSEDTLS b WHERE b.tranno=a.tranno AND b.batchno=a.batchno AND b.branchcode=a.branchcode AND b.tranapplicationdate=a.APPLICATIONDATE) AND amount>'0' ORDER BY TO_DATE(applicationdate,'DD-Mon-YYYY'),to_number(batchno),to_number(tranno) "
+
+
+            //        rs = obj.SingleSelectStat(sqlStr)
+
+
+            //        if obj.ConnError = "Connected" then
+
+            //            if not rs.BOF and not rs.EOF then
+
+            //                do until rs.EOF
+
+            //                    strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "|"
+
+            //                    rs.movenext()
+
+            //                loop
+            //                strResult = mid(strResult, 1, strResult.length - 1)
+
+            //            end if
+
+            //        end if
+
+            //    rs = nothing
+
+
+            //    elseif strArr(0)= "ShareVal" then
+            //    strResult = ""
+
+
+            //        obj = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+            //        sqlStr = "SELECT AMOUNT,SHARESPERFOLIO FROM SHAREVALUESMST WHERE SHARETYPE='" & strArr(1) & "'"
+
+
+            //        rs = obj.SingleSelectStat(sqlStr)
+
+
+            //        if obj.ConnError = "Connected" then
+
+            //            if not rs.BOF and not rs.EOF then
+
+            //                strResult = rs(0).value & "~" & rs(1).value & "|"
+
+
+            //            end if
+
+            //        end if
+
+            //    rs = nothing
+
+
+            //    elseif strArr(0)= "REFUNDDTLS" then
+            //    strResult = ""
+
+
+            //        obj = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+            //        sqlStr = "SELECT b.DEPSUBNATURE, a.ACCNO, SUBSTR(a.NAME,1,40), a.AMOUNT, TO_CHAR(a.PAIDDATE,'DD-Mon-YYYY') PAIDDATE,a.ASSESYEAR, a.REFUNDDTLS FROM TDSDTLS a,DEPTYPEMST b WHERE a.glcode=b.glcode AND a.REFUNDYN='Y'AND a.PAIDDATE IS NOT NULL " & strArr(3) & " and a.branchcode='" & strArr(1) & "' and a.currencycode='" & strArr(2) & "'"
+
+
+            //        rs = obj.SingleSelectStat(sqlStr)
+
+
+            //        if obj.ConnError = "Connected" then
+
+            //            if not rs.BOF and not rs.EOF then
+
+            //                do until rs.EOF
+
+            //                    strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "|"
+
+            //                    rs.movenext()
+
+            //                loop
+            //                strResult = mid(strResult, 1, strResult.length - 1)
+
+
+            //            end if
+
+            //        end if
+
+            //    rs = nothing
+
+
+            //    elseif strArr(0)= "SUBNATURE" then
+            //    strResult = ""
+
+
+            //        obj = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+            //        sqlStr = "SELECT DEPSUBNATURE FROM DEPTYPEMST WHERE glcode='" & strArr(1) & "'"
+
+
+            //        rs = obj.SingleSelectStat(sqlStr)
+
+
+            //        if obj.ConnError = "Connected" then
+
+            //            if not rs.BOF and not rs.EOF then
+
+            //                strResult = rs(0).value
+
+            //            end if
+
+            //        end if
+
+            //    rs = nothing
+
+
+            //    elseif strArr(0)= "MANUALDTLS" then
+            //    strResult = ""
+
+
+            //        obj = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+            //        sqlStr = "SELECT b.DEPSUBNATURE, a.ACCNO, SUBSTR(a.NAME,1,40), a.AMOUNT, a.ASSESYEAR, a.remarks FROM TDSDTLS a,DEPTYPEMST b WHERE remarks LIKE 'TDS Collected%' AND a.glcode=b.glcode " & strArr(3) & " and a.branchcode='" & strArr(1) & "' and a.currencycode='" & strArr(2) & "'"
+
+
+            //        rs = obj.SingleSelectStat(sqlStr)
+
+
+            //        if obj.ConnError = "Connected" then
+
+            //            if not rs.BOF and not rs.EOF then
+
+            //                do until rs.EOF
+
+            //                    strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "|"
+
+            //                    rs.movenext()
+
+            //                loop
+            //                strResult = mid(strResult, 1, strResult.length - 1)
+
+
+            //            end if
+
+            //        end if
+
+            //    rs = nothing
+
+
+            //    elseif strArr(0)= "CLGDTLS" then
+            //    strResult = ""
+
+            //    dim field
+
+
+            //        obj = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+
+            //        if strArr(3) = "<" then
+
+            //            field = "TO_CHAR(applicationdate,'DD-Mon-YYYY')appdate,BRANCHCODE,  LINKGLCODE GLCODE, LINKACCNO ACCNO ,ABS(FAMOUNT) AMOUNT,CHQNO, TO_CHAR(CHQDATE,'DD-Mon-YYYY')CHQDATE,CHQFVG"
+
+
+            //        else
+
+            //                field = "TO_CHAR(applicationdate,'DD-Mon-YYYY')appdate,BRANCHCODE,  LINKGLCODE GLCODE, LINKACCNO ACCNO ,ABS(FAMOUNT) AMOUNT,CHQNO, TO_CHAR(CHQDATE,'DD-Mon-YYYY')CHQDATE,TO_CHAR(OWLODGEMENTDATE,'DD-Mon-YYYY') CLGDATE,CHQFVG"
+
+
+            //        end if
+
+
+            //        sqlStr = "SELECT " & field & ",(SELECT DESCRIPTION FROM CLGRETURNREASONMST D WHERE  ROWNUM = 1 AND D.CODE=A.REASONCODE)REASON,  (SELECT BANKNAME FROM GENOTHERBANKMST B WHERE  ROWNUM = 1 AND A.PRESENTINGBANKCODE=B.BANKCODE) BANKNAME,(SELECT BRANCHNAME FROM GENOTHERBRANCHMST C WHERE  ROWNUM = 1 AND A.PRESENTINGBANKCODE=C.BANKCODE AND C.BRANCHCODE=A.PRESENTINGBRANCHCODE)BRANCHNAME,retotherreasondesc FROM CLGOUTWARDRETURNDTLS A WHERE FAMOUNT" & strArr(3) & "'0'  " & strArr(4) & " " & strArr(5) & " ORDER BY APPLICATIONDATE,BRANCHCODE"
+
+
+            //        rs = obj.SingleSelectStat(sqlStr)
+
+
+            //            if strArr(3) = "<" then
+
+            //                if obj.ConnError = "Connected" then
+
+            //                    if not rs.BOF and not rs.EOF then
+
+            //                        do until rs.EOF
+
+
+            //                            strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "~" & rs(7).value & "~" & rs(8).value & "~" & rs(9).value & "~" & rs(10).value & "~" & rs(11).value & "|"
+
+
+            //                            rs.movenext()
+
+
+            //                        loop
+            //                            strResult = mid(strResult, 1, strResult.length - 1)
+
+            //                    end if
+
+            //                end if
+
+            //            else
+            //                if obj.ConnError = "Connected" then
+
+            //                    if not rs.BOF and not rs.EOF then
+
+            //                        do until rs.EOF
+
+
+            //                            strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "~" & rs(7).value & "~" & rs(8).value & "~" & rs(9).value & "~" & rs(10).value & "~" & rs(11).value & "~" & rs(12).value & "|"
+
+
+            //                            rs.movenext()
+
+            //                        loop
+            //                            strResult = mid(strResult, 1, strResult.length - 1)
+
+            //                    end if
+
+            //                end if
+
+            //            end if
+
+
+            //    rs = nothing
+
+
+            //    elseif strArr(0)= "LCKOPDTLS" then
+            //    strResult = ""
+
+
+            //    obj = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+
+            //        sqlStr = "SELECT TO_CHAR(a.applicationdate,'DD-Mon-YYYY') appdate,a.sno ,a.accno,b.LOCKERNO,b.name,TO_CHAR(a.intime,'DD-Mon-YYYY hh:Mi:ss AM') intime,TO_CHAR(a.outtime,'DD-Mon-YYYY hh:Mi:ss AM')outtime FROM  LOCKEROPERATINGDTLS a,lockermst b  WHERE a.accno=b.accno AND a.customerid=b.customerid  " & strArr(4) & " " & strArr(5) & " AND a.branchcode='" & strArr(1) & "' ORDER BY TO_NUMBER(accno),sno,intime"
+
+
+            //        rs = obj.SingleSelectStat(sqlStr)
+
+
+            //        if obj.ConnError = "Connected" then
+
+            //            if not rs.BOF and not rs.EOF then
+
+            //                do until rs.EOF
+
+            //                    strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "|"
+
+            //                    rs.movenext()
+
+            //                loop
+            //                strResult = mid(strResult, 1, strResult.length - 1)
+
+            //            end if
+
+            //        end if
+
+            //    rs = nothing
+
+
+            //    elseif strArr(0)= "FRMTDSCUST" or strArr(0)= "FRMTDSACC"  or strArr(0)= "FRMTDSPAN" then
+
+            //    strResult = ""
+
+            //        dim rsmain, rschk
+
+            //        Dim frmdate
+
+            //        Dim strmon
+
+            //        Dim stryear
+
+            //        dim frmdate1, todate1, stTodat
+
+            //        dim todatetemp
+
+            //        dim strchk, stCond
+
+            //        strchk = strArr(6)
+
+
+            //        if strchk = "1" then
+            //            strmon = Month(Session("applicationdate"))
+
+            //            stryear = Year(Session("applicationdate"))
+
+
+            //            If strmon <= 3 Then
+            //                frmdate = Format(CDate("01-Apr-" & stryear - 1), "dd-MMM-yyyy")
+
+            //            Else
+            //                frmdate = Format(CDate("01-Apr-" & stryear), "dd-MMM-yyyy")
+
+            //            End If ''strmon <= 3
+            //        else
+            //                frmdate = strArr(4)
+            //        end if ''strchk = "1"
+
+
+            //        stTodat = strArr(5)
+
+
+            //        rsmain = Server.CreateObject("adodb.recordset")
+
+            //        rschk = Server.CreateObject("adodb.recordset")
+
+            //        rschk1 = Server.CreateObject("adodb.recordset")
+
+
+            //        obj = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+
+            //        if strArr(0) = "FRMTDSCUST" or strArr(0)= "FRMTDSPAN" or strArr(0)= "FRMTDSACC"  then
+
+
+            //            if strArr(7) = "0" then
+            //                sqlstr = "SELECT distinct a.branchcode,a.customerid,a.accno,a.glcode FROM tdsdtls a, gencustinfomst b WHERE a.applicationdate between '" & frmdate & "' and '" & strArr(5) & "' and a.branchcode = '" & strArr(1) & "' " & strArr(3) & " AND a.customerid=b.customerid AND a.branchcode=b.branchcode  ORDER BY TO_NUMBER(branchcode),TO_NUMBER(customerid)"
+
+            //            else
+
+            //                if strArr(3) = "" then
+            //                    stCond = " AND b.customerid IN ( SELECT customerid FROM gencustinfomst WHERE branchcode='" & strArr(1) & "')  "
+
+            //                else
+            //                stCond = ""
+
+            //                end if
+
+
+            //                    sqlstr = " SELECT distinct a.branchcode,a.customerid,a.accno,a.glcode FROM tdsdtls a, gencustinfomst b WHERE a.applicationdate between '" & frmdate & "' and '" & strArr(5) & "' " & strArr(3) & "  " & stCond & " AND a.customerid=b.customerid ORDER BY TO_NUMBER(branchcode),TO_NUMBER(customerid) "
+
+
+            //            end if
+
+
+            //        end if ''strArr(0) = "FRMTDSCUST" or strArr(0)= "FRMTDSACC" or strArr(0)= "FRMTDSPAN"
+
+
+            //        rsmain = obj.SingleSelectStat(sqlStr)
+
+            //        do until rsmain.EOF
+
+
+            //        sqlStr = "SELECT customerid, todate FROM tdsdtls WHERE applicationdate between '" & frmdate & "' and '" & strArr(5) & "' and customerid = '" & rsmain(1).value & "' AND todate <= '" & strArr(5) & "' and branchcode = '" & rsmain(0).value & "' and accno = '" & rsmain(2).value & "' and REFUNDYN='N' and glcode ='" & rsmain(3).value & "' GROUP BY customerid,todate order by todate "
+
+
+            //        rschk1 = obj.SingleSelectStat(sqlStr)
+
+
+
+
+            //            if rschk1.recordcount > 1 then
+
+            //                if not rschk1.eof and not rschk1.bof then
+
+            //                    frmdate1 = ""
+
+            //                    blnchk = false
+
+
+            //                    do until rschk1.EOF
+
+
+            //                    if frmdate1 = "" then
+
+            //                        if (cdate(strArr(4)) <= cdate(rschk1(1).value)) then
+            //                        frmdate1 = frmdate
+
+            //                        else
+            //                frmdate1 = Format(cdate(strArr(4)), "dd-MMM-yyyy")
+
+            //                        end if ''(cdate(strArr(4)) < cdate(rschk1(1).value))
+
+            //                    end if ''frmdate1 = ""
+
+
+            //                    if blnchk = true then
+            //                        exit do
+            //                end if ''blnchk = true
+
+
+
+            //                    sqlStr = "SELECT customerid FROM tdsdtls WHERE applicationdate between '" & frmdate & "' and '" & strArr(5) & "' and customerid = '" & rsmain(1).value & "' and todate >= '" & Format(cdate(frmdate1), "dd-MMM-yyyy") & "' AND todate <= '" & Format(cdate(rschk1(1).value), "dd-MMM-yyyy") & "' and branchcode = '" & rsmain(0).value & "' and accno = '" & rsmain(2).value & "' and glcode ='" & rsmain(3).value & "'"
+
+
+
+            //                    rschk = obj.SingleSelectStat(sqlStr)
+
+
+            //                    if not rschk.eof and not rschk.bof then
+
+
+            //                    todate1 = Format(dateadd("d", 1, cdate(rschk1(1).value)), "dd-MMM-yyyy")
+
+            //                    todateapp = Format(cdate(rschk1(1).value), "dd-MMM-yyyy")
+
+
+
+
+
+
+            //         ''1 qu
+            //          sqlStr = " SELECT T.BRANCHCODE, T.CUSTOMERID,T.glcode,T.accno,TRIM(T.NAME),T.PANNO,TO_CHAR(T.APPLICATIONDATE,'DD-Mon-YYYY'),(nvl(SUM((SELECT (NVL((SELECT SUM(ABS(C.INTAMOUNT)) FROM DEPINTACCRUEDDTLS C WHERE C.ACCNO=D.ACCNO AND C.GLCODE=D.GLCODE AND C.INTAMOUNT>0 AND C.MODULEID='DEP' AND C.applicationdate between '" & frmdate1 & "' and '" & todateapp & "' AND C.BRANCHCODE=D.BRANCHCODE AND C.CURRENCYCODE=D.CURRENCYCODE AND (C.branchcode,C.glcode,C.accno,C.batchno,C.tranno) NOT IN (SELECT branchcode,glcode,accno,batchno,tranno FROM DEPINTACCRUEDDTLS C1 WHERE C1.ACCNO=C.ACCNO AND C1.GLCODE=C.GLCODE AND C1.BRANCHCODE=C.BRANCHCODE AND C1.CURRENCYCODE=C.CURRENCYCODE AND C1.INTAMOUNT>0 AND C1.MODULEID='DEP' AND C1.APPLICATIONDATE BETWEEN '" & frmdate1 & "' and '" & todateapp & "'  AND (remarks LIKE 'TDS From%' or remarks LIKE 'TDSREFUND%') AND '" & stTodat & "' = (SELECT MAX(applicationdate) FROM DEPINTACCRUEDDTLS C2 WHERE C2.ACCNO=C1.ACCNO AND C2.GLCODE=C1.GLCODE AND C2.BRANCHCODE=C1.BRANCHCODE AND C2.CURRENCYCODE=C1.CURRENCYCODE AND C2.INTAMOUNT>0 AND C2.MODULEID='DEP' AND C2.APPLICATIONDATE BETWEEN '" & strArr(4) & "' and '" & strArr(5) & "' AND (remarks LIKE 'TDS From%' or remarks LIKE 'TDSREFUND%')) AND C1.APPLICATIONDATE = (SELECT MAX(applicationdate) FROM DEPINTACCRUEDDTLS C2 WHERE C2.ACCNO=C1.ACCNO AND C2.GLCODE=C1.GLCODE AND C2.BRANCHCODE=C1.BRANCHCODE AND C2.CURRENCYCODE=C1.CURRENCYCODE AND C2.INTAMOUNT>0 AND C2.MODULEID='DEP' AND C2.APPLICATIONDATE BETWEEN '" & strArr(4) & "' and '" & strArr(5) & "' AND (remarks LIKE 'TDS From%' or remarks LIKE 'TDSREFUND%')))),0) + NVL((SELECT SUM(ABS(E.AMOUNT)) FROM DEPTRAN E WHERE E.CHQFVG = 'DEPIP' AND E.ACCNO=D.ACCNO AND E.GLCODE=D.GLCODE AND E.MODULEID='DEP' AND E.BRANCHCODE=D.BRANCHCODE AND E.CURRENCYCODE=D.CURRENCYCODE AND E.applicationdate between '" & frmdate1 & "' and '" & todateapp & "' AND (E.branchcode,E.glcode,E.accno,E.batchno,E.tranno) NOT IN (SELECT branchcode,glcode,accno,batchno,tranno FROM DEPTRAN C1 WHERE C1.ACCNO=E.ACCNO AND C1.GLCODE=E.GLCODE AND C1.BRANCHCODE=E.BRANCHCODE AND C1.CURRENCYCODE=E.CURRENCYCODE AND C1.MODULEID='DEP' AND C1.APPLICATIONDATE BETWEEN '" & frmdate1 & "' and '" & todateapp & "'  AND (C1.remarks LIKE 'TDS From%' OR C1.remarks LIKE 'TDSREFUND%') AND '" & stTodat & "' = (SELECT MAX(applicationdate) FROM DEPTRAN C2 WHERE C2.ACCNO=C1.ACCNO AND C2.GLCODE=C1.GLCODE AND C2.BRANCHCODE=C1.BRANCHCODE AND C2.CURRENCYCODE=C1.CURRENCYCODE AND  C2.MODULEID='DEP' AND C2.APPLICATIONDATE BETWEEN '" & strArr(4) & "' and '" & strArr(5) & "' AND (remarks LIKE 'TDS From%' OR remarks LIKE 'TDSREFUND%')) AND C1.APPLICATIONDATE = (SELECT MAX(applicationdate) FROM DEPINTACCRUEDDTLS C2 WHERE C2.ACCNO=C1.ACCNO AND C2.GLCODE=C1.GLCODE AND C2.BRANCHCODE=C1.BRANCHCODE AND C2.CURRENCYCODE=C1.CURRENCYCODE AND C2.INTAMOUNT>0 AND C2.MODULEID='DEP' AND C2.APPLICATIONDATE BETWEEN '" & strArr(4) & "' and '" & strArr(5) & "' AND (remarks LIKE 'TDS From%' or remarks LIKE 'TDSREFUND%')))),0)) INTAMT FROM DEPMST D WHERE D.BRANCHCODE=T.BRANCHCODE AND d.ACCNO=T.ACCNO AND D.GLCODE = T.GLCODE AND  d.CURRENCYCODE='" & strArr(2) & "')) + NVL((SELECT NVL(INTAMOUNT,0) FROM DEPINTACCRUEDDTLS WHERE glcode='" & rsmain(3).value & "' AND accno='" & rsmain(2).value & "' AND TRANSFERTODEP BETWEEN '" & frmdate1 & "' AND '" & todateapp & "' AND (REMARKS LIKE 'Excess Interest Adjusted%'  OR REMARKS LIKE 'Excess Int Rev To GL%') AND branchcode='" & rsmain(0).value & "'),0) - NVL((SELECT NVL(sum(intamount),0)intamount FROM DEPINTACCRUEDDTLS C1 WHERE C1.ACCNO='" & rsmain(2).value & "' AND C1.GLCODE='" & rsmain(3).value & "' AND C1.BRANCHCODE='" & rsmain(0).value & "' AND C1.INTAMOUNT>0 AND C1.MODULEID='DEP' AND C1.APPLICATIONDATE BETWEEN '" & frmdate1 & "' and '" & todateapp & "'  AND (remarks LIKE 'TDSREFUND%')),0) + NVL((SELECT NVL(AMOUNT,0) FROM DEPTRAN WHERE glcode='" & rsmain(3).value & "' AND accno='" & rsmain(2).value & "' AND EFFECTIVEDATE BETWEEN '" & frmdate1 & "' AND '" & todateapp & "' AND remarks LIKE 'Excess Int Rev To GL%' and AMOUNT<0 AND branchcode='" & rsmain(0).value & "'),0) ,0))interest ,SUM(T.TDSAMT),TO_CHAR(T.CHALLANDATE,'DD-Mon-YYYY'),T.CHALLANNO,T.BSRCODE FROM(SELECT A.BRANCHCODE,A.CUSTOMERID,a.glcode,A.accno,B.NAME,B.PANNO,A.APPLICATIONDATE, sum(ABS(A.AMOUNT)) TDSAMT,A.CHALLANDATE,A.CHALLANNO,A.BSRCODE FROM TDSDTLS A, GENCUSTINFOMST B WHERE A.applicationdate between '" & frmdate1 & "' and '" & todateapp & "'  AND A.customerid=b.customerid AND A.branchcode='" & rsmain(0).value & "' AND A.REFUNDYN='N' and a.customerid = '" & rsmain(1).value & "' and a.accno='" & rsmain(2).value & "' and a.glcode='" & rsmain(3).value & "' GROUP BY A.BRANCHCODE,A.CUSTOMERID,a.glcode,A.accno,B.NAME,B.PANNO,A.APPLICATIONDATE,A.CHALLANDATE,A.CHALLANNO,A.BSRCODE)  T GROUP BY T.BRANCHCODE, T.CUSTOMERID, T.NAME ,T.panno,T.APPLICATIONDATE,T.CHALLANDATE,T.CHALLANNO,T.BSRCODE,T.glcode,T.accno ORDER BY T.branchcode,T.customerid "
+
+
+            //         frmdate1 = Format(cdate(todate1), "dd-MMM-yyyy")
+
+            //         else
+
+            //                ''2 qu
+            //                sqlStr = " SELECT T.BRANCHCODE, T.CUSTOMERID,t.glcode,T.accno,TRIM(T.NAME),T.PANNO,TO_CHAR(T.APPLICATIONDATE,'DD-Mon-YYYY'),(nvl(SUM((SELECT (NVL((SELECT SUM(ABS(C.INTAMOUNT)) FROM DEPINTACCRUEDDTLS C WHERE C.ACCNO=D.ACCNO AND C.GLCODE=D.GLCODE AND C.INTAMOUNT>0 AND C.MODULEID='DEP' AND C.applicationdate between '" & strArr(4) & "' and '" & strArr(5) & "'AND C.BRANCHCODE=D.BRANCHCODE AND C.CURRENCYCODE=D.CURRENCYCODE AND (C.branchcode,C.glcode,C.accno,C.batchno,C.tranno) NOT IN (SELECT branchcode,glcode,accno,batchno,tranno FROM DEPINTACCRUEDDTLS C1 WHERE C1.ACCNO=C.ACCNO AND C1.GLCODE=C.GLCODE AND C1.BRANCHCODE=C.BRANCHCODE AND C1.CURRENCYCODE=C.CURRENCYCODE AND C1.INTAMOUNT>0 AND C1.MODULEID='DEP' AND C1.APPLICATIONDATE BETWEEN '" & strArr(4) & "' and '" & strArr(5) & "'  AND (remarks LIKE 'TDS From%' or remarks LIKE 'TDSREFUND%') AND '" & stTodat & "' = (SELECT MAX(applicationdate) FROM DEPINTACCRUEDDTLS C2 WHERE C2.ACCNO=C1.ACCNO AND C2.GLCODE=C1.GLCODE AND C2.BRANCHCODE=C1.BRANCHCODE AND C2.CURRENCYCODE=C1.CURRENCYCODE AND C2.INTAMOUNT>0 AND C2.MODULEID='DEP' AND C2.APPLICATIONDATE BETWEEN '" & strArr(4) & "' and '" & strArr(5) & "' AND (remarks LIKE 'TDS From%' or remarks LIKE 'TDSREFUND%')) AND C1.APPLICATIONDATE = (SELECT MAX(applicationdate) FROM DEPINTACCRUEDDTLS C2 WHERE C2.ACCNO=C1.ACCNO AND C2.GLCODE=C1.GLCODE AND C2.BRANCHCODE=C1.BRANCHCODE AND C2.CURRENCYCODE=C1.CURRENCYCODE AND C2.INTAMOUNT>0 AND C2.MODULEID='DEP' AND C2.APPLICATIONDATE BETWEEN '" & strArr(4) & "' and '" & strArr(5) & "' AND (remarks LIKE 'TDS From%' or remarks LIKE 'TDSREFUND%')))),0) + NVL((SELECT SUM(ABS(E.AMOUNT)) FROM DEPTRAN E WHERE E.CHQFVG = 'DEPIP' AND E.ACCNO=D.ACCNO AND E.GLCODE=D.GLCODE AND E.MODULEID='DEP' AND E.BRANCHCODE=D.BRANCHCODE AND E.CURRENCYCODE=D.CURRENCYCODE AND E.applicationdate between '" & strArr(4) & "' and '" & strArr(5) & "' AND (E.branchcode,E.glcode,E.accno,E.batchno,E.tranno) NOT IN (SELECT branchcode,glcode,accno,batchno,tranno FROM DEPTRAN C1 WHERE C1.ACCNO=E.ACCNO AND C1.GLCODE=E.GLCODE AND C1.BRANCHCODE=E.BRANCHCODE AND C1.CURRENCYCODE=E.CURRENCYCODE AND C1.MODULEID='DEP' AND C1.APPLICATIONDATE BETWEEN '" & strArr(4) & "' and '" & strArr(5) & "'  AND (C1.remarks LIKE 'TDS From%' OR C1.remarks LIKE 'TDSREFUND%') AND '" & stTodat & "' = (SELECT MAX(applicationdate) FROM DEPTRAN C2 WHERE C2.ACCNO=C1.ACCNO AND C2.GLCODE=C1.GLCODE AND C2.BRANCHCODE=C1.BRANCHCODE AND C2.CURRENCYCODE=C1.CURRENCYCODE AND  C2.MODULEID='DEP' AND C2.APPLICATIONDATE BETWEEN '" & strArr(4) & "' and '" & strArr(5) & "' AND (remarks LIKE 'TDS From%' OR remarks LIKE 'TDSREFUND%')) AND C1.APPLICATIONDATE = (SELECT MAX(applicationdate) FROM DEPINTACCRUEDDTLS C2 WHERE C2.ACCNO=C1.ACCNO AND C2.GLCODE=C1.GLCODE AND C2.BRANCHCODE=C1.BRANCHCODE AND C2.CURRENCYCODE=C1.CURRENCYCODE AND C2.INTAMOUNT>0 AND C2.MODULEID='DEP' AND C2.APPLICATIONDATE BETWEEN '" & strArr(4) & "' and '" & strArr(5) & "' AND (remarks LIKE 'TDS From%' or remarks LIKE 'TDSREFUND%')))),0)) INTAMT FROM DEPMST D WHERE D.BRANCHCODE=T.BRANCHCODE AND d.ACCNO=T.ACCNO AND D.GLCODE = T.GLCODE AND  d.CURRENCYCODE='" & strArr(2) & "')) + NVL((SELECT NVL(INTAMOUNT,0) FROM DEPINTACCRUEDDTLS WHERE glcode='" & rsmain(3).value & "' AND accno='" & rsmain(2).value & "' AND TRANSFERTODEP BETWEEN '" & frmdate1 & "' AND '" & todate1 & "' AND (REMARKS LIKE 'Excess Interest Adjusted%'  OR REMARKS LIKE 'Excess Int Rev To GL%') AND branchcode='" & rsmain(0).value & "'),0) - NVL((SELECT NVL(sum(intamount),0)intamount FROM DEPINTACCRUEDDTLS C1 WHERE C1.ACCNO='" & rsmain(2).value & "' AND C1.GLCODE='" & rsmain(3).value & "' AND C1.BRANCHCODE='" & rsmain(0).value & "' AND C1.INTAMOUNT>0 AND C1.MODULEID='DEP' AND C1.APPLICATIONDATE BETWEEN '" & frmdate1 & "' and '" & todate1 & "'  AND (remarks LIKE 'TDSREFUND%')),0) + NVL((SELECT NVL(AMOUNT,0) FROM DEPTRAN WHERE glcode='" & rsmain(3).value & "' AND accno='" & rsmain(2).value & "' AND EFFECTIVEDATE BETWEEN '" & frmdate1 & "' AND '" & todate1 & "' AND remarks LIKE 'Excess Int Rev To GL%' and AMOUNT<0 AND branchcode='" & rsmain(0).value & "'),0),0) ) interest ,SUM(T.TDSAMT),TO_CHAR(T.CHALLANDATE,'DD-Mon-YYYY'),T.CHALLANNO,T.BSRCODE FROM(SELECT A.BRANCHCODE,A.CUSTOMERID,a.glcode,A.accno,B.NAME,B.PANNO,A.APPLICATIONDATE, sum(ABS(A.AMOUNT)) TDSAMT,A.CHALLANDATE,A.CHALLANNO,A.BSRCODE FROM TDSDTLS A, GENCUSTINFOMST B WHERE A.applicationdate between '" & strArr(4) & "' and '" & strArr(5) & "'  AND A.customerid=b.customerid AND A.branchcode='" & rsmain(0).value & "' AND A.REFUNDYN='N' and a.customerid = '" & rsmain(1).value & "' and a.accno='" & rsmain(2).value & "'  and a.glcode='" & rsmain(3).value & "' GROUP BY A.BRANCHCODE,A.CUSTOMERID,a.glcode,A.accno,B.NAME,B.PANNO,A.APPLICATIONDATE,A.CHALLANDATE,A.CHALLANNO,A.BSRCODE) T GROUP BY T.BRANCHCODE, T.CUSTOMERID, T.NAME ,T.panno,T.APPLICATIONDATE,T.CHALLANDATE,T.CHALLANNO,T.BSRCODE,T.glcode,T.accno ORDER BY T.branchcode,T.customerid "
+
+
+
+            //         blnchk = true
+
+            //         end if ''not rschk.eof and not rschk.bof
+
+            //         rs = obj.SingleSelectStat(sqlStr)
+
+
+            //        if obj.ConnError = "Connected" then
+
+            //            if not rs.BOF and not rs.EOF then
+
+            //                do until rs.EOF
+
+            //                'if strArr(0)="FRMTDSCUST" then ''FRMTDSCUST
+
+            //                    strResult = strResult & "'" & rs(0).value & "','" & rs(1).value & "','" & rs(2).value & "','" & rs(3).value & "','" & rs(4).value & "','" & rs(5).value & "','" & rs(6).value & "'," & rs(7).value & "," & rs(8).value & ",'" & rs(9).value & "','" & rs(10).value & "','" & rs(11).value & "'|"
+
+            //                'else '' FRMTDSACC  or FRM26TDSACC
+
+            //                '	strResult=strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "~" & rs(7).value & "~" & rs(8).value & "~" & rs(9).value &  "~" & rs(10).value &  "~" & rs(11).value &  "|"
+
+            //            '	end if	
+
+            //                    rs.movenext()
+
+            //                loop
+
+            //            end if
+
+            //        end if
+
+
+            //         rschk1.movenext()
+
+            //         loop ''rschk1
+
+            //        end if ''not rschk1.eof and not rschk1.bof
+
+            //        elseif rschk1.recordcount = 1 then ''rschk1.recordcount <= 1
+
+
+            //        'todate1 = Format(dateadd("d",1,cdate(rschk1(1).value)),"dd-MMM-yyyy")	
+
+
+            //        'frmdate1 = Format(cdate(todate1),"dd-MMM-yyyy") 
+
+
+            //        todate1 = Format(cdate(rschk1(1).value), "dd-MMM-yyyy")
+
+
+
+
+            //        ''3 qu
+
+            //        sqlStr = " SELECT T.BRANCHCODE, T.CUSTOMERID,t.glcode,T.accno,TRIM(T.NAME),T.PANNO,TO_CHAR(T.APPLICATIONDATE,'DD-Mon-YYYY'),(nvl( SUM((SELECT (NVL((SELECT SUM(ABS(C.INTAMOUNT)) FROM DEPINTACCRUEDDTLS C WHERE C.ACCNO=D.ACCNO AND C.GLCODE=D.GLCODE AND C.INTAMOUNT>0 AND C.MODULEID='DEP' AND C.applicationdate between '" & strArr(4) & "' and '" & strArr(5) & "' AND C.BRANCHCODE=D.BRANCHCODE AND C.CURRENCYCODE=D.CURRENCYCODE AND (C.branchcode,C.glcode,C.accno,C.batchno,C.tranno) NOT IN (SELECT branchcode,glcode,accno,batchno,tranno FROM DEPINTACCRUEDDTLS C1 WHERE C1.ACCNO=C.ACCNO AND C1.GLCODE=C.GLCODE AND C1.BRANCHCODE=C.BRANCHCODE AND C1.CURRENCYCODE=C.CURRENCYCODE AND C1.INTAMOUNT>0 AND C1.MODULEID='DEP' AND C1.APPLICATIONDATE BETWEEN '" & strArr(4) & "' and '" & strArr(5) & "'  AND (remarks LIKE 'TDS From%' or remarks LIKE 'TDSREFUND%') AND '" & stTodat & "' = (SELECT MAX(applicationdate) FROM DEPINTACCRUEDDTLS C2 WHERE C2.ACCNO=C1.ACCNO AND C2.GLCODE=C1.GLCODE AND C2.BRANCHCODE=C1.BRANCHCODE AND C2.CURRENCYCODE=C1.CURRENCYCODE AND C2.INTAMOUNT>0 AND C2.MODULEID='DEP' AND C2.APPLICATIONDATE BETWEEN '" & strArr(4) & "' and '" & strArr(5) & "' AND (remarks LIKE 'TDS From%' or remarks LIKE 'TDSREFUND%')) AND C1.APPLICATIONDATE = (SELECT MAX(applicationdate) FROM DEPINTACCRUEDDTLS C2 WHERE C2.ACCNO=C1.ACCNO AND C2.GLCODE=C1.GLCODE AND C2.BRANCHCODE=C1.BRANCHCODE AND C2.CURRENCYCODE=C1.CURRENCYCODE AND C2.INTAMOUNT>0 AND C2.MODULEID='DEP' AND C2.APPLICATIONDATE BETWEEN '" & strArr(4) & "' and '" & strArr(5) & "' AND (remarks LIKE 'TDS From%' or remarks LIKE 'TDSREFUND%')))),0) + NVL((SELECT SUM(ABS(E.AMOUNT)) FROM DEPTRAN E WHERE E.CHQFVG = 'DEPIP' AND E.ACCNO=D.ACCNO AND E.GLCODE=D.GLCODE AND E.MODULEID='DEP' AND E.BRANCHCODE=D.BRANCHCODE AND E.CURRENCYCODE=D.CURRENCYCODE AND E.applicationdate between '" & frmdate & "' and '" & todate1 & "' AND (E.branchcode,E.glcode,E.accno,E.batchno,E.tranno) NOT IN (SELECT branchcode,glcode,accno,batchno,tranno FROM DEPTRAN C1 WHERE C1.ACCNO=E.ACCNO AND C1.GLCODE=E.GLCODE AND C1.BRANCHCODE=E.BRANCHCODE AND C1.CURRENCYCODE=E.CURRENCYCODE AND C1.MODULEID='DEP' AND C1.APPLICATIONDATE BETWEEN '" & strArr(4) & "' and '" & strArr(5) & "'  AND (C1.remarks LIKE 'TDS From%' OR C1.remarks LIKE 'TDSREFUND%') AND '" & stTodat & "' = (SELECT MAX(applicationdate) FROM DEPTRAN C2 WHERE C2.ACCNO=C1.ACCNO AND C2.GLCODE=C1.GLCODE AND C2.BRANCHCODE=C1.BRANCHCODE AND C2.CURRENCYCODE=C1.CURRENCYCODE AND  C2.MODULEID='DEP' AND C2.APPLICATIONDATE BETWEEN '" & strArr(4) & "' and '" & strArr(5) & "' AND (remarks LIKE 'TDS From%' OR remarks LIKE 'TDSREFUND%')) AND C1.APPLICATIONDATE = (SELECT MAX(applicationdate) FROM DEPINTACCRUEDDTLS C2 WHERE C2.ACCNO=C1.ACCNO AND C2.GLCODE=C1.GLCODE AND C2.BRANCHCODE=C1.BRANCHCODE AND C2.CURRENCYCODE=C1.CURRENCYCODE AND C2.INTAMOUNT>0 AND C2.MODULEID='DEP' AND C2.APPLICATIONDATE BETWEEN '" & strArr(4) & "' and '" & strArr(5) & "' AND (remarks LIKE 'TDS From%' or remarks LIKE 'TDSREFUND%')))),0)) INTAMT FROM DEPMST D WHERE D.BRANCHCODE=T.BRANCHCODE AND d.ACCNO=T.ACCNO AND D.GLCODE = T.GLCODE AND  d.CURRENCYCODE='" & strArr(2) & "')) + NVL((SELECT NVL(INTAMOUNT,0) FROM DEPINTACCRUEDDTLS WHERE glcode='" & rsmain(3).value & "' AND accno='" & rsmain(2).value & "' AND TRANSFERTODEP BETWEEN '" & strArr(4) & "' and '" & strArr(5) & "' AND (REMARKS LIKE 'Excess Interest Adjusted%'  OR REMARKS LIKE 'Excess Int Rev To GL%') AND branchcode='" & rsmain(0).value & "'),0) - NVL((SELECT NVL(sum(intamount),0)intamount FROM DEPINTACCRUEDDTLS C1 WHERE C1.ACCNO='" & rsmain(2).value & "' AND C1.GLCODE='" & rsmain(3).value & "' AND C1.BRANCHCODE='" & rsmain(0).value & "' AND C1.INTAMOUNT>0 AND C1.MODULEID='DEP' AND C1.APPLICATIONDATE BETWEEN '" & strArr(4) & "' and '" & strArr(5) & "'  AND (remarks LIKE 'TDSREFUND%')),0) + NVL((SELECT NVL(AMOUNT,0) FROM DEPTRAN WHERE glcode='" & rsmain(3).value & "' AND accno='" & rsmain(2).value & "' AND EFFECTIVEDATE BETWEEN '" & strArr(4) & "' and '" & strArr(5) & "' AND remarks LIKE 'Excess Int Rev To GL%' and AMOUNT<0 AND branchcode='" & rsmain(0).value & "'),0) ,0)),SUM(T.TDSAMT),TO_CHAR(T.CHALLANDATE,'DD-Mon-YYYY'),T.CHALLANNO,T.BSRCODE FROM(SELECT A.BRANCHCODE,A.CUSTOMERID,a.glcode,A.accno,B.NAME,B.PANNO,A.APPLICATIONDATE, sum(ABS(A.AMOUNT)) TDSAMT,A.CHALLANDATE,A.CHALLANNO,A.BSRCODE FROM TDSDTLS A, GENCUSTINFOMST B WHERE A.applicationdate between '" & strArr(4) & "' and '" & strArr(5) & "'  AND A.customerid=b.customerid AND A.branchcode='" & rsmain(0).value & "' AND A.REFUNDYN='N' and a.customerid = '" & rsmain(1).value & "' and a.accno='" & rsmain(2).value & "'  and a.glcode='" & rsmain(3).value & "' GROUP BY A.BRANCHCODE,A.CUSTOMERID,a.glcode,A.accno,B.NAME,B.PANNO,A.APPLICATIONDATE,A.CHALLANDATE,A.CHALLANNO,A.BSRCODE ) T GROUP BY T.BRANCHCODE, T.CUSTOMERID, T.NAME ,T.panno,T.APPLICATIONDATE,T.CHALLANDATE,T.CHALLANNO,T.BSRCODE,T.glcode,T.accno ORDER BY T.branchcode,T.customerid "
+
+
+
+            //        rs = obj.SingleSelectStat(sqlStr)
+
+
+            //        if obj.ConnError = "Connected" then
+
+            //            if not rs.BOF and not rs.EOF then
+
+            //                do until rs.EOF
+
+            //                'if strArr(0)="FRMTDSCUST" then ''FRMTDSCUST
+
+            //                    strResult = strResult & "'" & rs(0).value & "','" & rs(1).value & "','" & rs(2).value & "','" & rs(3).value & "','" & rs(4).value & "','" & rs(5).value & "','" & rs(6).value & "'," & rs(7).value & "," & rs(8).value & ",'" & rs(9).value & "','" & rs(10).value & "','" & rs(11).value & "'|"
+
+            //                'else '' FRMTDSACC  or FRM26TDSACC
+
+            //                '	strResult=strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "~" & rs(7).value & "~" & rs(8).value & "~" & rs(9).value &  "~" & rs(10).value &  "~" & rs(11).value &  "|"
+
+            //                'end if	''strArr(0)="FRMTDSCUST"
+
+            //                    rs.movenext()
+
+            //                loop
+            //            end if
+
+            //        end if
+
+
+            //        else ''rschk1.recordcount = 0
+
+            //            strResult = strResult & ""
+
+
+            //        end if '' rschk1.recordcout > 1
+
+
+            //    rsmain.movenext()
+
+            //    loop
+
+            //    if strResult<> "" then
+            //    strResult = mid(strResult, 1, strResult.length - 1)
+
+            //    end if
+
+            //    rsmain = nothing
+
+            //    rs = nothing
+
+            //    rschk = nothing
+
+
+            //    if strArr(0) = "FRMTDSCUST" or strArr(0)= "FRMTDSACC" or strArr(0)= "FRMTDSPAN" then
+            //    dim obj2
+
+            //    obj2 = SERVER.CreateObject("GeneralTransactions.DBTransactions")
+
+            //    rscnt = Server.CreateObject("adodb.recordset")
+
+            //    Dim ArrTran(2,4)
+            //	p = 0
+
+            //    strinscnt = ""
+
+            //    strdelcnt = ""
+
+
+            //    if strArr(7) = "0" then
+            //        sqlStr = "SELECT count(*) cnt FROM tdsreporttemp where branchcode = '" & strArr(1) & "'"
+
+            //    else
+            //                sqlStr = "SELECT count(*) cnt FROM tdsreporttemp "
+
+            //    end if
+
+            //    rscnt = obj.SingleSelectStat(sqlStr)
+
+
+            //    if rscnt.recordcount > 0 then
+
+            //    if rscnt(0).value > 0 then
+            //    strdelcnt = "Y"
+
+
+            //        if strArr(7) = "0" then
+
+            //            ArrTran(p, 0) = "D"
+
+            //            ArrTran(p, 1) = "tdsreporttemp"
+
+            //            ArrTran(p, 2) = ""
+
+            //            ArrTran(p, 3) = ""
+
+            //            ArrTran(p, 4) = "branchcode = '" & strArr(1) & "'"
+
+            //        else
+            //                ArrTran(p, 0) = "D"
+
+            //            ArrTran(p, 1) = "tdsreporttemp"
+
+            //            ArrTran(p, 2) = ""
+
+            //            ArrTran(p, 3) = ""
+
+            //            ArrTran(p, 4) = ""
+
+            //        end if
+
+
+
+            //    end if ''rscnt(0).value > 0
+
+            //    end if ''rscnt.recordcount > 0
+
+
+            //    if strdelcnt = "Y" then
+            //    Strmsg = obj2.DataTransactions(ArrTran)
+
+            //    end if ''strdelcnt = "Y"
+
+
+            //    if strResult<> "" then
+            //    p = 0
+
+
+            //    strinscnt = "Y"
+
+            //    ArrTran(p, 0) = "I"
+
+            //    ArrTran(p, 1) = "tdsreporttemp"
+
+            //    ArrTran(p, 2) = "BRANCHCODE, CUSTOMERID, GLCODE, ACCNO, NAME, PANNO, APPLICATIONDATE, INTEREST, AMOUNT, CHALLANDATE, CHALLANNO, BSRCODE"
+
+            //    ArrTran(p, 3) = strResult
+
+            //    ArrTran(p, 4) = ""
+
+            //    end if ''strResult<> ""
+
+
+            //    if strinscnt = "Y" then
+
+            //    if strdelcnt = "Y" then
+
+            //    if Strmsg = "Transaction Sucessful."  then
+            //    Strmsg = obj2.DataTransactions(ArrTran)
+
+            //    else
+            //                strResult = Strmsg
+
+            //    end if '' Strmsg = "Transaction Sucessful."
+
+            //    else
+            //                Strmsg = obj2.DataTransactions(ArrTran)
+
+            //    end if ''strdelcnt = "Y"
+
+            //    else
+            //                strResult = Strmsg
+
+            //    end if ''strinscnt = "Y"
+
+
+            //    if Strmsg = "Transaction Sucessful." then
+            //    strResult = ""
+
+
+            //    dim strDat, strDt, strDtpan
+
+
+            //    strDat = ""
+
+            //    strDt = ""
+
+
+            //    if strArr(6) = "0" then
+            //        strDat = " AND T.APPLICATIONDATE BETWEEN '" & strArr(4) & "' AND '" & strArr(5) & "' "
+
+            //        strDt = " where T.APPLICATIONDATE BETWEEN '" & strArr(4) & "' AND '" & strArr(5) & "' "
+
+            //    else
+            //                strDat = ""
+
+            //        strDt = ""
+
+            //    end if
+
+
+            //    if strArr(0) = "FRMTDSCUST" then
+
+
+            //        if strArr(7) = "0" then
+
+            //            if strArr(3) = "" then
+            //                sqlStr = "SELECT  T.CUSTOMERID, SUBSTR(T.NAME,1,35), T.PANNO, SUM(T.INTEREST), SUM(T.AMOUNT) FROM tdsreporttemp T where T.branchcode = '" & strArr(1) & "' " & strDat & " GROUP BY  T.CUSTOMERID, T.NAME ,T.panno ORDER BY  T.CUSTOMERID"
+
+            //            else
+            //                sqlStr = "SELECT T.branchcode,T.glcode,t.accno, SUBSTR(T.NAME,1,35), T.PANNO, SUM(T.INTEREST), SUM(T.AMOUNT) FROM tdsreporttemp T where T.branchcode = '" & strArr(1) & "' " & strDat & " GROUP BY T.branchcode,T.glcode,t.accno, T.NAME, T.PANNO ORDER BY  TO_NUMBER(T.glcode),TO_NUMBER(t.accno)"
+
+            //            end if
+
+            //        else
+            //            if strArr(3) = "" then
+            //                sqlStr = "SELECT  T.CUSTOMERID, SUBSTR(T.NAME,1,35), T.PANNO, SUM(T.INTEREST), SUM(T.AMOUNT) FROM tdsreporttemp T  " & strDt & " GROUP BY  T.CUSTOMERID, T.NAME ,T.panno ORDER BY  T.CUSTOMERID"
+
+            //            else
+            //                    sqlStr = "SELECT T.branchcode,T.glcode,t.accno, SUBSTR(T.NAME,1,35), T.PANNO, SUM(T.INTEREST), SUM(T.AMOUNT) FROM tdsreporttemp T " & strDt & " GROUP BY T.branchcode,T.glcode,t.accno, T.NAME, T.PANNO ORDER BY  TO_NUMBER(T.glcode),TO_NUMBER(t.accno)"
+
+            //            end if
+
+            //        end if
+
+
+            //    else if strArr(0) = "FRMTDSACC" then
+
+            //        if strArr(7) = "0" then
+            //            sqlStr = "SELECT  T.CUSTOMERID, T.GLCODE, T.accno, SUBSTR(T.NAME,1,35) , T.PANNO, SUM(T.INTEREST), SUM(T.AMOUNT) FROM tdsreporttemp T where T.branchcode = '" & strArr(1) & "' " & strDat & " GROUP BY  T.CUSTOMERID, T.GLCODE, T.accno, T.NAME, T.PANNO ORDER BY  T.CUSTOMERID"
+
+            //        else
+            //                sqlStr = "SELECT  T.CUSTOMERID, T.GLCODE, T.accno, SUBSTR(T.NAME,1,35) , T.PANNO, SUM(T.INTEREST), SUM(T.AMOUNT) FROM tdsreporttemp T " & strDt & " GROUP BY  T.CUSTOMERID, T.GLCODE, T.accno, T.NAME, T.PANNO ORDER BY  T.CUSTOMERID"
+
+            //        end if
+
+
+
+            //    else if strArr(0) = "FRMTDSPAN" then
+
+            //        if strArr(7) = "0" then
+
+            //            if strArr(3) = "" then
+            //                sqlStr = "SELECT  T.CUSTOMERID, SUBSTR(T.NAME,1,35) , T.PANNO, SUM(T.INTEREST), SUM(T.AMOUNT) FROM tdsreporttemp T where T.branchcode = '" & strArr(1) & "' " & strDat & " AND T.PANNO IS NOT NULL GROUP BY  T.CUSTOMERID, T.NAME ,T.panno ORDER BY  T.panno"
+
+            //            else
+            //                sqlStr = "SELECT  T.BRANCHCODE, T.CUSTOMERID, T.GLCODE, T.ACCNO, SUBSTR(T.NAME,1,35), SUM(T.INTEREST), SUM(T.AMOUNT) FROM tdsreporttemp T where T.branchcode = '" & strArr(1) & "' " & strDat & " GROUP BY T.BRANCHCODE,T.CUSTOMERID, T.GLCODE, T.accno, T.NAME ORDER BY T.CUSTOMERID"
+
+            //            end if
+
+            //        else
+            //            if strArr(3) = "" then
+            //                sqlStr = "SELECT  T.CUSTOMERID, SUBSTR(T.NAME,1,35) , T.PANNO, SUM(T.INTEREST), SUM(T.AMOUNT) FROM tdsreporttemp T  where   T.PANNO IS NOT NULL " & strDat & " GROUP BY  T.CUSTOMERID, T.NAME ,T.panno ORDER BY  T.panno"
+
+            //            else
+            //                    sqlStr = "SELECT  T.BRANCHCODE, T.CUSTOMERID, T.GLCODE, T.ACCNO, SUBSTR(T.NAME,1,35), SUM(T.INTEREST), SUM(T.AMOUNT) FROM tdsreporttemp T  " & strDt & " GROUP BY T.BRANCHCODE,T.CUSTOMERID, T.GLCODE, T.accno, T.NAME ORDER BY T.CUSTOMERID"
+
+            //            end if
+
+            //        end if
+
+
+            //    end if
+
+
+            //    rs = obj.SingleSelectStat(sqlStr)
+
+
+            //    if not rs.BOF and not rs.EOF then
+
+            //        do until rs.EOF
+
+            //            if strArr(0) = "FRMTDSCUST" then
+
+            //                if strArr(3) = "" then
+            //                    strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "|"
+
+            //                else
+            //                strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "|"
+
+            //                end if
+
+            //            else if strArr(0) = "FRMTDSACC" then
+            //                strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "|"
+
+            //            else if strArr(0) = "FRMTDSPAN" then
+
+            //                if strArr(3) = "" then
+            //                    strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "|"
+
+            //                else
+            //                strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "|"
+
+            //                end if
+
+            //            end if
+
+            //        rs.movenext()
+
+            //        loop
+            //    end if ''not rs.BOF and not rs.EOF
+
+            //    if strResult<> "" then
+            //    strResult = mid(strResult, 1, strResult.length - 1)
+
+            //    end if
+
+            //    rs = nothing
+
+            //    else
+            //                    strResult = Strmsg
+
+            //    end if ''Strmsg = "Transaction Sucessful."
+
+            //    rscnt = nothing
+
+            //    end if ''strArr(0) = "FRMTDSCUST"
+
+
+
+            //    elseif strArr(0)= "SALARYDTLS" then
+            //    strResult = ""
+
+
+            //    obj = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+
+            //        sqlStr1 = "Select TO_CHAR(MAX(Effectivedate),'DD-Mon-YYYY') FROM salaryparm"
+
+
+            //        rs1 = obj.SingleSelectStat(sqlStr1)
+
+
+            //        if obj.ConnError = "Connected" then
+
+            //            if not rs1.BOF and not rs1.EOF then
+
+            //                strResult = rs1(0).value & "|"
+
+            //            end if
+
+            //        end if
+
+
+
+            //        sqlStr = "SELECT BASIC, HRA, DA, PF, MEDIALLOWANCE, ALLOWANCE, PROFTAX, OTHERALLOWANCE FROM SALARYPARM WHERE EFFECTIVEDATE='" & strArr(1) & "'"
+
+
+            //        rs = obj.SingleSelectStat(sqlStr)
+
+
+            //        if obj.ConnError = "Connected" then
+
+            //            if not rs.BOF and not rs.EOF then
+
+            //                strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "~" & rs(7).value
+
+            //            end if
+
+            //        end if
+
+            //    rs = nothing
+
+            //    rs1 = nothing
+
+
+            //    elseif strArr(0)= "CASHPOSITION" then
+            //    strResult = ""
+
+
+            //        obj = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+
+            //        sqlStr = "SELECT X.brcode,X.opbal,X.vaultamt, X.opbal+(C.receipts-C.payments) closebal FROM (SELECT a.branchcode brcode,a.closingbal opbal,v.TOTAMOUNT vaultamt FROM cashbalance a,CASHVAULTMST v WHERE a.applicationdate=(SELECT MAX(applicationdate) FROM cashbalance b WHERE applicationdate<='" & strArr(1) & "' AND b.branchcode=a.branchcode) AND a.branchcode=v.branchcode) X, (SELECT a.branchcode brcode,NVL(r.amount,0) receipts,NVL(p.amount,0) payments FROM (SELECT branchcode,SUM(amount) amount FROM CASHRECEIPTSTRN WHERE applicationdate='" & strArr(1) & "' GROUP BY branchcode) r, (SELECT branchcode,SUM(amount) amount FROM CASHPAYMENTSTRN WHERE applicationdate='" & strArr(1) & "' GROUP BY branchcode) p, (SELECT branchcode FROM CASHVAULTMST WHERE applicationdate='" & strArr(1) & "' GROUP BY branchcode) a WHERE A.branchcode=R.branchcode(+) AND A.branchcode=P.branchcode(+)) C WHERE X.brcode=C.brcode  ORDER BY TO_NUMBER(X.brcode)"
+
+
+            //        rs = obj.SingleSelectStat(sqlStr)
+
+
+            //        if obj.ConnError = "Connected" then
+
+            //            if not rs.BOF and not rs.EOF then
+
+            //                do until rs.EOF
+
+            //                    strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "|"
+
+            //                    rs.movenext()
+
+            //                loop
+            //                strResult = mid(strResult, 1, strResult.length - 1)
+
+
+            //            end if
+
+            //        end if
+
+
+            //        dim strDenom, rsDnom, objDnom
+
+            //        rsDnom = server.CreateObject("adodb.recordset")
+
+            //        objDnom = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+
+            //        strDenom = "  SELECT DENOMINATIONTYPE ||' -'||Denominationvalue, Denominationcode FROM CashDenominationMst WHERE UPPER(Currencycode)='INR' ORDER BY SUBSTR(denominationtype,1,1) DESC, SUBSTR(denominationtype,2,1) ,TO_NUMBER( denominationvalue) DESC "
+
+
+            //        rsDnom = objDnom.SingleSelectStat(strDenom)
+
+
+            //        if objDnom.ConnError = "Connected" then
+
+            //            if not rsDnom.bof and not rsDnom.eof then
+
+
+            //                denom = ""
+
+            //                DenFld = ""
+
+            //                denom1 = ""
+
+            //                denom2 = ""
+
+
+            //                do until rsDnom.eof
+
+            //                    ''SUM(A.D1)
+
+            //                    ''denom = denom & " NVL((SUM(NVL((a." & rsDnom(1).value & "),0))+SUM(NVL((b." & rsDnom(1).value & "),0))),0) " & rsDnom(1).value & ","
+
+            //                    denom = denom & " SUM(A." & rsDnom(1).value & ")" & rsDnom(1).value & ","
+
+            //                    ''NVL(D1, 0) d1
+            //                    denom1 = denom1 & " NVL(" & rsDnom(1).value & ",0)" & rsDnom(1).value & ","
+
+            //                    ''SUM(NVL(D1, 0)) d1
+            //                    denom2 = denom2 & " SUM(NVL(" & rsDnom(1).value & ",0))" & rsDnom(1).value & ","
+
+
+
+            //                    DenFld = DenFld & "|>                 " & rsDnom(0).value
+
+
+            //                rsDnom.movenext()
+
+            //                loop
+
+            //                denom = mid(denom, 1, denom.length - 1)
+
+            //                denom1 = mid(denom1, 1, denom1.length - 1)
+
+            //                denom2 = mid(denom2, 1, denom2.length - 1)
+
+            //                'DenFld = mid(DenFld,1,DenFld.length-1)
+
+
+            //            end if
+
+            //            rsDnom = nothing
+
+            //        end if
+
+
+            //        dim stDval, rsDval, objDval, sDval
+
+            //        rsDval = server.CreateObject("adodb.recordset")
+
+            //        objDval = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+
+            //        ''stDval = "SELECT " & denom & " FROM  CASHVAULTMST a, CASHCASHIERPOSMST b WHERE b.currencycode = a.currencycode AND b.branchcode = a.branchcode AND UPPER(a.currencycode)='INR' group by  a.branchcode order by to_number(a.branchcode)"
+
+
+            //        stDval = "SELECT " & denom & " FROM (SELECT  BRANCHCODE," & denom1 & "  FROM CASHVAULTMST  WHERE currencycode = 'INR' UNION SELECT  BRANCHCODE," & denom2 & " FROM CASHCASHIERPOSMST  WHERE currencycode = 'INR' GROUP BY BRANCHCODE ) A GROUP BY BRANCHCODE ORDER BY BRANCHCODE"
+
+
+            //        rsDval = objDval.SingleSelectStat(stDval)
+
+
+            //        if objDval.ConnError = "Connected" then
+
+            //            if not rsDval.bof and not rsDval.eof then
+
+            //                do until rsDval.EOF
+
+
+            //                    for i = 0 to rsDval.fields.count - 1
+
+            //                        sDval = sDval & rsDval(i).value & "~"
+
+            //                    next i
+
+
+            //                    sDval = mid(sDval, 1, sDval.length - 1)
+
+
+            //                        sDval = sDval & "|"
+
+            //                    rsDval.movenext()
+
+            //                loop
+
+            //                sDval = mid(sDval, 1, sDval.length - 1)
+
+
+            //            end if
+
+            //            rsDval = nothing
+
+            //        end if
+
+
+            //        strResult = DenFld & "$" & strResult & "#" & sDval
+
+
+            //    rs = nothing
+
+
+            //    elseif strArr(0)= "GETOPDATE" then
+            //    strResult = ""
+
+
+            //        obj = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+
+            //        sqlStr = "SELECT TO_CHAR(OPDATE,'DD-MON-YYYY') OPDATE FROM " & strArr(4) & "MST WHERE ACCNO='" & strArr(5) & "' AND GLCODE='" & strArr(3) & "' AND BRANCHCODE='" & strArr(1) & "'"
+
+
+            //        rs = obj.SingleSelectStat(sqlStr)
+
+
+            //        if obj.ConnError = "Connected" then
+
+            //            if not rs.BOF and not rs.EOF then
+
+            //                strResult = rs(0).value
+
+            //            end if
+
+            //        end if
+
+            //    rs = nothing
+
+
+            //    elseif strArr(0)= "GETPAN" then
+            //    strResult = ""
+
+
+            //        obj = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+
+            //        sqlStr = "SELECT COUNT(*) cnt FROM gencustinfomst WHERE customerid = (SELECT CUSTOMERID FROM DEPMST WHERE glcode=" & strArr(3) & " AND Accno=" & strArr(4) & " AND branchcode='" & strArr(1) & "' AND currencycode='" & strArr(2) & "') AND kycid='2' AND PANNO IS NOT NULL AND branchcode='" & strArr(1) & "' AND currencycode='" & strArr(2) & "'"
+
+
+            //        rs = obj.SingleSelectStat(sqlStr)
+
+
+            //        if obj.ConnError = "Connected" then
+
+            //            if not rs.BOF and not rs.EOF then
+
+            //                strResult = rs(0).value
+
+            //                if strResult = "1" then
+            //                    strResult = "Y"
+
+            //                else
+            //                strResult = "N"
+
+            //                end if
+
+            //            end if
+
+            //        end if
+
+            //    rs = nothing
+
+
+            //    elseif strArr(0)= "NOMREP" then
+            //    strResult = ""
+
+
+            //        dim strcond
+
+
+            //        obj = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+
+            //        strcond = ""
+
+
+            //        if strArr(4) = "" then
+            //            strcond = " AND A.ACCNO='" & strArr(3) & "' AND A.GLCODE='" & strArr(2) & "' AND A.MODULEID='" & strArr(1) & "' AND A.BRANCHCODE='" & strArr(5) & "'"
+
+            //        else
+            //                strcond = " AND A.CUSTOMERID='" & strArr(4) & "' AND A.BRANCHCODE='" & strArr(5) & "' "
+
+            //        end if
+
+
+
+            //        sqlStr = "SELECT SUBSTR(C.SUBNATURE,1,8) SUBNATUR, A.ACCNO, A.CUSTOMERID, A.NOMCUSTOMERID, SUBSTR(A.NOMINEENAME,1,35) NOMNAME, TO_CHAR(A.MINNOMINEEDOB,'DD-MON-YYYY') MINDOB, NVL(B.NARRATION,'') RELATION, SUBSTR(A.RECEIVERNAME,1,35) RECEIVNAME, A.ALLOCATION FROM GENCUSTNOMINEEMST A, GENRELATIONSMST B,(SELECT MODULEID, GLCODE, SUBNATURE SUBNATURE FROM SBTYPEMST UNION SELECT MODULEID, GLCODE, SUBNATURE SUBNATURE FROM CATYPEMST UNION SELECT MODULEID, GLCODE, CCSUBNATURE  SUBNATURE FROM CCTYPEMST UNION SELECT MODULEID, GLCODE, DEPSUBNATURE SUBNATURE FROM DEPTYPEMST UNION SELECT MODULEID, GLCODE, LOANSUBNATURE SUBNATURE FROM LOANTYPEMST UNION SELECT MODULEID, GLCODE, MODULEID SUBNATURE FROM genglsheetmst WHERE moduleid IN ('SHARES','LOCKERS') AND BRANCHCODE = '" & strArr(5) & "' ) C WHERE B.CODE=A.RELATION AND A.MODULEID = C.MODULEID AND a.GLCODE=C.GLCODE " & strcond & " UNION SELECT SUBSTR(C.SUBNATURE,1,8) SUBNATUR, A.ACCNO, A.CUSTOMERID, A.NOMCUSTOMERID, SUBSTR(A.NOMINEENAME,1,35) NOMNAME, TO_CHAR(A.MINNOMINEEDOB,'DD-MON-YYYY') MINDOB, A.RELATION, SUBSTR(A.RECEIVERNAME,1,35) RECEIVNAME, A.ALLOCATION FROM GENCUSTNOMINEEMST A, GENRELATIONSMST B, (SELECT MODULEID, GLCODE, SUBNATURE SUBNATURE FROM SBTYPEMST UNION SELECT MODULEID, GLCODE, SUBNATURE SUBNATURE FROM CATYPEMST UNION SELECT MODULEID, GLCODE, CCSUBNATURE  SUBNATURE FROM CCTYPEMST UNION SELECT MODULEID, GLCODE, DEPSUBNATURE SUBNATURE FROM DEPTYPEMST UNION SELECT MODULEID, GLCODE, LOANSUBNATURE SUBNATURE FROM LOANTYPEMST UNION SELECT MODULEID, GLCODE, MODULEID SUBNATURE FROM genglsheetmst WHERE moduleid IN ('SHARES','LOCKERS') AND BRANCHCODE = '" & strArr(5) & "' ) C WHERE A.MODULEID = C.MODULEID AND a.GLCODE=C.GLCODE AND LENGTH(trim(a.relation)) > 2 " & strcond & " UNION SELECT SUBSTR(C.SUBNATURE,1,8) SUBNATUR, A.ACCNO, A.CUSTOMERID, A.NOMCUSTOMERID, SUBSTR(A.NOMINEENAME,1,35) NOMNAME, TO_CHAR(A.MINNOMINEEDOB,'DD-MON-YYYY') MINDOB, A.RELATION, SUBSTR(A.RECEIVERNAME,1,35) RECEIVNAME, A.ALLOCATION FROM GENCUSTNOMINEEMST A,(SELECT MODULEID, GLCODE, SUBNATURE SUBNATURE FROM SBTYPEMST UNION SELECT MODULEID, GLCODE, SUBNATURE SUBNATURE FROM CATYPEMST UNION SELECT MODULEID, GLCODE, CCSUBNATURE  SUBNATURE FROM CCTYPEMST UNION SELECT MODULEID, GLCODE, DEPSUBNATURE SUBNATURE FROM DEPTYPEMST UNION SELECT MODULEID, GLCODE, LOANSUBNATURE SUBNATURE FROM LOANTYPEMST UNION SELECT MODULEID, GLCODE, MODULEID SUBNATURE FROM genglsheetmst WHERE moduleid IN ('SHARES','LOCKERS') AND BRANCHCODE = '" & strArr(5) & "' ) C WHERE A.MODULEID = C.MODULEID AND a.GLCODE=C.GLCODE AND a.relation IS NULL " & strcond & " "
+
+
+            //        rs = obj.SingleSelectStat(sqlStr)
+
+
+            //        if obj.ConnError = "Connected" then
+
+            //            if not rs.BOF and not rs.EOF then
+
+            //                do until rs.EOF
+
+
+            //                    if strArr(4) = "" then
+            //                        strResult = strResult & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(6).value & "~" & rs(7).value & "~" & rs(8).value & "|"
+
+            //                    else
+            //                strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(6).value & "~" & rs(7).value & "~" & rs(8).value & "|"
+
+            //                    end if
+
+            //                    rs.movenext()
+
+            //                loop
+            //                strResult = mid(strResult, 1, strResult.length - 1)
+
+
+            //            end if
+
+            //        end if
+
+            //    rs = nothing
+
+
+
+            //elseif strArr(0)= "BLCACCWISE" then
+
+            //obj = server.CreateObject("ReportPurposeOnly.Reportonly")
+            //strResult = ""
+            //if strArr(7) <> "Between" then
+            //    actdatewhere = "TRANSDATE" & strArr(7) & "'" & strArr(5) & "'"
+            //else if strArr(7) = "Between" then
+            //    actdatewhere = "TRANSDATE >= '" & strArr(5) & "' and TRANSDATE <= '" & strArr(6) & "'"
+            //end if
+
+            //sqlstr = "SELECT d.TRANSDATE, d.RECEIPTNO,d.ACCNO,m.name, d.AMOUNT  FROM LOANDLYCOLLDTLS d, loanmst m WHERE d.accno = m.accno AND d.glcode = m.glcode AND d.branchcode = m.branchcode AND d.currencycode = m.currencycode AND d.branchcode = '" & strArr(1) & "' AND d.currencycode = '" & strArr(2) & "' AND d.glcode = '" & strArr(3) & "' AND d.accno = '" & strArr(4) & "' AND " & actdatewhere & ""
+
+            //rs = obj.SingleSelectStat(sqlstr)
+
+            //if obj.ConnError = "Connected" then
+
+            //    if not rs.BOF and not rs.EOF then
+
+            //        do until rs.EOF
+
+
+            //        strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "|"
+
+            //                rs.movenext()
+
+            //                loop
+            //                strResult = mid(strResult, 1, strResult.length - 1)
+
+            //        end if
+
+            //    end if
+            //rs = nothing
+
+            //elseif strArr(0)= "BLCAGENTWISEDET" then
+
+            //obj = server.CreateObject("ReportPurposeOnly.Reportonly")
+            //strResult = ""
+            //if strArr(6) <> "Between" then
+            //    actdatewhere = "TRANSDATE" & strArr(6) & "'" & strArr(4) & "'"
+            //else if strArr(6) = "Between" then
+            //    actdatewhere = "TRANSDATE >= '" & strArr(4) & "' and TRANSDATE <= '" & strArr(5) & "'"
+            //end if
+
+            //sqlstr = "SELECT d.TRANSDATE, d.RECEIPTNO,d.ACCNO,m.name, d.AMOUNT  FROM LOANDLYCOLLDTLS d, loanmst m WHERE d.accno = m.accno AND d.glcode = m.glcode AND d.branchcode = m.branchcode AND d.currencycode = m.currencycode AND d.branchcode = '" & strArr(1) & "' AND d.currencycode = '" & strArr(2) & "' AND d.agentcode = '" & strArr(3) & "' AND " & actdatewhere & ""
+
+            //rs = obj.SingleSelectStat(sqlstr)
+
+            //if obj.ConnError = "Connected" then
+
+            //    if not rs.BOF and not rs.EOF then
+
+            //        do until rs.EOF
+
+
+            //        strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "|"
+
+            //                rs.movenext()
+
+            //                loop
+            //                strResult = mid(strResult, 1, strResult.length - 1)
+
+            //        end if
+
+            //    end if
+            //rs = nothing
+
+            //elseif strArr(0)= "BLCAGENTWISESUM" then
+
+            //obj = server.CreateObject("ReportPurposeOnly.Reportonly")
+            //strResult = ""
+            //if strArr(6) <> "Between" then
+            //    actdatewhere = "TRANSDATE" & strArr(6) & "'" & strArr(4) & "'"
+            //else if strArr(6) = "Between" then
+            //    actdatewhere = "TRANSDATE >= '" & strArr(4) & "' and TRANSDATE <= '" & strArr(5) & "'"
+            //end if
+
+            //sqlstr = "SELECT d.TRANSDATE,count(*), sum(d.AMOUNT)  FROM LOANDLYCOLLDTLS d, loanmst m WHERE d.accno = m.accno AND d.glcode = m.glcode AND d.branchcode = m.branchcode AND d.currencycode = m.currencycode AND d.branchcode = '" & strArr(1) & "' AND d.currencycode = '" & strArr(2) & "' AND d.agentcode = '" & strArr(3) & "' AND " & actdatewhere & " group by d.transdate"
+
+            //rs = obj.SingleSelectStat(sqlstr)
+
+            //if obj.ConnError = "Connected" then
+
+            //    if not rs.BOF and not rs.EOF then
+
+            //        do until rs.EOF
+
+
+            //        strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "|"
+
+            //                rs.movenext()
+
+            //                loop
+            //                strResult = mid(strResult, 1, strResult.length - 1)
+
+            //        end if
+
+            //    end if
+            //rs = nothing
+
+            //elseif strArr(0)= "BLCAGENTWISETRN" then
+
+            //obj = server.CreateObject("ReportPurposeOnly.Reportonly")
+            //strResult = ""
+            //if strArr(6) <> "Between" then
+            //    actdatewhere = "TRANSFERDATE" & strArr(6) & "'" & strArr(4) & "'"
+            //else if strArr(6) = "Between" then
+            //    actdatewhere = "TRANSFERDATE >= '" & strArr(4) & "' and TRANSFERDATE <= '" & strArr(5) & "'"
+            //end if
+
+            //sqlstr = "SELECT d.TRANSFERDATE, d.RECEIPTNO,d.ACCNO,m.name, d.AMOUNT  FROM LOANDLYCOLLDTLS d, loanmst m WHERE d.accno = m.accno AND d.glcode = m.glcode AND d.branchcode = m.branchcode AND d.currencycode = m.currencycode AND d.branchcode = '" & strArr(1) & "' AND d.currencycode = '" & strArr(2) & "' AND d.agentcode = '" & strArr(3) & "' AND " & actdatewhere & ""
+
+            //rs = obj.SingleSelectStat(sqlstr)
+
+            //if obj.ConnError = "Connected" then
+
+            //    if not rs.BOF and not rs.EOF then
+
+            //        do until rs.EOF
+
+
+            //        strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "|"
+
+            //                rs.movenext()
+
+            //                loop
+            //                strResult = mid(strResult, 1, strResult.length - 1)
+
+            //        end if
+
+            //    end if
+            //rs = nothing
+
+
+
+            //    elseif strArr(0)= "SLNOVALUE" then
+            //    strResult = ""
+
+
+            //    obj = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+
+            //        sqlStr = "SELECT NVL(MAX(sno),0) FROM LOANINTRATEDTLS " & strArr(2) & " "
+
+
+            //        rs = obj.SingleSelectStat(sqlStr)
+
+
+            //        if obj.ConnError = "Connected" then
+
+            //            if not rs.BOF and not rs.EOF then
+
+            //                strResult = rs(0).value
+
+            //            end if
+
+            //        end if
+
+            //    rs = nothing
+
+
+            //    elseif strArr(0)= "DATECHECK" then
+            //    strResult = ""
+
+
+            //    obj = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+
+            //        sqlStr = "SELECT COUNT(*) FROM LOANINTRATEDTLS where EFFECTIVEDATE='" & strArr(2) & "' " & strArr(3) & " "
+
+
+            //        rs = obj.SingleSelectStat(sqlStr)
+
+
+            //        if obj.ConnError = "Connected" then
+
+            //            if not rs.BOF and not rs.EOF then
+
+            //                strResult = rs(0).value
+
+            //            end if
+
+            //        end if
+
+            //    rs = nothing
+
+
+            //    elseif strArr(0)= "MONCHK" then
+            //    strResult = ""
+
+
+            //    obj = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+
+            //        sqlStr = "SELECT MAX(tomonths) FROM LOANINTRATEDTLS " & strArr(2) & " "
+
+
+            //        rs = obj.SingleSelectStat(sqlStr)
+
+
+            //        if obj.ConnError = "Connected" then
+
+            //            if not rs.BOF and not rs.EOF then
+
+            //                strResult = rs(0).value
+
+            //            end if
+
+            //        end if
+
+            //    rs = nothing
+
+
+            //    elseif strArr(0)= "AMTCHK" then
+            //    strResult = ""
+
+
+            //    obj = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+
+            //        sqlStr = "SELECT MAX(TOAMOUNT) FROM LOANINTRATEDTLS " & strArr(2) & " "
+
+
+            //        rs = obj.SingleSelectStat(sqlStr)
+
+
+            //        if obj.ConnError = "Connected" then
+
+            //            if not rs.BOF and not rs.EOF then
+
+            //                strResult = rs(0).value
+
+            //            end if
+
+            //        end if
+
+            //    rs = nothing
+
+
+            //    elseif strArr(0)= "AMOUNTROI" then
+            //    strResult = ""
+
+
+            //    obj = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+
+            //        sqlStr = "SELECT NVL(a.ROI,0) roi , NVL(b.ABOVELIMITROI,0) abvroi FROM LOANINTRATEDTLS a,LoanTypeMst b WHERE b.glcode=a.glcode AND b.status='R' AND a.effectivedate = (SELECT MAX(effectivedate) FROM LOANINTRATEDTLS WHERE glcode='" & strArr(2) & "' AND status='R' AND fromamount <= '" & strArr(1) & "' AND TOAMOUNT >= '" & strArr(1) & "') and a.glcode='" & strArr(2) & "' AND fromamount <= '" & strArr(1) & "' AND TOAMOUNT >= '" & strArr(1) & "'"
+
+
+            //        rs = obj.SingleSelectStat(sqlStr)
+
+
+            //        if obj.ConnError = "Connected" then
+
+            //            if not rs.BOF and not rs.EOF then
+
+            //                strResult = rs(0).value & "~" & rs(1).value
+
+            //            end if
+
+            //        end if
+
+            //    rs = nothing
+
+
+            //    elseif strArr(0)= "SALTYP" then
+            //    strResult = ""
+
+
+            //    obj = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+
+            //        sqlStr = "SELECT COUNT(*) FROM SALARYCTRLMST WHERE SALTYPE='" & strArr(1) & "' "
+
+
+            //        rs = obj.SingleSelectStat(sqlStr)
+
+
+            //        if obj.ConnError = "Connected" then
+
+            //            if not rs.BOF and not rs.EOF then
+
+            //                strResult = rs(0).value
+
+            //            end if
+
+            //        end if
+
+            //    rs = nothing
+
+
+            //    elseif strArr(0)= "SALTYPDATA" then
+            //    strResult = ""
+
+
+            //    obj = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+            //    obj1 = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+            //    obj6 = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+            //    obj7 = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+            //    rs1 = Server.CreateObject("adodb.recordset")
+
+            //    rs2 = Server.CreateObject("adodb.recordset")
+
+            //    rs3 = Server.CreateObject("adodb.recordset")
+
+
+            //        sqlStr = "SELECT MODULEID, GLCODE, ACCNO, DRCRFLG FROM SALARYCTRLMST WHERE SALTYPE='" & strArr(1) & "' AND MODULEID IS NOT NULL AND GLCODE IS NOT NULL AND ACCNO IS NOT NULL AND DRCRFLG  IS NOT NULL AND APPLICATIONDATE = (SELECT MAX(APPLICATIONDATE) FROM SALARYCTRLMST WHERE SALTYPE='" & strArr(1) & "' AND MODULEID IS NOT NULL AND GLCODE IS NOT NULL AND ACCNO IS NOT NULL AND DRCRFLG  IS NOT NULL)"
+
+
+            //        rs = obj.SingleSelectStat(sqlStr)
+
+
+            //        if obj.ConnError = "Connected" then
+
+            //            if not rs.BOF and not rs.EOF then
+
+            //                strResult = rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value
+
+
+            //                    sqlStr1 = "SELECT NARRATION FROM GENMODULETYPESMST WHERE MODULEID ='" & rs(0).value & "'"
+
+            //                    rs1 = obj1.SingleSelectStat(sqlStr1)
+
+
+            //                    if obj1.ConnError = "Connected" then
+
+            //                        if not rs1.BOF and not rs1.EOF then
+
+            //                            strResult = strResult & "~" & rs1(0).value
+
+            //                        else
+            //                strResult = strResult & "~" & "0"
+
+            //                        end if
+
+            //                    end if
+
+            //                    rs1 = nothing
+
+            //                    obj1 = nothing
+
+
+            //                    sqlStr2 = "SELECT NARRATION FROM GENGLSHEETMST WHERE MODULEID ='" & rs(0).value & "' AND GLCODE='" & rs(1).value & "'"
+
+            //                    rs2 = obj6.SingleSelectStat(sqlStr2)
+
+
+            //                    if obj6.ConnError = "Connected" then
+
+            //                        if not rs2.BOF and not rs2.EOF then
+
+            //                            strResult = strResult & "~" & rs2(0).value
+
+            //                        else
+            //                strResult = strResult & "~" & "0"
+
+            //                        end if
+
+            //                    end if
+
+            //                    rs2 = nothing
+
+            //                    obj6 = nothing
+
+
+            //                    sqlStr3 = "SELECT NAME FROM " & rs(0).value & "MST WHERE GLCODE='" & rs(1).value & "' AND ACCNO='" & rs(2).value & "'"
+
+            //                    rs3 = obj7.SingleSelectStat(sqlStr3)
+
+
+            //                    if obj7.ConnError = "Connected" then
+
+            //                        if not rs3.BOF and not rs3.EOF then
+
+            //                            strResult = strResult & "~" & rs3(0).value
+
+            //                        else
+            //                strResult = strResult & "~" & "0"
+
+            //                        end if
+
+            //                    end if
+
+            //                    rs3 = nothing
+
+            //                    obj7 = nothing
+
+
+            //            end if
+
+            //        end if
+
+            //    rs = nothing
+
+
+            //    elseif strArr(0)= "PARDATA" then
+            //    strResult = ""
+
+
+            //    obj = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+
+            //        sqlStr = "SELECT VALUE, FLAG, FROMAMT, TOAMT FROM SALARYPARMST WHERE EFFECTIVEDATE = '" & strArr(1) & "' AND CODE = '" & strArr(2) & "' AND status='R' "
+
+
+            //        rs = obj.SingleSelectStat(sqlStr)
+
+
+            //        if obj.ConnError = "Connected" then
+
+            //            if not rs.BOF and not rs.EOF then
+
+            //                strResult = rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value
+
+            //            end if
+
+            //        end if
+
+            //    rs = nothing
+
+
+            //    elseif strArr(0)= "EMPDEDDTLS" then
+            //    strResult = ""
+
+
+            //    obj = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+            //    obj1 = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+            //    obj6 = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+            //    obj7 = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+            //    obj8 = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+            //    rs1 = Server.CreateObject("adodb.recordset")
+
+            //    rs2 = Server.CreateObject("adodb.recordset")
+
+            //    rs3 = Server.CreateObject("adodb.recordset")
+
+            //    rs4 = Server.CreateObject("adodb.recordset")
+
+
+            //    '	sqlStr="SELECT BRANCHCODE, MODULEID, GLCODE, ACCNO, AMOUNT, NARRATION, NOOFMONTH, DEDTYPE FROM SALARYDEDUCTIONMST where EMPCODE='" & strArr(1) & "' and applicationdate='" & strArr(2) & "' AND accno='" & strArr(3) & "' AND dedtype='" & strArr(4) & "'  "
+
+
+            //    sqlStr = "SELECT BRANCHCODE, MODULEID, GLCODE, ACCNO, AMOUNT, NARRATION, NOOFMONTH, DEDTYPE FROM SALARYDEDUCTIONMST where EMPCODE='" & strArr(1) & "' and applicationdate='" & strArr(2) & "'"
+
+
+            //        rs = obj.SingleSelectStat(sqlStr)
+
+
+            //        if obj.ConnError = "Connected" then
+
+            //            if not rs.BOF and not rs.EOF then
+
+            //                strResult = rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "~" & rs(7).value
+
+
+            //                    sqlStr4 = "SELECT NARRATION FROM GENBANKBRANCHMST WHERE branchcode='" & rs(0).value & "'"
+
+            //                    rs4 = obj8.SingleSelectStat(sqlStr4)
+
+
+            //                    if obj8.ConnError = "Connected" then
+
+            //                        if not rs4.BOF and not rs4.EOF then
+
+            //                            strResult = strResult & "~" & rs4(0).value
+
+            //                        else
+            //                strResult = strResult & "~" & "0"
+
+            //                        end if
+
+            //                    end if
+
+            //                    rs4 = nothing
+
+            //                    obj8 = nothing
+
+
+            //                    sqlStr1 = "SELECT NARRATION FROM GENMODULETYPESMST WHERE MODULEID ='" & rs(1).value & "'"
+
+            //                    rs1 = obj1.SingleSelectStat(sqlStr1)
+
+
+            //                    if obj1.ConnError = "Connected" then
+
+            //                        if not rs1.BOF and not rs1.EOF then
+
+            //                            strResult = strResult & "~" & rs1(0).value
+
+            //                        else
+            //                strResult = strResult & "~" & "0"
+
+            //                        end if
+
+            //                    end if
+
+            //                    rs1 = nothing
+
+            //                    obj1 = nothing
+
+
+            //                    sqlStr2 = "SELECT NARRATION FROM GENGLSHEETMST WHERE MODULEID ='" & rs(1).value & "' AND GLCODE='" & rs(2).value & "'"
+
+            //                    rs2 = obj6.SingleSelectStat(sqlStr2)
+
+
+            //                    if obj6.ConnError = "Connected" then
+
+            //                        if not rs2.BOF and not rs2.EOF then
+
+            //                            strResult = strResult & "~" & rs2(0).value
+
+            //                        else
+            //                strResult = strResult & "~" & "0"
+
+            //                        end if
+
+            //                    end if
+
+            //                    rs2 = nothing
+
+            //                    obj6 = nothing
+
+
+            //                    sqlStr3 = "SELECT NAME FROM " & rs(1).value & "MST WHERE GLCODE='" & rs(2).value & "' AND ACCNO='" & rs(3).value & "'"
+
+            //                    rs3 = obj7.SingleSelectStat(sqlStr3)
+
+
+            //                    if obj7.ConnError = "Connected" then
+
+            //                        if not rs3.BOF and not rs3.EOF then
+
+            //                            strResult = strResult & "~" & rs3(0).value
+
+            //                        else
+            //                strResult = strResult & "~" & "0"
+
+            //                        end if
+
+            //                    end if
+
+            //                    rs3 = nothing
+
+            //                    obj7 = nothing
+
+
+            //            end if
+
+            //        end if
+
+
+            //    rs = nothing
+
+
+            //    elseif strArr(0)= "MEMBERDTLS" then
+            //    strResult = ""
+
+
+            //    obj = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+            //    obj1 = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+            //    rs1 = Server.CreateObject("adodb.recordset")
+
+
+            //    dim aadhar
+
+            //    dim strStatus
+
+            //    dim strFname
+
+            //        sqlStr = "SELECT a.CUSTOMERID,a.STATUS, b.MAILADDRESS1||', '|| b.MAILADDRESS2 add1 , b.MAILADDRESS3||', '|| b.MAILADDRESS4||', '|| b.MAILADDRESS5 Add2, b.CUSTMOBILE, b.AADHARUID, b.KYCID,b.fathername  FROM SHARESMST a,gencustinfomst b WHERE b.customerid=a.customerid AND b.branchcode=a.branchcode AND a.accno = '" & strArr(3) & "' AND a.glcode='" & strArr(4) & "' AND a.branchcode='" & strArr(1) & "' "
+
+
+            //        rs = obj.SingleSelectStat(sqlStr)
+
+
+            //        if obj.ConnError = "Connected" then
+
+            //            if not rs.BOF and not rs.EOF then
+
+
+            //                if isdbnull(rs(5).value) = false then
+            //                    aadhar = mid(rs(5).value, 1, 4) & " " & mid(rs(5).value, 5, 4) & " " & mid(rs(5).value, 9, 4)
+
+            //                else
+            //                aadhar = ""
+
+            //                end if
+
+
+            //                strResult = rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & aadhar & "~" & rs(6).value
+
+            //                strFname = iif(isdbnull(rs(7).value), "", rs(7).value)
+
+
+            //                 'kyc = iif(isdbnull(rs(6).value),"",rs(6).value) 
+
+
+            //                if isdbnull(rs(6).value) = false then
+
+
+            //                    if rs(6).value = 0 then
+            //                        strResult = strResult & "~~"
+
+            //                    else
+            //                sqlStr = ""
+
+
+            //                        sqlStr = "SELECT b.DESCRIPTION,a.PANNO FROM gencustinfomst a,GENKYCMST b WHERE b.code=a.KYCID AND a.customerid='" & rs(0).value & "'"
+
+
+            //                        rs1 = obj1.SingleSelectStat(sqlStr)
+
+
+            //                        if obj1.ConnError = "Connected" then
+
+            //                            if not rs1.BOF and not rs1.EOF then
+
+
+            //                                strResult = strResult & "~" & rs1(0).value & "~" & rs1(1).value
+
+
+            //                            end if
+
+            //                        end if
+
+            //                        rs1 = nothing
+
+            //                    end if
+
+            //                else
+            //                    strResult = strResult & "~~"
+
+            //                end if
+
+            //            end if
+
+            //        end if
+
+            //        strResult = strResult & "~" & strFname
+
+            //    rs = nothing
+
+
+            //    elseif strArr(0)= "CUSTDTLS" then
+            //    strResult = ""
+
+            //    dim aadhar
+
+            //    dim strStatus
+
+            //    dim strFname
+
+            //    obj = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+            //    obj1 = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+            //    rs1 = Server.CreateObject("adodb.recordset")
+
+
+            //        sqlStr = "SELECT MAILADDRESS1||', '|| MAILADDRESS2 add1 , MAILADDRESS3||', '|| MAILADDRESS4||', '|| MAILADDRESS5 Add2, CUSTMOBILE, AADHARUID, KYCID,DECODE(status,'R','Running','C','Closed','J','Frozen'),fathername  FROM gencustinfomst  WHERE customerid= '" & strArr(3) & "' "
+
+
+            //        rs = obj.SingleSelectStat(sqlStr)
+
+
+            //        if obj.ConnError = "Connected" then
+
+            //            if not rs.BOF and not rs.EOF then
+
+
+            //                if isdbnull(rs(3).value) = false then
+            //                    aadhar = mid(rs(3).value, 1, 4) & " " & mid(rs(3).value, 5, 4) & " " & mid(rs(3).value, 9, 4)
+
+            //                else
+            //                aadhar = ""
+
+            //                end if
+
+
+            //                strResult = rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & aadhar & "~" & rs(4).value
+
+            //                strStatus = iif(isdbnull(rs(5).value), "", rs(5).value)
+
+            //                strFname = iif(isdbnull(rs(6).value), "", rs(6).value)
+
+
+            //                 'kyc = iif(isdbnull(rs(4).value),"",rs(4).value) 
+
+
+            //                if isdbnull(rs(4).value) = false then
+
+
+            //                    if rs(4).value = 0 then
+            //                        strResult = strResult & "~~"
+
+            //                    else
+            //                sqlStr = ""
+
+
+            //                        sqlStr = "SELECT b.DESCRIPTION,a.PANNO FROM gencustinfomst a,GENKYCMST b WHERE b.code=a.KYCID and a.KYCID = '" & rs(4).value & "' and a.customerid='" & strArr(3) & "'"
+
+
+            //                        rs1 = obj1.SingleSelectStat(sqlStr)
+
+
+            //                        if obj1.ConnError = "Connected" then
+
+            //                            if not rs1.BOF and not rs1.EOF then
+
+
+            //                                strResult = strResult & "~" & rs1(0).value & "~" & rs1(1).value
+
+
+            //                            end if
+
+            //                        end if
+
+            //                        rs1 = nothing
+
+            //                    end if
+
+
+            //                else
+            //                    strResult = strResult & "~~"
+
+            //                end if
+
+
+            //            end if
+
+            //        end if
+
+            //        strResult = strResult & "~" & strStatus & "~" & strFname
+
+            //    rs = nothing
+
+
+            //    elseif strArr(0)= "FRMINTACRCUST" then
+
+            //    strResult = ""
+
+            //        dim rsmain, rschk
+
+            //        Dim frmdate
+
+            //        Dim strmon
+
+            //        Dim stryear
+
+            //        dim frmdate1, todate1, stTodat
+
+            //        dim todatetemp
+
+            //        dim todate2
+
+            //        rsmain = Server.CreateObject("adodb.recordset")
+
+            //        rschk = Server.CreateObject("adodb.recordset")
+
+            //        rschk1 = Server.CreateObject("adodb.recordset")
+
+            //        todate2 = dateadd("d", -1, cdate(strArr(5)))
+
+            //        todate2 = format(todate2, "dd-MMM-yyyy")
+
+            //        obj = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+
+            //        if strArr(6) = "0" then
+            //            sqlstr = "SELECT glcode,accno FROM depmst WHERE branchcode='" & strArr(1) & "' AND (closedate IS NULL OR closedate BETWEEN '" & strArr(4) & "' AND '" & strArr(5) & "') AND glcode<>'104270' AND customerid='" & strArr(3) & "' ORDER BY TO_NUMBER(glcode),TO_NUMBER(accno)"
+
+            //        else
+            //                sqlstr = "SELECT glcode,accno,branchcode FROM depmst WHERE (closedate IS NULL OR closedate BETWEEN '" & strArr(4) & "' AND '" & strArr(5) & "') AND glcode<>'104270' AND customerid='" & strArr(3) & "' ORDER BY TO_NUMBER(glcode),TO_NUMBER(accno)"
+
+            //        end if
+
+
+
+
+            //        rsmain = obj.SingleSelectStat(sqlStr)
+
+
+            //            if rsmain.recordcount > 0 then
+
+            //                if not rsmain.eof and not rsmain.bof then
+
+
+            //                    do until rsmain.EOF
+
+
+
+
+            //                    ''changed by mahender on 29 - 08 - 2016
+
+            //                    if strArr(6) = "0" then
+            //                        sqlStr = " SELECT T.BRANCHCODE, T.CUSTOMERID,t.glcode,T.accno,TRIM(T.NAME),T.PANNO,T.OPBAL,TO_CHAR(T.EFFDATE,'DD-Mon-YYYY'), T.ROI, ( SUM((SELECT (NVL((SELECT SUM(ABS(C.INTAMOUNT)) FROM DEPINTACCRUEDDTLS C WHERE C.ACCNO=D.ACCNO AND C.GLCODE=D.GLCODE AND C.INTAMOUNT>0 AND C.MODULEID='DEP' AND C.applicationdate BETWEEN '" & strArr(4) & "' AND '" & strArr(5) & "' AND C.BRANCHCODE=D.BRANCHCODE AND C.CURRENCYCODE=D.CURRENCYCODE AND (C.branchcode,C.glcode,C.accno,C.batchno,C.tranno) NOT IN (SELECT branchcode,glcode,accno,batchno,tranno FROM DEPINTACCRUEDDTLS C1 WHERE C1.ACCNO=C.ACCNO AND C1.GLCODE=C.GLCODE AND C1.BRANCHCODE=C.BRANCHCODE AND C1.CURRENCYCODE=C.CURRENCYCODE AND C1.INTAMOUNT>0 AND C1.MODULEID='DEP' AND C1.APPLICATIONDATE BETWEEN '" & strArr(4) & "' AND '" & strArr(5) & "'  AND (remarks LIKE 'TDS From%' OR remarks LIKE 'TDSREFUND%') AND '" & strArr(5) & "' = (SELECT MAX(applicationdate) FROM DEPINTACCRUEDDTLS C2 WHERE C2.ACCNO=C1.ACCNO AND C2.GLCODE=C1.GLCODE AND C2.BRANCHCODE=C1.BRANCHCODE AND C2.CURRENCYCODE=C1.CURRENCYCODE AND C2.INTAMOUNT>0 AND C2.MODULEID='DEP' AND C2.APPLICATIONDATE BETWEEN '" & strArr(4) & "' AND '" & todate2 & "' AND (remarks LIKE 'TDS From%' OR remarks LIKE 'TDSREFUND%')) )),0) - (NVL((SELECT SUM(intamount) FROM depintaccrueddtls WHERE accno = '" & rsmain(1).value & "' AND glcode = '" & rsmain(0).value & "' AND branchcode = '" & strArr(1) & "' AND    applicationdate = '" & strArr(5) & "' AND remarks LIKE 'TDS From%' AND intamount > 0),0)) + NVL((SELECT SUM(ABS(E.AMOUNT)) FROM DEPTRAN E WHERE E.CHQFVG = 'DEPIP' AND E.ACCNO=D.ACCNO AND E.GLCODE=D.GLCODE AND E.MODULEID='DEP' AND E.BRANCHCODE=D.BRANCHCODE AND E.CURRENCYCODE=D.CURRENCYCODE AND E.applicationdate BETWEEN '" & strArr(4) & "' AND '" & strArr(5) & "' AND (E.branchcode,E.glcode,E.accno,E.batchno,E.tranno) NOT IN (SELECT branchcode,glcode,accno,batchno,tranno FROM DEPTRAN C1 WHERE C1.ACCNO=E.ACCNO AND C1.GLCODE=E.GLCODE AND C1.BRANCHCODE=E.BRANCHCODE AND C1.CURRENCYCODE=E.CURRENCYCODE AND C1.MODULEID='DEP' AND C1.APPLICATIONDATE BETWEEN '" & strArr(4) & "' AND '" & strArr(5) & "'  AND (C1.remarks LIKE 'TDS From%' OR C1.remarks LIKE 'TDSREFUND%') AND '" & strArr(5) & "' = (SELECT MAX(applicationdate) FROM DEPTRAN C2 WHERE C2.ACCNO=C1.ACCNO AND C2.GLCODE=C1.GLCODE AND C2.BRANCHCODE=C1.BRANCHCODE AND C2.CURRENCYCODE=C1.CURRENCYCODE AND  C2.MODULEID='DEP' AND C2.APPLICATIONDATE BETWEEN '" & strArr(4) & "' AND '" & todate2 & "' AND (remarks LIKE 'TDS From%' OR remarks LIKE 'TDSREFUND%')))),0)  - (NVL((SELECT SUM(amount) FROM deptran WHERE accno = '" & rsmain(1).value & "' AND glcode = '" & rsmain(0).value & "' AND branchcode = '" & strArr(1) & "' AND applicationdate = '" & strArr(5) & "' AND remarks LIKE 'TDS From%' AND amount > 0),0))) INTAMT FROM DEPMST D WHERE D.BRANCHCODE=T.BRANCHCODE AND d.ACCNO=T.ACCNO AND D.GLCODE = T.GLCODE AND  d.CURRENCYCODE='INR')) + NVL((SELECT NVL(INTAMOUNT,0) FROM DEPINTACCRUEDDTLS WHERE glcode='" & rsmain(0).value & "' AND accno='" & rsmain(1).value & "' AND TRANSFERTODEP BETWEEN '" & strArr(4) & "' AND '" & strArr(5) & "' AND (REMARKS LIKE 'Excess Interest Adjusted%'  OR REMARKS LIKE 'Excess Int Rev To GL%') AND branchcode='" & strArr(1) & "'),0) - NVL((SELECT NVL(sum(intamount),0)intamount FROM DEPINTACCRUEDDTLS C1 WHERE C1.ACCNO='" & rsmain(1).value & "' AND C1.GLCODE='" & rsmain(0).value & "' AND C1.BRANCHCODE='" & strArr(1) & "' AND C1.INTAMOUNT>0 AND C1.MODULEID='DEP' AND C1.APPLICATIONDATE BETWEEN '" & strArr(4) & "' AND '" & strArr(5) & "'  AND (remarks LIKE 'TDSREFUND%')),0) + NVL((SELECT NVL(AMOUNT,0) FROM DEPTRAN WHERE glcode='" & rsmain(0).value & "' AND accno='" & rsmain(1).value & "' AND EFFECTIVEDATE BETWEEN '" & strArr(4) & "' AND '" & strArr(5) & "' AND remarks LIKE 'Excess Int Rev To GL%' AND AMOUNT<0 AND branchcode='" & strArr(1) & "'),0) ) INTEREST,T.status FROM(SELECT A.BRANCHCODE,A.CUSTOMERID,a.glcode,A.accno,A.NAME,B.PANNO,A.OPBAL, A.EFFDATE, A.ROI, A.status FROM DEPMST A, GENCUSTINFOMST B  WHERE (A.CLOSEDATE IS NULL OR A.CLOSEDATE BETWEEN '" & strArr(4) & "' AND '" & strArr(5) & "') AND A.customerid=b.customerid AND A.branchcode='" & strArr(1) & "' AND a.customerid = '" & strArr(3) & "' AND a.accno='" & rsmain(1).value & "'  AND a.glcode='" & rsmain(0).value & "' GROUP BY A.BRANCHCODE,A.CUSTOMERID,a.glcode,A.accno,A.NAME,B.PANNO,A.OPBAL,A.EFFDATE, A.ROI, A.status ) T GROUP BY T.BRANCHCODE, T.CUSTOMERID, T.glcode,T.accno,T.NAME ,T.panno, T.OPBAL, T.EFFDATE, T.ROI, T.status ORDER BY T.branchcode,T.customerid "
+
+
+            //                    else
+            //                sqlStr = " SELECT T.BRANCHCODE, T.CUSTOMERID,t.glcode,T.accno,TRIM(T.NAME),T.PANNO,T.OPBAL,TO_CHAR(T.EFFDATE,'DD-Mon-YYYY'), T.ROI, ( SUM((SELECT (NVL((SELECT SUM(ABS(C.INTAMOUNT)) FROM DEPINTACCRUEDDTLS C WHERE C.ACCNO=D.ACCNO AND C.GLCODE=D.GLCODE AND C.INTAMOUNT>0 AND C.MODULEID='DEP' AND C.applicationdate BETWEEN '" & strArr(4) & "' AND '" & strArr(5) & "' AND C.BRANCHCODE=D.BRANCHCODE AND C.CURRENCYCODE=D.CURRENCYCODE AND (C.branchcode,C.glcode,C.accno,C.batchno,C.tranno) NOT IN (SELECT branchcode,glcode,accno,batchno,tranno FROM DEPINTACCRUEDDTLS C1 WHERE C1.ACCNO=C.ACCNO AND C1.GLCODE=C.GLCODE AND C1.BRANCHCODE=C.BRANCHCODE AND C1.CURRENCYCODE=C.CURRENCYCODE AND C1.INTAMOUNT>0 AND C1.MODULEID='DEP' AND C1.APPLICATIONDATE BETWEEN '" & strArr(4) & "' AND '" & strArr(5) & "'  AND (remarks LIKE 'TDS From%' OR remarks LIKE 'TDSREFUND%') AND '" & strArr(5) & "' = (SELECT MAX(applicationdate) FROM DEPINTACCRUEDDTLS C2 WHERE C2.ACCNO=C1.ACCNO AND C2.GLCODE=C1.GLCODE AND C2.BRANCHCODE=C1.BRANCHCODE AND C2.CURRENCYCODE=C1.CURRENCYCODE AND C2.INTAMOUNT>0 AND C2.MODULEID='DEP' AND C2.APPLICATIONDATE BETWEEN '" & strArr(4) & "' AND '" & todate2 & "' AND (remarks LIKE 'TDS From%' OR remarks LIKE 'TDSREFUND%')) )),0) - (NVL((SELECT SUM(intamount) FROM depintaccrueddtls WHERE accno = '" & rsmain(1).value & "' AND glcode = '" & rsmain(0).value & "' AND branchcode = '" & rsmain(2).value & "' AND    applicationdate = '" & strArr(5) & "' AND remarks LIKE 'TDS From%' AND intamount > 0),0)) + NVL((SELECT SUM(ABS(E.AMOUNT)) FROM DEPTRAN E WHERE E.CHQFVG = 'DEPIP' AND E.ACCNO=D.ACCNO AND E.GLCODE=D.GLCODE AND E.MODULEID='DEP' AND E.BRANCHCODE=D.BRANCHCODE AND E.CURRENCYCODE=D.CURRENCYCODE AND E.applicationdate BETWEEN '" & strArr(4) & "' AND '" & strArr(5) & "' AND (E.branchcode,E.glcode,E.accno,E.batchno,E.tranno) NOT IN (SELECT branchcode,glcode,accno,batchno,tranno FROM DEPTRAN C1 WHERE C1.ACCNO=E.ACCNO AND C1.GLCODE=E.GLCODE AND C1.BRANCHCODE=E.BRANCHCODE AND C1.CURRENCYCODE=E.CURRENCYCODE AND C1.MODULEID='DEP' AND C1.APPLICATIONDATE BETWEEN '" & strArr(4) & "' AND '" & strArr(5) & "'  AND (C1.remarks LIKE 'TDS From%' OR C1.remarks LIKE 'TDSREFUND%') AND '" & strArr(5) & "' = (SELECT MAX(applicationdate) FROM DEPTRAN C2 WHERE C2.ACCNO=C1.ACCNO AND C2.GLCODE=C1.GLCODE AND C2.BRANCHCODE=C1.BRANCHCODE AND C2.CURRENCYCODE=C1.CURRENCYCODE AND  C2.MODULEID='DEP' AND C2.APPLICATIONDATE BETWEEN '" & strArr(4) & "' AND '" & todate2 & "' AND (remarks LIKE 'TDS From%' OR remarks LIKE 'TDSREFUND%')))),0)  - (NVL((SELECT SUM(amount) FROM deptran WHERE accno = '" & rsmain(1).value & "' AND glcode = '" & rsmain(0).value & "' AND branchcode = '" & rsmain(2).value & "' AND applicationdate = '" & strArr(5) & "' AND remarks LIKE 'TDS From%' AND amount > 0),0))) INTAMT FROM DEPMST D WHERE D.BRANCHCODE=T.BRANCHCODE AND d.ACCNO=T.ACCNO AND D.GLCODE = T.GLCODE AND  d.CURRENCYCODE='INR')) + NVL((SELECT NVL(INTAMOUNT,0) FROM DEPINTACCRUEDDTLS WHERE glcode='" & rsmain(0).value & "' AND accno='" & rsmain(1).value & "' AND TRANSFERTODEP BETWEEN '" & strArr(4) & "' AND '" & strArr(5) & "' AND (REMARKS LIKE 'Excess Interest Adjusted%'  OR REMARKS LIKE 'Excess Int Rev To GL%') AND branchcode='" & rsmain(2).value & "'),0) - NVL((SELECT NVL(sum(intamount),0)intamount FROM DEPINTACCRUEDDTLS C1 WHERE C1.ACCNO='" & rsmain(1).value & "' AND C1.GLCODE='" & rsmain(0).value & "' AND C1.BRANCHCODE='" & rsmain(2).value & "' AND C1.INTAMOUNT>0 AND C1.MODULEID='DEP' AND C1.APPLICATIONDATE BETWEEN '" & strArr(4) & "' AND '" & strArr(5) & "'  AND (remarks LIKE 'TDSREFUND%')),0) + NVL((SELECT NVL(AMOUNT,0) FROM DEPTRAN WHERE glcode='" & rsmain(0).value & "' AND accno='" & rsmain(1).value & "' AND EFFECTIVEDATE BETWEEN '" & strArr(4) & "' AND '" & strArr(5) & "' AND remarks LIKE 'Excess Int Rev To GL%' AND AMOUNT<0 AND branchcode='" & rsmain(2).value & "'),0) ) INTEREST,T.status FROM(SELECT A.BRANCHCODE,A.CUSTOMERID,a.glcode,A.accno,A.NAME,B.PANNO,A.OPBAL, A.EFFDATE, A.ROI, A.status FROM DEPMST A, GENCUSTINFOMST B  WHERE (A.CLOSEDATE IS NULL OR A.CLOSEDATE BETWEEN '" & strArr(4) & "' AND '" & strArr(5) & "') AND A.customerid=b.customerid AND A.branchcode='" & rsmain(2).value & "' AND a.customerid = '" & strArr(3) & "' AND a.accno='" & rsmain(1).value & "'  AND a.glcode='" & rsmain(0).value & "' GROUP BY A.BRANCHCODE,A.CUSTOMERID,a.glcode,A.accno,A.NAME,B.PANNO,A.OPBAL,A.EFFDATE, A.ROI, A.status ) T GROUP BY T.BRANCHCODE, T.CUSTOMERID, T.glcode,T.accno,T.NAME ,T.panno, T.OPBAL, T.EFFDATE, T.ROI, T.status ORDER BY T.branchcode,T.customerid "
+
+            //                    end if
+
+
+            //                    rs = obj.SingleSelectStat(sqlStr)
+
+
+            //                        if obj.ConnError = "Connected" then
+
+            //                            if not rs.BOF and not rs.EOF then
+
+            //                                do until rs.EOF
+
+
+            //                                    strResult = strResult & "'" & rs(0).value & "','" & rs(1).value & "','" & rs(2).value & "','" & rs(3).value & "','" & rs(4).value & "','" & rs(5).value & "','" & rs(6).value & "','" & rs(7).value & "','" & rs(8).value & "','" & rs(9).value & "','" & rs(10).value & "'|"
+
+
+            //                                rs.movenext()
+
+            //                                loop
+            //                            end if
+
+            //                        end if
+
+
+            //                    rsmain.movenext()
+
+            //                    loop ''rsmain
+            //            end if
+
+            //        else
+            //                    strResult = strResult
+
+            //        end if
+
+
+            //        if strResult<> "" then
+            //            strResult = mid(strResult, 1, strResult.length - 1)
+
+            //        end if
+
+
+            //        rsmain = nothing
+
+            //        rs = nothing
+
+
+            //        dim obj2
+
+
+            //        obj2 = SERVER.CreateObject("GeneralTransactions.DBTransactions")
+
+            //        rscnt = Server.CreateObject("adodb.recordset")
+
+            //        Dim ArrTran(2,4)
+            //		p = 0
+
+            //        strinscnt = ""
+
+            //        strdelcnt = ""
+
+
+            //        if strArr(6) = "0" then
+            //            sqlStr = "SELECT count(*) cnt FROM INTACRRUDREPORTTEMP where branchcode = '" & strArr(1) & "'"
+
+            //        else
+            //                sqlStr = "SELECT count(*) cnt FROM INTACRRUDREPORTTEMP "
+
+            //        end if
+
+
+            //        rscnt = obj.SingleSelectStat(sqlStr)
+
+
+            //        if rscnt.recordcount > 0 then
+
+            //            if rscnt(0).value > 0 then
+            //                strdelcnt = "Y"
+
+            //                if strArr(6) = "0" then
+
+            //                    ArrTran(p, 0) = "D"
+
+            //                    ArrTran(p, 1) = "INTACRRUDREPORTTEMP"
+
+            //                    ArrTran(p, 2) = ""
+
+            //                    ArrTran(p, 3) = ""
+
+            //                    ArrTran(p, 4) = "branchcode = '" & strArr(1) & "'"
+
+            //                else
+            //                ArrTran(p, 0) = "D"
+
+            //                    ArrTran(p, 1) = "INTACRRUDREPORTTEMP"
+
+            //                    ArrTran(p, 2) = ""
+
+            //                    ArrTran(p, 3) = ""
+
+            //                    ArrTran(p, 4) = ""
+
+            //                end if
+
+
+            //            end if ''rscnt(0).value > 0
+
+            //        end if ''rscnt.recordcount > 0
+
+
+            //        if strdelcnt = "Y" then
+            //            Strmsg = obj2.DataTransactions(ArrTran)
+
+            //        end if ''strdelcnt = "Y"
+
+
+            //        if strResult<> "" then
+            //        p = 0
+
+
+            //        strinscnt = "Y"
+
+            //        ArrTran(p, 0) = "I"
+
+            //        ArrTran(p, 1) = "INTACRRUDREPORTTEMP"
+
+            //        ArrTran(p, 2) = "BRANCHCODE, CUSTOMERID, GLCODE, ACCNO, NAME, PANNO, OPBAL, EFFDATE, ROI, INTEREST, STATUS"
+
+            //        ArrTran(p, 3) = strResult
+
+            //        ArrTran(p, 4) = ""
+
+            //        end if ''strResult<> ""
+
+
+            //        if strinscnt = "Y" then
+
+            //            if strdelcnt = "Y" then
+
+            //                if Strmsg = "Transaction Sucessful."  then
+            //                    Strmsg = obj2.DataTransactions(ArrTran)
+
+            //                else
+            //                strResult = Strmsg
+
+            //                end if '' Strmsg = "Transaction Sucessful."
+
+            //            else
+            //                Strmsg = obj2.DataTransactions(ArrTran)
+
+            //            end if ''strdelcnt = "Y"
+
+            //        else
+            //                strResult = Strmsg
+
+            //        end if ''strinscnt = "Y"
+
+
+            //        if Strmsg = "Transaction Sucessful." then
+            //            strResult = ""
+
+
+            //            if strArr(6) = "0" then
+            //                sqlStr = "SELECT  GLCODE, ACCNO, SUBSTR(NAME,1,35) Name, OPBAL, TO_CHAR(EFFDATE,'dd-Mon-yyyy') eff, ROI, SUM(INTEREST), PANNO, STATUS FROM INTACRRUDREPORTTEMP where branchcode = '" & strArr(1) & "' and Customerid='" & strArr(3) & "' GROUP BY  GLCODE, ACCNO, Name, OPBAL, EFFDATE, ROI, PANNO, STATUS ORDER BY TO_NUMBER(GLCODE),TO_NUMBER(ACCNO)"
+
+            //            else
+            //                sqlStr = "SELECT  BRANCHCODE, GLCODE, ACCNO, SUBSTR(NAME,1,35) Name, OPBAL, TO_CHAR(EFFDATE,'dd-Mon-yyyy') eff, ROI, SUM(INTEREST), PANNO, STATUS FROM INTACRRUDREPORTTEMP where Customerid='" & strArr(3) & "' GROUP BY  BRANCHCODE,GLCODE, ACCNO, Name, OPBAL, EFFDATE, ROI, PANNO, STATUS ORDER BY TO_NUMBER(GLCODE),TO_NUMBER(ACCNO)"
+
+            //            end if
+
+
+
+            //            rs = obj.SingleSelectStat(sqlStr)
+
+
+            //            if not rs.BOF and not rs.EOF then
+
+            //                do until rs.EOF
+
+
+            //                    if strArr(6) = "0" then
+            //                        strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "~" & rs(7).value & "~" & rs(8).value & "|"
+
+            //                    else
+            //                strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "~" & rs(7).value & "~" & rs(8).value & "~" & rs(9).value & "|"
+
+            //                    end if
+
+            //                rs.movenext()
+
+            //                loop
+            //            end if ''not rs.BOF and not rs.EOF
+
+
+            //            if strResult<> "" then
+            //                strResult = mid(strResult, 1, strResult.length - 1)
+
+            //            end if
+
+            //            rs = nothing
+
+            //        else
+            //                    strResult = Strmsg
+
+            //        end if ''Strmsg = "Transaction Sucessful."
+
+            //        rscnt = nothing
+
+
+            //    elseif strArr(0)= "USERWISE" then
+            //    strResult = ""
+
+            //    dim strDateCond, strUserCond
+
+            //    obj = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+
+            //        if strArr(1) = "BETWEEN" then
+            //            strDateCond = " and applicationdate between '" & strArr(2) & "' and '" & strArr(3) & "'"
+
+            //            else
+            //                strDateCond = " and applicationdate " & strArr(1) & " '" & strArr(2) & "'"
+
+            //        end if
+
+            //    if strArr(6) = "USERBY"  then
+
+            //        if strArr(4) = "ALL" then
+            //            strUserCond = " userid in (SELECT userid FROM genusermst WHERE ACCOUNTSTATUS='R' AND branchcode='" & strArr(5) & "')"
+
+            //            else
+            //                strUserCond = " userid = '" & strArr(4) & "'"
+
+            //        end if
+
+
+            //    sqlStr = " SELECT TO_CHAR(applicationdate,'dd-Mon-yyyy') appdate, batchno, tranno, glcode, accno, amount, APPROVEDBY,userid,branchcode FROM GENTRANSLOG WHERE " & strUserCond & "  " & strDateCond & " AND branchcode='" & strArr(5) & "'" & _
+
+            //    " UNION ALL " & _
+
+            //    " SELECT TO_CHAR(applicationdate,'dd-Mon-yyyy') appdate, batchno, tranno, glcode, accno, amount, APPROVEDBY,userid,branchcode FROM GENTRANSLOGbkp WHERE  " & strUserCond & "  " & strDateCond & " AND branchcode='" & strArr(5) & "' order by 1"
+            //else
+            //    if strArr(4) = "ALL" then
+            //            strUserCond = " APPROVEDBY in (SELECT userid FROM genusermst WHERE ACCOUNTSTATUS='R' AND branchcode='" & strArr(5) & "')"
+
+            //            else
+            //                strUserCond = " APPROVEDBY = '" & strArr(4) & "'"
+
+            //        end if
+
+
+            //    sqlStr = " SELECT TO_CHAR(applicationdate,'dd-Mon-yyyy') appdate, batchno, tranno, glcode, accno, amount,userid, APPROVEDBY,branchcode FROM GENTRANSLOG WHERE " & strUserCond & "  " & strDateCond & " AND branchcode='" & strArr(5) & "'" & _
+
+            //    " UNION ALL " & _
+
+            //    " SELECT TO_CHAR(applicationdate,'dd-Mon-yyyy') appdate, batchno, tranno, glcode, accno, amount, userid, APPROVEDBY,branchcode FROM GENTRANSLOGbkp WHERE  " & strUserCond & "  " & strDateCond & " AND branchcode='" & strArr(5) & "' order by 1"
+            //end if
+
+            //        rs = obj.SingleSelectStat(sqlStr)
+
+
+            //        if obj.ConnError = "Connected" then
+
+            //            if not rs.BOF and not rs.EOF then
+
+
+            //                do until rs.EOF
+
+
+            //                strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "~" & rs(7).value & "~" & rs(8).value & "|"
+
+
+            //                rs.movenext()
+
+            //                loop
+
+            //            end if
+
+            //        end if
+
+
+            //        if strResult<> "" then
+            //            strResult = mid(strResult, 1, strResult.length - 1)
+
+            //        else
+            //                strResult = ""
+
+            //        end if
+
+
+
+            //    rs = nothing
+
+
+            //    elseif strArr(0)= "CDRATIO" then
+            //    strResult = ""
+
+
+            //    obj = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+
+            //        sqlStr = "SELECT DLFLAG FROM CDRATIOPARM where glcode='" & strArr(2) & "' and moduleid='" & strArr(1) & "' and status='R' and DLFLAG in ('A','B','C')"
+
+
+            //        rs = obj.SingleSelectStat(sqlStr)
+
+
+            //        if obj.ConnError = "Connected" then
+
+            //            if not rs.BOF and not rs.EOF then
+
+
+            //                strResult = rs(0).value
+
+
+            //            end if
+
+            //        end if
+
+
+            //    rs = nothing
+
+
+            //    elseif strArr(0)= "CRRSLR" then
+            //    strResult = ""
+
+
+            //    obj = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+
+            //        sqlStr = "SELECT DLFLAG,FLAGSUBTYPE FROM CDRATIOPARM where glcode='" & strArr(2) & "' and moduleid='" & strArr(1) & "' and status='R' and DLFLAG in ('CRR','SLR') "
+
+
+            //        rs = obj.SingleSelectStat(sqlStr)
+
+
+            //        if obj.ConnError = "Connected" then
+
+            //            if not rs.BOF and not rs.EOF then
+
+
+            //                strResult = rs(0).value & "|" & rs(1).value
+
+
+            //            end if
+
+            //        end if
+
+
+            //    rs = nothing
+
+
+            //    elseif strArr(0)= "REFDETAIL" then
+            //    strResult = ""
+
+
+            //    obj = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+
+            //        sqlStr = "SELECT LTRIM(SUBSTR(a.ACCNO,10),'0') ACCNO,LTRIM(SUBSTR(a.ACCNO,4,6),'0') glcode, a.NOBOOKS, a.NOPAGES, a.BO, a.ATPAR, a.AUTOCHARGESYN, a.CHQFROM, a.CHQTO, b.NARRATION, a.INSTRTYPE FROM CHQREQSTDTLS a,GENGLSHEETMST b WHERE b.glcode=LTRIM(SUBSTR(a.ACCNO,4,6),'0') AND b.BRANCHCODE=a.BRANCHCODE AND a.REFNO = '" & strArr(1) & "' AND AF4ACTYPE = '" & strArr(3) & "' AND a.BRANCHCODE='" & strArr(2) & "' "
+
+
+            //        rs = obj.SingleSelectStat(sqlStr)
+
+
+            //        if obj.ConnError = "Connected" then
+
+            //            if not rs.BOF and not rs.EOF then
+
+
+            //                strResult = rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "~" & rs(7).value & "~" & rs(8).value & "~" & rs(9).value & "~" & rs(10).value
+
+
+            //            end if
+
+            //        end if
+
+
+            //    rs = nothing
+
+
+            //    elseif strArr(0)= "VALDETAL" then
+            //    strResult = ""
+
+
+            //    obj = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+            //    obj1 = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+            //    obj7 = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+            //    obj3 = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+            //    rs1 = Server.CreateObject("adodb.recordset")
+
+            //    rs2 = Server.CreateObject("adodb.recordset")
+
+            //    rs3 = Server.CreateObject("adodb.recordset")
+
+
+            //        sqlStr = "SELECT SUBSTR(MAILADDRESS1,0,40),SUBSTR(MAILADDRESS2,0,40),SUBSTR(MAILADDRESS3,0,40),NVL(MAILADDRESS4,0) city,NVL(MAILADDRESS5,0) pin, customertype from gencustinfomst where customerid=(SELECT Customerid FROM " & strArr(2) & "MST WHERE ACCNO = '" & strArr(4) & "' AND GLCODE = '" & strArr(3) & "' AND BRANCHCODE = '" & strArr(1) & "') "
+
+
+            //        rs = obj.SingleSelectStat(sqlStr)
+
+
+            //        if obj.ConnError = "Connected" then
+
+            //            if not rs.BOF and not rs.EOF then
+
+
+            //                strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "|"
+
+
+            //                sqlStr = ""
+
+
+            //                sqlStr = "SELECT JOINTHOLDERYN, SIGNATUREYN from " & strArr(2) & "MST WHERE ACCNO = '" & strArr(4) & "' AND GLCODE = '" & strArr(3) & "' AND BRANCHCODE = '" & strArr(1) & "'"
+
+
+            //                rs1 = obj1.SingleSelectStat(sqlStr)
+
+
+            //                if obj1.ConnError = "Connected" then
+
+            //                    if not rs1.BOF and not rs1.EOF then
+
+            //                        strResult = strResult & rs1(0).value & "~" & rs1(1).value & "|"
+
+
+
+            //                        if rs1(0).value = "Y" then ''for joint holder details
+
+            //                            sqlStr = ""
+
+
+            //                            sqlStr = "select SUBSTR(JOINTHOLDERNAME,0,40)name from GENCUSTJOINTHOLDERMST WHERE ACCNO = '" & strArr(4) & "' AND GLCODE = '" & strArr(3) & "' AND BRANCHCODE = '" & strArr(1) & "'"
+
+
+            //                            rs2 = obj7.SingleSelectStat(sqlStr)
+
+
+            //                            if obj7.ConnError = "Connected" then
+
+            //                                if not rs2.BOF and not rs2.EOF then
+
+
+            //                                    do until rs2.EOF
+
+
+            //                                        strResult = strResult & rs2(0).value & "~"
+
+
+            //                                    rs2.movenext()
+
+            //                                    loop
+
+
+            //                                else
+            //                strResult = strResult & "0" & "~"
+
+            //                                end if
+
+            //                                    strResult = strResult & "|"
+
+            //                            end if
+
+
+            //                        else
+            //                    strResult = strResult & "0" & "~"
+
+
+            //                            strResult = strResult & "|"
+
+            //                        end if
+
+            //                        rs2 = nothing
+
+
+            //                        if rs1(1).value = "Y" then '' for signatories
+            //                            sqlStr = ""
+
+
+            //                            sqlStr = "select SUBSTR(NAME,0,40)name from GENSIGNOTRIESMST WHERE ACCNO = '" & strArr(4) & "' AND GLCODE = '" & strArr(3) & "' AND BRANCHCODE = '" & strArr(1) & "'"
+
+
+            //                            rs3 = obj3.SingleSelectStat(sqlStr)
+
+
+            //                            if obj3.ConnError = "Connected" then
+
+            //                                if not rs3.BOF and not rs3.EOF then
+
+
+            //                                    do until rs3.EOF
+
+
+            //                                        strResult = strResult & rs3(0).value & "~"
+
+
+            //                                    rs3.movenext()
+
+            //                                    loop
+
+
+            //                                else
+            //                strResult = strResult & "0" & "~"
+
+            //                                end if
+
+
+            //                            end if
+
+
+            //                        else
+            //                        strResult = strResult & "0" & "~"
+
+            //                        end if
+
+            //                        rs3 = nothing
+
+            //                    end if
+
+            //                end if
+
+
+            //                rs1 = nothing
+
+
+            //            end if
+
+            //        end if
+
+
+            //    rs = nothing
+
+
+            //    elseif strArr(0)= "CHQSLNO" then
+            //    strResult = ""
+
+
+            //    obj = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+
+            //        sqlStr = "SELECT BOOKENDNO FROM GENINSTRUMENTSTOCKDTLS WHERE INSTRTYPE='" & strArr(4) & "' AND GLCODE='" & strArr(3) & "' AND MODULEID='" & strArr(2) & "' AND BRANCHCODE='" & strArr(1) & "' "
+
+
+            //        rs = obj.SingleSelectStat(sqlStr)
+
+
+            //        if obj.ConnError = "Connected" then
+
+            //            if not rs.BOF and not rs.EOF then
+
+
+            //                strResult = rs(0).value
+
+
+            //            end if
+
+            //        end if
+
+
+            //    rs = nothing
+
+
+            //    elseif strArr(0)= "BCSLNO" then
+            //    strResult = ""
+
+
+            //    obj = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+
+            //        sqlStr = "SELECT NVL(MAX(chqto),0) + 1 FROM BCREQSTDTLS WHERE BRANCHCODE='" & strArr(1) & "' and INSTRTYPE='" & strArr(2) & "'"
+
+
+            //        rs = obj.SingleSelectStat(sqlStr)
+
+
+            //        if obj.ConnError = "Connected" then
+
+            //            if not rs.BOF and not rs.EOF then
+
+            //                strResult = rs(0).value
+
+            //            end if
+
+            //        end if
+
+
+            //    rs = nothing
+
+
+            //    elseif strArr(0)= "FRMCHQNO" then
+            //    strResult = ""
+
+
+            //    obj = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+
+            //        sqlStr = "SELECT CHQFROM,CHQTO FROM CHQREQSTDTLS WHERE REFNO='" & strArr(6) & "' AND INSTRTYPE='" & strArr(4) & "' AND AF6GLCD='" & strArr(3) & "' AND AF4ACTYPE='" & strArr(2) & "' AND BRANCHCODE='" & strArr(1) & "' "
+
+
+            //        rs = obj.SingleSelectStat(sqlStr)
+
+
+            //        if obj.ConnError = "Connected" then
+
+            //            if not rs.BOF and not rs.EOF then
+
+
+            //                strResult = rs(0).value & "~" & rs(1).value
+
+
+            //            end if
+
+            //        end if
+
+
+            //    rs = nothing
+
+
+            //    elseif strArr(0)= "GRIDDETAIL" then
+            //    strResult = ""
+
+            //    dim dblgstper
+
+            //    dim dblcessper
+
+            //    dblgstper = 0
+
+            //    dblcessper = 0
+
+
+            //    obj = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+
+            //        'sqlStr=" SELECT a.STATUS,a.INSTRTYPE, a.NOBOOKS, a.NOPAGES, a.BO, a.CHQFROM, a.CHQTO, NVL(b.CHARGEPERLEAF,0) charge, NVL(c.SRVSTAXPERCENT,0) sertax FROM CHQREQSTDTLS a, " & strArr(3) & "TYPEMST b,GENCHARGESPMT c WHERE c.CHARGESID='CIC' AND b.glcode=LTRIM(SUBSTR(a.ACCNO,4,6),'0') AND  b.MODULEID=a.AF4ACTYPE AND LTRIM(SUBSTR(a.ACCNO,4,6),'0')='" & strArr(4) & "' AND LTRIM(SUBSTR(a.ACCNO,10),'0') = '" & strArr(5) & "' AND a.REFNO = '" & strArr(6) & "' AND AF4ACTYPE = '" & strArr(3) & "' AND a.BRANCHCODE='" & strArr(1) & "'"
+
+            //        if strNFTSCONVYN = "N" then
+            //        sqlStr = " SELECT a.STATUS,a.INSTRTYPE, a.NOBOOKS, a.NOPAGES, a.BO, a.CHQFROM, a.CHQTO, NVL(b.CHARGEPERLEAF,0) charge FROM CHQREQSTDTLS a, " & strArr(3) & "TYPEMST b WHERE b.glcode=LTRIM(SUBSTR(a.ACCNO,4,6),'0') AND LTRIM(SUBSTR(a.ACCNO,4,6),'0')='" & strArr(4) & "' AND LTRIM(SUBSTR(a.ACCNO,10),'0') = '" & strArr(5) & "' AND a.REFNO = '" & strArr(6) & "' AND AF4ACTYPE = '" & strArr(7) & "' AND a.BRANCHCODE='" & strArr(1) & "'"
+            //else
+            //                sqlStr = " SELECT a.STATUS,a.INSTRTYPE, a.NOBOOKS, a.NOPAGES, a.BO, a.CHQFROM, a.CHQTO, NVL(b.CHARGEPERLEAF,0) charge FROM CHQREQSTDTLS a, " & strArr(3) & "TYPEMST b WHERE b.glcode=LTRIM(SUBSTR(a.ACCNO,4,6),'0')  AND a.ACCNO = '" & strArr(5) & "' AND a.REFNO = '" & strArr(6) & "' AND AF4ACTYPE = '" & strArr(7) & "' AND a.BRANCHCODE='" & strArr(1) & "'"
+            //end if
+
+
+            //        rs = obj.SingleSelectStat(sqlStr)
+
+
+            //        if obj.ConnError = "Connected" then
+
+            //            if not rs.BOF and not rs.EOF then
+
+
+            //                    obj1 = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+            //                rs1 = Server.CreateObject("adodb.recordset")
+
+            //                '' Goods and service tax percentage on commission or charges
+            //        sqlStr = "SELECT nvl(IMPYN,'N') IMPYN,nvl(value1,'0') value1 FROM GENCONFIGMST WHERE CODE='GSTR'"
+
+            //        rs1 = obj1.SingleSelectStat(sqlStr)
+
+
+            //                if obj1.ConnError = "Connected" then
+
+            //                    if not rs1.BOF and not rs1.EOF then
+
+            //                        if rs1(0).value = "Y" then
+            //                            dblgstper = rs1(1).value
+
+            //                        else
+            //                dblgstper = 0
+
+            //                        end if
+
+            //                        else
+            //                    dblgstper = 0
+
+            //                    end if
+
+            //                    else
+            //                    dblgstper = 0
+
+            //                 end if
+
+            //                 rs1 = nothing
+
+            //            '' Cess percentage on commission or charges
+
+            //            sqlStr = "SELECT nvl(IMPYN,'N') IMPYN,nvl(value1,'0') value1 FROM GENCONFIGMST WHERE CODE='CESS'"
+
+            //        rs1 = obj1.SingleSelectStat(sqlStr)
+
+
+            //                if obj1.ConnError = "Connected" then
+
+            //                    if not rs1.BOF and not rs1.EOF then
+
+            //                        if rs1(0).value = "Y" then
+            //                            dblcessper = rs1(1).value
+
+            //                        else
+            //                dblcessper = 0
+
+            //                        end if
+
+            //                        else
+            //                    dblcessper = 0
+
+            //                    end if
+
+            //                    else
+            //                    dblcessper = 0
+
+            //                 end if
+
+            //                 rs1 = nothing
+
+
+
+            //                strResult = rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "~" & rs(7).value & "~" & dblgstper & "~" & dblcessper
+
+
+            //            end if
+
+            //        end if
+
+
+            //    rs = nothing
+
+
+            //    elseif strArr(0)= "LOCKADVDTLS" then
+            //    strResult = ""
+
+
+            //    obj = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+
+            //        sqlStr = " SELECT a.LNKGLCODE, b.NARRATION, a.LNKACCNO, a.LNKNAME, a.AMOUNT FROM LOCKERADVLNKDTLS a, genglsheetmst b WHERE b.glcode = a.LNKGLCODE AND b.branchcode = a.branchcode AND a.status='R' AND a.accno='" & strArr(2) & "' AND a.branchcode='" & strArr(1) & "' "
+
+
+            //        rs = obj.SingleSelectStat(sqlStr)
+
+
+            //        if obj.ConnError = "Connected" then
+
+            //            if not rs.BOF and not rs.EOF then
+
+
+            //                strResult = rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value
+
+
+            //            end if
+
+            //        end if
+
+
+            //    rs = nothing
+
+
+            //    elseif strArr(0)= "DAYREPORT" then
+            //    strResult = ""
+
+
+            //    obj = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+
+            //        sqlStr = " SELECT Z.glcode,Z.GLDESCRIPTION,Z.openingbalance, Z.DEBIT, Z.CREDIT, Z.dbcash, Z.dbtran, Z.dbclg, Z.crcash, Z.crtran,Z.crclg FROM(SELECT X.glcode,X.GLDESCRIPTION,NVL(X.openingbalance,y.openingbalance) openingbalance, NVL(X.DEBIT,y.debit) debit,NVL(X.CREDIT,y.CREDIT) CREDIT, NVL(X.dbcash,y.dbcash) dbcash, NVL(X.dbtran,y.dbtran) dbtran, NVL(X.dbclg,y.dbclg) dbclg, NVL(X.crcash,y.crcash) crcash, NVL(X.crtran,y.crtran) crtran, NVL(X.crclg,y.crclg) crclg FROM (SELECT O.glcode,O.GLDESCRIPTION,NVL(O.openingbalance,0) openingbalance, P.DEBIT, P.CREDIT, P.dbcash, P.dbtran, P.dbclg,P.crcash,P.crtran, P.crclg FROM (SELECT M.glcode,M.GLDESCRIPTION,NVL(SUM(N.openingbalance),0)openingbalance FROM(SELECT DISTINCT a.glcode,d.GLDESCRIPTION FROM GENGLDAYBOOK a,genglmastmst d WHERE a.glcode=d.glcode )M,(SELECT a.glcode,NVL((a.closingbalance),0)openingbalance FROM GENGLDAYBOOK a, genglmastmst d WHERE a.glcode=d.glcode AND a.applicationdate=(SELECT MAX(b.applicationdate) FROM GENGLDAYBOOK b WHERE b.glcode=a.glcode AND b.branchcode=a.branchcode AND b.applicationdate<'" & strArr(1) & "'))N WHERE M.glcode=N.glcode(+) GROUP BY M.glcode,M.GLDESCRIPTION ORDER BY M.GLCODE )O,(SELECT c.glcode,c.glnarration,SUM(NVL(c.GTOTAL1,0)) DEBIT,SUM(NVL(c.GTOTAL2,0)) CREDIT,SUM(NVL(c.TOTAL1,0)) dbcash, SUM(NVL(c.TOTAL3,0)) dbtran, SUM(NVL(c.TOTAL5,0)) dbclg, SUM(NVL(c.TOTAL2,0)) crcash, SUM(NVL(c.TOTAL4,0)) crtran, SUM(NVL(c.TOTAL6,0)) crclg FROM GENGLDAYBOOK c WHERE c.Applicationdate BETWEEN '" & strArr(1) & "' AND  '" & strArr(2) & "' GROUP BY c.GLCODE,c.GLNARRATION )P WHERE O.glcode = P.glcode(+) ORDER BY O.GLCODE )X,(SELECT X.glcode,X.GLDESCRIPTION,X.openingbalance, X.DEBIT, X.CREDIT, X.dbcash, X.dbtran, X.dbclg, X.crcash,X.crtran,X.crclg FROM (SELECT O.glcode,O.GLDESCRIPTION,NVL(O.openingbalance,0) openingbalance, P.DEBIT, P.CREDIT, P.dbcash, P.dbtran, P.dbclg,P.crcash, P.crtran, P.crclg FROM (SELECT M.glcode,M.GLDESCRIPTION,NVL(SUM(N.openingbalance),0)openingbalance FROM (SELECT DISTINCT a.glcode,d.GLDESCRIPTION FROM GENGLDAYBOOK a,genglmastmst d WHERE a.glcode=d.glcode )M,( SELECT a.glcode,NVL((a.closingbalance),0)openingbalance FROM GENGLDAYBOOK a, genglmastmst d WHERE a.glcode=d.glcode AND a.applicationdate=(SELECT MAX(b.applicationdate) FROM GENGLDAYBOOK b WHERE b.glcode=a.glcode AND b.branchcode=a.branchcode AND b.applicationdate<'" & strArr(1) & "'))N WHERE N.glcode=M.glcode GROUP BY M.glcode,M.GLDESCRIPTION )O,( SELECT c.glcode,d.GLDESCRIPTION,0 DEBIT, 0 CREDIT,0 dbcash, 0 dbtran, 0 dbclg, 0 crcash,0 crtran, 0 crclg  FROM GENGLDAYBOOK c,genglmastmst d WHERE c.glcode=d.glcode AND c.Applicationdate=(SELECT MAX(b.applicationdate) FROM GENGLDAYBOOK b WHERE b.glcode=c.glcode AND b.branchcode=c.branchcode AND b.applicationdate<'" & strArr(1) & "') GROUP BY c.GLCODE,d.GLDESCRIPTION)P WHERE P.glcode=O.glcode)X )Y WHERE Y.GLCODE  (+) =  X.GLCODE)Z MINUS SELECT Z.glcode,Z.GLDESCRIPTION,Z.openingbalance, Z.DEBIT, Z.CREDIT, Z.dbcash, Z.dbtran, Z.dbclg, Z.crcash, Z.crtran, Z.crclg FROM ( SELECT X.glcode,X.GLDESCRIPTION,NVL(X.openingbalance,y.openingbalance) openingbalance, NVL(X.DEBIT,y.debit) debit,NVL(X.CREDIT,y.CREDIT) CREDIT, NVL(X.dbcash,y.dbcash) dbcash, NVL(X.dbtran,y.dbtran) dbtran, NVL(X.dbclg,y.dbclg) dbclg, NVL(X.crcash,y.crcash) crcash, NVL(X.crtran,y.crtran) crtran, NVL(X.crclg,y.crclg) crclg FROM ( SELECT O.glcode,O.GLDESCRIPTION,NVL(O.openingbalance,0) openingbalance, P.DEBIT, P.CREDIT, P.dbcash, P.dbtran, P.dbclg, P.crcash,P.crtran, P.crclg FROM ( SELECT M.glcode,M.GLDESCRIPTION,NVL(SUM(N.openingbalance),0)openingbalance FROM (SELECT DISTINCT a.glcode,d.GLDESCRIPTION FROM GENGLDAYBOOK a,genglmastmst d WHERE a.glcode=d.glcode )M,( SELECT a.glcode,NVL((a.closingbalance),0)openingbalance FROM GENGLDAYBOOK a, genglmastmst d WHERE a.glcode=d.glcode AND a.applicationdate=(SELECT MAX(b.applicationdate) FROM GENGLDAYBOOK b WHERE b.glcode=a.glcode AND b.branchcode=a.branchcode AND b.applicationdate<'" & strArr(1) & "'))N WHERE M.glcode=N.glcode(+) GROUP BY M.glcode,M.GLDESCRIPTION ORDER BY M.GLCODE )O,(SELECT c.glcode,c.glnarration,SUM(NVL(c.GTOTAL1,0)) DEBIT,SUM(NVL(c.GTOTAL2,0)) CREDIT, SUM(NVL(c.TOTAL1,0)) dbcash, SUM(NVL(c.TOTAL3,0)) dbtran, SUM(NVL(c.TOTAL5,0)) dbclg, SUM(NVL(c.TOTAL2,0)) crcash, SUM(NVL(c.TOTAL4,0)) crtran, SUM(NVL(c.TOTAL6,0)) crclg FROM GENGLDAYBOOK c WHERE c.Applicationdate BETWEEN '" & strArr(1) & "' AND  '" & strArr(2) & "' GROUP BY c.GLCODE,c.GLNARRATION )P WHERE O.glcode = P.glcode(+) ORDER BY O.GLCODE )X,(SELECT X.glcode,X.GLDESCRIPTION,X.openingbalance, X.DEBIT, X.CREDIT, X.dbcash, X.dbtran, X.dbclg, X.crcash,X.crtran, X.crclg FROM (SELECT O.glcode,O.GLDESCRIPTION,NVL(O.openingbalance,0) openingbalance, P.DEBIT, P.CREDIT, P.dbcash, P.dbtran, P.dbclg, P.crcash, P.crtran, P.crclg FROM (SELECT M.glcode,M.GLDESCRIPTION,NVL(SUM(N.openingbalance),0)openingbalance FROM (SELECT DISTINCT a.glcode,d.GLDESCRIPTION FROM GENGLDAYBOOK a,genglmastmst d WHERE a.glcode=d.glcode )M,( SELECT a.glcode,NVL((a.closingbalance),0)openingbalance FROM GENGLDAYBOOK a, genglmastmst d WHERE a.glcode=d.glcode AND a.applicationdate=(SELECT MAX(b.applicationdate) FROM GENGLDAYBOOK b WHERE b.glcode=a.glcode AND b.branchcode=a.branchcode AND b.applicationdate<'" & strArr(1) & "'))N WHERE N.glcode=M.glcode GROUP BY M.glcode,M.GLDESCRIPTION )O,( SELECT c.glcode,d.GLDESCRIPTION,0 DEBIT, 0 CREDIT, 0 dbcash, 0 dbtran, 0 dbclg, 0 crcash,0 crtran, 0 crclg  FROM GENGLDAYBOOK c,genglmastmst d WHERE c.glcode=d.glcode AND c.Applicationdate=(SELECT MAX(b.applicationdate) FROM GENGLDAYBOOK b WHERE b.glcode=c.glcode AND b.branchcode=c.branchcode AND b.applicationdate<'" & strArr(1) & "') GROUP BY c.GLCODE,d.GLDESCRIPTION)P WHERE P.glcode=O.glcode)X )Y WHERE Y.GLCODE  (+) =  X.GLCODE)Z WHERE Z.dbcash =0 AND Z.dbtran =0 AND Z.dbclg =0 AND Z.crcash =0 AND Z.crtran =0 AND Z.crclg =0  "
+
+
+            //        rs = obj.SingleSelectStat(sqlStr)
+
+
+            //        if obj.ConnError = "Connected" then
+
+            //            if not rs.BOF and not rs.EOF then
+
+
+            //                do until rs.EOF
+
+
+            //                strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "~" & rs(7).value & "~" & rs(8).value & "~" & rs(9).value & "~" & rs(10).value & "|"
+
+
+            //                rs.movenext()
+
+            //                loop
+
+            //            end if
+
+            //        end if
+
+
+            //            strResult = mid(strResult, 1, strResult.length - 1)
+
+
+            //    rs = nothing
+
+
+
+
+            //    elseif strArr(0)= "RUNDETAIL" then
+            //    strResult = ""
+
+
+            //    dim rsTab, objTab, sqlQury
+
+            //    dim rsTab1
+
+
+            //    obj = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+            //    objTab = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+            //    rsTab = Server.CreateObject("adodb.recordset")
+
+            //    rsTab1 = Server.CreateObject("adodb.recordset")
+
+
+            //        sqlStr = " SELECT Moduleid FROM CUSTLNKMODULE "
+
+
+            //        rs = obj.SingleSelectStat(sqlStr)
+
+
+            //        if obj.ConnError = "Connected" then
+
+            //            if not rs.BOF and not rs.EOF then
+
+
+            //                do until rs.EOF
+
+
+            //                    sqlQury = ""
+
+
+            //                    sqlQury = " SELECT branchcode,'" & rs(0).value & "' moduleid, glcode, accno,status FROM " & rs(0).value & "mst WHERE customerid='" & strArr(1) & "'"
+
+
+            //                    rsTab = objTab.SingleSelectStat(sqlQury)
+
+
+            //                    if objTab.ConnError = "Connected" then
+
+            //                        if not rsTab.BOF and not rsTab.EOF then
+
+            //                            do until rsTab.EOF
+
+            //                            if rsTab(4).value = "R" then
+            //                                strResult = strResult & rsTab(0).value & "~" & rsTab(1).value & "~" & rsTab(2).value & "~" & rsTab(3).value & "|"
+
+            //                            end if
+
+
+            //                            sqlQury = ""
+
+            //                            sqlQury = "SELECT BRANCHCODE, MODULEID, GLCODE, ACCNO FROM simst WHERE branchcode = '" & rsTab(0).value & "' and DEBITMODULEID  = '" & rsTab(1).value & "' AND DEBITGLCODE = '" & rsTab(2).value & "' AND debitaccno = '" & rsTab(3).value & "' AND status = 'R' UNION ALL SELECT BRANCHCODE, MODULEID, GLCODE, ACCNO FROM simst WHERE CREDITBRANCHCODE = '" & rsTab(0).value & "' AND CREDITMODULEID = '" & rsTab(1).value & "' and CREDITGLCODE =  '" & rsTab(2).value & "' AND creditaccno = '" & rsTab(3).value & "' AND status = 'R'"
+
+
+            //                    rsTab1 = objTab.SingleSelectStat(sqlQury)
+
+            //                    if objTab.ConnError = "Connected" then
+
+            //                        if not rsTab1.BOF and not rsTab1.EOF then
+
+            //                            do until rsTab1.EOF
+
+            //                                strResult = strResult & rsTab1(0).value & "~" & rsTab1(1).value & "~" & rsTab1(2).value & "~" & rsTab1(3).value & "|"
+
+            //                                rsTab1.movenext()
+
+            //                            loop
+            //                        end if
+
+            //                    end if
+
+            //                            rsTab.movenext()
+
+            //                            loop
+            //                        end if
+
+            //                    end if
+
+
+            //                rs.movenext()
+
+            //                loop
+
+            //            else
+            //                    strResult = ""
+
+            //            end if
+
+            //        end if
+
+
+            //        if strResult = "" then
+            //            strResult = "No Records"
+
+            //        else
+            //                        strResult = mid(strResult, 1, strResult.length - 1)
+
+            //        end if
+
+
+            //    rsTab = nothing
+
+            //    rs = nothing
+
+
+            //    elseif strArr(0)= "EMPARDAT" then
+            //    strResult = ""
+
+
+            //    obj = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+
+            //        sqlStr = " SELECT VALUE FROM EMPLOYERPARM where EMPCODE = '" & strArr(3) & "' and CODE = '" & strArr(2) & "' and  EFFECTIVEDATE = '" & strArr(1) & "' "
+
+
+            //        rs = obj.SingleSelectStat(sqlStr)
+
+
+            //        if obj.ConnError = "Connected" then
+
+            //            if not rs.BOF and not rs.EOF then
+
+            //                strResult = rs(0).value
+
+            //            end if
+
+            //        end if
+
+            //    rs = nothing
+
+
+            //    elseif strArr(0)= "GETCARDDAT" then
+            //    strResult = ""
+
+
+            //    dim rsAc, objAc, sqlAc
+
+
+            //    obj = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+            //    objAc = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+            //    rsAc = Server.CreateObject("adodb.recordset")
+
+
+            //    sqlStr = ""
+
+
+            //    if strArr(5) = "ATMCRDDTLS" then
+            //        sqlStr = " SELECT account1 FROM " & strArr(5) & "  WHERE account1 = (SELECT (BRANCHCODE||GLCODE||LPAD(ACCNO,7,0)) Accno FROM " & strArr(2) & "MST WHERE accno='" & strArr(4) & "' AND glcode='" & strArr(3) & "' AND branchcode='" & strArr(1) & "') AND status='R' "
+
+            //    else
+            //                sqlStr = " SELECT ACCNO FROM " & strArr(5) & "  WHERE accno='" & strArr(4) & "' AND glcode='" & strArr(3) & "' AND branchcode='" & strArr(1) & "' "
+
+            //    end if
+
+
+
+            //    rsAc = objAc.SingleSelectStat(sqlStr)
+
+
+            //    if objAc.ConnError = "Connected" then
+
+            //        if not rsAc.BOF and not rsAc.EOF then
+
+
+            //            strResult = "No Data"
+
+
+            //        else
+
+            //                sqlStr = ""
+
+
+            //            sqlStr = " SELECT TO_CHAR(CUSTDOB,'dd-Mon-yyyy') dob, CUSTMOBILE, CUSTEMAIL, (MAILADDRESS1||','|| MAILADDRESS2||','|| MAILADDRESS3) Address, MAILADDRESS4 city, MAILADDRESS5 zipcode,SUBSTR(NAME,0,20) name,b.DESCRIPTION,'" & strArr(2) & "' MODULE,(" & strArr(1) & "||''||" & strArr(3) & "||''||LPAD(" & strArr(4) & ",7,0))ACNO FROM gencustinfomst a, GENSALUTATIONMST b WHERE  CODE = (CASE WHEN SALUTATIONID IS NULL THEN '1' WHEN SALUTATIONID='0' THEN '1' WHEN SALUTATIONID='1' THEN '1' WHEN SALUTATIONID='2' THEN '2' WHEN SALUTATIONID='3' THEN '3' WHEN  SALUTATIONID='4' THEN '4' WHEN SALUTATIONID='5' THEN '5' WHEN SALUTATIONID='6' THEN '6' WHEN SALUTATIONID='7' THEN '7' WHEN SALUTATIONID='8' THEN '8' WHEN SALUTATIONID='9' THEN '9' WHEN SALUTATIONID='10' THEN '10' END) AND customerid IN (SELECT customerid FROM " & strArr(2) & "MST WHERE accno='" & strArr(4) & "' AND glcode='" & strArr(3) & "' AND branchcode='" & strArr(1) & "')  "
+
+
+            //            rs = obj.SingleSelectStat(sqlStr)
+
+
+            //            if obj.ConnError = "Connected" then
+
+            //                if not rs.BOF and not rs.EOF then
+
+            //                    strResult = rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "~" & rs(7).value & "~" & rs(8).value & "~" & rs(9).value
+
+            //                end if
+
+            //            end if
+
+            //            rs = nothing
+
+            //        end if
+
+            //    end if
+            //objAc = nothing
+
+
+
+
+            //    elseif strArr(0)= "CARDFILEGEN" then
+            //    strResult = ""
+
+
+            //    dim objCnt, rsCt, sqlCnt, strCt
+
+
+            //    obj = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+            //    objCnt = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+            //    rsCt = Server.CreateObject("adodb.recordset")
+
+
+            //        sqlCnt = " SELECT LPAD(COUNT(*),6,0) cnt FROM atmcrddtls where TRANSTATUS = 'A' AND GENYN='N' " & strArr(1) & " "
+
+
+            //        rsCt = objCnt.SingleSelectStat(sqlCnt)
+
+
+            //        if objCnt.ConnError = "Connected" then
+
+            //            if not rsCt.BOF and not rsCt.EOF then
+
+            //                strCt = rsCt(0).value
+
+            //            end if
+
+            //        end if
+
+
+            //            '' start of eluru
+
+            //        if frmname = "ELURU" then
+
+            //        sqlStr = " SELECT ACTIONCODE, RPAD(NVL(CARDNUMBER,' '),22,' ') CARDNUMBER, LPAD(NVL(CLIENTCODE,'0'),24,'0') CLIENTCODE, LPAD(NVL(BANKCODE,' '),6,0) BANKCODE, LPAD((LPAD(NVL(BRCODE,' '),4,0)),6,' ') BRCODE, VIPFLAG, OWNERCODE, BASICCARDFLAG, RPAD(NVL(BASICCARDNUMBER,' '),22,' ') BASICCARDNUMBER, RPAD(NVL(TITLE,' '),4,' ') TITLE, RPAD(NVL(FAMILYNAME,' '),20,' ') FAMILYNAME, RPAD(NVL(FIRSTNAME,' '),20,' ') FIRSTNAME, RPAD(NVL(EMBOSSEDNAME,' '),26,' ') EMBOSSEDNAME, RPAD(NVL(ENCODEDNAME,' '),26,' ') ENCODEDNAME, MARITALSTATUS, GENDER, RPAD(NVL(LEGALID,' '),15,' ') LEGALID, LPAD(NVL(NATIONALITYCODE,' '),3,' ') NATIONALITYCODE,LPAD(NVL(TO_CHAR(NOOFCHILDREN),' '),2,' ') NOOFCHILDREN, LPAD(NVL(TO_CHAR(CREDITLIMIT),' '),12,' ') CREDITLIMIT, LPAD(NVL(ISSUESCLIENT,' '),1,' ') ISSUESCLIENT, LPAD(NVL(LODGINGPERIOD,' '),2,' ') LODGINGPERIOD, LPAD(NVL(RESIDENCESTATUS,' '),1,' ') RESIDENCESTATUS, LPAD(NVL(TO_CHAR(NETYEARLYINCOME),' '),12,' ') NETYEARLYINCOME,LPAD(NVL(TO_CHAR(NOOFDEPENDENTS),' '),2,' ') NOOFDEPENDENTS,LPAD(NVL(TO_CHAR(BIRTHDATE,'YYYYMMDD'),' '),8,' ') BIRTHDATE,LPAD(NVL(BIRTHCITY,' '),5,' ') BIRTHCITY, LPAD(NVL(BIRTHCOUNTRY,' '),3,' ') BIRTHCOUNTRY,RPAD(NVL(ADDRESS1,' '),30,' ') ADDRESS1,RPAD(NVL(ADDRESS2,' '),30,' ') ADDRESS2, RPAD(NVL(ADDRESS3,' '),30,' ') ADDRESS3,RPAD(NVL(ADDRESS4,' '),30,' ') ADDRESS4, LPAD(NVL(CITYCODE,' '),5,' ') CITYCODE,LPAD(NVL(SUBSTR(ZIPCODE,1,6),' '),10,' ') ZIPCODE,LPAD(NVL(COUNTRYCODE,' '),3,' ') COUNTRYCODE, LPAD(NVL(PHONE1,' '),15,' ') PHONE1, LPAD(NVL(PHONE2,' '),15,' ') PHONE2,RPAD(NVL(MOBILEPHONE,' '),15,' ') MOBILEPHONE,RPAD(NVL(EMAIL1ID,' '),50,' ') EMAIL1ID, LPAD(NVL(EMPLOYER,' '),40,' ') EMPLOYER,RPAD(NVL(EMPLADDRESS1,' '),30,' ') EMPLADDRESS1, RPAD(NVL(EMPLADDRESS2,' '),30,' ') EMPLADDRESS2, RPAD(NVL(EMPLADDRESS3,' '),30,' ') EMPLADDRESS3, RPAD(NVL(EMPLADDRESS4,' '),30,' ') EMPLADDRESS4, LPAD(NVL(EMPLCITYCODE,' '),5,' ') EMPLCITYCODE, LPAD(NVL(EMPLZIPCODE,' '),10,' ') EMPLZIPCODE, LPAD(NVL(EMPLCOUNTRYCODE,' '),3,' ') EMPLCOUNTRYCODE, LPAD(NVL(TO_CHAR(CONTRACTSTARTDATE,'YYYYMMDD'),' '),8,' ') CONTRACTSTARTDATE,LPAD(NVL(EMPLOYMENTSTATUS,' '),1,' ') EMPLOYMENTSTATUS, LPAD(NVL(TO_CHAR(OPENINGDATE,'YYYYMMDD'),' '),8,' ') OPENINGDATE, LPAD(NVL(TO_CHAR(STARTVALDATE,'YYYYMMDD'),' '),8,' ') STARTVALDATE, LPAD(NVL(PRODUCTCODE,' '),3,' ') PRODUCTCODE, LPAD(NVL(TARIFFCODE,' '),3,' ')  TARIFFCODE, LPAD(NVL(DELIVERYMODE,' '),1,' ') DELIVERYMODE, LPAD((LPAD(NVL(ACCOUNT1,' '),21,'0')),24,' ' ) ACCOUNT1,LPAD(NVL(ACCOUNT1CURRENCY,' '),3,' ') ACCOUNT1CURRENCY,LPAD(NVL(ACCOUNT1TYPE,' '),2,' ') ACCOUNT1TYPE, LPAD(NVL(TO_CHAR(LIMITCASHDOM),' '),12,' ') LIMITCASHDOM,LPAD(NVL(TO_CHAR(LIMITPURCHDOM),' '),12,' ') LIMITPURCHDOM, LPAD(NVL(TO_CHAR(LIMITTEDOM),' '),12,' ') LIMITTEDOM, LPAD(NVL(TO_CHAR(RESERVED1),' '),12,' ') RESERVED1, LPAD(NVL(TO_CHAR(LIMITCASHINT),' '),12,' ') LIMITCASHINT,LPAD(NVL(TO_CHAR(LIMITPURCHINT),' '),12,' ') LIMITPURCHINT, LPAD(NVL(TO_CHAR(LIMITTEINT),' '),12,' ') LIMITTEINT,LPAD(NVL(TO_CHAR(RESERVED2),' '),12,' ') RESERVED2, LPAD(NVL(TO_CHAR(AUTHOLIMITDOM),' '),12,' ') AUTHOLIMITDOM,LPAD(NVL(TO_CHAR(AUTHOLIMITINT),' '),12,' ') AUTHOLIMITINT, LPAD(NVL(TO_CHAR(RESERVED3),' '),12,' ') RESERVED3, LPAD(NVL(ACTIVITYCODE,' '),4,' ') ACTIVITYCODE,LPAD(NVL(SOCIOPROFCODE,' '),4,' ') SOCIOPROFCODE,LPAD(NVL(STATUSCODE,'0'),2,'0') STATUSCODE, LPAD(NVL(STAFFID,' '),10,' ') STAFFID, LPAD(NVL(DELIVERYFLAG,'0'),1,' ') DELIVERYFLAG,LPAD(NVL(TO_CHAR(DELIVERYDATE,'YYYYMMDD'),' '),8,' ') DELIVERYDATE, LPAD(NVL(SOCIOPROFCODE,' '),14,' ')  BANKDSAREF, LPAD(NVL(USERDEFINEDFIELD1,' '),50,' ') USERDEFINEDFIELD1,LPAD(NVL(USERDEFINEDFIELD2,' '),50,' ') USERDEFINEDFIELD2, LPAD(NVL(USERDEFINEDFIELD3,' '),50,' ') USERDEFINEDFIELD3, LPAD(NVL(USERDEFINEDFIELD4,' '),50,' ') USERDEFINEDFIELD4,LPAD(NVL(USERDEFINEDFIELD5,' '),50,' ') USERDEFINEDFIELD5,LPAD(NVL(EMBOSSLINE3,' '),26,' ') EMBOSSLINE3, RPAD(NVL(MAILINGADDRESS1,' '),45,' ') MAILINGADDRESS1,RPAD(NVL(MAILINGADDRESS2,' '),45,' ') MAILINGADDRESS2, RPAD(NVL(MAILINGADDRESS3,' '),45,' ') MAILINGADDRESS3, RPAD(NVL(MAILINGADDRESS4,' '),45,' ') MAILINGADDRESS4, LPAD(NVL(SUBSTR(MAILINGZIPCODE,1,6),' '),10,' ') MAILINGZIPCODE, LPAD(NVL(MAILINGCITYCODE,' '),5,' ') MAILINGCITYCODE, LPAD(NVL(MAILINGCOUNTRYCODE,' '),3,' ') MAILINGCOUNTRYCODE, RPAD(NVL(PHONEHOME,' '),15,' ') PHONEHOME, RPAD(NVL(PHONEALTERNATE,' '),15,' ') PHONEALTERNATE,RPAD(NVL(PHONEMOBILE,' '),15,' ') PHONEMOBILE, LPAD(NVL(PHOTOINDICATOR,' '),1,' ')PHOTOINDICATOR, LPAD(NVL(LANGUAGEIND,' '),1,' ') LANGUAGEIND, LPAD(NVL(MAIDENNAME,' '),25,' ') MAIDENNAME , RPAD(NVL(middlename,'.'),25,' ') middlename, RPAD(NVL(fathername,'.'),25,' ') fathername, RPAD(NVL(city,' '),25,' ') city , RPAD(NVL(state,' '),25,' ') state   FROM atmcrddtls where TRANSTATUS = 'A' AND GENYN='N' " & strArr(1) & " "
+
+
+
+            //                ''end of frmname = "ELURU"
+
+            //    else
+            //                ''start of other than eluru bank
+
+
+            //        sqlStr = " SELECT ACTIONCODE, RPAD(NVL(CARDNUMBER,' '),22,' ') CARDNUMBER, LPAD(NVL(CLIENTCODE,'0'),24,'0') CLIENTCODE, LPAD(NVL(BANKCODE,' '),6,0) BANKCODE, LPAD((LPAD(NVL(BRCODE,' '),4,0)),6,' ') BRCODE, VIPFLAG, OWNERCODE, BASICCARDFLAG, RPAD(NVL(BASICCARDNUMBER,' '),22,' ') BASICCARDNUMBER, RPAD(NVL(TITLE,' '),4,' ') TITLE, RPAD(NVL(FAMILYNAME,' '),20,' ') FAMILYNAME, RPAD(NVL(FIRSTNAME,' '),20,' ') FIRSTNAME, RPAD(NVL(EMBOSSEDNAME,' '),26,' ') EMBOSSEDNAME, RPAD(NVL(ENCODEDNAME,' '),26,' ') ENCODEDNAME, MARITALSTATUS, GENDER, RPAD(NVL(LEGALID,' '),15,' ') LEGALID, LPAD(NVL(NATIONALITYCODE,' '),3,' ') NATIONALITYCODE,LPAD(NVL(TO_CHAR(NOOFCHILDREN),' '),2,' ') NOOFCHILDREN, LPAD(NVL(TO_CHAR(CREDITLIMIT),' '),12,' ') CREDITLIMIT, LPAD(NVL(ISSUESCLIENT,' '),1,' ') ISSUESCLIENT, LPAD(NVL(LODGINGPERIOD,' '),2,' ') LODGINGPERIOD, LPAD(NVL(RESIDENCESTATUS,' '),1,' ') RESIDENCESTATUS, LPAD(NVL(TO_CHAR(NETYEARLYINCOME),' '),12,' ') NETYEARLYINCOME,LPAD(NVL(TO_CHAR(NOOFDEPENDENTS),' '),2,' ') NOOFDEPENDENTS,LPAD(NVL(TO_CHAR(BIRTHDATE,'YYYYMMDD'),' '),8,' ') BIRTHDATE,LPAD(NVL(BIRTHCITY,' '),5,' ') BIRTHCITY, LPAD(NVL(BIRTHCOUNTRY,' '),3,' ') BIRTHCOUNTRY,RPAD(NVL(ADDRESS1,' '),30,' ') ADDRESS1,RPAD(NVL(ADDRESS2,' '),30,' ') ADDRESS2, RPAD(NVL(ADDRESS3,' '),30,' ') ADDRESS3,RPAD(NVL(ADDRESS4,' '),30,' ') ADDRESS4, LPAD(NVL(CITYCODE,' '),5,' ') CITYCODE,LPAD(NVL(ZIPCODE,' '),10,' ') ZIPCODE,LPAD(NVL(COUNTRYCODE,' '),3,' ') COUNTRYCODE, LPAD(NVL(PHONE1,' '),15,' ') PHONE1, LPAD(NVL(PHONE2,' '),15,' ') PHONE2,RPAD(NVL(MOBILEPHONE,' '),15,' ') MOBILEPHONE,RPAD(NVL(EMAIL1ID,' '),50,' ') EMAIL1ID, LPAD(NVL(EMPLOYER,' '),40,' ') EMPLOYER,RPAD(NVL(EMPLADDRESS1,' '),30,' ') EMPLADDRESS1, RPAD(NVL(EMPLADDRESS2,' '),30,' ') EMPLADDRESS2, RPAD(NVL(EMPLADDRESS3,' '),30,' ') EMPLADDRESS3, RPAD(NVL(EMPLADDRESS4,' '),30,' ') EMPLADDRESS4, LPAD(NVL(EMPLCITYCODE,' '),5,' ') EMPLCITYCODE, LPAD(NVL(EMPLZIPCODE,' '),10,' ') EMPLZIPCODE, LPAD(NVL(EMPLCOUNTRYCODE,' '),3,' ') EMPLCOUNTRYCODE, LPAD(NVL(TO_CHAR(CONTRACTSTARTDATE,'YYYYMMDD'),' '),8,' ') CONTRACTSTARTDATE,LPAD(NVL(EMPLOYMENTSTATUS,' '),1,' ') EMPLOYMENTSTATUS, LPAD(NVL(TO_CHAR(OPENINGDATE,'YYYYMMDD'),' '),8,' ') OPENINGDATE, LPAD(NVL(TO_CHAR(STARTVALDATE,'YYYYMMDD'),' '),8,' ') STARTVALDATE, LPAD(NVL(PRODUCTCODE,' '),3,' ') PRODUCTCODE, LPAD(NVL(TARIFFCODE,' '),3,' ')  TARIFFCODE, LPAD(NVL(DELIVERYMODE,' '),1,' ') DELIVERYMODE, LPAD((LPAD(NVL(ACCOUNT1,' '),21,'0')),24,' ' ) ACCOUNT1,LPAD(NVL(ACCOUNT1CURRENCY,' '),3,' ') ACCOUNT1CURRENCY,LPAD(NVL(ACCOUNT1TYPE,' '),2,' ') ACCOUNT1TYPE, LPAD(NVL(TO_CHAR(LIMITCASHDOM),' '),12,' ') LIMITCASHDOM,LPAD(NVL(TO_CHAR(LIMITPURCHDOM),' '),12,' ') LIMITPURCHDOM, LPAD(NVL(TO_CHAR(LIMITTEDOM),' '),12,' ') LIMITTEDOM, LPAD(NVL(TO_CHAR(RESERVED1),' '),12,' ') RESERVED1, LPAD(NVL(TO_CHAR(LIMITCASHINT),' '),12,' ') LIMITCASHINT,LPAD(NVL(TO_CHAR(LIMITPURCHINT),' '),12,' ') LIMITPURCHINT, LPAD(NVL(TO_CHAR(LIMITTEINT),' '),12,' ') LIMITTEINT,LPAD(NVL(TO_CHAR(RESERVED2),' '),12,' ') RESERVED2, LPAD(NVL(TO_CHAR(AUTHOLIMITDOM),' '),12,' ') AUTHOLIMITDOM,LPAD(NVL(TO_CHAR(AUTHOLIMITINT),' '),12,' ') AUTHOLIMITINT, LPAD(NVL(TO_CHAR(RESERVED3),' '),12,' ') RESERVED3, LPAD(NVL(ACTIVITYCODE,' '),4,' ') ACTIVITYCODE,LPAD(NVL(SOCIOPROFCODE,' '),4,' ') SOCIOPROFCODE,LPAD(NVL(STATUSCODE,'0'),2,'0') STATUSCODE, LPAD(NVL(STAFFID,' '),10,' ') STAFFID, LPAD(NVL(DELIVERYFLAG,'0'),1,' ') DELIVERYFLAG,LPAD(NVL(TO_CHAR(DELIVERYDATE,'YYYYMMDD'),' '),8,' ') DELIVERYDATE, LPAD(NVL(SOCIOPROFCODE,' '),14,' ')  BANKDSAREF, LPAD(NVL(USERDEFINEDFIELD1,' '),50,' ') USERDEFINEDFIELD1,LPAD(NVL(USERDEFINEDFIELD2,' '),50,' ') USERDEFINEDFIELD2, LPAD(NVL(USERDEFINEDFIELD3,' '),50,' ') USERDEFINEDFIELD3, LPAD(NVL(USERDEFINEDFIELD4,' '),50,' ') USERDEFINEDFIELD4,LPAD(NVL(USERDEFINEDFIELD5,' '),50,' ') USERDEFINEDFIELD5,LPAD(NVL(EMBOSSLINE3,' '),26,' ') EMBOSSLINE3, RPAD(NVL(MAILINGADDRESS1,' '),45,' ') MAILINGADDRESS1,RPAD(NVL(MAILINGADDRESS2,' '),45,' ') MAILINGADDRESS2, RPAD(NVL(MAILINGADDRESS3,' '),45,' ') MAILINGADDRESS3, RPAD(NVL(MAILINGADDRESS4,' '),45,' ') MAILINGADDRESS4, LPAD(NVL(MAILINGZIPCODE,' '),10,' ') MAILINGZIPCODE, LPAD(NVL(MAILINGCITYCODE,' '),5,' ') MAILINGCITYCODE, LPAD(NVL(MAILINGCOUNTRYCODE,' '),3,' ') MAILINGCOUNTRYCODE, RPAD(NVL(PHONEHOME,' '),15,' ') PHONEHOME, RPAD(NVL(PHONEALTERNATE,' '),15,' ') PHONEALTERNATE,RPAD(NVL(PHONEMOBILE,' '),15,' ') PHONEMOBILE, LPAD(NVL(PHOTOINDICATOR,' '),1,' ')PHOTOINDICATOR, LPAD(NVL(LANGUAGEIND,' '),1,' ') LANGUAGEIND, LPAD(NVL(MAIDENNAME,' '),25,' ') MAIDENNAME , RPAD(NVL(middlename,'.'),25,' ') middlename, RPAD(NVL(fathername,'.'),25,' ') fathername, RPAD(NVL(city,' '),25,' ') city , RPAD(NVL(state,' '),25,' ') state   FROM atmcrddtls where TRANSTATUS = 'A' AND GENYN='N' " & strArr(1) & " "
+
+
+
+            //    '	sqlStr=" SELECT ACTIONCODE, RPAD(NVL(CARDNUMBER,' '),22,' ') CARDNUMBER, LPAD(NVL(CLIENTCODE,'0'),24,'0') CLIENTCODE,  LPAD(' ',6,' ') BANKCODE1, LPAD((LPAD(NVL(BRCODE,' '),4,0)),6,' ') BRCODE, VIPFLAG, OWNERCODE, BASICCARDFLAG, RPAD(NVL(BASICCARDNUMBER,' '),22,' ') BASICCARDNUMBER, RPAD(NVL(TITLE,' '),4,' ') TITLE, RPAD(NVL(FAMILYNAME,' '),20,' ') FAMILYNAME, RPAD(NVL(FIRSTNAME,' '),20,' ') FIRSTNAME, RPAD(NVL(EMBOSSEDNAME,' '),26,' ') EMBOSSEDNAME, RPAD(NVL(ENCODEDNAME,' '),26,' ') ENCODEDNAME, MARITALSTATUS, GENDER, RPAD(NVL(LEGALID,' '),15,' ') LEGALID, LPAD(NVL(NATIONALITYCODE,' '),3,' ') NATIONALITYCODE,LPAD(NVL(TO_CHAR(NOOFCHILDREN),' '),2,' ') NOOFCHILDREN, LPAD(NVL(TO_CHAR(CREDITLIMIT),' '),12,' ') CREDITLIMIT, LPAD(NVL(ISSUESCLIENT,' '),1,' ') ISSUESCLIENT, LPAD(NVL(LODGINGPERIOD,' '),2,' ') LODGINGPERIOD, LPAD(NVL(RESIDENCESTATUS,' '),1,' ') RESIDENCESTATUS, LPAD(NVL(TO_CHAR(NETYEARLYINCOME),' '),12,' ') NETYEARLYINCOME,LPAD(NVL(TO_CHAR(NOOFDEPENDENTS),' '),2,' ') NOOFDEPENDENTS,LPAD(NVL(TO_CHAR(BIRTHDATE,'YYYYMMDD'),' '),8,' ') BIRTHDATE,LPAD(NVL(BIRTHCITY,' '),5,' ') BIRTHCITY, LPAD(NVL(BIRTHCOUNTRY,' '),3,' ') BIRTHCOUNTRY,RPAD(NVL(ADDRESS1,' '),30,' ') ADDRESS1,RPAD(NVL(ADDRESS2,' '),30,' ') ADDRESS2, RPAD(NVL(ADDRESS3,' '),30,' ') ADDRESS3,RPAD(NVL(ADDRESS4,' '),30,' ') ADDRESS4, LPAD(NVL(CITYCODE,' '),5,' ') CITYCODE,LPAD(NVL(ZIPCODE,' '),10,' ') ZIPCODE,LPAD(NVL(COUNTRYCODE,' '),3,' ') COUNTRYCODE, LPAD(NVL(PHONE1,' '),15,' ') PHONE1, LPAD(NVL(PHONE2,' '),15,' ') PHONE2,RPAD(NVL(MOBILEPHONE,' '),15,' ') MOBILEPHONE,RPAD(NVL(EMAIL1ID,' '),50,' ') EMAIL1ID, LPAD(NVL(EMPLOYER,' '),40,' ') EMPLOYER,RPAD(NVL(EMPLADDRESS1,' '),30,' ') EMPLADDRESS1, RPAD(NVL(EMPLADDRESS2,' '),30,' ') EMPLADDRESS2, RPAD(NVL(EMPLADDRESS3,' '),30,' ') EMPLADDRESS3, RPAD(NVL(EMPLADDRESS4,' '),30,' ') EMPLADDRESS4, LPAD(NVL(EMPLCITYCODE,' '),5,' ') EMPLCITYCODE, LPAD(NVL(EMPLZIPCODE,' '),10,' ') EMPLZIPCODE, LPAD(NVL(EMPLCOUNTRYCODE,' '),3,' ') EMPLCOUNTRYCODE, LPAD(NVL(TO_CHAR(CONTRACTSTARTDATE,'YYYYMMDD'),' '),8,' ') CONTRACTSTARTDATE,LPAD(NVL(EMPLOYMENTSTATUS,' '),1,' ') EMPLOYMENTSTATUS, LPAD(NVL(TO_CHAR(OPENINGDATE,'YYYYMMDD'),' '),8,' ') OPENINGDATE, LPAD(NVL(TO_CHAR(STARTVALDATE,'YYYYMMDD'),' '),8,' ') STARTVALDATE, LPAD(NVL(PRODUCTCODE,' '),3,' ') PRODUCTCODE, LPAD(NVL(TARIFFCODE,' '),3,' ')  TARIFFCODE, LPAD(NVL(DELIVERYMODE,' '),1,' ') DELIVERYMODE, LPAD((LPAD(NVL(ACCOUNT1,' '),21,'0')),24,' ' ) ACCOUNT1,LPAD(NVL(ACCOUNT1CURRENCY,' '),3,' ') ACCOUNT1CURRENCY,LPAD(NVL(ACCOUNT1TYPE,' '),2,' ') ACCOUNT1TYPE, LPAD(NVL(TO_CHAR(LIMITCASHDOM),' '),12,' ') LIMITCASHDOM,LPAD(NVL(TO_CHAR(LIMITPURCHDOM),' '),12,' ') LIMITPURCHDOM, LPAD(NVL(TO_CHAR(LIMITTEDOM),' '),12,' ') LIMITTEDOM, LPAD(NVL(TO_CHAR(RESERVED1),' '),12,' ') RESERVED1, LPAD(NVL(TO_CHAR(LIMITCASHINT),' '),12,' ') LIMITCASHINT,LPAD(NVL(TO_CHAR(LIMITPURCHINT),' '),12,' ') LIMITPURCHINT, LPAD(NVL(TO_CHAR(LIMITTEINT),' '),12,' ') LIMITTEINT,LPAD(NVL(TO_CHAR(RESERVED2),' '),12,' ') RESERVED2, LPAD(NVL(TO_CHAR(AUTHOLIMITDOM),' '),12,' ') AUTHOLIMITDOM,LPAD(NVL(TO_CHAR(AUTHOLIMITINT),' '),12,' ') AUTHOLIMITINT, LPAD(NVL(TO_CHAR(RESERVED3),' '),12,' ') RESERVED3, LPAD(NVL(ACTIVITYCODE,' '),4,' ') ACTIVITYCODE,LPAD(NVL(SOCIOPROFCODE,' '),4,' ') SOCIOPROFCODE,LPAD(NVL(STATUSCODE,'0'),2,'0') STATUSCODE, LPAD(NVL(STAFFID,' '),10,' ') STAFFID, LPAD(NVL(DELIVERYFLAG,'0'),1,' ') DELIVERYFLAG,LPAD(NVL(TO_CHAR(DELIVERYDATE,'YYYYMMDD'),' '),8,' ') DELIVERYDATE,LPAD(NVL(BANKCODE,' '),6,0) BANKCODE, LPAD(NVL(SOCIOPROFCODE,' '),8,' ')  BANKDSAREF, LPAD(NVL(USERDEFINEDFIELD1,' '),50,' ') USERDEFINEDFIELD1,LPAD(NVL(USERDEFINEDFIELD2,' '),50,' ') USERDEFINEDFIELD2, LPAD(NVL(USERDEFINEDFIELD3,' '),50,' ') USERDEFINEDFIELD3, LPAD(NVL(USERDEFINEDFIELD4,' '),50,' ') USERDEFINEDFIELD4,LPAD(NVL(USERDEFINEDFIELD5,' '),50,' ') USERDEFINEDFIELD5,LPAD(NVL(EMBOSSLINE3,' '),26,' ') EMBOSSLINE3, RPAD(NVL(MAILINGADDRESS1,' '),45,' ') MAILINGADDRESS1,RPAD(NVL(MAILINGADDRESS2,' '),45,' ') MAILINGADDRESS2, RPAD(NVL(MAILINGADDRESS3,' '),45,' ') MAILINGADDRESS3, RPAD(NVL(MAILINGADDRESS4,' '),45,' ') MAILINGADDRESS4, LPAD(NVL(MAILINGZIPCODE,' '),10,' ') MAILINGZIPCODE, LPAD(NVL(MAILINGCITYCODE,' '),5,' ') MAILINGCITYCODE, LPAD(NVL(MAILINGCOUNTRYCODE,' '),3,' ') MAILINGCOUNTRYCODE, RPAD(NVL(PHONEHOME,' '),15,' ') PHONEHOME, RPAD(NVL(PHONEALTERNATE,' '),15,' ') PHONEALTERNATE,RPAD(NVL(PHONEMOBILE,' '),15,' ') PHONEMOBILE, LPAD(NVL(PHOTOINDICATOR,' '),1,' ')PHOTOINDICATOR, LPAD(NVL(LANGUAGEIND,' '),1,' ') LANGUAGEIND, LPAD(NVL(MAIDENNAME,' '),25,' ') MAIDENNAME , RPAD(NVL(middlename,'.'),25,' ') middlename, RPAD(NVL(fathername,'.'),25,' ') fathername, RPAD(NVL(city,' '),25,' ') city , RPAD(NVL(state,' '),25,' ') state   FROM atmcrddtls where TRANSTATUS = 'A' AND GENYN='N' " & strArr(1) & " "
+
+            //        end if
+
+            //        rs = obj.SingleSelectStat(sqlStr)
+
+
+            //        if obj.ConnError = "Connected" then
+
+            //            if not rs.BOF and not rs.EOF then
+
+
+            //                do until rs.EOF
+
+
+            //                    strResult = strResult & rs(0).value & rs(1).value & rs(2).value & rs(3).value & rs(4).value & rs(5).value & rs(6).value & rs(7).value & rs(8).value & rs(9).value & rs(10).value & rs(11).value & rs(12).value & rs(13).value & rs(14).value & rs(15).value & rs(16).value & rs(17).value & rs(18).value & rs(19).value & rs(20).value & rs(21).value & rs(22).value & rs(23).value & rs(24).value & rs(25).value & rs(26).value & rs(27).value & rs(28).value & rs(29).value & rs(30).value & rs(31).value & rs(32).value & rs(33).value & rs(34).value & rs(35).value & rs(36).value & rs(37).value & rs(38).value & rs(39).value & rs(40).value & rs(41).value & rs(42).value & rs(43).value & rs(44).value & rs(45).value & rs(46).value & rs(47).value & rs(48).value & rs(49).value & rs(50).value & rs(51).value & rs(52).value & rs(53).value & rs(54).value & rs(55).value & rs(56).value & rs(57).value & rs(58).value & rs(59).value & rs(60).value & rs(61).value & rs(62).value & rs(63).value & rs(64).value & rs(65).value & rs(66).value & rs(67).value & rs(68).value & rs(69).value & rs(70).value & rs(71).value & rs(72).value & rs(73).value & rs(74).value & rs(75).value & rs(76).value & rs(77).value & rs(78).value & rs(79).value & rs(80).value & rs(81).value & rs(82).value & rs(83).value & rs(84).value & rs(85).value & rs(86).value & rs(87).value & rs(88).value & rs(89).value & rs(90).value & rs(91).value & rs(92).value & rs(93).value & rs(94).value & rs(95).value & rs(96).value & rs(97).value & "|"
+
+            //            '	strResult = strResult & rs(0).value & rs(1).value & rs(2).value & rs(3).value & rs(4).value & rs(5).value & rs(6).value & rs(7).value & rs(8).value & rs(9).value & rs(10).value & rs(11).value & rs(12).value & rs(13).value & rs(14).value & rs(15).value & rs(16).value & rs(17).value & rs(18).value & rs(19).value & rs(20).value & rs(21).value & rs(22).value & rs(23).value & rs(24).value & rs(25).value & rs(26).value & rs(27).value & rs(28).value & rs(29).value & rs(30).value & rs(31).value & rs(32).value & rs(33).value & rs(34).value & rs(35).value & rs(36).value & rs(37).value & rs(38).value & rs(39).value & rs(40).value & rs(41).value & rs(42).value & rs(43).value & rs(44).value & rs(45).value & rs(46).value & rs(47).value & rs(48).value & rs(49).value & rs(50).value & rs(51).value & rs(52).value & rs(53).value & rs(54).value & rs(55).value & rs(56).value & rs(57).value & rs(58).value & rs(59).value & rs(60).value & rs(61).value & rs(62).value & rs(63).value & rs(64).value & rs(65).value & rs(66).value & rs(67).value & rs(68).value & rs(69).value & rs(70).value & rs(71).value & rs(72).value & rs(73).value & rs(74).value & rs(75).value & rs(76).value & rs(77).value & rs(78).value & rs(79).value & rs(80).value & rs(81).value & rs(82).value & rs(83).value & rs(84).value & rs(85).value & rs(86).value & rs(87).value & rs(88).value & rs(89).value & rs(90).value & rs(91).value & rs(92).value & rs(93).value & rs(94).value & rs(95).value & rs(96).value & rs(97).value & rs(98).value & "|"
+
+
+            //                rs.movenext()
+
+            //                loop
+
+            //            end if
+
+            //        end if
+
+
+
+
+            //        if strResult = "" then
+            //                strResult = "No Records"
+
+            //            else
+            //                        strResult = mid(strResult, 1, strResult.length - 1)
+
+
+            //                strResult = strCt & "~" & strResult
+
+            //            end if
+
+            //        rsCt = nothing
+
+            //        objCnt = nothing
+
+
+            //    rs = nothing
+
+            //    elseif strArr(0)= "CARDUPDATFILEGEN" then
+            //    strResult = ""
+
+
+            //    dim objCnt, rsCt, sqlCnt, strCt
+
+
+            //    obj = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+            //    objCnt = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+            //    rsCt = Server.CreateObject("adodb.recordset")
+
+
+            //        sqlCnt = " SELECT LPAD(COUNT(*),6,0) cnt FROM atmcrddtls where TRANSTATUS = 'A' AND GENYN='N' " & strArr(1) & " "
+
+
+            //        rsCt = objCnt.SingleSelectStat(sqlCnt)
+
+
+            //        if objCnt.ConnError = "Connected" then
+
+            //            if not rsCt.BOF and not rsCt.EOF then
+
+            //                strCt = rsCt(0).value
+
+            //            end if
+
+            //        end if
+
+
+
+            //        sqlStr = " SELECT ACTIONCODE,RPAD(NVL(CARDNUMBER,' '),22,' ') CARDNUMBER, LPAD(NVL(CLIENTCODE,'0'),24,'0') CLIENTCODE,RPAD(NVL(ADDRESS1,' '),30,' ') ADDRESS1,RPAD(NVL(ADDRESS2,' '),30,' ') ADDRESS2, RPAD(NVL(ADDRESS3,' '),30,' ') ADDRESS3,RPAD(NVL(ADDRESS4,' '),30,' ') ADDRESS4,LPAD(NVL(ZIPCODE,' '),10,' ') ZIPCODE, LPAD(NVL(CITYCODE,' '),5,' ') CITYCODE,LPAD(NVL(COUNTRYCODE,' '),3,' ') COUNTRYCODE,RPAD(NVL(MAILINGADDRESS1,' '),30,' ') MAILINGADDRESS1,RPAD(NVL(MAILINGADDRESS2,' '),30,' ') MAILINGADDRESS2, RPAD(NVL(MAILINGADDRESS3,' '),30,' ') MAILINGADDRESS3, RPAD(NVL(MAILINGADDRESS4,' '),30,' ') MAILINGADDRESS4,LPAD(NVL(MAILINGZIPCODE,' '),10,' ') MAILINGZIPCODE, LPAD(NVL(MAILINGCITYCODE,' '),5,' ') MAILINGCITYCODE, LPAD(NVL(MAILINGCOUNTRYCODE,' '),3,' ') MAILINGCOUNTRYCODE,RPAD(NVL(FAMILYNAME,' '),20,' ') FAMILYNAME, RPAD(NVL(FIRSTNAME,' '),26,' ') FIRSTNAME,RPAD(NVL(EMAIL1ID,' '),50,' ') EMAIL1ID,LPAD(NVL(DELIVERYFLAG,'0'),1,' ') DELIVERYFLAG  FROM atmcrddtls where TRANSTATUS = 'A' AND GENYN='N' " & strArr(1) & " "
+
+
+            //        rs = obj.SingleSelectStat(sqlStr)
+
+
+            //        if obj.ConnError = "Connected" then
+
+            //            if not rs.BOF and not rs.EOF then
+
+
+            //                do until rs.EOF
+
+
+            //                strResult = strResult & rs(0).value & rs(1).value & rs(2).value & rs(3).value & rs(4).value & rs(5).value & rs(6).value & rs(7).value & rs(8).value & rs(9).value & rs(10).value & rs(11).value & rs(12).value & rs(13).value & rs(14).value & rs(15).value & rs(16).value & rs(17).value & rs(18).value & rs(19).value & rs(20).value & "|"
+
+
+            //                rs.movenext()
+
+            //                loop
+
+            //            end if
+
+            //        end if
+
+
+            //            if strResult = "" then
+            //                strResult = "No Records"
+
+            //            else
+            //                        strResult = mid(strResult, 1, strResult.length - 1)
+
+
+            //                strResult = strCt & "~" & strResult
+
+            //            end if
+
+
+
+
+            //        rsCt = nothing
+
+            //        objCnt = nothing
+
+
+            //    rs = nothing
+
+            //elseif strArr(0) = "CTSCLEAR" then
+            //    obj = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+            //    rs1 = Server.CreateObject("adodb.recordset")
+
+            //    rschkbc = Server.CreateObject("adodb.recordset")
+
+            //    rschkp = Server.CreateObject("adodb.recordset")
+
+            //    rschkbr = Server.CreateObject("adodb.recordset")
+
+            //        dim strbrcode5
+
+            //        dim strcleartype5
+
+            //        dim strdate5
+
+            //        dim strchk
+
+            //        dim strMessage
+
+            //        dim blncheck
+
+            //        strbrcode5 = strArr(1)
+
+            //        strcleartype5 = strArr(2)
+
+            //        strdate5 = strArr(3)
+
+            //        strchk = strArr(4)
+            //blncheck = false
+            //strMessage = ""
+            //if strchk = "Y" then
+            //sqlStr = "select branchcode from genbankbranchmst where branchtype = 'BO'"
+            //else
+            //                sqlStr = "select branchcode from genbankbranchmst where branchtype = 'BO' and branchcode = '" & strbrcode5 & "'"
+            //end if
+            //rschkbr = obj.SingleSelectStat(sqlStr)
+
+
+            //    if obj.ConnError = "Connected" then
+
+            //        if not rschkbr.BOF and not rschkbr.EOF then
+
+            //        do until rschkbr.EOF
+
+
+            //        '' check for batch close
+
+            //        sqlStr = "SELECT status  FROM clgbatchdtls WHERE branchcode ='" & rschkbr(0).value & "'  and applicationdate = '" & strdate5 & "'"
+
+            //        rschkbc = obj.SingleSelectStat(sqlStr)
+
+
+            //        if obj.ConnError = "Connected" then
+
+            //            if not rschkbc.BOF and not rschkbc.EOF then
+
+            //                do until rschkbc.EOF
+
+            //                    if rschkbc(0).value = "C" then
+
+            //                    else
+            //                strMessage = strMessage & " Batch Is Not Closed For Branch " & rschkbr(0).value & ", "
+
+            //                        blncheck = true
+
+            //                        exit Do
+
+            //                    end if
+
+
+            //                rschkbc.movenext()
+
+            //                loop
+            //            end if
+
+            //        end if
+
+            //if rschkbc.state = 1 then
+            //rschkbc.close
+            //rschkbc = nothing
+            //end if
+
+
+            //        '' check for presentation
+            //        sqlStr = "SELECT status FROM CLGLODGEMENTVOUCHERDTLS WHERE branchcode ='" & rschkbr(0).value & "'  and lodgementdate = '" & strdate5 & "'"
+
+            //        rschkp = obj.SingleSelectStat(sqlStr)
+
+
+            //        if obj.ConnError = "Connected" then
+
+            //            if not rschkp.BOF and not rschkp.EOF then
+
+            //                do until rschkp.EOF
+
+            //                    if rschkp(0).value = "P" then
+
+            //                    else
+            //                strMessage = strMessage & " Records Are Not Presented For Branch " & rschkbr(0).value & ", "
+
+            //                        blncheck = true
+
+            //                        exit Do
+
+            //                    end if
+
+            //                rschkp.movenext()
+
+            //                loop
+            //            end if
+
+            //        end if
+
+
+            //        rschkbr.movenext()
+
+            //        loop
+            //        end if
+
+            //        end if
+
+            //if rschkp.state = 1 then
+            //rschkp.close
+            //rschkp = nothing
+            //end if
+
+            //if rschkbr.state = 1 then
+            //rschkbr.close
+            //rschkbr = nothing
+            //end if
+
+            //if blncheck = true then
+            //goto endofline
+            //end if
+
+
+
+            //'' CTS file Generation
+            //dim strResultCTSFile
+            //strResultCTSFile = ""
+
+            //if strchk = "Y" then
+            //sqlStr = "select branchcode from genbankbranchmst where branchtype = 'BO'"
+            //else
+            //                sqlStr = "select branchcode from genbankbranchmst where branchtype = 'BO' and branchcode = '" & strbrcode5 & "'"
+            //end if
+            //rs1 = obj.SingleSelectStat(sqlStr)
+
+
+            //    if obj.ConnError = "Connected" then
+
+            //            if not rs1.BOF and not rs1.EOF then
+
+
+            //                do until rs1.EOF
+
+
+
+            //sqlStr = "SELECT  LPAD(D.INSTRNO,6,'0'),LPAD(NVL(D.MICRCODE,0),9,'0'), LPAD(D.MICRINSTRCODE,2,'0') trancode, LPAD(D.AMOUNT * 100,18,'0'), M.CLGACCTBRCODE||M.crglcode||LPAD(M.craccno,7,'0') accno,RPAD(SUBSTR(NVL(D.ISSUEDBY,''),1,25),25,' ') name  FROM CLGLODGEMENTINSTRUMENTDTLS D, CLGLODGEMENTVOUCHERDTLS M WHERE D.lodgementdate = '" & strdate5 & "' AND  m.BRANCHCODE = '" & rs1(0).value & "' AND m.CLEARINGTYPE = '" & strcleartype5 & "' and M.VOUCHERNO=D.VOUCHERNO AND M.BRANCHCODE = D.BRANCHCODE AND M.LODGEMENTDATE= D.LODGEMENTDATE"
+
+
+            //        rs = obj.SingleSelectStat(sqlStr)
+
+            //        if obj.ConnError = "Connected" then
+
+            //            if not rs.BOF and not rs.EOF then
+
+
+            //                do until rs.EOF
+
+            //                strResultCTSFile = strResultCTSFile & rs(0).value & rs(1).value & rs(2).value & rs(3).value & rs(4).value & rs(5).value & "~"
+
+
+            //                rs.movenext()
+
+            //                loop
+
+            //                else
+            //                strMessage = "No Records"
+
+            //            end if
+
+            //        end if
+
+
+            //        strResultCTSFile = strResultCTSFile & "*" & rs1(0).value & "$"
+
+            //        rs1.movenext()
+
+            //            loop
+            //            end if
+
+            //        end if
+
+
+            //        endofline:
+            //		strResult = strResultCTSFile & "|" & strMessage
+
+            //if rs.state = 1 then
+            //rs.close
+            //rs = nothing
+            //end if
+
+            //if rs1.state = 1 then
+            //rs1.close
+            //rs1 = nothing
+            //end if
+
+            //elseif  strArr(0) = "CTSCLEARINWARDRET" then
+            //'' Inward Ret CTS file Generation
+            //    obj = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+            //    rs1 = Server.CreateObject("adodb.recordset")
+
+            //    rschkbc = Server.CreateObject("adodb.recordset")
+
+            //    rschkbr = Server.CreateObject("adodb.recordset")
+
+            //dim strResultRetCTSFile
+            //strResultRetCTSFile = ""
+
+
+            //        dim strcleartype6
+
+            //        dim strdate6
+
+            //        dim strMessage
+
+            //        dim blncheck
+
+
+            //        strcleartype6 = strArr(1)
+
+            //        strdate6 = strArr(2)
+
+            //'sqlStr="select branchcode from genbankbranchmst where branchtype = 'BO'"
+            //'rschkbr=obj.SingleSelectStat(sqlStr)
+            //'	if obj.ConnError="Connected" then
+            //'		if not rschkbr.BOF and not rschkbr.EOF then
+            //'		do until rschkbr.EOF
+
+
+
+            //        '' check for batch close
+            //'		sqlStr = "SELECT status  FROM clgbatchdtls WHERE branchcode ='"& rschkbr(0).value &"'  and applicationdate = '"& strdate6 &"'" 
+            //'		rschkbc=obj.SingleSelectStat(sqlStr)
+
+            //'		if obj.ConnError="Connected" then
+            //'			if not rschkbc.BOF and not rschkbc.EOF then
+            //'				do until rschkbc.EOF
+            //'					if rschkbc(0).value = "C" then
+            //'					else
+            //'						strMessage = strMessage & " Batch Is Not Closed For Branch " & rschkbr(0).value & ", "
+            //'						blncheck = true
+            //'						exit Do
+            //'					end if
+
+            //'				rschkbc.movenext()
+            //'				loop
+            //'			end if
+            //'		end if
+
+            //'		rschkbr.movenext()
+            //'		loop
+            //'		end if
+            //'		end if
+
+            //'if rschkbc.state = 1 then
+            //'rschkbc.close
+            //'rschkbc = nothing
+            //'end if
+            //'if rschkbr.state = 1 then
+            //'rschkbr.close
+            //'rschkbr = nothing
+            //'end if
+            //'if blncheck = true then
+            //'goto endofline1
+            //'end if		
+
+            //if strcleartype6 = "ALL" then
+            //sqlStr = "SELECT LPAD(CHQNO,6,'0'),PAYBANKROUTNO,  TRANSCODE,LPAD(REASONCODE,2,'0') FROM CLGCTSIWDATA WHERE status in ('R','C') and applicationdate = '" & strdate6 & "' and  RETURNFILEYN = 'N' AND REASONCODE IS NOT NULL"
+            //else
+            //                    sqlStr = "SELECT LPAD(CHQNO,6,'0'),PAYBANKROUTNO,  TRANSCODE,LPAD(REASONCODE,2,'0') FROM CLGCTSIWDATA WHERE status in ('R','C') and applicationdate = '" & strdate6 & "' and CLEARINGTYPE = '" & strcleartype6 & "' and RETURNFILEYN = 'N' AND REASONCODE IS NOT NULL"
+            //end if
+
+            //        rs = obj.SingleSelectStat(sqlStr)
+
+            //        if obj.ConnError = "Connected" then
+
+            //            if not rs.BOF and not rs.EOF then
+
+
+            //                do until rs.EOF
+
+            //                strResultRetCTSFile = strResultRetCTSFile & rs(0).value & rs(1).value & rs(2).value & " " & rs(3).value & "~"
+
+
+            //                rs.movenext()
+
+            //                loop
+
+            //                else
+            //                strMessage = "No Records"
+
+            //            end if
+
+            //        end if
+
+            //'		endofline1:
+
+            //        strResult = strResultRetCTSFile & "|" & strMessage
+
+            //if rs.state = 1 then
+            //rs.close
+            //rs = nothing
+            //end if
+
+
+            //    elseif  strArr(0) = "CTSCLEARINWANDINWRET" then
+            //'' Inward Ret CTS file Generation
+            //    obj = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+            //    rs1 = Server.CreateObject("adodb.recordset")
+
+            //    rschkbc = Server.CreateObject("adodb.recordset")
+
+            //    rschkbr = Server.CreateObject("adodb.recordset")
+
+            //dim strResultRetCTSFile
+            //strResultRetCTSFile = ""
+
+
+            //        dim strcleartype6
+
+            //        dim strdate6
+
+            //        dim strMessage
+
+            //        dim blncheck
+
+
+            //        strcleartype6 = strArr(1)
+
+            //        strdate6 = strArr(2)
+            //if strcleartype6 = "ALL" then
+            //sqlStr = "SELECT LPAD(CHQNO,6,'0'),PAYBANKROUTNO,  TRANSCODE, CASE WHEN REASONCODE IS NULL THEN '00' ELSE LPAD(REASONCODE,2,'0') END  FROM CLGCTSIWDATA WHERE status in ('R','C') and applicationdate = '" & strdate6 & "' and RETURNFILEYN = 'N'"
+            //else
+            //                sqlStr = "SELECT LPAD(CHQNO,6,'0'),PAYBANKROUTNO,  TRANSCODE, CASE WHEN REASONCODE IS NULL THEN '00' ELSE LPAD(REASONCODE,2,'0') END  FROM CLGCTSIWDATA WHERE status in ('R','C') and applicationdate = '" & strdate6 & "' and CLEARINGTYPE = '" & strcleartype6 & "' and RETURNFILEYN = 'N'"
+            //end if
+
+
+            //        rs = obj.SingleSelectStat(sqlStr)
+
+            //        if obj.ConnError = "Connected" then
+
+            //            if not rs.BOF and not rs.EOF then
+
+
+            //                do until rs.EOF
+
+            //                strResultRetCTSFile = strResultRetCTSFile & rs(0).value & rs(1).value & rs(2).value & " " & rs(3).value & "~"
+
+
+            //                rs.movenext()
+
+            //                loop
+
+            //                else
+            //                strMessage = "No Records"
+
+            //            end if
+
+            //        end if
+
+            //'		endofline1:
+
+            //        strResult = strResultRetCTSFile & "|" & strMessage
+
+            //if rs.state = 1 then
+            //rs.close
+            //rs = nothing
+            //end if
+
+            //elseif strArr(0) = "CBSFILES" then
+            //    obj = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+            //    rs1 = Server.CreateObject("adodb.recordset")
+
+            //        dim strdate
+
+            //        dim stroper
+
+            //        dim strtodt
+
+            //        dim strcond
+
+            //        stroper = strArr(1)
+
+            //        strdate = strArr(2)
+
+            //        strtodt = strArr(3)
+
+
+
+            //if stroper<> "Between" then
+            //    strcond = " and TO_DATE(TO_CHAR(REQDATETIME,'dd-Mon-yyyy'),'dd-Mon-yyyy') " & stroper & " '" & strdate & "'"
+            //'strcond = " and applicationdate " & strArr(3) & " '" &  strArr(4) &"'"
+            //else
+            //                strcond = " and TO_DATE(TO_CHAR(REQDATETIME,'dd-Mon-yyyy'),'dd-Mon-yyyy') between '" & strdate & "' and  '" & strtodt & "'"
+            //'strcond = " and applicationdate " & strArr(3) & " '" &  strArr(4) &"'"
+            //end if
+
+
+
+            //    '' ATM success
+
+            //    strResultatmsuc = ""
+
+
+            //sqlStr = "SELECT LPAD('STAN_N',6,' '), ' ' || RPAD('RR_NO',12,' '),' '  || RPAD('STATION_ID',16,' ') , ' ' ||  LPAD('TXN_TI',6,' '),' ' ||RPAD('TERMDT',9,' '), ' ' || LPAD('TRAN_C',6,' '),' ' || LPAD('BANCS_JOU',9,' '),' ' ||RPAD('CUSTOMER_NO',17,' '), ' ' || RPAD('CARD_NO',19,' ') ,' '|| LPAD('TRAN_AMOUNT',11,' ') FROM DUAL " & _
+            //" UNION " & _
+            //" SELECT LPAD('-',6,'-'), ' ' || LPAD('-',12,'-'),' ' ||LPAD('-',16,'-'), ' ' ||  LPAD('-',6,'-'),' ' ||RPAD('-',9,'-'), ' ' ||LPAD('-',6,'-'),' ' ||LPAD('-',9,'-'),' ' ||LPAD('-',17,'-'), ' ' ||LPAD('-',19,'-') , ' ' || LPAD('-',11,'-') FROM DUAL ORDER BY 2 DESC"
+
+
+            //        rs = obj.SingleSelectStat(sqlStr)
+
+
+            //        if obj.ConnError = "Connected" then
+
+            //            if not rs.BOF and not rs.EOF then
+
+
+            //                do until rs.EOF
+
+
+            //                strResultatmsuc = strResultatmsuc & rs(0).value & rs(1).value & rs(2).value & rs(3).value & rs(4).value & rs(5).value & rs(6).value & rs(7).value & rs(8).value & rs(9).value & "~"
+
+
+            //                rs.movenext()
+
+            //                loop
+            //            end if
+
+            //        end if
+
+
+            //sqlStr = "SELECT  LPAD(NVL(m.SYSTRAAUDNUM,' '),6,' ') STAN , ' ' || LPAD(NVL(m.REFNUM,' '),12,' ') REFNUM ,' ' || RPAD(NVL(m.ATMID,' '),16,' ')  ATMID, ' ' ||  LPAD(TO_CHAR(m.REQDATETIME,'HH24Miss'),6,' ') TXN_TI,' ' ||RPAD(TO_CHAR(m.REQDATETIME,'dd-Mon-yy'),9,' ') TERMDT,CASE  WHEN m.serviceid= 'NWDRRQ' OR m.serviceid= 'FWDRRQ' THEN ' ' || LPAD('004060',6,' ') WHEN m.serviceid = 'LWDRRQ' THEN ' ' || LPAD('020045',6,' ') END TRAN_C ,' ' || LPAD(NVL(TO_CHAR(t.TRANNO),' '),9,'0')BANCS_JOU,' ' ||LPAD(m.BRANCHCODE||m.GLCODE||LPAD(m.ACCNO,7,'0'),17,'0') CUSTOMERID,' ' ||RPAD(NVL(GetCardNo(m.cardno),' '),19,' ') CARD_NO, ' ' ||LPAD(t.AMOUNT,11,' ')  AMOUNT  FROM atmlogdtls m , atmtranday t  WHERE m.status = 'Y'  AND m.glcode = t.linkglcode AND m.accno = t.linkaccno AND m.batchno = t.batchno AND   m.SERVICEID IN ('NWDRRQ','FWDRRQ','LWDRRQ') " & strcond & "  AND m.refnum = t.RATEREFCODE " & _
+            //" union " & _
+            //"SELECT  LPAD(NVL(m.SYSTRAAUDNUM,' '),6,' ') STAN , ' ' || LPAD(NVL(m.REFNUM,' '),12,' ') REFNUM ,' ' || RPAD(NVL(m.ATMID,' '),16,' ')  ATMID, ' ' ||  LPAD(TO_CHAR(m.REQDATETIME,'HH24Miss'),6,' ') TXN_TI,' ' ||RPAD(TO_CHAR(m.REQDATETIME,'dd-Mon-yy'),9,' ') TERMDT,CASE  WHEN m.serviceid= 'NWDRRQ' OR m.serviceid= 'FWDRRQ' THEN ' ' || LPAD('004060',6,' ') WHEN m.serviceid = 'LWDRRQ' THEN ' ' || LPAD('020045',6,' ') END TRAN_C ,' ' || LPAD(NVL(TO_CHAR(t.TRANNO),' '),9,'0')BANCS_JOU,' ' ||LPAD(m.BRANCHCODE||m.GLCODE||LPAD(m.ACCNO,7,'0'),17,'0') CUSTOMERID,' ' ||RPAD(NVL(GetCardNo(m.cardno),' '),19,' ') CARD_NO, ' ' ||LPAD(t.AMOUNT,11,' ')  AMOUNT  FROM atmlogdtls m , atmtran t  WHERE m.status = 'Y' AND m.glcode = t.linkglcode AND m.accno = t.linkaccno AND m.batchno = t.batchno AND   m.SERVICEID IN ('NWDRRQ','FWDRRQ','LWDRRQ') " & strcond & "  AND m.refnum = t.RATEREFCODE ORDER BY 2"
+
+
+            //        rs = obj.SingleSelectStat(sqlStr)
+
+
+            //        if obj.ConnError = "Connected" then
+
+            //            if not rs.BOF and not rs.EOF then
+
+
+            //                do until rs.EOF
+
+
+            //                strResultatmsuc = strResultatmsuc & rs(0).value & rs(1).value & rs(2).value & rs(3).value & rs(4).value & rs(5).value & rs(6).value & rs(7).value & rs(8).value & rs(9).value & "~"
+
+
+            //                rs.movenext()
+
+            //                loop
+            //            end if
+
+            //        end if
+
+
+            //            if strResultatmsuc = "" then
+            //                strResultatmsuc = "No Records"
+
+            //            else
+            //                        strResultatmsuc = mid(strResultatmsuc, 1, strResultatmsuc.length - 1)
+
+            //            end if
+
+
+
+            //    '' ATM fail
+
+
+            //strResultatmfail = ""
+
+            //sqlStr = "SELECT LPAD('STAN_N',6,' '), ' ' || RPAD('RR_NO',12,' '),' '  || RPAD('STATION_ID',16,' ') , ' ' ||  LPAD('TXN_TI',6,' '),' ' ||RPAD('TERMDT',9,' '), ' ' || LPAD('TRAN_C',6,' '),' ' || LPAD('BANCS_JOU',9,' '),' ' ||RPAD('CUSTOMER_NO',17,' '), ' ' || RPAD('CARD_NO',19,' ') ,' '|| LPAD('TRAN_AMOUNT',11,' '), ' ' ||LPAD('CORR_JOUR',9,' ') FROM DUAL " & _
+            //" UNION " & _
+            //" SELECT LPAD('-',6,'-'), ' ' || LPAD('-',12,'-'),' ' ||LPAD('-',16,'-'), ' ' ||  LPAD('-',6,'-'),' ' ||RPAD('-',9,'-'), ' ' ||LPAD('-',6,'-'),' ' ||LPAD('-',9,'-'),' ' ||LPAD('-',17,'-'), ' ' ||LPAD('-',19,'-') , ' ' || LPAD('-',11,'-'), ' ' ||LPAD('-',9,'-') FROM DUAL ORDER BY 2 DESC"
+
+
+
+            //        rs = obj.SingleSelectStat(sqlStr)
+
+
+            //        if obj.ConnError = "Connected" then
+
+            //            if not rs.BOF and not rs.EOF then
+
+
+            //                do until rs.EOF
+
+
+            //                strResultatmfail = strResultatmfail & rs(0).value & rs(1).value & rs(2).value & rs(3).value & rs(4).value & rs(5).value & rs(6).value & rs(7).value & rs(8).value & rs(9).value & rs(10).value & "~"
+
+
+            //                rs.movenext()
+
+            //                loop
+            //            end if
+
+            //        end if
+
+            //sqlStr = "SELECT refnum FROM atmlogdtls WHERE status = 'Y' AND SERVICEID IN ('NDEBRV','FDEBRV','LDEBRV') " & strcond & ""
+
+            //rs1 = obj.SingleSelectStat(sqlStr)
+
+
+            //if not rs1.BOF and not rs1.EOF then
+
+
+            //    do until rs1.EOF
+
+
+            //    sqlStr = "SELECT  LPAD(NVL(m.SYSTRAAUDNUM,' '),6,' ') STAN , ' ' || RPAD(NVL(m.REFNUM,' '),12,' ') REFNUM , ' ' || RPAD(NVL(m.ATMID,' '),16,' ') ATMID,  ' ' || LPAD(TO_CHAR(m.REQDATETIME,'HH24Miss'),6,' ') TXN_TI, ' ' || RPAD(TO_CHAR(m.REQDATETIME,'dd-Mon-yy'),9,' ') TERMDT,CASE  WHEN m.serviceid= 'NDEBRV' OR m.serviceid= 'FDEBRV' OR m.serviceid = 'LDEBRV' THEN  ' ' || LPAD('008160',6,' ') END TRAN_C   , ' ' || LPAD(NVL(to_char((SELECT  t.tranno FROM atmlogdtls m, atmtranday t  WHERE m.status = 'Y' AND m.branchcode = t.BRANCHCODE AND m.glcode = t.linkglcode AND m.accno = t.linkaccno AND m.batchno = t.batchno AND t.RATEREFCODE = '" & rs1(0).value & "' " & strcond & "  AND m.refnum = t.RATEREFCODE and rownum = 1 AND m.SERVICEID IN ('NWDRRQ','FWDRRQ','LWDRRQ'))),' '),9,'0')BANCS_JOU, ' ' || LPAD(m.BRANCHCODE||m.GLCODE||LPAD(m.ACCNO,7,'0'),17,'0') CUSTOMERID, ' ' || RPAD(NVL(GetCardNo(m.cardno),' '),19,' ') CARD_NO,  ' ' ||LPAD(abs(t.AMOUNT),11,' ')  AMOUNT ,  ' ' || LPAD(t.tranno,9,'0') CORR_JOUR FROM atmlogdtls m , atmtranday t  WHERE m.status = 'Y' AND m.glcode = t.linkglcode AND m.accno = t.linkaccno AND m.batchno = t.batchno AND m.SERVICEID IN ('NDEBRV','FDEBRV','LDEBRV') AND t.RATEREFCODE = '" & rs1(0).value & "' " & strcond & "  AND m.refnum = t.RATEREFCODE" & _
+
+            //    " union " & _
+
+            //    "SELECT  LPAD(NVL(m.SYSTRAAUDNUM,' '),6,' ') STAN , ' ' || RPAD(NVL(m.REFNUM,' '),12,' ') REFNUM , ' ' || RPAD(NVL(m.ATMID,' '),16,' ') ATMID,  ' ' || LPAD(TO_CHAR(m.REQDATETIME,'HH24Miss'),6,' ') TXN_TI, ' ' || RPAD(TO_CHAR(m.REQDATETIME,'dd-Mon-yy'),9,' ') TERMDT,CASE  WHEN m.serviceid= 'NDEBRV' OR m.serviceid= 'FDEBRV' OR m.serviceid = 'LDEBRV' THEN  ' ' || LPAD('008160',6,' ') END TRAN_C   , ' ' || LPAD(NVL(to_char((SELECT  t.tranno FROM atmlogdtls m, atmtran t  WHERE m.status = 'Y' AND m.branchcode = t.BRANCHCODE AND m.glcode = t.linkglcode AND m.accno = t.linkaccno AND m.batchno = t.batchno AND t.RATEREFCODE = '" & rs1(0).value & "' " & strcond & "   AND m.refnum = t.RATEREFCODE and rownum = 1 AND m.SERVICEID IN ('NWDRRQ','FWDRRQ','LWDRRQ'))),' '),9,'0')BANCS_JOU, ' ' || LPAD(m.BRANCHCODE||m.GLCODE||LPAD(m.ACCNO,7,'0'),17,'0') CUSTOMERID, ' ' || RPAD(NVL(GetCardNo(m.cardno),' '),19,' ') CARD_NO,  ' ' ||LPAD(abs(t.AMOUNT),11,' ')  AMOUNT ,  ' ' || LPAD(t.tranno,9,'0') CORR_JOUR FROM atmlogdtls m , atmtran t  WHERE m.status = 'Y' AND m.glcode = t.linkglcode AND m.accno = t.linkaccno AND m.batchno = t.batchno AND m.SERVICEID IN ('NDEBRV','FDEBRV','LDEBRV') AND t.RATEREFCODE = '" & rs1(0).value & "' " & strcond & "  AND m.refnum = t.RATEREFCODE ORDER BY 2"
+
+
+
+            //        rs = obj.SingleSelectStat(sqlStr)
+
+
+            //        if obj.ConnError = "Connected" then
+
+            //            if not rs.BOF and not rs.EOF then
+
+
+            //                do until rs.EOF
+
+
+            //                strResultatmfail = strResultatmfail & rs(0).value & rs(1).value & rs(2).value & rs(3).value & rs(4).value & rs(5).value & rs(6).value & rs(7).value & rs(8).value & rs(9).value & rs(10).value & "~"
+
+            //                rs.movenext()
+
+            //                loop
+            //            end if
+
+            //        end if
+
+
+            //rs1.movenext()
+            //loop
+            //end if
+
+
+            //            if strResultatmfail = "" then
+            //                strResultatmfail = "No Records"
+
+            //            else
+            //                    strResultatmfail = mid(strResultatmfail, 1, strResultatmfail.length - 1)
+
+            //            end if
+
+            //'' pos success
+
+            //    strResultpossuc = ""
+
+
+            //    sqlStr = "SELECT LPAD('STAN_N',6,' '), ' ' || RPAD('RR_NO',12,' '),' '  || RPAD('STATION_ID',16,' ') , ' ' ||  LPAD('TXN_TI',6,' '),' ' ||RPAD('TERMDT',9,' '), ' ' || LPAD('TRAN_C',6,' '),' ' || LPAD('BANCS_JOU',9,' '),' ' ||RPAD('CUSTOMER_NO',17,' '), ' ' || RPAD('CARD_NO',19,' ') ,' '|| LPAD('TRAN_AMOUNT',11,' '), ' ' ||RPAD('CORR_JOUR',9,' ') FROM DUAL " & _
+            //" UNION " & _
+            //" SELECT LPAD('-',6,'-'), ' ' || LPAD('-',12,'-'),' ' ||LPAD('-',16,'-'), ' ' ||  LPAD('-',6,'-'),' ' ||RPAD('-',9,'-'), ' ' ||LPAD('-',6,'-'),' ' ||LPAD('-',9,'-'),' ' ||LPAD('-',17,'-'), ' ' ||LPAD('-',19,'-') , ' ' || LPAD('-',11,'-'), ' ' ||RPAD('CORR_JOUR',9,' ') FROM DUAL ORDER BY 2 DESC"
+
+
+
+            //        rs = obj.SingleSelectStat(sqlStr)
+
+
+            //        if obj.ConnError = "Connected" then
+
+            //            if not rs.BOF and not rs.EOF then
+
+
+            //                do until rs.EOF
+
+
+            //                strResultpossuc = strResultpossuc & rs(0).value & rs(1).value & rs(2).value & rs(3).value & rs(4).value & rs(5).value & rs(6).value & rs(7).value & rs(8).value & rs(9).value & "~"
+
+
+            //                rs.movenext()
+
+            //                loop
+            //            end if
+
+            //        end if
+
+
+
+            //sqlStr = "SELECT  LPAD(NVL(m.SYSTRAAUDNUM,' '),6,' ') STAN , ' ' || LPAD(NVL(m.REFNUM,' '),12,' ') REFNUM ,' ' || RPAD(NVL(m.ATMID,' '),16,' ') ATMID, ' ' || LPAD(TO_CHAR(m.REQDATETIME,'HH24Miss'),6,' ') TXN_TI,' ' ||RPAD(TO_CHAR(m.REQDATETIME,'dd-Mon-yy'),9,' ') TERMDT,CASE WHEN m.serviceid= 'CBPREQ' OR m.serviceid= 'POSREQ' OR m.serviceid= 'CHPREQ' THEN ' ' || LPAD('004061',6,' ') END TRAN_C ,' ' || LPAD(NVL(TO_CHAR(t.TRANNO),' '),9,'0')BANCS_JOU,' ' ||LPAD(m.BRANCHCODE||m.GLCODE||LPAD(m.ACCNO,7,'0'),17,'0') CUSTOMERID,' ' ||RPAD(NVL(GetCardNo(m.cardno),' '),19,' ') CARD_NO, ' ' || LPAD(t.AMOUNT,11,' ')  AMOUNT  FROM atmlogdtls m , atmtranday t  WHERE m.status = 'Y' AND m.glcode = t.linkglcode AND m.accno = t.linkaccno AND m.batchno = t.batchno AND m.SERVICEID IN ('CBPREQ','POSREQ','CHPREQ') " & strcond & "  AND m.refnum = t.RATEREFCODE " & _
+            //" union " & _
+            //"SELECT  LPAD(NVL(m.SYSTRAAUDNUM,' '),6,' ') STAN , ' ' || LPAD(NVL(m.REFNUM,' '),12,' ') REFNUM ,' ' || RPAD(NVL(m.ATMID,' '),16,' ') ATMID, ' ' || LPAD(TO_CHAR(m.REQDATETIME,'HH24Miss'),6,' ') TXN_TI,' ' ||RPAD(TO_CHAR(m.REQDATETIME,'dd-Mon-yy'),9,' ') TERMDT,CASE WHEN m.serviceid= 'CBPREQ' OR m.serviceid= 'POSREQ' OR m.serviceid= 'CHPREQ' THEN ' ' || LPAD('004061',6,' ') END TRAN_C ,' ' || LPAD(NVL(TO_CHAR(t.TRANNO),' '),9,'0')BANCS_JOU,' ' ||LPAD(m.BRANCHCODE||m.GLCODE||LPAD(m.ACCNO,7,'0'),17,'0') CUSTOMERID,' ' ||RPAD(NVL(GetCardNo(m.cardno),' '),19,' ') CARD_NO, ' ' || LPAD(t.AMOUNT,11,' ')  AMOUNT  FROM atmlogdtls m , atmtran t  WHERE m.status = 'Y' AND m.glcode = t.linkglcode AND m.accno = t.linkaccno AND m.batchno = t.batchno AND m.SERVICEID IN ('CBPREQ','POSREQ','CHPREQ') " & strcond & "  AND m.refnum = t.RATEREFCODE ORDER BY 2"
+
+
+            //        rs = obj.SingleSelectStat(sqlStr)
+
+
+            //        if obj.ConnError = "Connected" then
+
+            //            if not rs.BOF and not rs.EOF then
+
+
+            //                do until rs.EOF
+
+
+            //                strResultpossuc = strResultpossuc & rs(0).value & rs(1).value & rs(2).value & rs(3).value & rs(4).value & rs(5).value & rs(6).value & rs(7).value & rs(8).value & rs(9).value & "~"
+
+
+            //                rs.movenext()
+
+            //                loop
+            //            end if
+
+            //        end if
+
+            //            if strResultpossuc = "" then
+            //                strResultpossuc = "No Records"
+
+            //            else
+            //                        strResultpossuc = mid(strResultpossuc, 1, strResultpossuc.length - 1)
+
+
+            //            end if
+
+
+            //'' pos fail
+
+            //strResultposfail = ""
+            //sqlStr = "SELECT LPAD('STAN_N',6,' '), ' ' || RPAD('RR_NO',12,' '),' '  || RPAD('STATION_ID',16,' ') , ' ' ||  LPAD('TXN_TI',6,' '),' ' ||RPAD('TERMDT',9,' '), ' ' || LPAD('TRAN_C',6,' '),' ' || LPAD('BANCS_JOU',9,' '),' ' ||RPAD('CUSTOMER_NO',17,' '), ' ' || RPAD('CARD_NO',19,' ') ,' '|| LPAD('TRAN_AMOUNT',11,' '), ' ' ||LPAD('CORR_JOUR',9,' ') FROM DUAL " & _
+            //" UNION " & _
+            //" SELECT LPAD('-',6,'-'), ' ' || LPAD('-',12,'-'),' ' ||LPAD('-',16,'-'), ' ' ||  LPAD('-',6,'-'),' ' ||RPAD('-',9,'-'), ' ' ||LPAD('-',6,'-'),' ' ||LPAD('-',9,'-'),' ' ||LPAD('-',17,'-'), ' ' ||LPAD('-',19,'-') , ' ' || LPAD('-',11,'-'), ' ' ||LPAD('-',9,'-') FROM DUAL ORDER BY 2 DESC"
+
+
+
+
+            //        rs = obj.SingleSelectStat(sqlStr)
+
+
+            //        if obj.ConnError = "Connected" then
+
+            //            if not rs.BOF and not rs.EOF then
+
+
+            //                do until rs.EOF
+
+
+            //                strResultposfail = strResultposfail & rs(0).value & rs(1).value & rs(2).value & rs(3).value & rs(4).value & rs(5).value & rs(6).value & rs(7).value & rs(8).value & rs(9).value & rs(10).value & "~"
+
+
+            //                rs.movenext()
+
+            //                loop
+            //            end if
+
+            //        end if
+
+
+            //sqlStr = "SELECT refnum FROM atmlogdtls WHERE status = 'Y' AND SERVICEID IN ('CBPRRQ','PSRREQ','CHPRRQ') " & strcond & ""
+
+            //rs1 = obj.SingleSelectStat(sqlStr)
+
+
+            //if not rs1.BOF and not rs1.EOF then
+
+
+            //    do until rs1.EOF
+
+
+            //    sqlStr = "SELECT  LPAD(NVL(m.SYSTRAAUDNUM,' '),6,' ') STAN , ' ' || RPAD(NVL(m.REFNUM,' '),12,' ') REFNUM ,' ' ||RPAD(NVL(m.ATMID,' '),16,' ') ATMID,' ' || LPAD(TO_CHAR(m.REQDATETIME,'HH24Miss'),6,' ') TXN_TI,' ' ||RPAD(TO_CHAR(m.REQDATETIME,'dd-Mon-yy'),9,' ') TERMDT,CASE  WHEN m.serviceid= 'CBPRRQ' OR m.serviceid= 'PSRREQ' OR m.serviceid= 'CHPRRQ' THEN ' ' || LPAD('004161',6,' ') END TRAN_C   ,' ' ||LPAD(NVL(to_char((SELECT  t.tranno FROM atmlogdtls m, atmtranday t  WHERE m.status = 'Y' AND m.branchcode = t.BRANCHCODE AND m.glcode = t.linkglcode AND m.accno = t.linkaccno AND m.batchno = t.batchno AND t.RATEREFCODE = '" & rs1(0).value & "' " & strcond & "   AND m.refnum = t.RATEREFCODE and rownum = 1 AND m.SERVICEID IN ('CBPREQ','POSREQ','CHPREQ'))),' '),9,'0')BANCS_JOU,' ' ||LPAD(m.BRANCHCODE||m.GLCODE||LPAD(m.ACCNO,7,'0'),17,'0') CUSTOMERID,' ' ||RPAD(NVL(GetCardNo(m.cardno),' '),19,' ') CARD_NO, ' ' || LPAD(abs(t.AMOUNT),11,' ') AMOUNT , ' ' || LPAD(t.tranno,9,'0') CORR_JOUR FROM atmlogdtls m , atmtranday t WHERE m.status = 'Y' AND m.glcode = t.linkglcode AND m.accno = t.linkaccno AND m.batchno = t.batchno AND m.SERVICEID IN ('CBPRRQ','PSRREQ','CHPRRQ') AND t.RATEREFCODE = '" & rs1(0).value & "' " & strcond & "  AND m.refnum = t.RATEREFCODE" & _
+
+            //    " union " & _
+
+            //    "SELECT  LPAD(NVL(m.SYSTRAAUDNUM,' '),6,' ') STAN , ' ' || RPAD(NVL(m.REFNUM,' '),12,' ') REFNUM ,' ' ||RPAD(NVL(m.ATMID,' '),16,' ') ATMID,' ' || LPAD(TO_CHAR(m.REQDATETIME,'HH24Miss'),6,' ') TXN_TI,' ' ||RPAD(TO_CHAR(m.REQDATETIME,'dd-Mon-yy'),9,' ') TERMDT,CASE  WHEN m.serviceid= 'CBPRRQ' OR m.serviceid= 'PSRREQ' OR m.serviceid= 'CHPRRQ' THEN ' ' || LPAD('004161',6,' ') END TRAN_C   ,' ' ||LPAD(NVL(to_char((SELECT  t.tranno FROM atmlogdtls m, atmtran t  WHERE m.status = 'Y' AND m.branchcode = t.BRANCHCODE AND m.glcode = t.linkglcode AND m.accno = t.linkaccno AND m.batchno = t.batchno AND t.RATEREFCODE = '" & rs1(0).value & "' " & strcond & "  AND m.refnum = t.RATEREFCODE and rownum = 1 AND m.SERVICEID IN ('CBPREQ','POSREQ','CHPREQ'))),' '),9,'0')BANCS_JOU,' ' ||LPAD(m.BRANCHCODE||m.GLCODE||LPAD(m.ACCNO,7,'0'),17,'0') CUSTOMERID,' ' ||RPAD(NVL(GetCardNo(m.cardno),' '),19,' ') CARD_NO, ' ' || LPAD(abs(t.AMOUNT),11,' ') AMOUNT , ' ' || LPAD(t.tranno,9,'0') CORR_JOUR FROM atmlogdtls m , atmtran t WHERE m.status = 'Y' AND m.glcode = t.linkglcode AND m.accno = t.linkaccno AND m.batchno = t.batchno AND m.SERVICEID IN ('CBPRRQ','PSRREQ','CHPRRQ') AND t.RATEREFCODE = '" & rs1(0).value & "' " & strcond & "  AND m.refnum = t.RATEREFCODE ORDER BY 2"
+
+
+            //        rs = obj.SingleSelectStat(sqlStr)
+
+
+            //        if obj.ConnError = "Connected" then
+
+            //            if not rs.BOF and not rs.EOF then
+
+
+            //                do until rs.EOF
+
+
+            //                strResultposfail = strResultposfail & rs(0).value & rs(1).value & rs(2).value & rs(3).value & rs(4).value & rs(5).value & rs(6).value & rs(7).value & rs(8).value & rs(9).value & rs(10).value & "~"
+
+
+            //                rs.movenext()
+
+            //                loop
+            //            end if
+
+            //        end if
+            //rs1.movenext()
+            //loop
+            //end if
+
+
+            //            if strResultposfail = "" then
+            //                strResultposfail = "No Records"
+
+            //            else
+            //                    strResultposfail = mid(strResultposfail, 1, strResultposfail.length - 1)
+
+            //            end if
+
+
+            //        strResult = strResultatmsuc & "*" & strResultatmfail & "*" & strResultpossuc & "*" & strResultposfail
+
+
+            //    rs = nothing
+
+            //    rs1 = nothing
+
+
+            //    elseif strArr(0)= "DTLSCRD" then
+            //    strResult = ""
+
+
+            //    obj = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+
+            //        sqlStr = " SELECT CLIENTCODE, FAMILYNAME, FIRSTNAME, EMAIL1ID, ADDRESS1, ADDRESS2, ADDRESS3, ADDRESS4, CITYCODE, ZIPCODE, MAILINGADDRESS1, MAILINGADDRESS2, MAILINGADDRESS3, MAILINGADDRESS4, MAILINGCITYCODE,MAILINGZIPCODE, MOBILEPHONE,MIDDLENAME, FATHERNAME, CITY, STATE FROM atmcrddtls WHERE cardnumber = '" & strArr(1) & "' "
+
+
+            //        rs = obj.SingleSelectStat(sqlStr)
+
+
+            //        if obj.ConnError = "Connected" then
+
+            //            if not rs.BOF and not rs.EOF then
+
+
+            //                do until rs.EOF
+
+
+            //                strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "~" & rs(7).value & "~" & rs(8).value & "~" & rs(9).value & "~" & rs(10).value & "~" & rs(11).value & "~" & rs(12).value & "~" & rs(13).value & "~" & rs(14).value & "~" & rs(15).value & "~" & rs(16).value & "~" & rs(17).value & "~" & rs(18).value & "~" & rs(19).value & "~" & rs(20).value & "|"
+
+
+            //                rs.movenext()
+
+            //                loop
+            //            end if
+
+            //        end if
+
+
+            //        if strResult = "" then
+            //            strResult = "No Records"
+
+            //        else
+            //                        strResult = mid(strResult, 1, strResult.length - 1)
+
+            //        end if
+
+
+            //    rs = nothing
+
+
+
+            //    elseif strArr(0)= "LOGINOUTDETAIL" then
+            //    strResult = ""
+
+
+            //    obj = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+
+            //        dim stDat, sTdt
+
+
+            //        if strArr(1) = "=" then
+            //            sTdt = Format(dateadd("d", 1, cdate(strArr(2))), "dd-MMM-yyyy")
+
+
+            //            stDat = " SYSTEMDATE > '" & strArr(2) & "' AND  SYSTEMDATE < '" & sTdt & "' "
+
+
+            //        elseif strArr(1) = "BETWEEN" then
+            //            stDat = " SYSTEMDATE >= '" & strArr(2) & "' AND  SYSTEMDATE <= '" & strArr(3) & "' "
+
+            //        else
+            //                stDat = " SYSTEMDATE " & strArr(1) & " '" & strArr(2) & "' "
+
+            //        end if
+
+
+            //        sqlStr = " SELECT  USERID, TO_CHAR(LOGINSYSDATE,'DD-Mon-YYYY hh:Mi:ss AM') LOGINSYSDATE , TO_CHAR(LOGOUTSYSDATE,'DD-Mon-YYYY hh:Mi:ss AM') LOGOUTSYSDATE, KILLEDBY, MACHINEID, TO_CHAR(SYSTEMDATE,'DD-Mon-YYYY hh:Mi:ss AM') SYSTEMDATE FROM GENUSERLOGINDTLSHIST WHERE " & stDat & " AND BRANCHCODE = '" & strArr(5) & "' " & strArr(4) & " ORDER BY USERID,LOGINSYSDATE "
+
+
+            //        rs = obj.SingleSelectStat(sqlStr)
+
+
+            //        if obj.ConnError = "Connected" then
+
+            //            if not rs.BOF and not rs.EOF then
+
+
+            //                do until rs.EOF
+
+
+            //                strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "|"
+
+
+            //                rs.movenext()
+
+            //                loop
+            //            end if
+
+            //        end if
+
+
+            //        if strResult = "" then
+            //            strResult = "No Records"
+
+            //        else
+            //                        strResult = mid(strResult, 1, strResult.length - 1)
+
+            //        end if
+
+
+            //    rs = nothing
+
+
+            //    elseif strArr(0)= "HOEODETAILS" then
+            //    strResult = ""
+
+
+            //    obj = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+
+            //        sqlStr = " SELECT Branchcode,TO_CHAR(Applicationdate,'DD-Mon-YYYY')  Applicationdate,Userid,Machineid,TO_CHAR(Systemdate,'DD-Mon-YYYY hh:Mi:ss AM') Systemdate, CASE WHEN DAYBEGINSTATUS='O' AND DAYENDSTATUS='N' AND HODAYBEGINSTATUS='O' AND HODAYENDSTATUS ='N'  THEN 'HO and Branch Day Begin Started' WHEN DAYBEGINSTATUS='O' AND DAYENDSTATUS='S' AND HODAYBEGINSTATUS='O' AND HODAYENDSTATUS ='N'  THEN 'Branch EOD started' WHEN DAYBEGINSTATUS='O' AND DAYENDSTATUS='O' AND HODAYBEGINSTATUS='O' AND HODAYENDSTATUS ='N'  THEN 'Branch EOD Completed' WHEN DAYBEGINSTATUS='O' AND DAYENDSTATUS='O' AND HODAYBEGINSTATUS='O' AND HODAYENDSTATUS ='O'  THEN 'HO EOD Completed' END Remarks FROM GENAPPLICATIONDATEMSTHIST WHERE  " & strArr(1) & " " & strArr(2) & " ORDER BY Branchcode,SYSTEMDATE "
+
+
+            //        rs = obj.SingleSelectStat(sqlStr)
+
+
+            //        if obj.ConnError = "Connected" then
+
+            //            if not rs.BOF and not rs.EOF then
+
+
+            //                do until rs.EOF
+
+
+            //                strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "|"
+
+
+            //                rs.movenext()
+
+            //                loop
+            //            end if
+
+            //        end if
+
+
+            //        if strResult = "" then
+            //            strResult = "No Records"
+
+            //        else
+            //                        strResult = mid(strResult, 1, strResult.length - 1)
+
+            //        end if
+
+
+            //    rs = nothing
+
+
+            //    elseif strArr(0)= "ATMPOSITION" then
+            //    strResult = ""
+
+
+            //    obj = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+
+            //        sqlStr = " SELECT C.branchcode,c.Accno,c.atmid,c.NAME, NVL(C.opbal,0) Opbal, NVL(abs(D.debit),0) debit,NVL(R.Credit,0) Credit,NVL ((NVL(C.opbal,0)+NVL(D.debit,0)+NVL(R.Credit,0)),0) closbal FROM (SELECT Branchcode,Accno,SUM(amount) debit FROM ATMTRANDAY WHERE MODEOFTRAN IN ('1','3','5') AND APPLICATIONDATE = '" & strArr(1) & "' GROUP BY branchcode,Accno )D, (SELECT Branchcode,Accno,SUM(amount) Credit FROM ATMTRANDAY WHERE MODEOFTRAN IN ('2','4','6') AND APPLICATIONDATE = '" & strArr(1) & "' GROUP BY branchcode,Accno )R, (SELECT a.Branchcode,a.ACCNO , a.ATMID,a.NAME, NVL(b.curbal,0) Opbal FROM ATMMST a,ATMbalance b  WHERE b.accno=a.accno AND b.branchcode=a.branchcode)C  WHERE  C.ACCNO=D.ACCNO(+) AND C.ACCNO=R.ACCNO(+) AND C.branchcode=D.branchcode(+) AND C.branchcode=R.branchcode(+) ORDER BY C.branchcode,c.Accno "
+
+
+            //        rs = obj.SingleSelectStat(sqlStr)
+
+
+            //        if obj.ConnError = "Connected" then
+
+            //            if not rs.BOF and not rs.EOF then
+
+
+            //                do until rs.EOF
+
+
+            //                strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "~" & rs(7).value & "|"
+
+
+            //                rs.movenext()
+
+            //                loop
+            //            end if
+
+            //        end if
+
+
+            //        if strResult = "" then
+            //            strResult = "No Records"
+
+            //        else
+            //                        strResult = mid(strResult, 1, strResult.length - 1)
+
+            //        end if
+
+
+            //    rs = nothing
+
+
+            //    elseif strArr(0)= "FRM61REPORT" then
+            //    strResult = ""
+
+
+            //    obj = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+
+            //    if frmname = "MAHARAJA" then
+
+            //        staccond = ""
+
+            //        staccd = ""
+
+            //        stCustid = " AND a.customerid NOT IN (SELECT customerid FROM GENCUSTHOLDDTLS) "
+
+
+            //    else
+            //                staccond = ""
+
+            //        staccd = ""
+
+            //        stCustid = " "
+
+            //    end if
+
+
+            //    if  strArr(1) = "OTH" then
+
+            //        sqlStr = "SELECT  y.customerid,y.branchcode,y.moduleid,y.glcode,y.accno,SUBSTR(B.NAME,0,30),y.amount,y.status,y.clsdate,y.categorycode,SUBSTR(NVL(y.OPERATEDBY,B.NAME),0,25) OPERATEDBY,y.REGDATE,TO_CHAR(b.CUSTDOB,'DD-Mon-YYYY'),  b.CUSTMOBILE, b.PANNO, b.AADHARUID,SUBSTR((b.MAILADDRESS1||', '|| b.MAILADDRESS2||', ' ||b.MAILADDRESS3||', ' ||b.MAILADDRESS4 ||', ' ||b.MAILADDRESS5),0,75) Address FROM (SELECT A.customerid, a.branchcode, a.moduleid, a.glcode, a.accno, SUM(a.AMOUNT) amount, a.status,a.clsdate ,a.CATEGORYCODE, a.OPERATEDBY OPERATEDBY,TO_CHAR(a.REGDATE,'DD-Mon-YYYY') REGDATE FROM ( SELECT /*+ index(M IDX_SBMST_ACGLBRCR) */ T.customerid,T.branchcode, T.moduleid,T.glcode, T.accno,T.name, T.amount,M.status,TO_CHAR(M.closedate, 'DD-Mon-yyyy') clsdate, M.CATEGORYCODE, M.OPERATEDBY,M.OPDATE REGDATE  FROM SBTRAN T,SBMST M WHERE T." & strArr(2) & " AND T.modeoftran=" & strArr(5) & " " & staccond & "  AND M.accno=T.accno AND M.glcode=T.glcode AND M.branchcode=T.BRANCHCODE AND M.currencycode=T.currencycode UNION ALL SELECT /*+ index(M IND_CCMSTBCGA) */  T.customerid,T.branchcode, T.moduleid,T.glcode, T.accno,T.name, T.amount,M.status,TO_CHAR(M.closedate, 'DD-Mon-yyyy') clsdate, M.CATEGORYCODE,M.OPERATEDBY,M.REGDATE    FROM cctran T,ccmst M WHERE T." & strArr(2) & " AND T.modeoftran=" & strArr(5) & " AND M.accno=T.accno AND M.glcode=T.glcode AND M.branchcode=T.BRANCHCODE UNION ALL SELECT /*+ index(M IND_LOANMST_ACGLBRCR) */ T.customerid,T.branchcode, T.moduleid,T.glcode, T.accno,T.name, T.amount,M.status,TO_CHAR(M.closedate, 'DD-Mon-yyyy') clsdate, M.CATEGORYCODE,M.OPERATEDBY,M.SANCTIONEDDATE REGDATE FROM loantran T,loanmst M WHERE T." & strArr(2) & " AND T.modeoftran=" & strArr(5) & " AND M.accno=T.accno  AND M.glcode=T.glcode AND M.branchcode=T.BRANCHCODE AND M.currencycode=T.currencycode UNION ALL SELECT /*+ index(M IND_DEPMSTBCGA) */  T.customerid,T.branchcode, T.moduleid,T.glcode, T.accno,T.name, T.amount,M.status,TO_CHAR(M.closedate, 'DD-Mon-yyyy') clsdate, TO_CHAR(M.CATEGORYCODE), M.OPERATEDBY,M.EFFDATE REGDATE FROM deptran T,depmst M WHERE T." & strArr(2) & " AND T.modeoftran=" & strArr(5) & " AND M.accno=T.accno AND M.glcode=T.glcode AND M.branchcode=T.BRANCHCODE) a,( SELECT d.customerid FROM (  SELECT A.customerid, SUM(A.AMOUNT) FROM (  SELECT /*+ index(t IDX_SBTRAN_ADGLBR) */ customerid, amount   FROM sbtran t WHERE " & strArr(2) & " AND modeoftran=" & strArr(5) & " UNION  ALL SELECT customerid, amount   FROM loantran WHERE " & strArr(2) & " AND modeoftran=" & strArr(5) & " UNION  ALL SELECT customerid, amount FROM cctran WHERE  " & strArr(2) & " AND modeoftran=" & strArr(5) & " UNION ALL SELECT customerid, amount   FROM deptran WHERE  " & strArr(2) & " AND modeoftran=" & strArr(5) & " ) a,   GENCUSTINFOMST B WHERE A.CUSTOMERID=B.CUSTOMERID " & stCustid & " GROUP BY A.customerid,B.NAME HAVING  " & strArr(3) & " )d ) x WHERE a.customerid = x.customerid GROUP BY A.customerid,a.branchcode, a.moduleid,a.glcode, a.accno, a.status,a.clsdate,a.CATEGORYCODE, a.OPERATEDBY ,a.REGDATE ) Y, gencustinfomst B WHERE y.customerid=  b.customerid "
+
+
+            //        rs = obj.SingleSelectStat(sqlStr)
+
+
+            //            if obj.ConnError = "Connected" then
+
+            //                if not rs.BOF and not rs.EOF then
+
+
+            //                    do until rs.EOF
+
+
+            //                    strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "~" & rs(7).value & "~" & rs(8).value & "~" & rs(9).value & "~" & rs(10).value & "~" & rs(11).value & "~" & rs(12).value & "~" & rs(13).value & "~" & rs(14).value & "~" & rs(15).value & "~" & rs(16).value & "|"
+
+
+            //                    rs.movenext()
+
+            //                    loop
+            //                end if
+
+            //            end if
+
+
+            //        if strResult = "" then
+            //            strResult = "No Records"
+
+            //        else
+            //                        strResult = mid(strResult, 1, strResult.length - 1)
+
+            //        end if
+
+
+            //    rs = nothing
+
+
+            //    end if
+
+
+
+            //    elseif strArr(0) = "FRMMODREPORT" then
+            //    strResult = ""
+
+
+            //        dim rsBk, objBk, frnme, stModacnd, stModacd
+
+            //        rsBk = server.CreateObject("adodb.recordset")
+
+            //        objBk = server.CreateObject("queryrecordsets.fetchrecordsets")
+
+            //        rsBk = objBk.singlerecordset("genbankparm", "depcertificate", "")
+
+
+            //        if objBk.ConnError = "Connected" then
+
+            //            if not rsBk.EOF and not rsBk.BOF then
+
+            //                frnme = rsBk(0).value
+
+            //            end if
+
+            //        end if
+
+
+            //        obj = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+
+            //        if frnme = "MAHARAJA" and strArr(1) = "SB" then
+            //            stModacnd = " AND A.ACCNO NOT IN (select ACCNO FROM sbtran where ACCNO IN (6536,6538,7128,7130,7131,7132,7135,7136,7137,7138,7144,7145,7146,7149,7151,7152,7153,7154,7155,7156,7157,7159,7160,7162,7163,7171,7172) and GLCODE='102020' AND BRANCHCODE='101' ) "
+
+
+            //            stModacd = " AND T.ACCNO NOT IN (select ACCNO FROM sbtran where ACCNO IN (6536,6538,7128,7130,7131,7132,7135,7136,7137,7138,7144,7145,7146,7149,7151,7152,7153,7154,7155,7156,7157,7159,7160,7162,7163,7171,7172) and GLCODE='102020' AND BRANCHCODE='101' ) "
+
+            //        else
+            //                stModacnd = ""
+
+            //            stModacd = ""
+
+            //        end if
+
+
+            //            if strArr(1) = "DEP"  then
+
+            //            sqlStr = "SELECT Y.BRANCHCODE, Y.CUSTOMERID,Y.GLCODE, Y.ACCNO,Y.NAME, Y.CURBAL,Y.BAL,(SELECT DISTINCT NVL(rate,0) FROM GENINTERESTDTLS M WHERE ROWNUM = 1 AND CURRENCYCODE='INR' AND UPPER(GLCODE)=Y.GLCODE AND (CATEGORYCODE=Y.CATEGORYCODE OR CATEGORYCODE='99') AND effectivedate=(SELECT MAX(effectivedate) FROM  GENINTERESTDTLS WHERE effectivedate<='" & strArr(5) & "' AND UPPER(GLCODE)=M.GLCODE AND (CATEGORYCODE=M.CATEGORYCODE OR CATEGORYCODE='99')) AND FROMCONVDAYS<=Y.PRDDAYS AND  TOCONVDAYS>=Y.PRDDAYS) newroi, Y.CUSTMOBILE, Y.CUSTDOB ,Y.PANNO, Y.AADHARUID, Y.OPERATEDBY ,Y.CATEGORYCODE,Y.REGNO, Y.REGDATE, Y.REGPLACE,  Y.address  FROM (  SELECT X.BRANCHCODE, G.CUSTOMERID,X.GLCODE, X.ACCNO,SUBSTR(X.NAME,0,30) NAME, X.CURBAL,NVL(Y.BAL,0) BAL, G.CUSTMOBILE, TO_CHAR(G.CUSTDOB,'DD-MON-YYYY') CUSTDOB ,G.PANNO,  G.AADHARUID, SUBSTR(X.OPERATEDBY,0,30) OPERATEDBY ,X.CATEGORYCODE,'' REGNO, '' REGDATE, '' REGPLACE,  SUBSTR((g.MAILADDRESS1|| ' , '|| g.MAILADDRESS2|| ' , '|| g.MAILADDRESS3|| ' , '|| g.MAILADDRESS4|| ' , '|| g.MAILADDRESS5),0,70) address,(NVL(X.DEPPRDYEARS,0) * 365 +  NVL(X.DEPPRDMONS,0) * 30 +  NVL(X.DEPPRDDAYS,0) * 1) PRDDAYS  FROM ( SELECT A.BRANCHCODE, B.CUSTOMERID,A.GLCODE, A.ACCNO,B.NAME, SUM(A.AMOUNT)CURBAL, B.OPERATEDBY,B.CATEGORYCODE,NVL(B.DEPPRDYEARS,0) DEPPRDYEARS, NVL(B.DEPPRDMONS,0) DEPPRDMONS, NVL(B.DEPPRDDAYS,0) DEPPRDDAYS FROM " & strArr(1) & "TRAN A , " & strArr(1) & "MST B  WHERE A.APPLICATIONDATE<='" & strArr(2) & "' " & stModacnd & " AND A.ACCNO=B.ACCNO AND A.GLCODE=B.GLCODE AND A.BRANCHCODE=B.BRANCHCODE GROUP BY A.BRANCHCODE, B.CUSTOMERID,A.GLCODE, A.ACCNO ,B.NAME, B.OPERATEDBY,B.CATEGORYCODE,NVL(B.DEPPRDYEARS,0), NVL(B.DEPPRDMONS,0), NVL(B.DEPPRDDAYS,0) HAVING " & strArr(3) & " ) X , (SELECT T.Branchcode,T.Glcode,T.Accno,NVL(SUM(AMOUNT),0)BAL FROM " & strArr(1) & "TRAN T  WHERE T.chqfvg = 'DEPIP' AND T.Applicationdate BETWEEN '" & strArr(4) & "' AND '" & strArr(5) & "' " & stModacd & " AND T.MODEOFTRAN IN (2,4,6) GROUP BY T.Branchcode,T.Glcode,T.Accno)Y, GENCUSTINFOMST G  WHERE X.CUSTOMERID=G.CUSTOMERID AND Y.branchcode(+)=X.BRANCHCODE AND Y.GLCODE(+)=X.GLCODE AND Y.ACCNO(+)=X.ACCNO ) Y ORDER BY Y.BRANCHCODE, TO_NUMBER(Y.ACCNO)"
+
+
+
+            //        rs = obj.SingleSelectStat(sqlStr)
+
+
+            //        if obj.ConnError = "Connected" then
+
+            //            if not rs.BOF and not rs.EOF then
+
+
+            //                do until rs.EOF
+
+
+            //                strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "~" & rs(7).value & "~" & rs(8).value & "~" & rs(9).value & "~" & rs(10).value & "~" & rs(11).value & "~" & rs(12).value & "~" & rs(13).value & "~" & rs(14).value & "~" & rs(15).value & "~" & rs(16).value & "~" & rs(17).value & "|"
+
+
+            //                rs.movenext()
+
+            //                loop
+            //            end if
+
+            //        end if
+
+
+            //        end if
+
+
+            //         if strArr(1) <> "DEP" then
+
+
+            //         if strArr(1) = "LOAN" then
+
+            //        sqlStr = " SELECT X.BRANCHCODE, G.CUSTOMERID,X.GLCODE, X.ACCNO,SUBSTR(X.NAME,0,30), X.CURBAL,NVL(Y.BAL,0) BAL, G.CUSTMOBILE, TO_CHAR(G.CUSTDOB,'DD-MON-YYYY'),G.PANNO, G.AADHARUID, SUBSTR(X.OPERATEDBY,0,30),X.CATEGORYCODE,'' REGNO, '' REGDATE, '' REGPLACE,  SUBSTR((g.MAILADDRESS1|| ' , '|| g.MAILADDRESS2|| ' , '|| g.MAILADDRESS3|| ' , '|| g.MAILADDRESS4|| ' , '|| g.MAILADDRESS5),0,70) address FROM ( SELECT A.BRANCHCODE, B.CUSTOMERID,A.GLCODE, A.ACCNO,B.NAME, SUM(A.AMOUNT)CURBAL, B.OPERATEDBY,B.CATEGORYCODE FROM " & strArr(1) & "TRAN A , " & strArr(1) & "MST B  WHERE A.APPLICATIONDATE<='" & strArr(2) & "' " & stModacnd & " AND A.ACCNO=B.ACCNO AND A.GLCODE=B.GLCODE AND A.BRANCHCODE=B.BRANCHCODE GROUP BY A.BRANCHCODE, B.CUSTOMERID,A.GLCODE, A.ACCNO ,B.NAME, B.OPERATEDBY,B.CATEGORYCODE HAVING " & strArr(3) & " ) X , (SELECT T.Branchcode,T.Glcode,T.Accno,NVL(SUM(AMOUNT),0)BAL FROM " & strArr(1) & "TRAN T  WHERE T.Applicationdate BETWEEN '" & strArr(4) & "' AND '" & strArr(5) & "' " & stModacd & " AND T.MODEOFTRAN IN (2,4,6) GROUP BY T.Branchcode,T.Glcode,T.Accno)Y, GENCUSTINFOMST G  WHERE X.CUSTOMERID=G.CUSTOMERID AND Y.branchcode(+)=X.BRANCHCODE AND Y.GLCODE(+)=X.GLCODE AND Y.ACCNO(+)=X.ACCNO ORDER BY X.BRANCHCODE, TO_NUMBER(X.ACCNO) "
+
+
+            //        else
+
+            //                sqlStr = " SELECT X.BRANCHCODE, G.CUSTOMERID,X.GLCODE, X.ACCNO,SUBSTR(X.NAME,0,30), X.CURBAL,NVL(Y.BAL,0) BAL, G.CUSTMOBILE, TO_CHAR(G.CUSTDOB,'DD-MON-YYYY'),G.PANNO, G.AADHARUID, SUBSTR(X.OPERATEDBY,0,30),X.CATEGORYCODE,X.REGNO, TO_CHAR(X.REGDATE,'DD-MON-YYYY'), X.REGPLACE, SUBSTR((g.MAILADDRESS1|| ' , '|| g.MAILADDRESS2|| ' , '|| g.MAILADDRESS3|| ' , '|| g.MAILADDRESS4|| ' , '|| g.MAILADDRESS5),0,70) address FROM ( SELECT A.BRANCHCODE, B.CUSTOMERID,A.GLCODE, A.ACCNO,B.NAME, SUM(A.AMOUNT)CURBAL, B.OPERATEDBY,B.CATEGORYCODE,B.REGNO, B.REGDATE, B.REGPLACE FROM " & strArr(1) & "TRAN A , " & strArr(1) & "MST B  WHERE A.APPLICATIONDATE<='" & strArr(2) & "' " & stModacnd & " AND A.ACCNO=B.ACCNO AND A.GLCODE=B.GLCODE AND A.BRANCHCODE=B.BRANCHCODE GROUP BY A.BRANCHCODE, B.CUSTOMERID,A.GLCODE, A.ACCNO ,B.NAME, B.OPERATEDBY,B.CATEGORYCODE,B.REGNO, B.REGDATE, B.REGPLACE HAVING " & strArr(3) & " ) X , (SELECT T.Branchcode,T.Glcode,T.Accno,NVL(SUM(AMOUNT),0)BAL FROM " & strArr(1) & "TRAN T  WHERE T.Applicationdate BETWEEN '" & strArr(4) & "' AND '" & strArr(5) & "' " & stModacd & " AND T.MODEOFTRAN IN (2,4,6) GROUP BY T.Branchcode,T.Glcode,T.Accno)Y, GENCUSTINFOMST G  WHERE X.CUSTOMERID=G.CUSTOMERID AND Y.branchcode(+)=X.BRANCHCODE AND Y.GLCODE(+)=X.GLCODE AND Y.ACCNO(+)=X.ACCNO ORDER BY X.BRANCHCODE, TO_NUMBER(X.ACCNO) "
+
+
+            //        end if
+
+
+
+            //        rs = obj.SingleSelectStat(sqlStr)
+
+
+            //        if obj.ConnError = "Connected" then
+
+            //            if not rs.BOF and not rs.EOF then
+
+
+            //                do until rs.EOF
+
+
+            //                strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "~" & rs(7).value & "~" & rs(8).value & "~" & rs(9).value & "~" & rs(10).value & "~" & rs(11).value & "~" & rs(12).value & "~" & rs(13).value & "~" & rs(14).value & "~" & rs(15).value & "~" & rs(16).value & "|"
+
+
+            //                rs.movenext()
+
+            //                loop
+            //            end if
+
+            //        end if
+
+
+            //        end if
+
+
+            //        if strResult = "" then
+            //            strResult = "No Records"
+
+            //        else
+            //                            strResult = mid(strResult, 1, strResult.length - 1)
+
+            //        end if
+
+
+
+            //    rs = nothing
+
+
+            //elseif strArr(0)= "CARDREQUEST" then
+
+            //    strResult = ""
+
+
+            //    obj = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+
+            //        sqlStr = " SELECT LPAD(REFNUM,5,0)Refnum, BRANCHCODE, (DECODE(TRIM(MODULEID),'SB','020','CA','030')) AccType ,(DECODE(TRIM(MODULEID),'SB','001','CA','002')) SCHEME, (BRANCHCODE||GLCODE||LPAD(ACCNO,7,0)) Accno, SUBSTR(NAME,0,25) name, SUBSTR(CARDNAME,0,25) CARDNAME, CARDLIMIT, SUBSTR(ADDRESS1,0,25) ADDRESS1, SUBSTR(ADDRESS2,0,25) ADDRESS2, SUBSTR(ADDRESS3,0,25) ADDRESS3, NVL(CARDNUMBER,'NA')CARDNUMBER ,  SUBSTR(MOTHERNAME,0,25) MOTHERNAME, PREFERENCE, MOBILE, ZIPCODE, SUBSTR(STATE,0,25) STATE, SUBSTR(CITYCODE,0,25) CITYCODE  FROM ATMCRDREQUESTDTLS WHERE genyn='N' " & strArr(1) & " "
+
+
+            //        rs = obj.SingleSelectStat(sqlStr)
+
+
+            //        if obj.ConnError = "Connected" then
+
+            //            if not rs.BOF and not rs.EOF then
+
+
+            //                do until rs.EOF
+
+
+            //                strResult = strResult & rs(0).value & "|" & rs(1).value & "|" & rs(2).value & "|" & rs(3).value & "|" & rs(4).value & "|" & rs(5).value & "|" & rs(6).value & "|" & rs(7).value & "|" & rs(8).value & "|" & rs(9).value & "|" & rs(10).value & "|" & rs(11).value & "|" & rs(12).value & "|" & rs(13).value & "|" & rs(14).value & "|" & rs(15).value & "|" & rs(16).value & "|" & rs(16).value & "~"
+
+
+            //                rs.movenext()
+
+            //                loop
+            //            end if
+
+            //        end if
+
+
+            //        if strResult = "" then
+            //            strResult = "No Records"
+
+            //        else
+            //                        strResult = mid(strResult, 1, strResult.length - 1)
+
+            //        end if
+
+
+            //    rs = nothing
+
+
+
+            //    elseif strArr(0) = "NEFTINWARD" then
+
+            //    strResult = ""
+
+
+            //    obj = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+
+            //        sqlStr = "SELECT APPLICATIONDATE,VALUEDATE, TRANSREFNUM, RELREFNUM, SENDBRANCHIFSC,SENDCUSTACCNUM, SENDCUSTACCNAME,AMOUNT,BENBRANCHIFSC ,BENCUSTACCNUM, BENCUSTACCNAME,REMITINF, REASONCODE, REJECTREASON,RESPCODE,RESPREASON FROM neftinwarddtls WHERE trantype = 'NEFTIW'  and " & strArr(1) & " " & strArr(2) & " " & strArr(3) & " order by systemdate "
+
+
+            //        rs = obj.SingleSelectStat(sqlStr)
+
+
+            //        if obj.ConnError = "Connected" then
+
+            //            if not rs.BOF and not rs.EOF then
+
+            //                do until rs.EOF
+
+            //                strResult = strResult & format(cdate(rs(0).value), "dd-MMM-yyyy") & "~" & format(cdate(rs(1).value), "dd-MMM-yyyy") & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "~" & rs(7).value & "~" & rs(8).value & "~" & rs(9).value & "~" & rs(10).value & "~" & rs(11).value & "~" & rs(12).value & "~" & rs(13).value & "~" & rs(14).value & "~" & rs(15).value & "|"
+
+            //                rs.movenext()
+
+            //                loop
+            //            end if
+
+            //        end if
+
+
+            //        if strResult = "" then
+            //            strResult = "No Records"
+
+            //        else
+            //                        strResult = mid(strResult, 1, strResult.length - 1)
+
+            //        end if
+
+
+            //    rs = nothing
+
+
+            //elseif strArr(0) = "NEFTOUTWARDRETURN" then
+
+            //    strResult = ""
+
+
+            //    obj = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+
+            //        sqlStr = "SELECT APPLICATIONDATE,VALUEDATE, TRANSREFNUM, RELREFNUM, SENDBRANCHIFSC,SENDCUSTACCNUM, SENDCUSTACCNAME,AMOUNT,BENBRANCHIFSC ,BENCUSTACCNUM, BENCUSTACCNAME,REMITINF, REASONCODE, REJECTREASON,RESPCODE,RESPREASON FROM neftinwarddtls WHERE trantype = 'NEFTOR'  and " & strArr(1) & " " & strArr(2) & " " & strArr(3) & " order by systemdate "
+
+
+            //        rs = obj.SingleSelectStat(sqlStr)
+
+
+            //        if obj.ConnError = "Connected" then
+
+            //            if not rs.BOF and not rs.EOF then
+
+            //                do until rs.EOF
+
+            //                strResult = strResult & format(cdate(rs(0).value), "dd-MMM-yyyy") & "~" & format(cdate(rs(1).value), "dd-MMM-yyyy") & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "~" & rs(7).value & "~" & rs(8).value & "~" & rs(9).value & "~" & rs(10).value & "~" & rs(11).value & "~" & rs(12).value & "~" & rs(13).value & "~" & rs(14).value & "~" & rs(15).value & "*"
+
+            //                rs.movenext()
+
+            //                loop
+            //            end if
+
+            //        end if
+
+
+            //        if strResult = "" then
+            //            strResult = "No Records"
+
+            //        else
+            //                        strResult = mid(strResult, 1, strResult.length - 1)
+
+            //        end if
+
+
+            //    rs = nothing
+
+            //elseif strArr(0) = "RTGSINWARD" then
+
+            //    obj = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+
+            //    sqlStr = "SELECT APPLICATIONDATE ,VALUEDATE_F4488_1 ValueDate, TRANSREFNUM_F2020_1 RefNum, RELREF_F2006_1 RelRefNum, SENDIFSCCODE_FSRID_1 sendIFSCCode,OCSENDACCNUM_F5500_1 SendAccNum, OCSENDACCNAME_F5500_2 SendAccName,OCSENDACCADD_F5500_3 SendAccAdd,AMOUNT_F4488_2 Amount,RECIFSCCODE_FRCID_1 RecIFSCCode, BC_RECACCNUM_F5561_1 RecAccnum, BC_RECNAMEADD_F5561_2 RecAccNameAdd, STRI_RETCODE_F7495_1 RetCode,STRI_RETREAS_F7495_2 RetReasDesc FROM RTGSINWARDDTLS WHERE trantype = 'RTGSIW' and " & strArr(1) & " " & strArr(2) & " " & strArr(3) & " order by systemdate "
+
+
+            //        rs = obj.SingleSelectStat(sqlStr)
+
+
+            //        if obj.ConnError = "Connected" then
+
+            //            if not rs.BOF and not rs.EOF then
+
+            //                do until rs.EOF
+
+            //                strResult = strResult & format(cdate(rs(0).value), "dd-MMM-yyyy") & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "~" & rs(7).value & "~" & rs(8).value & "~" & rs(9).value & "~" & rs(10).value & "~" & rs(11).value & "~" & rs(12).value & "~" & rs(13).value & "|"
+
+            //                rs.movenext()
+
+            //                loop
+            //            end if
+
+            //        end if
+
+
+            //        if strResult = "" then
+            //            strResult = "No Records"
+
+            //        else
+            //                        strResult = mid(strResult, 1, strResult.length - 1)
+
+            //        end if
+
+
+            //    rs = nothing
+
+            //elseif strArr(0) = "RTGSINWARDRETURN" then
+
+            //    obj = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+
+            //    sqlStr = "SELECT APPLICATIONDATE ,VALUEDATE_F4488_1 ValueDate, TRANSREFNUM_F2020_1 RefNum, RELREF_F2006_1 RelRefNum,SENDIFSCCODE_FSRID_1 sendIFSCCode,OI_SENDBANKVALIDIFSC_F5517_1 SendBnkValidIFSC,AMOUNT_F4488_2 Amount,BI_RECBENBNKVALIFSC_F6521_1 RecBnkValdIFSC,RECIFSCCODE_FRCID_1 RecIFSCCode, BC_RECACCNUM_F5561_1 RecAccnum, BC_RECNAMEADD_F5561_2 RecAccNameAdd, STRI_RETCODE_F7495_1 RetCode,STRI_RETREAS_F7495_2 RetReasDesc FROM RTGSINWARDDTLS WHERE trantype = 'RTGSIR'  and " & strArr(1) & " " & strArr(2) & " " & strArr(3) & " order by systemdate "
+
+
+            //        rs = obj.SingleSelectStat(sqlStr)
+
+
+            //        if obj.ConnError = "Connected" then
+
+            //            if not rs.BOF and not rs.EOF then
+
+            //                do until rs.EOF
+
+            //                strResult = strResult & format(cdate(rs(0).value), "dd-MMM-yyyy") & "~" & format(cdate(rs(1).value), "dd-MMM-yyyy") & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "~" & rs(7).value & "~" & rs(8).value & "~" & rs(9).value & "~" & rs(10).value & "~" & rs(11).value & "~" & rs(12).value & "|"
+
+            //                rs.movenext()
+
+            //                loop
+            //            end if
+
+            //        end if
+
+
+            //        if strResult = "" then
+            //            strResult = "No Records"
+
+            //        else
+            //                        strResult = mid(strResult, 1, strResult.length - 1)
+
+            //        end if
+
+
+            //    rs = nothing
+
+            //elseif strArr(0) = "RTGSOUTWARDRETURN" then
+
+            //    obj = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+
+            //    sqlStr = "SELECT APPLICATIONDATE ,VALUEDATE_F4488_1 ValueDate, TRANSREFNUM_F2020_1 RefNum, RELREF_F2006_1 RelRefNum,SENDIFSCCODE_FSRID_1 sendIFSCCode,OI_SENDBANKVALIDIFSC_F5517_1 SendBnkValidIFSC,AMOUNT_F4488_2 Amount,BI_RECBENBNKVALIFSC_F6521_1 RecBnkValdIFSC,RECIFSCCODE_FRCID_1 RecIFSCCode, BC_RECACCNUM_F5561_1 RecAccnum, BC_RECNAMEADD_F5561_2 RecAccNameAdd, STRI_RETCODE_F7495_1 RetCode, REPLACE(REPLACE(STRI_RETREAS_F7495_2,CHR(13),NULL),CHR(10),NULL) RetReasDesc FROM RTGSINWARDDTLS WHERE trantype = 'RTGSOR'  and " & strArr(1) & " " & strArr(2) & " " & strArr(3) & " order by systemdate "
+
+
+            //        rs = obj.SingleSelectStat(sqlStr)
+
+
+            //        if obj.ConnError = "Connected" then
+
+            //            if not rs.BOF and not rs.EOF then
+
+            //                do until rs.EOF
+
+            //                strResult = strResult & format(cdate(rs(0).value), "dd-MMM-yyyy") & "~" & format(cdate(rs(1).value), "dd-MMM-yyyy") & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "~" & rs(7).value & "~" & rs(8).value & "~" & rs(9).value & "~" & rs(10).value & "~" & rs(11).value & "~" & rs(12).value & "|"
+
+            //                rs.movenext()
+
+            //                loop
+            //            end if
+
+            //        end if
+
+
+            //        if strResult = "" then
+            //            strResult = "No Records"
+
+            //        else
+            //                        strResult = mid(strResult, 1, strResult.length - 1)
+
+            //        end if
+
+
+            //    rs = nothing
+
+
+
+
+            //    elseif strArr(0) = "NEFTINWARDRETURN" then
+
+            //    strResult = ""
+
+
+            //    obj = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+
+            //        sqlStr = "SELECT APPLICATIONDATE,VALUEDATE, TRANSREFNUM, RELREFNUM, SENDBRANCHIFSC,SENDCUSTACCNUM, SENDCUSTACCNAME,AMOUNT,BENBRANCHIFSC ,BENCUSTACCNUM, BENCUSTACCNAME,replace(REMITINF,'|','#'), REASONCODE, REJECTREASON, RESPCODE, RESPREASON FROM neftinwarddtls WHERE trantype = 'NEFTIR'  and " & strArr(1) & " " & strArr(2) & " " & strArr(3) & " order by systemdate "
+
+
+            //        rs = obj.SingleSelectStat(sqlStr)
+
+
+            //        if obj.ConnError = "Connected" then
+
+            //            if not rs.BOF and not rs.EOF then
+
+            //                do until rs.EOF
+
+            //                strResult = strResult & format(cdate(rs(0).value), "dd-MMM-yyyy") & "~" & format(cdate(rs(1).value), "dd-MMM-yyyy") & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "~" & rs(7).value & "~" & rs(8).value & "~" & rs(9).value & "~" & rs(10).value & "~" & rs(11).value & "~" & rs(12).value & "~" & rs(13).value & "~" & rs(14).value & "~" & rs(15).value & "*"
+
+            //                rs.movenext()
+
+            //                loop
+            //            end if
+
+            //        end if
+
+
+            //        if strResult = "" then
+            //            strResult = "No Records"
+
+            //        else
+            //                        strResult = mid(strResult, 1, strResult.length - 1)
+
+            //        end if
+
+            //    rs = nothing
+
+
+            //    elseif strArr(0) = "NEFTOUTWARD" then
+
+            //strSentfilename = ""
+            //strAckFilename = ""
+
+            //    strResult = ""
+
+            //    rs1 = Server.CreateObject("adodb.recordset")
+
+            //    obj = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+
+            //        if strNFTSCONVYN = "N" then
+            //        sqlStr = " SELECT  n.APPLICATIONDATE,n.branchcode||n.glcode||LPAD(n.accno,7,'0') accno,n.name,n.PAYEEAMT,n.ifsccode,n.payeeaccno,n.payeename,n.refno,a.UTRNO,(CASE WHEN a.STATUS= 'Y' THEN 'Success' WHEN a.status = 'N' THEN 'Fail' WHEN n.transtatus = 'P' THEN 'Not Sent' WHEN n.transtatus = 'D' THEN 'Deleted Transaction' ELSE  'Processing' END) status,a.REASONDESC,n.neftrtgs||'OW' serviceid FROM neftrtgsdtls n, NEFTREFNODTLS a WHERE n.refno = a.refno(+)  and neftrtgs = 'NEFT' AND n.refno IS NOT NULL and " & strArr(1) & " " & strArr(2) & " " & strArr(3) & " ORDER BY n.APPLICATIONDATE,n.refno"
+
+            //         else
+
+            //                sqlStr = " SELECT  n.APPLICATIONDATE,n.accno accno,n.name,n.PAYEEAMT,n.ifsccode,n.payeeaccno,n.payeename,n.refno,a.UTRNO,(CASE WHEN a.STATUS= 'Y' THEN 'Success' WHEN a.status = 'N' THEN 'Fail' WHEN n.transtatus = 'P' THEN 'Not Sent' WHEN n.transtatus = 'D' THEN 'Deleted Transaction' ELSE  'Processing' END) status,a.REASONDESC,n.neftrtgs||'OW' serviceid FROM neftrtgsdtls n, NEFTREFNODTLS a WHERE n.refno = a.refno(+)  and neftrtgs = 'NEFT' AND n.refno IS NOT NULL and " & strArr(1) & " " & strArr(2) & " " & strArr(3) & " ORDER BY n.APPLICATIONDATE,n.refno"
+
+            //         end if
+
+            //        rs = obj.SingleSelectStat(sqlStr)
+
+
+            //        if obj.ConnError = "Connected" then
+
+            //            if not rs.BOF and not rs.EOF then
+
+            //                do until rs.EOF
+
+            //                strResult = strResult & format(cdate(rs(0).value), "dd-MMM-yyyy") & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "~" & rs(7).value & "~" & rs(8).value & "~" & rs(9).value & "~" & rs(10).value & "~"
+
+
+            //        strSentfilename = ""
+            //strAckFilename = ""
+            //intcnt = 1
+
+            //        '' get sent file name --refno-- rs(7).value , serviceid-- - rs(11).value
+
+
+            //        sqlStr = " SELECT nvl(Filename,'') FROM NEFTRTGSFILEDTLS WHERE filetype = '" & rs(11).value & "' AND '" & rs(7).value & "' between fromrefno and torefno  ORDER BY filename DESC "
+
+            //        rs1 = obj.SingleSelectStat(sqlStr)
+
+
+            //            if obj.ConnError = "Connected" then
+
+            //            if not rs1.BOF and not rs1.EOF then
+
+            //                do until rs1.EOF
+
+
+            //                if mid((rs1(0).value), 1, 3) = "N06" then
+            //                strSentfilename = rs1(0).value
+
+            //                end if
+
+
+            //                if mid((rs1(0).value), 1, 3) = "F27" then
+            //                strAckFilename = rs1(0).value
+
+            //                end if
+
+
+            //                    rs1.movenext()
+
+            //                loop
+            //                strResult = strResult & strSentfilename & "~" & strAckFilename & "|"
+
+            //            else
+            //                strResult = strResult & strSentfilename & "~" & strAckFilename & "|"
+
+            //            end if
+
+            //        end if
+
+
+            //                rs.movenext()
+
+            //                loop
+            //            end if
+
+            //        end if
+
+
+            //        if strResult = "" then
+            //            strResult = "No Records"
+
+            //        else
+            //                        strResult = mid(strResult, 1, strResult.length - 1)
+
+            //        end if
+
+
+            //    rs = nothing
+
+
+
+            //    elseif strArr(0) = "RTGSOUTWARD" then
+
+            //strSentfilename = ""
+            //strAckFilename = ""
+
+            //    strResult = ""
+
+            //    rs1 = Server.CreateObject("adodb.recordset")
+
+
+
+            //    obj = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+            //        if strNFTSCONVYN = "N" then
+
+            //        sqlStr = " SELECT  n.APPLICATIONDATE,n.branchcode||n.glcode||LPAD(n.accno,7,'0') accno,n.name,n.PAYEEAMT,n.ifsccode,n.payeeaccno,n.payeename,n.refno,(CASE WHEN a.SETTLEDINDICATOR= 'Y' THEN 'Success' WHEN a.SETTLEDINDICATOR = 'N' THEN 'Fail' WHEN n.transtatus = 'P' THEN 'Not Sent'  WHEN n.transtatus = 'D' THEN 'Deleted Transaction' ELSE  'Processing' END) status,a.REASONCODE,n.neftrtgs||'OW' serviceid, a.UTRNO FROM neftrtgsdtls n, RTGSREFNODTLS a WHERE n.refno = a.refno(+)  and neftrtgs = 'RTGS' AND n.refno IS NOT NULL and  " & strArr(1) & " " & strArr(2) & " " & strArr(3) & " ORDER BY n.APPLICATIONDATE,n.refno"
+
+
+            //         else
+
+            //                sqlStr = " SELECT  n.APPLICATIONDATE,n.accno accno,n.name,n.PAYEEAMT,n.ifsccode,n.payeeaccno,n.payeename,n.refno,(CASE WHEN a.SETTLEDINDICATOR= 'Y' THEN 'Success' WHEN a.SETTLEDINDICATOR = 'N' THEN 'Fail' WHEN n.transtatus = 'P' THEN 'Not Sent'  WHEN n.transtatus = 'D' THEN 'Deleted Transaction' ELSE  'Processing' END) status,a.REASONCODE,n.neftrtgs||'OW' serviceid, a.UTRNO FROM neftrtgsdtls n, RTGSREFNODTLS a WHERE n.refno = a.refno(+)  and neftrtgs = 'RTGS' AND n.refno IS NOT NULL and  " & strArr(1) & " " & strArr(2) & " " & strArr(3) & " ORDER BY n.APPLICATIONDATE,n.refno"
+
+
+            //         end if
+
+
+            //        rs = obj.SingleSelectStat(sqlStr)
+
+
+            //        if obj.ConnError = "Connected" then
+
+            //            if not rs.BOF and not rs.EOF then
+
+            //                do until rs.EOF
+
+            //                strResult = strResult & format(cdate(rs(0).value), "dd-MMM-yyyy") & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "~" & rs(7).value & "~" & rs(8).value & "~" & rs(9).value & "~" & rs(11).value & "~"
+
+
+            //                strSentfilename = ""
+            //strAckFilename = ""
+            //intcnt = 1
+
+            //        '' get sent file name --refno-- rs(7).value , serviceid-- - rs(10).value
+
+            //            if frmname = "ELURU" then
+            //            sqlStr = " SELECT filetype, nvl(Filename,'') FROM NEFTRTGSFILEDTLS WHERE filetype in ('" & rs(10).value & "', 'RTGSAK') AND '" & rs(7).value & "' between fromrefno and torefno  ORDER BY filename DESC "
+
+            //                rs1 = obj.SingleSelectStat(sqlStr)
+
+            //            if obj.ConnError = "Connected" then
+
+            //                if not rs1.BOF and not rs1.EOF then
+
+            //                    do until rs1.EOF
+
+            //                            if rs1(0).value = "RTGSOW" then
+            //                            strSentfilename = rs1(1).value
+
+            //                            end if
+
+            //                            if rs1(0).value = "RTGSAK" then
+            //                            strAckFilename = rs1(1).value
+
+            //                            end if
+
+            //                    rs1.movenext()
+
+            //                        loop
+            //                strResult = strResult & strSentfilename & "~" & strAckFilename & "|"
+
+            //                else
+            //                strResult = strResult & strSentfilename & "~" & strAckFilename & "|"
+
+
+            //                end if
+
+            //            end if
+
+            //            else
+            //                        sqlStr = " SELECT nvl(Filename,'') FROM NEFTRTGSFILEDTLS WHERE filetype = '" & rs(10).value & "' AND '" & rs(7).value & "' between fromrefno and torefno  ORDER BY filename DESC "
+
+
+
+            //        rs1 = obj.SingleSelectStat(sqlStr)
+
+
+            //    if obj.ConnError = "Connected" then
+
+
+            //            if not rs1.BOF and not rs1.EOF then
+
+            //                do until rs1.EOF
+
+
+            //                if mid((rs1(0).value), 1, 3) = "R41" then
+            //                strSentfilename = rs1(0).value
+
+            //                end if
+
+
+            //                if mid((rs1(0).value), 1, 3) = "R09" then
+            //                strAckFilename = rs1(0).value
+
+            //                end if
+
+
+            //                    rs1.movenext()
+
+            //                loop
+            //                strResult = strResult & strSentfilename & "~" & strAckFilename & "|"
+
+            //            else
+            //                strResult = strResult & strSentfilename & "~" & strAckFilename & "|"
+
+            //            end if
+
+            //        end if
+
+
+            //        end if '''frmname = "ELURU" 
+
+
+
+            //                rs.movenext()
+
+            //                loop
+            //            end if
+
+            //        end if
+
+
+            //        if strResult = "" then
+            //            strResult = "No Records"
+
+            //        else
+            //                        strResult = mid(strResult, 1, strResult.length - 1)
+
+            //        end if
+
+
+            //    rs = nothing
+
+
+
+            //    elseif strArr(0) = "RTGSNEFTREP" then
+
+            //    strResult = ""
+
+
+            //    obj = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+
+            //        sqlStr = " SELECT DECODE (NEFTRTGS,'NEFT','N','RTGS','R') Nft ,PAYEEAMT, TO_CHAR(APPLICATIONDATE,'dd-Mon-yyyy') appdat, PAYEENAME, PAYEEACCNO, '' GAP, REMARKS, (SELECT NEFTRTGSNO FROM invtypemst WHERE INVTYPE='CA') Credac,'' GAP1,IFSCCODE,'11',accno, '' Mobile FROM NEFTRTGSDTLS a WHERE " & strArr(1) & " " & strArr(2) & " ORDER BY APPLICATIONDATE,payeeaccno"
+
+
+            //        rs = obj.SingleSelectStat(sqlStr)
+
+
+            //        if obj.ConnError = "Connected" then
+
+            //            if not rs.BOF and not rs.EOF then
+
+
+            //                do until rs.EOF
+
+
+            //                strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "~" & rs(7).value & "~" & rs(8).value & "~" & rs(9).value & "~" & rs(10).value & "~" & rs(11).value & "~" & rs(12).value & "|"
+
+
+            //                rs.movenext()
+
+            //                loop
+            //            end if
+
+            //        end if
+
+
+            //        if strResult = "" then
+            //            strResult = "No Records"
+
+            //        else
+            //                        strResult = mid(strResult, 1, strResult.length - 1)
+
+            //        end if
+
+
+            //    rs = nothing
+
+
+            //    elseif strArr(0) = "SBCADRCRLIEN" then
+            //    strResult = ""
+
+
+            //    obj = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+
+            //        if strArr(1) = "Dr" then
+
+            //        sqlStr = "SELECT S.branchcode || S.GLCODE || lpad(S.ACCNO,7,'0'),M.NAME, S.DRLIENAMT, to_char(S.DRLIENLIFTDT,'dd-Mon-yyyy'), S.REASON, to_char(S.APPLICATIONDATE,'dd-Mon-yyyy') FROM SBCALIENDTLS S ,SBMST M WHERE M.DRLIENYN= 'Y' AND S.branchcode = '" & strArr(2) & "' AND S.currencycode = '" & strArr(3) & "' AND S.BRANCHCODE= M.BRANCHCODE  AND S.CURRENCYCODE= M.CURRENCYCODE AND S.GLCODE=  M.GLCODE AND S.ACCNO= M.ACCNO"
+
+
+            //        rs = obj.SingleSelectStat(sqlStr)
+
+
+            //        if obj.ConnError = "Connected" then
+
+            //            if not rs.BOF and not rs.EOF then
+
+
+            //                do until rs.EOF
+
+
+            //                strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "|"
+
+
+            //                rs.movenext()
+
+            //                loop
+            //            end if
+
+            //        end if
+
+
+            //        elseif  strArr(1) = "Cr" then
+
+            //            sqlStr = "SELECT S.branchcode || S.GLCODE || lpad(S.ACCNO,7,'0'),M.NAME, to_char(S.CRLIENLIFTDT,'dd-Mon-yyyy'), S.REASON, to_char(S.APPLICATIONDATE,'dd-Mon-yyyy') FROM SBCALIENDTLS S ,SBMST M WHERE M.CRLIENYN= 'Y' AND S.branchcode = '" & strArr(2) & "' AND S.currencycode = '" & strArr(3) & "' AND S.BRANCHCODE= M.BRANCHCODE  AND S.CURRENCYCODE= M.CURRENCYCODE AND S.GLCODE=  M.GLCODE AND S.ACCNO= M.ACCNO"
+
+
+            //        rs = obj.SingleSelectStat(sqlStr)
+
+
+            //        if obj.ConnError = "Connected" then
+
+            //            if not rs.BOF and not rs.EOF then
+
+
+            //                do until rs.EOF
+
+
+            //                strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "|"
+
+
+            //                rs.movenext()
+
+            //                loop
+            //            end if
+
+            //        end if
+
+
+            //        end if
+
+
+            //        if strResult = "" then
+            //            strResult = "No Records"
+
+            //        else
+            //                            strResult = mid(strResult, 1, strResult.length - 1)
+
+            //        end if
+
+
+            //    rs = nothing
+
+
+            //    elseif strArr(0) = "INOPRDTLS" then
+
+            //    strResult = ""
+
+
+            //    obj = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+            //        dim stAc
+
+            //        'sqlStr=" SELECT a.glcode,a.accno,substr(a.name,0,30)name ,b.curbal FROM " & strArr(1) & "mst a, " & strArr(1) & "balance b WHERE b.glcode=a.glcode AND b.accno=a.accno AND b.branchcode=a.branchcode AND a.glcode='" & strArr(2) & "' AND a.status='R' " & strArr(4) & " AND a.branchcode='" & strArr(3) & "' "
+
+
+            //        if strArr(5) = "" then
+            //            stAc = "ACCNO"
+
+            //         else
+            //                stAc = strArr(5)
+
+            //         end if
+
+
+            //         sqlStr = " SELECT glcode,accno,SUBSTR(name,0,30)name ,GETANYDAYBAL('" & strArr(3) & "','INR','" & strArr(1) & "','" & strArr(2) & "'," & stAc & ",'" & strArr(6) & "')curbal FROM " & strArr(1) & "mst WHERE glcode='" & strArr(2) & "' " & strArr(4) & " AND status='R' AND branchcode='" & strArr(3) & "' ORDER BY TO_NUMBER(accno) "
+
+
+            //        rs = obj.SingleSelectStat(sqlStr)
+
+
+            //        if obj.ConnError = "Connected" then
+
+            //            if not rs.BOF and not rs.EOF then
+
+
+            //                do until rs.EOF
+
+
+            //                strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "|"
+
+
+            //                rs.movenext()
+
+            //                loop
+            //            end if
+
+            //        end if
+
+
+
+            //        if strResult = "" then
+            //            strResult = "No Records"
+
+            //        else
+            //                        strResult = mid(strResult, 1, strResult.length - 1)
+
+            //        end if
+
+
+            //    rs = nothing
+
+
+
+            //    elseif strArr(0) = "INOPREPT" then
+
+            //    strResult = ""
+
+
+            //    obj = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+
+            //        sqlStr = " SELECT accno,substr(name,0,30) name ,ABS(AMOUNT),TO_CHAR(applicationdate,'DD-MON-YYYY') dat FROM " & strArr(1) & "tran WHERE CHQFVG='IOPC' AND glcode='" & strArr(2) & "' " & strArr(4) & "  " & strArr(5) & " AND branchcode='" & strArr(3) & "' UNION ALL SELECT accno,substr(name,0,30) name ,ABS(AMOUNT),TO_CHAR(applicationdate,'DD-MON-YYYY') dat FROM v" & strArr(1) & "tranday WHERE CHQFVG='IOPC' AND glcode='" & strArr(2) & "' " & strArr(4) & " AND branchcode='" & strArr(3) & "' "
+
+
+            //        rs = obj.SingleSelectStat(sqlStr)
+
+
+            //        if obj.ConnError = "Connected" then
+
+            //            if not rs.BOF and not rs.EOF then
+
+
+            //                do until rs.EOF
+
+
+            //                strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "|"
+
+
+            //                rs.movenext()
+
+            //                loop
+            //            end if
+
+            //        end if
+
+
+            //        if strResult = "" then
+            //            strResult = "No Records"
+
+            //        else
+            //                        strResult = mid(strResult, 1, strResult.length - 1)
+
+            //        end if
+
+
+            //    rs = nothing
+
+
+            //    elseif strArr(0) = "WITHOUTPANDTLS" then
+
+            //    strResult = ""
+
+
+            //    obj = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+
+            //        sqlStr = " SELECT branchcode,glcode,accno,substr(name,1,30) FROM ( SELECT branchcode,glcode,accno,name FROM sbmst WHERE customerid IN (SELECT customerid FROM gencustinfomst WHERE panno IS NULL) AND status='R' UNION ALL SELECT branchcode,glcode,accno,name FROM CAmst WHERE customerid IN (SELECT customerid FROM gencustinfomst WHERE panno IS NULL) AND status='R' UNION ALL SELECT branchcode,glcode,accno,name FROM ccmst WHERE customerid IN (SELECT customerid FROM gencustinfomst WHERE panno IS NULL) AND status='R' UNION ALL SELECT branchcode,glcode,accno,name FROM depmst WHERE customerid IN (SELECT customerid FROM gencustinfomst WHERE panno IS NULL) AND status='R' UNION ALL SELECT branchcode,glcode,accno,name FROM loanmst WHERE customerid IN (SELECT customerid FROM gencustinfomst WHERE panno IS NULL) AND status='R' ) a  ORDER BY TO_NUMBER(branchcode),TO_NUMBER(glcode),TO_NUMBER(accno)  "
+
+
+            //        rs = obj.SingleSelectStat(sqlStr)
+
+
+            //        if obj.ConnError = "Connected" then
+
+            //            if not rs.BOF and not rs.EOF then
+
+
+            //                do until rs.EOF
+
+
+            //                strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "|"
+
+
+            //                rs.movenext()
+
+            //                loop
+            //            end if
+
+            //        end if
+
+
+            //        if strResult = "" then
+            //            strResult = "No Records"
+
+            //        else
+            //                        strResult = mid(strResult, 1, strResult.length - 1)
+
+            //        end if
+
+
+            //    rs = nothing
+
+
+            //    elseif strArr(0) = "WITHOUTAADHARDTLS" then
+
+            //    strResult = ""
+
+
+            //    obj = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+
+            //        sqlStr = " SELECT branchcode,glcode,accno,substr(name,1,30) FROM ( SELECT branchcode,glcode,accno,name FROM sbmst WHERE customerid IN (SELECT customerid FROM gencustinfomst WHERE AADHARUID IS NULL ) AND status='R' UNION ALL SELECT branchcode,glcode,accno,name FROM CAmst WHERE customerid IN (SELECT customerid FROM gencustinfomst WHERE AADHARUID IS NULL ) AND status='R' UNION ALL SELECT branchcode,glcode,accno,name FROM ccmst WHERE customerid IN (SELECT customerid FROM gencustinfomst WHERE AADHARUID IS NULL ) AND status='R' UNION ALL SELECT branchcode,glcode,accno,name FROM depmst WHERE customerid IN (SELECT customerid FROM gencustinfomst WHERE AADHARUID IS NULL ) AND status='R' UNION ALL SELECT branchcode,glcode,accno,name FROM loanmst WHERE customerid IN (SELECT customerid FROM gencustinfomst WHERE AADHARUID IS NULL ) AND status='R' ) a  ORDER BY TO_NUMBER(branchcode),TO_NUMBER(glcode),TO_NUMBER(accno)   "
+
+
+            //        rs = obj.SingleSelectStat(sqlStr)
+
+
+            //        if obj.ConnError = "Connected" then
+
+            //            if not rs.BOF and not rs.EOF then
+
+
+            //                do until rs.EOF
+
+
+            //                strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "|"
+
+
+            //                rs.movenext()
+
+            //                loop
+            //            end if
+
+            //        end if
+
+
+            //        if strResult = "" then
+            //            strResult = "No Records"
+
+            //        else
+            //                        strResult = mid(strResult, 1, strResult.length - 1)
+
+            //        end if
+
+
+            //    rs = nothing
+
+
+            //    elseif strArr(0) = "BOTHPANNOANDAADHARDTLS" then
+
+            //    strResult = ""
+
+
+            //    obj = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+
+            //        sqlStr = " SELECT branchcode,glcode,accno,SUBSTR(name,1,30),g.panno, g.AADHARUID FROM ( SELECT branchcode,glcode,accno,name,customerid FROM sbmst WHERE  status='R' UNION ALL SELECT branchcode,glcode,accno,name,customerid FROM CAmst WHERE  status='R' UNION ALL SELECT branchcode,glcode,accno,name,customerid FROM ccmst WHERE  status='R' UNION ALL SELECT branchcode,glcode,accno,name,customerid FROM depmst WHERE  status='R' UNION ALL SELECT branchcode,glcode,accno,name,customerid FROM loanmst WHERE  status='R' ) a  , (SELECT CUSTOMERID, PANNO, AADHARUID,STATUS,kycid FROM gencustinfomst WHERE (kycid = 2 OR AADHARUID IS NOT NULL)) g WHERE a.customerid = g.customerid  ORDER BY TO_NUMBER(branchcode),TO_NUMBER(glcode),TO_NUMBER(accno)"
+
+
+            //        rs = obj.SingleSelectStat(sqlStr)
+
+
+            //        if obj.ConnError = "Connected" then
+
+            //            if not rs.BOF and not rs.EOF then
+
+
+            //                do until rs.EOF
+
+
+            //                strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "|"
+
+
+            //                rs.movenext()
+
+            //                loop
+            //            end if
+
+            //        end if
+
+
+            //        if strResult = "" then
+            //            strResult = "No Records"
+
+            //        else
+            //                        strResult = mid(strResult, 1, strResult.length - 1)
+
+            //        end if
+
+
+            //    rs = nothing
+
+
+
+            //    elseif strArr(0) = "WITHOUTBOTHPANNOANDAADHARDTLS" then
+
+            //    strResult = ""
+
+
+            //    obj = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+
+            //        sqlStr = " SELECT branchcode,glcode,accno,SUBSTR(name,1,30),g.panno, g.AADHARUID FROM ( SELECT branchcode,glcode,accno,name,customerid FROM sbmst WHERE  status='R' UNION ALL SELECT branchcode,glcode,accno,name,customerid FROM CAmst WHERE  status='R' UNION ALL SELECT branchcode,glcode,accno,name,customerid FROM ccmst WHERE  status='R' UNION ALL SELECT branchcode,glcode,accno,name,customerid FROM depmst WHERE  status='R' UNION ALL SELECT branchcode,glcode,accno,name,customerid FROM loanmst WHERE  status='R' ) a  , (SELECT CUSTOMERID, PANNO, AADHARUID,STATUS,kycid FROM gencustinfomst WHERE (panno IS NULL AND AADHARUID IS  NULL)) g WHERE a.customerid = g.customerid  ORDER BY TO_NUMBER(branchcode),TO_NUMBER(glcode),TO_NUMBER(accno)"
+
+
+            //        rs = obj.SingleSelectStat(sqlStr)
+
+
+            //        if obj.ConnError = "Connected" then
+
+            //            if not rs.BOF and not rs.EOF then
+
+
+            //                do until rs.EOF
+
+
+            //                strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "|"
+
+
+            //                rs.movenext()
+
+            //                loop
+            //            end if
+
+            //        end if
+
+
+            //        if strResult = "" then
+            //            strResult = "No Records"
+
+            //        else
+            //                        strResult = mid(strResult, 1, strResult.length - 1)
+
+            //        end if
+
+
+            //    rs = nothing
+
+            //    elseif strArr(0) = "GSTRCUSTID" then
+
+            //        strResult = ""
+
+
+            //        obj = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+
+            //            sqlStr = " SELECT BRANCHCODE, GSTCODE, UPPER( GSTIN), INVOICENO, TO_CHAR(INVDATE,'dd-MON-yyyy') dat, INVVALUE, RATE,  BATCHNO FROM GSTTNXDTLS WHERE customerid='" & strArr(2) & "' ORDER BY TO_NUMBER(INVOICENO)"
+
+
+            //            rs = obj.SingleSelectStat(sqlStr)
+
+
+            //            if obj.ConnError = "Connected" then
+
+            //                if not rs.BOF and not rs.EOF then
+
+
+            //                    do until rs.EOF
+
+
+            //                    strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "~" & rs(7).value & "|"
+
+
+            //                    rs.movenext()
+
+            //                    loop
+            //                end if
+
+            //            end if
+
+
+            //            if strResult = "" then
+            //                strResult = "No Records"
+
+            //            else
+            //                        strResult = mid(strResult, 1, strResult.length - 1)
+
+            //            end if
+
+
+            //        rs = nothing
+
+
+            //    elseif strArr(0) = "GSTREPORT" then
+
+            //        strResult = ""
+
+
+            //        obj = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+            //            if strArr(7) = "0" then  '' branch
+
+            //            if strArr(5) = "0" then
+
+            //                if strArr(6) = "GSTP" then
+            //                sqlStr = " SELECT CUSTOMERID, SUBSTR(NVL(RECPNAME,(SELECT name FROM gencustinfomst WHERE customerid = t.customerid)),0,35) name, UPPER( GSTIN), PLACEOFSUPPLY, INVOICETYPE, INVOICENO, TO_CHAR(INVDATE,'dd-MON-yyyy') invdat, INVVALUE, RATE,  SGST, CGST, IGST, CESS, TAXABLEVALUE, REVERSECHARGE revyn, TO_CHAR(applicationdate,'dd-MON-yyyy') appdat, BATCHNO,SACCODE, SUBSTR(REMARKS,0,50) REMARKS FROM gsttnxpaymentdtls t  WHERE BRANCHCODE='" & strArr(1) & "'  AND STATUS='R' " & strArr(2) & " " & strArr(3) & " " & strArr(4) & " ORDER BY TO_NUMBER(CUSTOMERID)"
+
+            //                else if strArr(6) = "ALL" then
+
+            //                sqlStr = " SELECT CUSTOMERID, SUBSTR(NVL(RECPNAME,(SELECT name FROM gencustinfomst WHERE customerid = t.customerid)),0,35) name, UPPER( GSTIN), PLACEOFSUPPLY, INVOICETYPE, INVOICENO, TO_CHAR(INVDATE,'dd-MON-yyyy') invdat, INVVALUE, RATE,  SGST, CGST, IGST, CESS, TAXABLEVALUE, REVERSECHARGE revyn, TO_CHAR(applicationdate,'dd-MON-yyyy') appdat, BATCHNO,SACCODE, SUBSTR(REMARKS,0,50) REMARKS FROM gsttnxpaymentdtls t WHERE BRANCHCODE='" & strArr(1) & "'  AND STATUS='R' " & strArr(2) & " " & strArr(3) & " " & strArr(4) & "" & _
+
+            //                "union " & _
+
+            //                " SELECT CUSTOMERID, SUBSTR(NVL(RECPNAME,(SELECT name FROM gencustinfomst WHERE customerid = t.customerid)),0,35) name, UPPER( GSTIN), PLACEOFSUPPLY, INVOICETYPE, INVOICENO, TO_CHAR(INVDATE,'dd-MON-yyyy') invdat, INVVALUE, RATE,  SGST, CGST, IGST, CESS, TAXABLEVALUE, REVERSECHARGE revyn, TO_CHAR(applicationdate,'dd-MON-yyyy') appdat, BATCHNO,SACCODE, SUBSTR(REMARKS,0,50) REMARKS FROM GSTTNXDTLS t WHERE BRANCHCODE='" & strArr(1) & "'  AND STATUS='R' " & strArr(2) & " " & strArr(3) & " " & strArr(4) & " ORDER BY 1"
+
+            //                else
+            //                sqlStr = " SELECT CUSTOMERID, SUBSTR(NVL(RECPNAME,(SELECT name FROM gencustinfomst WHERE customerid = t.customerid)),0,35) name, UPPER( GSTIN), PLACEOFSUPPLY, INVOICETYPE, INVOICENO, TO_CHAR(INVDATE,'dd-MON-yyyy') invdat, INVVALUE, RATE,  SGST, CGST, IGST, CESS, TAXABLEVALUE, REVERSECHARGE revyn, TO_CHAR(applicationdate,'dd-MON-yyyy') appdat, BATCHNO,SACCODE, SUBSTR(REMARKS,0,50) REMARKS FROM GSTTNXDTLS t WHERE BRANCHCODE='" & strArr(1) & "'  AND STATUS='R' " & strArr(2) & " " & strArr(3) & " " & strArr(4) & " ORDER BY TO_NUMBER(CUSTOMERID)"
+
+            //                end if
+
+            //            else
+            //                    sqlStr = " SELECT CUSTOMERID, GSTCODE, SUBSTR(NVL(RECPNAME,(SELECT name FROM gencustinfomst WHERE customerid = t.customerid)),0,35) name, UPPER( GSTIN), PLACEOFSUPPLY, INVOICETYPE, INVOICENO, TO_CHAR(INVDATE,'dd-MON-yyyy') invdat, INVVALUE, RATE,  SGST, CGST, IGST, CESS, TAXABLEVALUE, REVERSECHARGE revyn, TO_CHAR(applicationdate,'dd-MON-yyyy') appdat, BATCHNO,SACCODE, SUBSTR(REMARKS,0,50) REMARKS FROM GSTTNXDTLS t WHERE BRANCHCODE='" & strArr(1) & "' " & strArr(2) & " " & strArr(3) & " AND STATUS='R' AND batchno IN (SELECT batchno FROM gsttnxdtls WHERE branchcode='" & strArr(1) & "' AND REVERSECHARGE='Y' ) ORDER BY TO_NUMBER(CUSTOMERID)"
+
+            //            end if
+
+
+
+            //            rs = obj.SingleSelectStat(sqlStr)
+
+
+            //            if obj.ConnError = "Connected" then
+
+            //                if not rs.BOF and not rs.EOF then
+
+
+            //                    do until rs.EOF
+
+
+            //                    if strArr(5) = "0" then
+            //                        strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "~" & rs(7).value & "~" & rs(8).value & "~" & rs(9).value & "~" & rs(10).value & "~" & rs(11).value & "~" & rs(12).value & "~" & rs(13).value & "~" & rs(14).value & "~" & rs(15).value & "~" & rs(16).value & "~" & rs(17).value & "~" & rs(18).value & "|"
+
+            //                    else
+            //                strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "~" & rs(7).value & "~" & rs(8).value & "~" & rs(9).value & "~" & rs(10).value & "~" & rs(11).value & "~" & rs(12).value & "~" & rs(13).value & "~" & rs(14).value & "~" & rs(15).value & "~" & rs(16).value & "~" & rs(17).value & "~" & rs(18).value & "~" & rs(19).value & "|"
+
+            //                    end if
+
+
+
+            //                    rs.movenext()
+
+            //                    loop
+            //                end if
+
+            //            end if
+
+
+            //            else '' consolidated
+
+            //            if strArr(5) = "0" then
+
+            //                if strArr(6) = "GSTP" then
+            //                sqlStr = " SELECT branchcode,CUSTOMERID, SUBSTR(NVL(RECPNAME,(SELECT name FROM gencustinfomst WHERE customerid = t.customerid)),0,35) name, UPPER( GSTIN), PLACEOFSUPPLY, INVOICETYPE, INVOICENO, TO_CHAR(INVDATE,'dd-MON-yyyy') invdat, INVVALUE, RATE,  SGST, CGST, IGST, CESS, TAXABLEVALUE, REVERSECHARGE revyn, TO_CHAR(applicationdate,'dd-MON-yyyy') appdat, BATCHNO,SACCODE, SUBSTR(REMARKS,0,50) REMARKS FROM gsttnxpaymentdtls t  WHERE  STATUS='R' " & strArr(2) & " " & strArr(3) & " " & strArr(4) & " ORDER BY to_number(branchcode),TO_NUMBER(CUSTOMERID)"
+
+            //                else if strArr(6) = "ALL" then
+
+            //                sqlStr = " SELECT branchcode,CUSTOMERID, SUBSTR(NVL(RECPNAME,(SELECT name FROM gencustinfomst WHERE customerid = t.customerid)),0,35) name, UPPER( GSTIN), PLACEOFSUPPLY, INVOICETYPE, INVOICENO, TO_CHAR(INVDATE,'dd-MON-yyyy') invdat, INVVALUE, RATE,  SGST, CGST, IGST, CESS, TAXABLEVALUE, REVERSECHARGE revyn, TO_CHAR(applicationdate,'dd-MON-yyyy') appdat, BATCHNO,SACCODE, SUBSTR(REMARKS,0,50) REMARKS FROM gsttnxpaymentdtls t WHERE  STATUS='R' " & strArr(2) & " " & strArr(3) & " " & strArr(4) & "" & _
+
+            //                "union " & _
+
+            //                " SELECT branchcode,CUSTOMERID, SUBSTR(NVL(RECPNAME,(SELECT name FROM gencustinfomst WHERE customerid = t.customerid)),0,35) name, UPPER( GSTIN), PLACEOFSUPPLY, INVOICETYPE, INVOICENO, TO_CHAR(INVDATE,'dd-MON-yyyy') invdat, INVVALUE, RATE,  SGST, CGST, IGST, CESS, TAXABLEVALUE, REVERSECHARGE revyn, TO_CHAR(applicationdate,'dd-MON-yyyy') appdat, BATCHNO,SACCODE, SUBSTR(REMARKS,0,50) REMARKS FROM GSTTNXDTLS t WHERE  STATUS='R' " & strArr(2) & " " & strArr(3) & " " & strArr(4) & " ORDER BY 1,2"
+
+            //                else
+            //                sqlStr = " SELECT branchcode,CUSTOMERID, SUBSTR(NVL(RECPNAME,(SELECT name FROM gencustinfomst WHERE customerid = t.customerid)),0,35) name, UPPER( GSTIN), PLACEOFSUPPLY, INVOICETYPE, INVOICENO, TO_CHAR(INVDATE,'dd-MON-yyyy') invdat, INVVALUE, RATE,  SGST, CGST, IGST, CESS, TAXABLEVALUE, REVERSECHARGE revyn, TO_CHAR(applicationdate,'dd-MON-yyyy') appdat, BATCHNO,SACCODE, SUBSTR(REMARKS,0,50) REMARKS FROM GSTTNXDTLS t WHERE  STATUS='R' " & strArr(2) & " " & strArr(3) & " " & strArr(4) & " ORDER BY  to_number(branchcode),TO_NUMBER(CUSTOMERID)"
+
+            //                end if
+
+            //            else
+            //                    sqlStr = " SELECT branchcode,CUSTOMERID, GSTCODE, SUBSTR(NVL(RECPNAME,(SELECT name FROM gencustinfomst WHERE customerid = t.customerid)),0,35) name, UPPER( GSTIN), PLACEOFSUPPLY, INVOICETYPE, INVOICENO, TO_CHAR(INVDATE,'dd-MON-yyyy') invdat, INVVALUE, RATE,  SGST, CGST, IGST, CESS, TAXABLEVALUE, REVERSECHARGE revyn, TO_CHAR(applicationdate,'dd-MON-yyyy') appdat, BATCHNO,SACCODE, SUBSTR(REMARKS,0,50) REMARKS FROM GSTTNXDTLS t WHERE BRANCHCODE='" & strArr(1) & "' " & strArr(2) & " " & strArr(3) & " AND STATUS='R' AND batchno IN (SELECT batchno FROM gsttnxdtls WHERE  REVERSECHARGE='Y' ) ORDER BY  to_number(branchcode),TO_NUMBER(CUSTOMERID)"
+
+            //            end if
+
+
+
+            //            rs = obj.SingleSelectStat(sqlStr)
+
+
+            //            if obj.ConnError = "Connected" then
+
+            //                if not rs.BOF and not rs.EOF then
+
+
+            //                    do until rs.EOF
+
+
+            //                    if strArr(5) = "0" then
+            //                        strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "~" & rs(7).value & "~" & rs(8).value & "~" & rs(9).value & "~" & rs(10).value & "~" & rs(11).value & "~" & rs(12).value & "~" & rs(13).value & "~" & rs(14).value & "~" & rs(15).value & "~" & rs(16).value & "~" & rs(17).value & "~" & rs(18).value & "~" & rs(19).value & "|"
+
+            //                    else
+            //                strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "~" & rs(7).value & "~" & rs(8).value & "~" & rs(9).value & "~" & rs(10).value & "~" & rs(11).value & "~" & rs(12).value & "~" & rs(13).value & "~" & rs(14).value & "~" & rs(15).value & "~" & rs(16).value & "~" & rs(17).value & "~" & rs(18).value & "~" & rs(19).value & "~" & rs(20).value & "|"
+
+            //                    end if
+
+
+
+            //                    rs.movenext()
+
+            //                    loop
+            //                end if
+
+            //            end if
+
+
+
+            //            end if
+
+            //            if strResult = "" then
+            //                strResult = "No Records"
+
+            //            else
+            //                            strResult = mid(strResult, 1, strResult.length - 1)
+
+            //            end if
+
+
+            //        rs = nothing
+
+
+
+
+
+
+            //    elseif strArr(0) = "INTDATE" then
+
+            //        strResult = ""
+
+
+            //        obj = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+
+            //        if strArr(1) = "DEP" then
+
+            //            sqlStr = " SELECT DISTINCT to_char(effectivedate, 'dd-Mon-yyyy')effectivedate FROM GENINTERESTDTLS where glcode IN (SELECT glcode FROM DEPtypemst) GROUP BY effectivedate ORDER BY TO_DATE(TO_CHAR(effectivedate)) "
+
+
+            //        elseif strArr(1) = "LOAN" then
+            //            sqlStr = " SELECT DISTINCT TO_CHAR(effectivedate, 'dd-Mon-yyyy')effectivedate FROM LOANINTRATEDTLS WHERE glcode IN (SELECT glcode FROM LOANTYPEMST) GROUP BY effectivedate ORDER BY TO_DATE(TO_CHAR(effectivedate)) "
+
+
+            //        elseif strArr(1) = "SB" or strArr(1) = "CA" then
+            //            sqlStr = " SELECT DISTINCT TO_CHAR(effectivedate, 'dd-Mon-yyyy')effectivedate FROM GENSBCASLABINTRATEDTLS WHERE glcode IN (SELECT glcode FROM " & strArr(1) & "TYPEMST) AND moduleid='" & strArr(1) & "' GROUP BY effectivedate ORDER BY TO_DATE(TO_CHAR(effectivedate)) "
+
+
+            //        end if
+
+
+            //        rs = obj.SingleSelectStat(sqlStr)
+
+
+            //            if obj.ConnError = "Connected" then
+
+            //                if not rs.BOF and not rs.EOF then
+
+
+            //                    do until rs.EOF
+
+
+            //                        strResult = strResult & rs(0).value & "|"
+
+
+            //                    rs.movenext()
+
+            //                    loop
+
+            //                else
+            //                strResult = ""
+
+            //                end if
+
+            //            end if
+
+
+            //            if strResult = "" then
+            //                strResult = "No Records"
+
+            //            else
+            //                        strResult = mid(strResult, 1, strResult.length - 1)
+
+            //            end if
+
+
+            //        rs = nothing
+
+
+            //    elseif strArr(0) = "INTRATEDTLS" then
+
+            //        strResult = ""
+
+
+            //        obj = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+
+            //        dim iRval
+
+            //        iRval = ""
+
+
+            //        dim strCat, rsCat, objCat
+
+
+            //        rsCat = server.CreateObject("adodb.recordset")
+
+            //        objCat = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+
+            //        if strArr(1) = "DEP" then
+
+            //            strCat = "  SELECT DISTINCT B.CATEGORYCODE,CASE WHEN B.CATEGORYCODE = '99' THEN 'Others' ELSE REPLACE(A.NARRATION,' ',NULL) END NARRATION FROM GENCATEGORYMST A,GENINTERESTDTLS B WHERE B.effectivedate = '" & strArr(2) & "' AND B.glcode IN (SELECT glcode FROM DEPtypemst) AND B.CATEGORYCODE = A.CATEGORYCODE GROUP BY B.CATEGORYCODE,A.NARRATION ORDER BY TO_NUMBER(B.CATEGORYCODE) "
+
+
+            //            rsCat = objCat.SingleSelectStat(strCat)
+
+
+            //            if objCat.ConnError = "Connected" then
+
+            //                if not rsCat.bof and not rsCat.eof then
+
+
+            //                    denom = ""
+
+            //                    DenFld = ""
+
+
+            //                    do until rsCat.eof
+
+            //                        ''SUM(x.individual) individual
+
+            //                        ''NVL((CASE WHEN  a.CATEGORYCODE = 1 THEN NVL(a.rate, 0) END),0) individual, 
+            //						''individual,
+
+            //						denom = denom & " SUM(x." & rsCat(1).value & ") " & rsCat(1).value & ","
+
+            //                        denom1 = denom1 & " NVL((CASE WHEN a.CATEGORYCODE = " & rsCat(0).value & " THEN NVL(a.rate,0) END),0) " & rsCat(1).value & ","
+
+            //                        DenFld = DenFld & "|>                 " & rsCat(1).value
+
+
+            //                    rsCat.movenext()
+
+            //                    loop
+
+            //                    denom = mid(denom, 1, denom.length - 1)
+
+            //                    denom1 = mid(denom1, 1, denom1.length - 1)
+
+            //                end if
+
+            //                rsCat = nothing
+
+            //            end if
+
+
+            //            sqlStr = " SELECT x.glcode, (x.frmday ||' Days To '|| x.today ||' Days') period ," & denom & " FROM ( SELECT SUBSTR(b.NARRATION,0,20) glcode, A.FROMCONVDAYS frmday , A.TOCONVDAYS today," & denom1 & " FROM GENINTERESTDTLS A, deptypemst b WHERE A.effectivedate = '" & strArr(2) & "' AND A.glcode IN (SELECT glcode FROM DEPtypemst) AND a.glcode = b.glcode GROUP BY b.NARRATION, A.FROMCONVDAYS,A.TOCONVDAYS,a.CATEGORYCODE,a.rate )x GROUP BY x.glcode, x.frmday,x.today ORDER BY X.glcode, TO_NUMBER(x.frmday), TO_NUMBER(x.today) ASC "
+
+
+            //            rs = obj.SingleSelectStat(sqlStr)
+
+
+            //            if obj.ConnError = "Connected" then
+
+            //                if not rs.BOF and not rs.EOF then
+
+
+            //                    do until rs.EOF
+
+
+            //                        for i = 0 to rs.fields.count - 1
+
+            //                            iRval = iRval & rs(i).value & "~"
+
+            //                        next i
+
+
+            //                        iRval = mid(iRval, 1, iRval.length - 1)
+
+
+            //                            iRval = iRval & "|"
+
+            //                        rs.movenext()
+
+            //                    loop
+
+            //                    iRval = mid(iRval, 1, iRval.length - 1)
+
+            //                end if
+
+            //            end if
+
+            //            strResult = DenFld & "$" & iRval
+
+
+            //        elseif strArr(1) = "LOAN" then
+
+            //            sqlStr = " SELECT x.glcode, (x.fromamount ||'-'|| x.toamount) period , SUM(ROI) FROM ( SELECT SUBSTR(b.NARRATION,0,20) glcode,a.FROMAMOUNT, a.TOAMOUNT, NVL(a.ROI,0)ROI  FROM LOANINTRATEDTLS a, LOANTYPEMST b WHERE a.glcode IN (SELECT glcode FROM loantypemst) AND a.effectivedate = '" & strArr(2) & "' AND a.glcode = b.glcode  GROUP BY b.NARRATION, a.FROMAMOUNT, a.TOAMOUNT, a.ROI ) x GROUP BY x.glcode, x.FROMAMOUNT,x.TOAMOUNT ORDER BY X.glcode, TO_NUMBER(x.FROMAMOUNT), TO_NUMBER(x.TOAMOUNT) ASC  "
+
+
+            //            rs = obj.SingleSelectStat(sqlStr)
+
+
+            //            if obj.ConnError = "Connected" then
+
+            //                if not rs.BOF and not rs.EOF then
+
+
+            //                    do until rs.EOF
+
+
+            //                        for i = 0 to rs.fields.count - 1
+
+            //                            iRval = iRval & rs(i).value & "~"
+
+            //                        next i
+
+
+            //                        iRval = mid(iRval, 1, iRval.length - 1)
+
+
+            //                            iRval = iRval & "|"
+
+            //                        rs.movenext()
+
+            //                    loop
+
+            //                    iRval = mid(iRval, 1, iRval.length - 1)
+
+            //                end if
+
+            //            end if
+
+
+            //            strResult = iRval
+
+
+            //        elseif strArr(1) = "SB" or strArr(1) = "CA" then
+
+            //            strCat = "  SELECT DISTINCT B.CATEGORYCODE,CASE WHEN B.CATEGORYCODE = '99' THEN 'Others' ELSE REPLACE(A.NARRATION,' ',NULL) END NARRATION FROM GENCATEGORYMST A,GENSBCASLABINTRATEDTLS B WHERE B.effectivedate = '" & strArr(2) & "' AND B.glcode IN (SELECT glcode FROM " & strArr(1) & "typemst) AND B.CATEGORYCODE = A.CATEGORYCODE GROUP BY B.CATEGORYCODE,A.NARRATION ORDER BY TO_NUMBER(B.CATEGORYCODE) "
+
+
+            //            rsCat = objCat.SingleSelectStat(strCat)
+
+
+            //            if objCat.ConnError = "Connected" then
+
+            //                if not rsCat.bof and not rsCat.eof then
+
+
+            //                    denom = ""
+
+            //                    DenFld = ""
+
+
+            //                    do until rsCat.eof
+
+            //                        ''SUM(x.individual) individual
+
+            //                        ''NVL((CASE WHEN  a.CATEGORYCODE = 1 THEN NVL(a.rate, 0) END),0) individual, 
+            //						''individual,
+
+            //						denom = denom & " SUM(x." & rsCat(1).value & ") " & rsCat(1).value & ","
+
+            //                        denom1 = denom1 & " NVL((CASE WHEN a.CATEGORYCODE = " & rsCat(0).value & " THEN NVL(a.intrate,0) END),0) " & rsCat(1).value & ","
+
+            //                        DenFld = DenFld & "|>                 " & rsCat(1).value
+
+
+            //                    rsCat.movenext()
+
+            //                    loop
+
+            //                    denom = mid(denom, 1, denom.length - 1)
+
+            //                    denom1 = mid(denom1, 1, denom1.length - 1)
+
+            //                end if
+
+            //                rsCat = nothing
+
+            //            end if
+
+
+            //            sqlStr = " SELECT x.glcode,(x.frmday ||'-'|| x.today) period ," & denom & " FROM ( SELECT SUBSTR(b.NARRATION,0,20) glcode,A.fromamt frmday , A.TOamt today ," & denom1 & " FROM GENSBCASLABINTRATEDTLS A, " & strArr(1) & "typemst b WHERE A.effectivedate = '" & strArr(2) & "' AND a.moduleid='" & strArr(1) & "' AND A.glcode IN (SELECT glcode FROM " & strArr(1) & "typemst) AND a.glcode = b.glcode GROUP BY b.NARRATION,A.fromamt , A.TOamt, a.CATEGORYCODE,a.intrate )x GROUP BY x.glcode, x.frmday, x.today ORDER BY X.glcode, TO_NUMBER(x.frmday), TO_NUMBER(x.today) ASC "
+
+
+            //            rs = obj.SingleSelectStat(sqlStr)
+
+
+            //            if obj.ConnError = "Connected" then
+
+            //                if not rs.BOF and not rs.EOF then
+
+
+            //                    do until rs.EOF
+
+
+            //                        for i = 0 to rs.fields.count - 1
+
+            //                            iRval = iRval & rs(i).value & "~"
+
+            //                        next i
+
+
+            //                        iRval = mid(iRval, 1, iRval.length - 1)
+
+
+            //                            iRval = iRval & "|"
+
+            //                        rs.movenext()
+
+            //                    loop
+
+            //                    iRval = mid(iRval, 1, iRval.length - 1)
+
+            //                end if
+
+            //            end if
+
+            //            strResult = DenFld & "$" & iRval
+
+
+            //        end if
+
+
+
+
+            //        rs = nothing
+
+
+            //    elseif strArr(0) = "PHOTOSIGNDTLS" then
+
+            //        strResult = ""
+
+
+            //        obj = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+
+            //        dim stAcn
+
+
+            //        if strArr(3) = "Y" then
+            //            stAcn = " b.accno "
+
+            //        else
+            //                stAcn = " (b.branchcode||''||b.glcode||''||LPAD(b.accno,7,0)) "
+
+            //        end if
+
+
+            //        sqlStr = " SELECT x.customerid, x.accno,SUBSTR(x.name,0,25) name, DECODE(SUM(x.Photo),'1', 'N','0','Y') Pho, DECODE(SUM(x.signatur),'1', 'N','0','Y') SIGN FROM ( SELECT DISTINCT b.customerid, " & stAcn & " accno,a.name,'1' Photo, '0' signatur  FROM gencustinfomst a, " & strArr(1) & "mst b WHERE b.customerid NOT IN (SELECT customerid FROM GENPHOTOMST ) AND a.customerid=b.customerid AND b.status='R' " & strArr(2) & " UNION ALL SELECT DISTINCT b.customerid, " & stAcn & " accno,a.name,'0' Photo,'1' signatur FROM gencustinfomst a, " & strArr(1) & "mst b WHERE b.customerid NOT IN (SELECT customerid FROM GENSIGNATUREMST ) AND a.customerid=b.customerid AND b.status='R' " & strArr(2) & " ) x  GROUP BY x.customerid, x.accno, x.name ORDER BY TO_NUMBER(x.customerid)   "
+
+
+            //        rs = obj.SingleSelectStat(sqlStr)
+
+
+            //            if obj.ConnError = "Connected" then
+
+            //                if not rs.BOF and not rs.EOF then
+
+
+            //                    do until rs.EOF
+
+
+            //                        strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "|"
+
+
+            //                    rs.movenext()
+
+            //                    loop
+            //                end if
+
+            //            end if
+
+
+            //            if strResult = "" then
+            //                strResult = "No Records"
+
+            //            else
+            //                        strResult = mid(strResult, 1, strResult.length - 1)
+
+            //            end if
+
+
+            //        rs = nothing
+
+
+            //    elseif strArr(0) = "MEMDTLS" then
+
+            //        strResult = ""
+
+
+            //        obj = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+
+            //        dim stAcn, stopdat, stAmt
+
+
+            //        if strArr(3) = "Y" then
+            //            stAcn = " b.accno "
+
+            //        else
+            //                stAcn = "b.branchcode||''||b.glcode||''||LPAD(b.accno,7,0)"
+
+            //        end if
+
+
+            //        if strArr(1) = "LOAN" then
+            //            stopdat = "b.SANCTIONEDDATE"
+
+            //            stAmt = "b.SANCTIONEDAMT"
+
+            //        else
+            //                stopdat = "b.opdate"
+
+            //            stAmt = "b.opbal"
+
+            //        end if
+
+
+            //        if strArr(4) = "SUMARY" then
+            //            sqlStr = " SELECT 'SB' Moduleid, b.glcode,COUNT(*) FROM sbmst b WHERE b.customerid IN (SELECT customerid FROM sharesmst a WHERE a.customerid=b.customerid ) AND b.status='R'  " & strArr(2) & " GROUP BY b.glcode UNION ALL SELECT 'CA' Moduleid,b.glcode,COUNT(*) FROM Camst b WHERE b.customerid IN (SELECT customerid FROM sharesmst a WHERE  a.customerid=b.customerid ) AND b.status='R'  " & strArr(2) & " GROUP BY b.glcode UNION ALL SELECT 'CC' Moduleid,b.glcode,COUNT(*) FROM ccmst b WHERE b.customerid IN (SELECT customerid FROM sharesmst a WHERE a.customerid=b.customerid ) AND b.status='R'  " & strArr(2) & " GROUP BY b.glcode UNION ALL SELECT 'DEPOSIT' Moduleid,b.glcode,COUNT(*) FROM depmst b WHERE b.customerid IN (SELECT customerid FROM sharesmst a WHERE a.customerid=b.customerid ) AND b.status='R'  " & strArr(2) & " GROUP BY b.glcode UNION ALL SELECT 'LOAN' Moduleid,b.glcode,COUNT(*) FROM loanmst b WHERE b.customerid IN (SELECT customerid FROM sharesmst a WHERE a.customerid=b.customerid ) AND b.status='R' " & strArr(2) & " GROUP BY b.glcode "
+
+            //        else if strArr(4) = "DETAIL" then
+            //            sqlStr = " SELECT  b.branchcode, " & stAcn & " Accno,b.customerid, a.accno Memberid,substr(c.name,0,50) name,TO_CHAR(" & stopdat & ",'dd-Mon-yyyy')opdate, " & stAmt & ",TO_CHAR(c.custdob,'dd-Mon-yyyy') dob, c.custsex GENDER,c.custmobile MOBILE ,substr(c.MAILADDRESS1||' '||c.MAILADDRESS2||c.MAILADDRESS3||c.MAILADDRESS4||c.MAILADDRESS5,0,50) Address FROM " & strArr(1) & "MST b, gencustinfomst c, sharesmst a WHERE b.customerid=a.customerid AND  b.CUSTOMERID=c.customerid AND c.customerid=a.customerid AND b.customerid IN (SELECT customerid FROM sharesmst d WHERE d.customerid=b.customerid AND d.customerid=c.customerid AND d.customerid=a.customerid) AND b.status='R' " & strArr(2) & " ORDER BY TO_NUMBER(" & stAcn & ")"
+
+            //        end if
+
+
+
+
+            //        rs = obj.SingleSelectStat(sqlStr)
+
+
+            //            if obj.ConnError = "Connected" then
+
+            //                if not rs.BOF and not rs.EOF then
+
+
+            //                    do until rs.EOF
+
+            //                        if strArr(4) = "SUMARY" then
+            //                            strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "|"
+
+            //                        else if strArr(4) = "DETAIL" then
+            //                            strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "~" & rs(7).value & "~" & rs(8).value & "~" & rs(9).value & "~" & rs(10).value & "|"
+
+            //                        end if
+
+            //                    rs.movenext()
+
+            //                    loop
+            //                end if
+
+            //            end if
+
+
+            //            if strResult = "" then
+            //                strResult = "No Records"
+
+            //            else
+            //                        strResult = mid(strResult, 1, strResult.length - 1)
+
+            //            end if
+
+
+            //        rs = nothing
+
+
+            //    elseif strArr(0) = "NONMEMDTLS" then
+
+            //        strResult = ""
+
+
+            //        obj = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+
+            //        dim stAcn, stopdat, stAmt
+
+
+            //        if strArr(3) = "Y" then
+            //            stAcn = " b.accno "
+
+            //        else
+            //                stAcn = "b.branchcode||''||b.glcode||''||LPAD(b.accno,7,0)"
+
+            //        end if
+
+
+            //        if strArr(1) = "LOAN" then
+            //            stopdat = "b.SANCTIONEDDATE"
+
+            //            stAmt = "b.SANCTIONEDAMT"
+
+            //        else
+            //                stopdat = "b.opdate"
+
+            //            stAmt = "b.opbal"
+
+            //        end if
+
+
+            //        if strArr(4) = "SUMARY" then
+            //            sqlStr = " SELECT 'SB' Moduleid, b.glcode,COUNT(*) FROM sbmst b WHERE b.customerid NOT IN (SELECT customerid FROM sharesmst a WHERE a.customerid=b.customerid ) AND b.status='R'  " & strArr(2) & " GROUP BY b.glcode UNION ALL SELECT 'CA' Moduleid,b.glcode,COUNT(*) FROM Camst b WHERE b.customerid NOT IN (SELECT customerid FROM sharesmst a WHERE  a.customerid=b.customerid ) AND b.status='R'  " & strArr(2) & " GROUP BY b.glcode UNION ALL SELECT 'CC' Moduleid,b.glcode,COUNT(*) FROM ccmst b WHERE b.customerid NOT IN (SELECT customerid FROM sharesmst a WHERE a.customerid=b.customerid ) AND b.status='R'  " & strArr(2) & " GROUP BY b.glcode UNION ALL SELECT 'DEPOSIT' Moduleid,b.glcode,COUNT(*) FROM depmst b WHERE b.customerid NOT IN (SELECT customerid FROM sharesmst a WHERE a.customerid=b.customerid ) AND b.status='R'  " & strArr(2) & " GROUP BY b.glcode UNION ALL SELECT 'LOAN' Moduleid,b.glcode,COUNT(*) FROM loanmst b WHERE b.customerid NOT IN (SELECT customerid FROM sharesmst a WHERE a.customerid=b.customerid ) AND b.status='R' " & strArr(2) & " GROUP BY b.glcode "
+
+            //        else if strArr(4) = "DETAIL" then
+            //            sqlStr = " SELECT   b.branchcode, " & stAcn & " Accno,b.customerid, substr(c.name,0,50) name,TO_CHAR(" & stopdat & ",'dd-Mon-yyyy') opdate, " & stAmt & ",TO_CHAR(c.custdob,'dd-Mon-yyyy') dob, c.custsex,c.custmobile ,substr(c.MAILADDRESS1||' '||c.MAILADDRESS2||c.MAILADDRESS3||c.MAILADDRESS4||c.MAILADDRESS5,0,50) Address FROM " & strArr(1) & "MST b, gencustinfomst c WHERE b.customerid NOT IN (SELECT customerid FROM sharesmst a WHERE a.customerid=b.customerid AND a.customerid=c.customerid) AND b.status='R' AND b.customerid=c.customerid " & strArr(2) & " ORDER BY TO_NUMBER(" & stAcn & ")"
+
+            //        end if
+
+
+            //        rs = obj.SingleSelectStat(sqlStr)
+
+
+            //            if obj.ConnError = "Connected" then
+
+            //                if not rs.BOF and not rs.EOF then
+
+
+            //                    do until rs.EOF
+
+            //                        if strArr(4) = "SUMARY" then
+            //                            strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "|"
+
+            //                        else if strArr(4) = "DETAIL" then
+            //                            strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "~" & rs(7).value & "~" & rs(8).value & "~" & rs(9).value & "|"
+
+            //                        end if
+
+            //                    rs.movenext()
+
+            //                    loop
+            //                end if
+
+            //            end if
+
+
+            //            if strResult = "" then
+            //                strResult = "No Records"
+
+            //            else
+            //                        strResult = mid(strResult, 1, strResult.length - 1)
+
+            //            end if
+
+
+            //        rs = nothing
+
+
+            //    elseif strArr(0)= "CHARTYP" then
+            //    strResult = ""
+
+
+            //    obj = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+
+            //        sqlStr = "SELECT COUNT(*) FROM GENCHARGETYPEMST WHERE CHARGETYPE='" & strArr(1) & "' and status='R'"
+
+
+            //        rs = obj.SingleSelectStat(sqlStr)
+
+
+            //        if obj.ConnError = "Connected" then
+
+            //            if not rs.BOF and not rs.EOF then
+
+            //                strResult = rs(0).value
+
+            //            end if
+
+            //        end if
+
+            //    rs = nothing
+
+
+            //    elseif strArr(0)= "CHARREPORT" then
+            //    strResult = ""
+
+
+            //    obj = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+
+            //        sqlStr = "SELECT a.CHARGESID, SUBSTR(b.DESCRIPTION,1,40) descr, a.COMMMODULEID, a.COMMGLCODE, SUBSTR(a.COMGLDESC,1,40) gldesc, a.COMMACCNO, a.COMMAMT, DECODE(a.FLAG,'P','PERCENTAGE','F','FLAT') flag, a.AUTOPOSTCHRGSYN, a.COMMISSIONYN, a.SERVICETAXYN FROM GENCHARGESPMT a,GENCHARGETYPEMST b WHERE a.status='R' AND a.CHARGESID = b.CHARGETYPE ORDER BY a.CHARGESID "
+
+
+            //        rs = obj.SingleSelectStat(sqlStr)
+
+
+            //        if obj.ConnError = "Connected" then
+
+            //            if not rs.BOF and not rs.EOF then
+
+            //                do until rs.EOF
+
+            //                    strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "~" & rs(7).value & "~" & rs(8).value & "~" & rs(9).value & "~" & rs(10).value & "|"
+
+            //                rs.movenext()
+
+            //                loop
+            //            end if
+
+            //        end if
+
+
+            //        if strResult = "" then
+            //            strResult = "No Records"
+
+            //        else
+            //                        strResult = mid(strResult, 1, strResult.length - 1)
+
+            //        end if
+
+
+            //    rs = nothing
+
+
+            //    elseif strArr(0)= "TERMINAL" then
+            //    strResult = ""
+
+
+            //    obj = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+
+            //        sqlStr = "SELECT TERMINALID FROM posmasterdtls WHERE TERMINALID='" & strArr(1) & "' AND STATUS='R' AND ISSUEDYN='N'  "
+
+
+            //        rs = obj.SingleSelectStat(sqlStr)
+
+
+            //        if obj.ConnError = "Connected" then
+
+            //            if not rs.BOF and not rs.EOF then
+
+            //                do until rs.EOF
+
+            //                    strResult = strResult & rs(0).value & "|"
+
+            //                rs.movenext()
+
+            //                loop
+            //            end if
+
+            //        end if
+
+
+            //        if strResult = "" then
+            //            strResult = "No Records"
+
+            //        else
+            //                        strResult = mid(strResult, 1, strResult.length - 1)
+
+            //        end if
+
+
+            //    rs = nothing
+
+
+            //    elseif strArr(0)= "POSRENTDTLS" then
+            //    strResult = ""
+
+
+            //    strrentyear = mid(strArr(1), 3, 4)
+
+            //    strrentmonth = mid(strArr(1), 1, 2)
+
+            //    strrentdate = clng(strrentyear & strrentmonth)
+
+            //    obj = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+
+            //        sqlStr = "SELECT name,sno,TID, MID FROM posissuedtls WHERE TO_NUMBER(SUBSTR(RENTDATE,3,4))||TO_NUMBER(SUBSTR(RENTDATE,1,2)) <= " & clng(strrentdate) & " AND STATUS='R' AND BRANCHCODE='" & strArr(2) & "' AND TID NOT IN (SELECT TID FROM POSRENTDTLS WHERE RENTDATE = '" & strArr(1) & "' AND BRANCHCODE='" & strArr(2) & "' )"
+
+
+            //        rs = obj.SingleSelectStat(sqlStr)
+
+
+            //        if obj.ConnError = "Connected" then
+
+            //            if not rs.BOF and not rs.EOF then
+
+            //                do until rs.EOF
+
+            //                    strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "|"
+
+            //                rs.movenext()
+
+            //                loop
+            //            end if
+
+            //        end if
+
+
+            //        if strResult = "" then
+            //            strResult = "No Records"
+
+            //        else
+            //                        strResult = mid(strResult, 1, strResult.length - 1)
+
+            //        end if
+
+
+            //    rs = nothing
+
+
+            //    elseif strArr(0)= "POSRENTGENRAT" then
+            //    strResult = ""
+
+
+
+            //    strrentyear = mid(strArr(1), 3, 4)
+
+            //    strrentmonth = mid(strArr(1), 1, 2)
+
+            //    strrentdate = clng(strrentyear & strrentmonth)
+
+
+
+            //    obj = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+
+            //        sqlStr = "SELECT NAME,sno, TID, MID, RENT, GST FROM posissuedtls WHERE TO_NUMBER(SUBSTR(RENTDATE,3,4))||TO_NUMBER(SUBSTR(RENTDATE,1,2)) <= " & clng(strrentdate) & " AND STATUS='R' " & strArr(2) & "  AND BRANCHCODE='" & strArr(3) & "' AND TID NOT IN (SELECT TID FROM POSRENTDTLS WHERE  RENTDATE = '" & strArr(1) & "' AND BRANCHCODE='" & strArr(3) & "' ) "
+
+
+
+            //        rs = obj.SingleSelectStat(sqlStr)
+
+
+            //        if obj.ConnError = "Connected" then
+
+            //            if not rs.BOF and not rs.EOF then
+
+            //                do until rs.EOF
+
+            //                    strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "|"
+
+            //                rs.movenext()
+
+            //                loop
+            //            end if
+
+            //        end if
+
+
+            //        if strResult = "" then
+            //            strResult = "No Records"
+
+            //        else
+            //                        strResult = mid(strResult, 1, strResult.length - 1)
+
+            //        end if
+
+
+            //    rs = nothing
+
+
+            //    elseif strArr(0)= "REPORTPOSDTLS" then
+            //    strResult = ""
+
+
+            //    obj = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+
+            //        sqlStr = "SELECT BRANCHCODE,(select DESCRIPTION  from postypemst where sno = a.sno) typedescription, TERMINALID, SERIALNUM, MERCHANTID, ISSUEDYN, REMARKS FROM POSMASTERDTLS a " & strArr(1) & " "
+
+
+            //        rs = obj.SingleSelectStat(sqlStr)
+
+
+            //        if obj.ConnError = "Connected" then
+
+            //            if not rs.BOF and not rs.EOF then
+
+            //                do until rs.EOF
+
+            //                    strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "|"
+
+            //                rs.movenext()
+
+            //                loop
+            //            end if
+
+            //        end if
+
+
+            //        if strResult = "" then
+            //            strResult = "No Records"
+
+            //        else
+            //                        strResult = mid(strResult, 1, strResult.length - 1)
+
+            //        end if
+
+
+            //    rs = nothing
+
+
+            //    elseif strArr(0)= "POSDTLSREPRT" then
+            //    strResult = ""
+
+
+            //    obj = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+
+            //        ''sqlStr = "SELECT BRANCHCODE, TID, MID, NAME, BATCH, RENT, GST, TOTAL FROM POSRENTDTLS WHERE branchcode='" & strArr(3) & "' AND rentmonth = '" & strArr(1) & "' AND rentyear = '" & strArr(2) & "' "
+
+
+            //        if strArr(4) = "ALL" then
+            //            sqlStr = "SELECT BRANCHCODE,(select DESCRIPTION  from postypemst where sno = a.sno) , TID, MID, NAME, BATCH, RENT, GST, TOTAL FROM POSRENTDTLS a WHERE branchcode='" & strArr(3) & "' AND RENTDATE BETWEEN (SELECT TO_CHAR(TO_DATE( '" & strArr(1) & "'),'MMYYYY') FROM dual )  AND (SELECT TO_CHAR(TO_DATE( '" & strArr(2) & "'),'MMYYYY') FROM dual ) "
+
+            //        elseif strArr(4) = "TID" then
+            //            sqlStr = "select x.BRANCHCODE,(select DESCRIPTION  from postypemst where sno = x.sno),x.TID, x.MID, x.NAME,x.RENT,x.GST,x.TOTAL from (SELECT BRANCHCODE,sno, TID, MID, NAME, SUM(RENT) RENT, SUM(GST) GST, SUM(TOTAL) TOTAL FROM POSRENTDTLS WHERE branchcode='" & strArr(3) & "' " & strArr(5) & " AND RENTDATE BETWEEN (SELECT TO_CHAR(TO_DATE( '" & strArr(1) & "'),'MMYYYY') FROM dual )  AND (SELECT TO_CHAR(TO_DATE( '" & strArr(2) & "'),'MMYYYY') FROM dual ) GROUP BY BRANCHCODE, sno,TID, MID, NAME ) x "
+
+            //        elseif strArr(4) = "MID" then
+            //            sqlStr = "select x.BRANCHCODE,(select DESCRIPTION  from postypemst where sno = x.sno),x.TID, x.MID, x.NAME,x.RENT,x.GST,x.TOTAL from (SELECT BRANCHCODE,sno, TID, MID, NAME, SUM(RENT) RENT, SUM(GST) GST, SUM(TOTAL) TOTAL FROM POSRENTDTLS WHERE branchcode='" & strArr(3) & "' " & strArr(5) & " AND RENTDATE BETWEEN (SELECT TO_CHAR(TO_DATE( '" & strArr(1) & "'),'MMYYYY') FROM dual )  AND (SELECT TO_CHAR(TO_DATE( '" & strArr(2) & "'),'MMYYYY') FROM dual ) GROUP BY BRANCHCODE,sno, TID, MID, NAME) x "
+
+            //        elseif strArr(4) = "ACCNO" then
+
+
+            //            if strArr(5) = "" then
+            //                sqlStr = "select x.BRANCHCODE,(select DESCRIPTION  from postypemst where sno = x.sno),x.TID, x.MID, x.ACC,x.NAME,x.RENT,x.GST,x.TOTAL from (SELECT A.BRANCHCODE,a.sno, A.TID, A.MID,B.BRANCHCODE||B.GLCODE||LPAD(B.ACCNO,7,0) ACC, A.NAME, SUM(A.RENT) RENT, SUM(A.GST) GST, SUM(A.TOTAL) TOTAL FROM POSRENTDTLS A, POSISSUEDTLS B WHERE A.branchcode='" & strArr(3) & "' AND A.TID=B.TID AND A.RENTDATE BETWEEN (SELECT TO_CHAR(TO_DATE( '" & strArr(1) & "'),'MMYYYY') FROM dual )  AND (SELECT TO_CHAR(TO_DATE( '" & strArr(2) & "'),'MMYYYY') FROM dual ) GROUP BY A.BRANCHCODE,a.sno, A.TID, A.MID, A.NAME ,B.BRANCHCODE||B.GLCODE||LPAD(B.ACCNO,7,0)) x "
+
+            //            else
+            //                sqlStr = "select x.BRANCHCODE,(select DESCRIPTION  from postypemst where sno = x.sno),x.TID, x.MID, x.ACC,x.NAME,x.RENT,x.GST,x.TOTAL from (SELECT A.BRANCHCODE,a.sno, A.TID, A.MID,B.BRANCHCODE||B.GLCODE||LPAD(B.ACCNO,7,0) ACC, A.NAME, SUM(A.RENT) RENT, SUM(A.GST) GST, SUM(A.TOTAL) TOTAL FROM POSRENTDTLS A, POSISSUEDTLS B WHERE A.branchcode='" & strArr(3) & "' AND B.BRANCHCODE||B.GLCODE||" & strArr(5) & "    AND A.TID=B.TID AND A.RENTDATE BETWEEN (SELECT TO_CHAR(TO_DATE( '" & strArr(1) & "'),'MMYYYY') FROM dual )  AND (SELECT TO_CHAR(TO_DATE( '" & strArr(2) & "'),'MMYYYY') FROM dual ) GROUP BY A.BRANCHCODE,a.sno, A.TID, A.MID, A.NAME ,B.BRANCHCODE||B.GLCODE||LPAD(B.ACCNO,7,0)) x "
+
+            //            end if
+
+
+            //        end if
+
+
+
+            //        rs = obj.SingleSelectStat(sqlStr)
+
+
+            //        if obj.ConnError = "Connected" then
+
+            //            if not rs.BOF and not rs.EOF then
+
+            //                do until rs.EOF
+
+
+            //                    if ((strArr(4) = "ALL") or(strArr(4) = "ACCNO")) then
+            //                        strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "~" & rs(7).value & "~" & rs(8).value & "|"
+
+            //                    else
+            //                strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "~" & rs(7).value & "|"
+
+            //                    end if
+
+
+            //                rs.movenext()
+
+            //                loop
+            //            end if
+
+            //        end if
+
+
+            //        if strResult = "" then
+            //            strResult = "No Records"
+
+            //        else
+            //                        strResult = mid(strResult, 1, strResult.length - 1)
+
+            //        end if
+
+
+            //    rs = nothing
+
+
+            //    elseif strArr(0)= "POSISSUEDTLSREPRT" then
+            //    strResult = ""
+
+
+            //    obj = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+
+            //        if strArr(2) = "ALL" then
+            //            sqlStr = "SELECT BRANCHCODE, MODULEID, GLCODE, ACCNO, NAME,(select DESCRIPTION  from postypemst where sno = a.sno) typedescription, TID, MID, RENT, GST, to_char(RENTCOLLECTFROM,'dd-Mon-yyyy') rendat FROM POSISSUEDTLS a WHERE issuebranchcode ='" & strArr(1) & "' "
+
+            //        elseif strArr(2)= "ACCNO" then
+
+            //            if strArr(3) = "" then
+            //                sqlStr = "SELECT BRANCHCODE, MODULEID, GLCODE, ACCNO, NAME,(select DESCRIPTION  from postypemst where sno = a.sno) typedescription, TID, MID, RENT, GST, to_char(RENTCOLLECTFROM,'dd-Mon-yyyy') rendat FROM POSISSUEDTLS a WHERE issuebranchcode ='" & strArr(1) & "' order by ACCNO"
+
+            //            else
+            //                sqlStr = "SELECT BRANCHCODE, MODULEID, GLCODE, ACCNO, NAME,(select DESCRIPTION  from postypemst where sno = a.sno) typedescription, TID, MID, RENT, GST, to_char(RENTCOLLECTFROM,'dd-Mon-yyyy') rendat FROM POSISSUEDTLS a WHERE issuebranchcode ='" & strArr(1) & "' AND branchcode||glcode||" & strArr(3) & " "
+
+            //            end if
+
+
+            //        elseif strArr(2) = "MERCH" then
+
+            //            if strArr(3) = "" then
+            //                sqlStr = "SELECT BRANCHCODE, MODULEID, GLCODE, ACCNO, NAME,(select DESCRIPTION  from postypemst where sno = a.sno) typedescription, TID, MID, RENT, GST, to_char(RENTCOLLECTFROM,'dd-Mon-yyyy') rendat FROM POSISSUEDTLS a WHERE issuebranchcode ='" & strArr(1) & "' order by TID "
+
+            //            else
+            //                sqlStr = "SELECT BRANCHCODE, MODULEID, GLCODE, ACCNO, NAME,(select DESCRIPTION  from postypemst where sno = a.sno) typedescription, TID, MID, RENT, GST, to_char(RENTCOLLECTFROM,'dd-Mon-yyyy') rendat FROM POSISSUEDTLS a WHERE issuebranchcode ='" & strArr(1) & "' " & strArr(3) & " "
+
+            //            end if
+
+
+            //        end if
+
+
+
+            //        rs = obj.SingleSelectStat(sqlStr)
+
+
+            //        if obj.ConnError = "Connected" then
+
+            //            if not rs.BOF and not rs.EOF then
+
+            //                do until rs.EOF
+
+            //                    strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "~" & rs(7).value & "~" & rs(8).value & "~" & rs(9).value & "~" & rs(10).value & "|"
+
+            //                rs.movenext()
+
+            //                loop
+            //            end if
+
+            //        end if
+
+
+            //        if strResult = "" then
+            //            strResult = "No Records"
+
+            //        else
+            //                        strResult = mid(strResult, 1, strResult.length - 1)
+
+            //        end if
+
+
+            //    rs = nothing
+
+
+            //    elseif strArr(0)= "MERCHVAL" then
+
+            //    strResult = ""
+
+
+            //    obj = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+
+            //        sqlStr = "SELECT BRANCHCODE, TERMINALID, SERIALNUM, MERCHANTID, STATUS, REMARKS,sno FROM POSMASTERDTLS WHERE UPPER(branchcode) = '" & strArr(3) & "' AND UPPER(TERMINALID) = '" & strArr(1) & "' AND UPPER(SERIALNUM) = '" & strArr(2) & "' "
+
+
+            //        rs = obj.SingleSelectStat(sqlStr)
+
+
+            //        if obj.ConnError = "Connected" then
+
+            //            if not rs.BOF and not rs.EOF then
+
+            //                do until rs.EOF
+
+            //                    strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "|"
+
+            //                rs.movenext()
+
+            //                loop
+            //            end if
+
+            //        end if
+
+
+            //        if strResult = "" then
+            //            strResult = "No Records"
+
+            //        else
+            //                        strResult = mid(strResult, 1, strResult.length - 1)
+
+            //        end if
+
+
+            //    rs = nothing
+
+
+            //    elseif strArr(0)= "MODISSUVAL" then
+
+            //    strResult = ""
+
+
+            //    obj = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+
+            //        sqlStr = "SELECT RENT, GST, TO_CHAR(RENTCOLLECTFROM,'dd-Mon-yyyy') dat,to_char(issuedate,'dd-Mon-yyyy') issuedate FROM posissuedtls WHERE UPPER(branchcode) = '" & strArr(3) & "' AND UPPER(TID) = '" & strArr(1) & "' AND UPPER(MID) = '" & strArr(2) & "' "
+
+
+            //        rs = obj.SingleSelectStat(sqlStr)
+
+
+            //        if obj.ConnError = "Connected" then
+
+            //            if not rs.BOF and not rs.EOF then
+
+            //                do until rs.EOF
+
+            //                    strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "|"
+
+            //                rs.movenext()
+
+            //                loop
+            //            end if
+
+            //        end if
+
+
+            //        if strResult = "" then
+            //            strResult = "No Records"
+
+            //        else
+            //                        strResult = mid(strResult, 1, strResult.length - 1)
+
+            //        end if
+
+
+            //    rs = nothing
+
+
+            //elseif strArr(0)= "LoanRepayAccName" then
+            //obj = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+            //sqlStr = "SELECT distinct A.ACCNO, A.NAME FROM LOANMST A, LOANSCHEDULEDTLS B  WHERE a.accno = '" & strArr(5) & "' AND a.branchcode = '" & strArr(1) & "' AND a.currencycode = '" & strArr(2) & "' AND a.glcode = '" & strArr(4) & "' and A.STATUS='R' AND  B.REPAYDUEDATE<A.DUEDATE AND A.ACCNO=B.ACCNO AND A.GLCODE=B.GLCODE AND A.BRANCHCODE=B.BRANCHCODE"
+
+            //rs = obj.SingleSelectStat(sqlStr)
+
+
+            //        if obj.ConnError = "Connected" then
+
+            //                if not rs.BOF and not rs.EOF then
+
+            //                strResult = rs(1).value
+
+            //                else
+            //                strResult = "No Records"
+
+            //                end if
+
+            //        else
+            //                    strResult = "No Records"
+
+            //        end if
+            //elseif strArr(0) = "LoanRepayDtls" then
+
+            //    strResult = ""
+
+            //    dim strCond
+
+            //    strCond = ""
+
+
+            //    obj = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+
+            //    '' glcode
+
+            //    if strArr(4) <> "" then
+            //    strCond = " and a.glcode  = '" & strArr(4) & "'"
+
+            //    end if
+
+            //    '' accno
+
+            //    if strArr(5) <> "" then
+            //    strCond = strCond & " and a.accno  = '" & strArr(5) & "'"
+
+            //     end if
+
+            //     '' between operator
+            //	 if strArr(6) = "Between" then
+            //    strCond = strCond & " AND B.REPAYDUEDATE BETWEEN '" & strArr(7) & "' AND '" & strArr(8) & "'"
+
+            //    else
+            //                strCond = strCond & " AND B.REPAYDUEDATE " & strArr(6) & " '" & strArr(7) & "'"
+
+            //     end if
+
+
+
+            //        sqlStr = "SELECT A.glcode,A.ACCNO, A.NAME,A.SANCTIONEDDATE SANCDATE,A.DUEDATE,A.SANCTIONEDAMT SANCAMT, A.INSTALMENTAMT INSTLAMT, NVL(B.EMIPRINCIPLEPART,A.INSTALMENTAMT) EMIPRIN, NVL(B.EMIINTERESTPART,0) EMIINT, B.REPAYDUEDATE REPAYDATE FROM LOANMST A, LOANSCHEDULEDTLS B  WHERE a.branchcode = '" & strArr(1) & "' and a.currencycode  = '" & strArr(2) & "' and A.STATUS='R' AND  B.REPAYDUEDATE<A.DUEDATE AND A.ACCNO=B.ACCNO AND A.GLCODE=B.GLCODE AND A.BRANCHCODE=B.BRANCHCODE " & strCond & " ORDER BY B.REPAYDUEDATE, A.GLCODE, TO_NUMBER(A.ACCNO)"
+
+
+            //        rs = obj.SingleSelectStat(sqlStr)
+
+
+            //        if obj.ConnError = "Connected" then
+
+            //            if not rs.BOF and not rs.EOF then
+
+            //                do until rs.EOF
+
+            //                    strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "~" & rs(7).value & "~" & rs(8).value & "~" & rs(9).value & "|"
+
+            //                rs.movenext()
+
+            //                loop
+            //            end if
+
+            //        end if
+
+
+            //        if strResult = "" then
+            //            strResult = "No Records"
+
+            //        else
+            //                        strResult = mid(strResult, 1, strResult.length - 1)
+
+            //        end if
+
+
+            //    rs = nothing
+
+
+
+            //elseif strArr(0)= "StmntOfAccChrgs" then
+
+            //dim objPostCharge as new AutoChargesPosting.PostChargesAuto
+
+            //    dim strChargeResult as string
+
+
+            //    BrCode = strArr(1)
+            //    CurCode = strArr(2)
+            //    ModId = strArr(3)
+            //    GlCode = strArr(4)
+            //    AccNo = strArr(5)
+            //    CommAmt = strArr(6)
+            //    GSTAmt = strArr(7)
+            //    CessAmt = strArr(8)
+            //    userid = cstr(session("userid"))
+            //    machineid = cstr(session("machineid"))
+            //    appdate = cstr(session("applicationdate"))
+            //    straccwisechrgscode = strArr(9)
+            //    strDrRemarks = "Stmt Of Accnt Charges"
+            //    strsessbrcode = session("branchcode")
+            //    strchkabbyn = strArr(10)
+
+
+            //strResult = objPostCharge.postAutomaticallyGST(cstr(BrCode), cstr(CurCode), cstr(ModId), cstr(GlCode), cstr(AccNo), straccwisechrgscode, appdate, userid, machineid, CommAmt, GSTAmt, CessAmt,, strDrRemarks, strchkabbyn, strsessbrcode)
+
+
+            //    end if
+
+
+            //obj = nothing
+        }
+
+        public void GetDetails1()
+        {
+//            objGen = server.CreateObject("ProGeneral.clsGeneral")
+//dim strVal
+//dim strArr
+//dim strIndvVal
+//dim strResult, batchNo, tranNo, sqlStr
+//dim rsthresh
+//dim strSentfilename
+//dim strAckFilename
+//dim objctr
+
+//rs = Server.CreateObject("adodb.recordset")
+//rs1 = Server.CreateObject("adodb.recordset")
+//rscheck = Server.CreateObject("adodb.recordset")
+//rsgengl = Server.CreateObject("adodb.recordset")
+//rsgengl105 = Server.CreateObject("adodb.recordset")
+//rsthresh = Server.CreateObject("adodb.recordset")
+//objctr = server.CreateObject("queryrecordsets.fetchrecordsets")
+//        rsmain = Server.CreateObject("adodb.recordset")
+//            obj2 = Server.CreateObject("GeneralTransactions.DBTransactions")
+//        rscnt = Server.CreateObject("adodb.recordset")
+
+
+//dim strrentyear
+//dim staccond, staccd, stCustid
+
+//    dim strrentmonth
+
+//    dim strrentdate
+
+//    dim rsBnk, objBnk, frmname
+
+//    rsBnk = server.CreateObject("adodb.recordset")
+
+//    objBnk = server.CreateObject("queryrecordsets.fetchrecordsets")
+
+//    rsBnk = objBnk.singlerecordset("genbankparm", "depcertificate", "")
+
+
+//    if objBnk.ConnError = "Connected" then
+
+//        if not rsBnk.EOF and not rsBnk.BOF then
+
+//            frmname = rsBnk(0).value
+
+//        end if
+
+//    end if
+
+
+//strVal = request.querystring("st")
+//strArr = split(strVal, "|")
+
+
+//if strArr(0) = "GETMODCUSTPANDTLS" then
+//    strResult = ""
+
+//    obj = server.CreateObject("ReportPurposeOnly.Reportonly")
+//''  sqlStr = "SELECT CUSTOMERID,NAME FROM GENCUSTINFOMST WHERE KYCID='" & strArr(2) & "' AND PANNO='" & strArr(1) & "' AND BRANCHCODE='" & strArr(3) & "'"
+
+//    sqlStr = "SELECT PANNO FROM GENCUSTINFOMST WHERE CUSTOMERID ='" & strArr(2) & "'"
+
+//    rs = obj.SingleSelectStat(sqlStr)
+
+
+//    if obj.ConnError = "Connected" then
+
+//        if not rs.BOF and not rs.EOF then
+
+//            if isdbnull(rs(0).value) = false then
+
+//                    if rs(0).value = strArr(1) then
+//                    strResult = "0"
+
+//                        else
+//                sqlStr = "SELECT CUSTOMERID,NAME FROM GENCUSTINFOMST WHERE PANNO='" & strArr(1) & "'"
+
+//                        rs1 = obj.SingleSelectStat(sqlStr)
+
+
+//                            if obj.ConnError = "Connected" then
+
+//                                    if not rs1.BOF and not rs1.EOF then
+
+
+//                                        do until rs1.EOF
+
+//                                            strResult = strResult & rs1(0).value & "~" & rs1(1).value & "|"
+
+//                                            rs1.movenext()
+
+//                                        loop
+//                                        strResult = mid(strResult, 1, strResult.length - 1)
+
+//                                    else
+//                strResult = "0"
+
+//                                    end if
+
+//                            end if
+
+//                    end if
+
+//            else
+//                            end if
+                
+//                        end if
+                
+//                    end if
+                
+//                    rs = nothing
+//                elseif strArr(0)= "loanopeningdate" then
+//                strResult = ""
+
+
+//    obj = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+
+//    if strArr(5) = "" then
+//         sqlStr = "SELECT d.ACCNO,d.CUSTOMERID,SUBSTR(d.NAME,0,33)Name,to_char(d.SANCTIONEDDATE,'dd-Mon-yyyy'),d.SANCTIONEDAMT,to_char(d.DUEDATE,'dd-Mon-yyyy'),d.NOOFINSTALLMENT,d.INSTALMENTAMT,d.ROI,g.d2value,g.d3value,g.d4value, to_char(d.CLOSEDATE,'dd-Mon-yyyy'),to_char(d.applicationdate,'dd-Mon-yyyy') from " & strArr(3) & "mst d, gensecuritymst g where g.status = 'R' and  d.branchcode='" & strArr(1) & "' and d.currencycode='" & strArr(2) & "' and d.glcode='" & strArr(4) & "' and " & strArr(6) & " and d.customerid = g.customerid  order by to_number(d.accno) "
+
+//         else
+//                sqlStr = "SELECT d.ACCNO,d.CUSTOMERID,SUBSTR(d.NAME,0,33)Name,to_char(d.SANCTIONEDDATE,'dd-Mon-yyyy'),d.SANCTIONEDAMT,to_char(d.DUEDATE,'dd-Mon-yyyy'),d.NOOFINSTALLMENT,d.INSTALMENTAMT,d.ROI,g.d2value,g.d3value,g.d4value, to_char(d.CLOSEDATE,'dd-Mon-yyyy'),to_char(d.applicationdate,'dd-Mon-yyyy') from " & strArr(3) & "mst d, gensecuritymst g where  g.status = 'R' and  d.branchcode='" & strArr(1) & "' and d.currencycode='" & strArr(2) & "' and d.glcode='" & strArr(4) & "' and d.accno = '" & strArr(5) & "' and " & strArr(6) & " and d.customerid = g.customerid  order by to_number(d.accno) "
+
+
+//         end if
+
+//        rs = obj.SingleSelectStat(sqlStr)
+
+
+//        if obj.ConnError = "Connected" then
+
+//            if not rs.BOF and not rs.EOF then
+
+//                do until rs.EOF
+
+//                    strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "~" & rs(7).value & "~" & rs(8).value & "~" & rs(9).value & "~" & rs(10).value & "~" & rs(11).value & "~" & rs(12).value & "~" & rs(13).value & "|"
+
+//                    rs.movenext()
+
+//                loop
+//                strResult = mid(strResult, 1, strResult.length - 1)
+
+//            end if
+
+//        end if
+
+//    rs = nothing
+//elseif strArr(0)= "GETRDAMOUNTCHECK" then
+//strResult = ""
+
+//    dim strMONINSTAMOUNT, strMATURITYDATE, strDEPPRDMONS, strappdate
+
+//    dim dblcuramt
+
+//    dim arrval
+
+//    dim strmessage
+
+//    strappdate = Session("applicationdate")
+
+//    obj = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+
+//    obj1 = Server.CreateObject("accountdetails.accdetails")
+
+//            str1 = obj1.accountdetail(cstr(strArr(1)), cstr(strArr(2)), cstr(strArr(3)), cstr(strArr(4)), cstr(strArr(5)))
+
+//            arrval = split(str1, "|")
+
+//            dblcuramt = arrval(0)
+
+//         sqlStr = "SELECT MONINSTAMOUNT, MATURITYDATE, DEPPRDMONS noofinstall  FROM depmst WHERE branchcode = '" & strArr(1) & "' AND glcode = '" & strArr(4) & "' and accno = '" & strArr(5) & "' AND status = 'R'"
+
+
+//        rs = obj.SingleSelectStat(sqlStr)
+
+
+//        if obj.ConnError = "Connected" then
+
+//            if not rs.BOF and not rs.EOF then
+
+
+//                strMONINSTAMOUNT = rs(0).value
+
+//                strMATURITYDATE = rs(1).value
+
+//                strDEPPRDMONS = rs(2).value
+
+
+
+//                    if (cdbl(strArr(6)) + cdbl(dblcuramt))  > (cdbl(strMONINSTAMOUNT) * cdbl(strDEPPRDMONS)) then
+//                        strmessage = "NO"
+
+//                        else
+//                strmessage = "YES"
+
+
+//                        if cdate(strappdate) > cdate(strMATURITYDATE) then
+//                            strmessage = "GREATER"
+
+//                        end if
+
+//                    end if
+
+
+
+//            end if
+
+//        end if
+
+//        strResult = strmessage
+
+//    rs = nothing
+//elseif strArr(0)= "LCKRENTPAIDTLS" then
+//    strResult = ""
+
+
+//    obj = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+
+
+//         sqlStr = "SELECT to_char(opdate,'dd-Mon-yyyy') opdate,lockerno,m.accno,lockersize,name,nvl((SELECT rentamount FROM LOCKERRENTMST WHERE branchcode = m.branchcode AND sizecode= m.lockersize),0) rentamt, l.paidamount,to_char(l.paidupto,'dd-Mon-yyyy') paidupto FROM lockermst m, (SELECT branchcode,glcode,accno, SUM(amount) paidamount,MAX(todate) paidupto FROM LOCKERRENTDTLS GROUP BY branchcode,glcode,accno) l WHERE m.branchcode= l.branchcode AND m.glcode= l.glcode AND m.accno = l.accno " & strArr(4) & " " & strArr(5) & " AND m.branchcode='" & strArr(1) & "' ORDER BY TO_NUMBER(m.accno)"
+
+
+//        rs = obj.SingleSelectStat(sqlStr)
+
+
+//        if obj.ConnError = "Connected" then
+
+//            if not rs.BOF and not rs.EOF then
+
+//                do until rs.EOF
+
+//                    strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "~" & rs(7).value & "|"
+
+//                    rs.movenext()
+
+//                loop
+//                strResult = mid(strResult, 1, strResult.length - 1)
+
+//            end if
+
+//        end if
+
+//    rs = nothing
+
+
+//elseif strArr(0)= "ATMCARDTLS" then
+//    strResult = ""
+
+
+//    obj = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+
+//        sqlStr = " SELECT REFNUM, TITLE, FAMILYNAME, ACCOUNT1, SUBSTR(ACCOUNT1,4,6) glcode, (CASE WHEN ACCOUNT1TYPE = '10' THEN 'SB' WHEN ACCOUNT1TYPE = '20' THEN 'CA' END ) MOD, (ADDRESS1||''|| ADDRESS2||''||ADDRESS3||''||ADDRESS4||' '||CITYCODE||' '||ZIPCODE||' '||COUNTRYCODE) Addres, (MAILINGADDRESS1 ||''|| MAILINGADDRESS2 ||''|| MAILINGADDRESS3 ||''|| MAILINGADDRESS4 ||' '|| MAILINGZIPCODE ||' '|| MAILINGCITYCODE ||' '|| MAILINGCOUNTRYCODE) MailAddres,EMBOSSEDNAME,CARDNUMBER FROM atmcrddtls WHERE TRANSTATUS = 'P' AND branchcode='" & strArr(1) & "' order by to_number(REFNUM)"
+
+//        rs = obj.SingleSelectStat(sqlStr)
+
+//        if obj.ConnError = "Connected" then
+
+//            if not rs.BOF and not rs.EOF then
+
+
+//                do until rs.EOF
+
+//                strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "~" & rs(7).value & "~" & rs(8).value & "~" & rs(9).value & "|"
+
+//                rs.movenext()
+
+//                loop
+//            end if
+
+//        end if
+
+
+//        if strResult = "" then
+//            strResult = "No Records"
+
+//        else
+//                        strResult = mid(strResult, 1, strResult.length - 1)
+
+//        end if
+
+
+//    rs = nothing
+
+
+
+
+
+//elseif strArr(0)= "OTHERITFORMS" then
+//dim strcondvenpanno
+//    obj = server.CreateObject("ReportPurposeOnly.Reportonly")
+//if strArr(4) <> "Between" then
+//    actdatewhere = "APPLICATIONDATE" & strArr(4) & "'" & strArr(5) & "'"
+//else if strArr(4) = "Between" then
+//    actdatewhere = "APPLICATIONDATE >= '" & strArr(5) & "' and APPLICATIONDATE <= '" & strArr(6) & "'"
+//end if
+//if strArr(8) = "" then
+//strcondvenpanno = " 1=1 and "
+//else
+//                    strcondvenpanno = " VENDORPANNO = '" & strArr(8) & "' and "
+//end if
+//if strArr(7) = "N" then
+//if strArr(3) = "ALL" then
+//sqlstr = "SELECT BRANCHCODE,NAME,AMTPAID,(AMOUNT*-1) AMOUNT,CHALLANNO,to_char(CHALLANDATE,'dd-Mon-yyyy') CHALLANDATE ,BSRCODE,ITFORM,VENDORPANNO,ASSESYEAR finyear FROM TDSDTLS WHERE " & strcondvenpanno & "  branchcode = '" & strArr(1) & "' AND ITFORM !='94A'  and " & actdatewhere
+//else
+//                sqlstr = "SELECT BRANCHCODE,NAME,AMTPAID,(AMOUNT*-1) AMOUNT,CHALLANNO,to_char(CHALLANDATE,'dd-Mon-yyyy') CHALLANDATE,BSRCODE,ITFORM,VENDORPANNO,ASSESYEAR finyear FROM TDSDTLS WHERE " & strcondvenpanno & " branchcode = '" & strArr(1) & "' AND ITFORM !='94A' and ITFORM = '" & strArr(3) & "' and " & actdatewhere
+//end if
+//else
+//if strArr(3) = "ALL" then
+//sqlstr = "SELECT BRANCHCODE,NAME,AMTPAID,(AMOUNT*-1) AMOUNT,CHALLANNO,to_char(CHALLANDATE,'dd-Mon-yyyy') CHALLANDATE,BSRCODE,ITFORM,VENDORPANNO,ASSESYEAR finyear FROM TDSDTLS WHERE " & strcondvenpanno & "  ITFORM !='94A'  and " & actdatewhere
+//else
+//                    sqlstr = "SELECT BRANCHCODE,NAME,AMTPAID,(AMOUNT*-1) AMOUNT,CHALLANNO,to_char(CHALLANDATE,'dd-Mon-yyyy') CHALLANDATE,BSRCODE,ITFORM,VENDORPANNO,ASSESYEAR finyear FROM TDSDTLS WHERE " & strcondvenpanno & "  ITFORM !='94A' and ITFORM = '" & strArr(3) & "' and " & actdatewhere
+//end if
+//end if
+
+
+// rs = obj.SingleSelectStat(sqlStr)
+
+
+//        if obj.ConnError = "Connected" then
+
+//            if not rs.BOF and not rs.EOF then
+
+//                do until rs.EOF
+
+
+
+//                    strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "~" & rs(7).value & "~" & rs(8).value & "~" & rs(9).value & "|"
+
+
+//                    rs.movenext()
+
+//                loop
+//                strResult = mid(strResult, 1, strResult.length - 1)
+
+//            else
+//                strResult = "0" & "|"
+
+//            end if
+
+//        end if
+
+
+
+
+
+//    rs = nothing
+//elseif strArr(0)= "CustIntProjByCust" then
+//obj = server.CreateObject("ReportPurposeOnly.Reportonly")
+//strResult = ""
+//strsql = "SELECT customerid,name,custmobile,panno FROM gencustinfomst WHERE customerid IN ( SELECT DISTINCT customerid FROM depschedule a WHERE ACCNO NOT IN (SELECT accno FROM depmst b WHERE customerid = a.customerid AND CLOSEDATE-EFFDATE+1<=(SELECT MINPERIODDAYS FROM GENMINMAXBALANCEMST M WHERE M.GLCODE=b.GLCODE AND STATUS='R')  AND effdate >= '" & strArr(3) & "' AND effdate <= '" & strArr(4) & "' AND status='C' AND b.glcode=a.glcode AND b.accno=a.accno AND b.customerid=a.customerid AND b.branchcode=a.branchcode) AND currencycode = '" & strArr(2) & "' AND FROMDATE >='" & strArr(3) & "' AND todate <= '" & strArr(4) & "' ) ORDER BY TO_NUMBER(customerid)"
+
+//        rs1 = obj.SingleSelectStat(strsql)
+
+
+
+//        If Not rs1.EOF And Not rs1.BOF Then
+//        do until rs1.EOF
+//        custid = ""
+//        custid = IIf(IsDBNull(rs1(0).Value), 0, rs1(0).Value)
+//        ''start for running accounts
+
+//        strsql = "SELECT SUM(int1) interest FROM ( SELECT branchcode,customerid,GLCODE,ACCNO,SUM(NVL(interest,0)) INT1 FROM depschedule a WHERE customerid = '" & custid & "' AND  ACCNO NOT IN (SELECT accno FROM depmst b WHERE customerid = '" & custid & "' AND  CLOSEDATE-EFFDATE+1<=(SELECT MINPERIODDAYS FROM GENMINMAXBALANCEMST M WHERE M.GLCODE=b.GLCODE AND STATUS='R')  AND effdate >= '" & strArr(3) & "' AND effdate <= '" & strArr(4) & "' AND status='C' AND b.glcode=a.glcode AND b.accno=a.accno AND b.customerid=a.customerid AND b.branchcode=a.branchcode) AND currencycode = '" & strArr(2) & "' AND FROMDATE >='" & strArr(3) & "' AND todate <= '" & strArr(4) & "' GROUP BY branchcode,customerid,GLCODE,ACCNO )  X , DEPMST Y WHERE y.customerid = '" & custid & "' AND  X.ACCNO = Y.ACCNO AND X.GLCODE = Y.GLCODE AND x.branchcode=y.branchcode AND Y.CURRENCYCODE = '" & strArr(2) & "' AND y.status = 'R' GROUP BY x.customerid "
+
+
+//         rsgengl = obj.SingleSelectStat(strsql)
+
+//     dblcusttotintr = 0
+//        If Not rsgengl.EOF And Not rsgengl.BOF Then
+
+//             dblcusttotintr = IIf(IsDBNull(rsgengl(0).Value), 0, rsgengl(0).Value)
+
+
+//            if dblcusttotintr < 0 then
+//                dblcusttotintr = mid(dblcusttotintr, 2)
+//            end if  ''dblcusttotintr < 0
+
+
+//        end if
+
+
+//         if rsgengl.state = 1 then
+//        rsgengl.close
+//        rsgengl = nothing
+//        end if
+//        ''end for running accounts
+
+
+//        ''start for closing accounts
+
+//        ''strval2 = "|||" + custid + "|" + strArr(3) + "|" + strArr(4)
+
+
+
+//        todate2 = DateAdd("d", -1, CDate(strArr(4)))
+//        todate2 = Format(todate2, "dd-MMM-yyyy")
+
+
+//        strResult2 = ""
+
+
+
+//        sqlStr = "SELECT glcode,accno FROM depmst WHERE (closedate BETWEEN '" & strArr(3) & "' AND '" & strArr(4) & "') AND glcode<>'104270' AND customerid='" & custid & "' ORDER BY TO_NUMBER(glcode),TO_NUMBER(accno)"
+
+//        rsmain = obj.SingleSelectStat(sqlStr)
+
+//        If rsmain.recordcount > 0 Then
+
+
+//            If Not rsmain.eof And Not rsmain.bof Then
+//                Do Until rsmain.EOF
+
+
+//            sqlStr = "SELECT x.branchcode,x.customerid,x.glcode,x.ACCNO,x.name,x.pan,NVL(x.opbal,0), x.effecdate,TRUNC(x.roi,2),NVL(x.totalint,0),x.status FROM (SELECT branchcode,customerid,glcode,ACCNO,name,(SELECT PANNO FROM gencustinfomst WHERE customerid=D.customerid AND KYCID='2')pan,NVL(d.OPBAL,0) OPBAL,TO_CHAR(d.effdate,'DD-Mon-YYYY') effecdate , d.ROI , (NVL((SELECT SUM(ABS(INTAMOUNT)) FROM DEPINTACCRUEDDTLS WHERE  ACCNO = D.ACCNO AND GLCODE = D.GLCODE AND INTAMOUNT > 0 AND MODULEID = 'DEP' AND APPLICATIONDATE  BETWEEN '" & strArr(3) & "' AND '" & strArr(4) & "' AND BRANCHCODE = D.BRANCHCODE AND currencycode = D.currencycode AND (branchcode,glcode,accno,batchno,tranno) NOT IN (SELECT branchcode,glcode,accno,batchno,tranno FROM DEPINTACCRUEDDTLS WHERE ACCNO=D.ACCNO AND GLCODE=D.GLCODE AND BRANCHCODE=D.BRANCHCODE AND INTAMOUNT>0 AND  MODULEID='DEP' AND APPLICATIONDATE BETWEEN  '" & strArr(3) & "' AND '" & strArr(4) & "'  AND (remarks LIKE 'TDS From%' OR remarks LIKE 'TDSREFUND%') AND '" & strArr(4) & "' = (SELECT MAX(applicationdate) FROM DEPINTACCRUEDDTLS WHERE ACCNO=D.ACCNO AND GLCODE=D.GLCODE AND BRANCHCODE=D.BRANCHCODE AND INTAMOUNT>0  AND MODULEID='DEP' AND APPLICATIONDATE BETWEEN '" & strArr(3) & "' AND '" & todate2 & "' AND (remarks LIKE 'TDS From%' OR remarks LIKE 'TDSREFUND%')) )),0) - NVL((SELECT NVL(SUM(intamount),0) intamount FROM DEPINTACCRUEDDTLS WHERE ACCNO = D.ACCNO AND GLCODE = D.GLCODE AND BRANCHCODE = D.BRANCHCODE AND INTAMOUNT>0 AND MODULEID='DEP' AND APPLICATIONDATE = '" & strArr(4) & "' AND (remarks LIKE 'TDS From%')),0) + NVL((SELECT SUM(intamount) FROM DEPINTACCRUEDDTLS WHERE accno = D.accno AND glcode = D.glcode AND branchcode = D.branchcode AND currencycode = D.currencycode  AND TRANSFERTODEP BETWEEN '" & strArr(3) & "' AND '" & strArr(4) & "' AND REMARKS LIKE 'Excess Interest Adjusted%'),0) + NVL((SELECT SUM(ABS(amount)) FROM DEPTRAN WHERE  CHQFVG = 'DEPIP' AND accno = D.accno AND glcode= D.glcode AND MODULEID = 'DEP' AND  branchcode = D.branchcode  AND currencycode = D.currencycode AND APPLICATIONDATE BETWEEN '" & strArr(3) & "' AND '" & strArr(4) & "' AND (branchcode,glcode,accno,batchno,tranno) NOT IN (SELECT branchcode,glcode,accno,batchno,tranno FROM DEPTRAN WHERE ACCNO=D.ACCNO AND GLCODE=D.GLCODE AND BRANCHCODE=D.BRANCHCODE AND MODULEID='DEP' AND APPLICATIONDATE BETWEEN '" & strArr(3) & "' AND '" & strArr(4) & "'  AND (remarks LIKE 'TDS From%' OR remarks LIKE 'TDSREFUND%') AND '" & strArr(4) & "' = (SELECT MAX(applicationdate) FROM DEPTRAN  WHERE ACCNO=D.ACCNO AND GLCODE=D.GLCODE AND BRANCHCODE=D.BRANCHCODE AND MODULEID='DEP' AND APPLICATIONDATE BETWEEN '" & strArr(3) & "' AND '" & todate2 & "' AND (remarks LIKE 'TDS From%' OR remarks LIKE 'TDSREFUND%')))),0) - NVL((SELECT NVL(SUM(amount),0) intamount FROM DEPTRAN WHERE ACCNO = D.ACCNO AND GLCODE = D.GLCODE AND BRANCHCODE = D.BRANCHCODE AND AMOUNT>0 AND MODULEID='DEP' AND APPLICATIONDATE = '" & strArr(4) & "' AND (remarks LIKE 'TDS From%')),0) - NVL((SELECT NVL(SUM(intamount),0)intamount FROM DEPINTACCRUEDDTLS WHERE ACCNO = D.ACCNO AND GLCODE = D.GLCODE AND BRANCHCODE = D.BRANCHCODE AND INTAMOUNT>0 AND MODULEID='DEP' AND APPLICATIONDATE BETWEEN '" & strArr(3) & "' AND '" & strArr(4) & "'  AND (remarks LIKE 'TDSREFUND%')),0) + NVL((SELECT NVL(AMOUNT,0) FROM DEPTRAN WHERE ACCNO = D.ACCNO AND GLCODE = D.GLCODE AND EFFECTIVEDATE BETWEEN '" & strArr(3) & "' AND '" & strArr(4) & "' AND remarks LIKE 'Excess Int Rev To GL%' AND AMOUNT<0 AND BRANCHCODE = D.BRANCHCODE),0)) totalint,status FROM DEPMST D WHERE  accno = '" & rsmain(1).value & "' AND customerid='" & custid & "' AND glcode = '" & rsmain(0).value & "'  AND (CLOSEDATE IS NULL OR CLOSEDATE BETWEEN '" & strArr(3) & "' AND '" & strArr(4) & "') AND currencycode =  'INR') x WHERE x.totalint <>0"
+
+
+
+//                    rs = obj.SingleSelectStat(sqlStr)
+//                    If obj.ConnError = "Connected" Then
+//                        If Not rs.BOF And Not rs.EOF Then
+//                            Do Until rs.EOF
+
+//                                strResult2 = strResult2 & "'" & rs(0).value & "','" & rs(1).value & "','" & rs(2).value & "','" & rs(3).value & "','" & rs(4).value & "','" & rs(5).value & "','" & rs(6).value & "','" & rs(7).value & "','" & rs(8).value & "','" & rs(9).value & "','" & rs(10).value & "'|"
+
+//                                rs.movenext()
+//                            Loop
+//                        End If
+//                         if rs.state = 1 then
+
+//                            rs.close
+//                            rs = nothing
+
+//                            end if
+//                    End If
+
+//                    rsmain.movenext()
+//                Loop ''rsmain
+//            End If
+//        Else
+//            strResult2 = strResult2
+//        End If
+
+//        If strResult2<> "" Then
+//            strResult2 = Mid(strResult2, 1, strResult2.Length - 1)
+//        End If
+
+
+
+
+//        Dim ArrTran(2, 4)
+//        p = 0
+//        strinscnt = ""
+//        strdelcnt = ""
+
+
+//        sqlStr = "SELECT count(*) cnt FROM INTACRRUDREPORTTEMP where customerid='" & custid & "'"
+//        rscnt = obj.SingleSelectStat(sqlStr)
+
+//        If rscnt.recordcount > 0 Then
+//            If rscnt(0).value > 0 Then
+//                strdelcnt = "Y"
+//                ArrTran(p, 0) = "D"
+//                ArrTran(p, 1) = "INTACRRUDREPORTTEMP"
+//                ArrTran(p, 2) = ""
+//                ArrTran(p, 3) = ""
+//                'ArrTran(p, 4) = "branchcode = '" & strArr(1) & "'"
+//                ArrTran(p, 4) = "customerid='" & custid & "'"
+
+//            End If ''rscnt(0).value > 0
+//        End If ''rscnt.recordcount > 0
+
+//        If strdelcnt = "Y" Then
+//            Strmsg = obj2.DataTransactions(ArrTran)
+//        End If ''strdelcnt = "Y"
+
+//        If strResult2<> "" Then
+//            p = 0
+
+//            strinscnt = "Y"
+//            ArrTran(p, 0) = "I"
+//            ArrTran(p, 1) = "INTACRRUDREPORTTEMP"
+//            ArrTran(p, 2) = "BRANCHCODE, CUSTOMERID, GLCODE, ACCNO, NAME, PANNO, OPBAL, EFFDATE, ROI, INTEREST, STATUS"
+//            ArrTran(p, 3) = strResult2
+//            ArrTran(p, 4) = ""
+//        End If ''strResult2<> ""
+
+//        If strinscnt = "Y" Then
+//            If strdelcnt = "Y" Then
+//                If Strmsg = "Transaction Sucessful." Then
+//                    Strmsg = obj2.DataTransactions(ArrTran)
+//                Else
+//                    strResult2 = Strmsg
+//                End If '' Strmsg = "Transaction Sucessful."
+//            Else
+//                Strmsg = obj2.DataTransactions(ArrTran)
+//            End If ''strdelcnt = "Y"
+//        Else
+//            strResult2 = Strmsg
+//        End If ''strinscnt = "Y"
+
+//        If Strmsg = "Transaction Sucessful." Then
+
+
+//            strsql = "SELECT nvl(SUM(nvl(INTEREST,0)),0) int FROM INTACRRUDREPORTTEMP where Customerid='" & custid & "'"
+
+
+
+//        Else
+//            strsql = ""
+//        End If
+
+
+//        if rsmain.state = 1 then
+//        rsmain.close
+//        rsmain = nothing
+//        end if
+
+
+
+
+//        if rscnt.state = 1 then
+//        rscnt.close
+//        rscnt = nothing
+//        end if
+
+
+
+
+
+
+//       '' response.write(strval2)
+
+
+//        dblcusttotintc = 0
+//        If strsql<> "" Then
+//            rsthresh = obj.SingleSelectStat(strsql)
+//            If rsthresh.RecordCount <= 0 Then
+//                dblcusttotintc = 0
+//            Else
+//                dblcusttotintc = IIf(IsDBNull(rsthresh(0).Value), 0, rsthresh(0).Value)
+//                if dblcusttotintc < 0 then
+//                    dblcusttotintc = mid(dblcusttotintc, 2)
+//                end if ''dblcusttotintc < 0
+//            End If ''rsthresh.RecordCount <= 0
+//             if rsthresh.state = 1 then
+//        rsthresh.close
+//        rsthresh = nothing
+//        end if
+//        End If ''strsql<> ""
+
+//        ''end for closing accounts
+
+
+
+
+//        dblcusttotint1 = 0
+//       dblcusttotint1 = Cdbl(dblcusttotintr + dblcusttotintc)
+//       blncheckint = false
+//       if strArr(5) = ">" then
+
+//            if cdbl(dblcusttotint1) > cdbl(strArr(6)) then
+//            blncheckint = true
+
+//            else
+//                blncheckint = false
+
+//            end if
+//        end if
+//        if strArr(5) = "=" then
+
+//            if cdbl(dblcusttotint1) = cdbl(strArr(6)) then
+//            blncheckint = true
+
+//            else
+//                blncheckint = false
+
+//            end if
+//        end if
+//         if strArr(5) = "<" then
+
+//            if cdbl(dblcusttotint1) < cdbl(strArr(6)) then
+//            blncheckint = true
+
+//            else
+//                blncheckint = false
+
+//            end if
+//        end if
+//        if blncheckint = true then
+//        strResult = strResult & rs1(0).value & "~" & rs1(1).value & "~" & cstr(dblcusttotint1) & "~" & rs1(2).value & "~" & rs1(3).value & "|"
+//        end if
+
+
+//                    rs1.movenext()
+
+//                loop
+//        strResult = mid(strResult, 1, strResult.length - 1)
+
+//            else
+//                strResult = "0" & "|"
+//        end if
+
+//elseif strArr(0) = "CustIntProjByPanno" then
+//dim strcustname,strmobileno
+//obj = server.CreateObject("ReportPurposeOnly.Reportonly")
+//strResult = ""
+// strsql = "SELECT DISTINCT panno FROM gencustinfomst WHERE customerid IN ( SELECT DISTINCT customerid FROM depschedule a WHERE ACCNO NOT IN (SELECT accno FROM depmst b WHERE customerid = a.customerid AND CLOSEDATE-EFFDATE+1<=(SELECT MINPERIODDAYS FROM GENMINMAXBALANCEMST M WHERE M.GLCODE=b.GLCODE AND STATUS='R')  AND effdate >= '" & strArr(3) & "' AND effdate <= '" & strArr(4) & "' AND status='C' AND b.glcode=a.glcode AND b.accno=a.accno AND b.customerid=a.customerid AND b.branchcode=a.branchcode) AND currencycode = '" & strArr(2) & "' AND FROMDATE >='" & strArr(3) & "' AND todate <= '" & strArr(4) & "' ) ORDER BY 1"
+//   rspanno = obj.SingleSelectStat(strsql)
+
+
+//             dblcusttotintr = 0
+
+//             dblcusttotintc = 0
+//        If Not rspanno.EOF And Not rspanno.BOF Then
+//        do until rspanno.EOF
+//strsql = "SELECT customerid,name,custmobile,panno FROM gencustinfomst WHERE customerid IN ( SELECT DISTINCT customerid FROM depschedule a WHERE ACCNO NOT IN (SELECT accno FROM depmst b WHERE customerid = a.customerid AND CLOSEDATE-EFFDATE+1<=(SELECT MINPERIODDAYS FROM GENMINMAXBALANCEMST M WHERE M.GLCODE=b.GLCODE AND STATUS='R')  AND effdate >= '" & strArr(3) & "' AND effdate <= '" & strArr(4) & "' AND status='C' AND b.glcode=a.glcode AND b.accno=a.accno AND b.customerid=a.customerid AND b.branchcode=a.branchcode) AND currencycode = '" & strArr(2) & "' AND FROMDATE >='" & strArr(3) & "' AND todate <= '" & strArr(4) & "' and panno = '" & rspanno(0).value & "') ORDER BY TO_NUMBER(customerid)"
+
+//        rs1 = obj.SingleSelectStat(strsql)
+
+
+
+//        If Not rs1.EOF And Not rs1.BOF Then
+//        do until rs1.EOF
+//        custid = ""
+//           strcustname = ""
+//        strmobileno = ""
+//        custid = IIf(IsDBNull(rs1(0).Value), 0, rs1(0).Value)
+//        strcustname = IIf(IsDBNull(rs1(1).Value), 0, rs1(1).Value)
+//        strmobileno = IIf(IsDBNull(rs1(2).Value), 0, rs1(2).Value)
+//        ''start for running accounts
+
+//        strsql = "SELECT SUM(int1) interest FROM ( SELECT branchcode,customerid,GLCODE,ACCNO,SUM(NVL(interest,0)) INT1 FROM depschedule a WHERE customerid = '" & custid & "' AND  ACCNO NOT IN (SELECT accno FROM depmst b WHERE customerid = '" & custid & "' AND  CLOSEDATE-EFFDATE+1<=(SELECT MINPERIODDAYS FROM GENMINMAXBALANCEMST M WHERE M.GLCODE=b.GLCODE AND STATUS='R')  AND effdate >= '" & strArr(3) & "' AND effdate <= '" & strArr(4) & "' AND status='C' AND b.glcode=a.glcode AND b.accno=a.accno AND b.customerid=a.customerid AND b.branchcode=a.branchcode) AND currencycode = '" & strArr(2) & "' AND FROMDATE >='" & strArr(3) & "' AND todate <= '" & strArr(4) & "' GROUP BY branchcode,customerid,GLCODE,ACCNO )  X , DEPMST Y WHERE y.customerid = '" & custid & "' AND  X.ACCNO = Y.ACCNO AND X.GLCODE = Y.GLCODE AND x.branchcode=y.branchcode AND Y.CURRENCYCODE = '" & strArr(2) & "' AND y.status = 'R' GROUP BY x.customerid "
+
+
+//         rsgengl = obj.SingleSelectStat(strsql)
+
+
+//        If Not rsgengl.EOF And Not rsgengl.BOF Then
+
+//             dblcusttotintr = dblcusttotintr + IIf(IsDBNull(rsgengl(0).Value), 0, rsgengl(0).Value)
+
+
+//            if dblcusttotintr < 0 then
+//                dblcusttotintr = mid(dblcusttotintr, 2)
+//            end if  ''dblcusttotintr < 0
+
+//        else
+//                dblcusttotintr = dblcusttotintr + 0
+//        end if
+
+
+//         if rsgengl.state = 1 then
+//        rsgengl.close
+//        rsgengl = nothing
+//        end if
+//        ''end for running accounts
+
+
+//        ''start for closing accounts
+
+//        ''strval2 = "|||" + custid + "|" + strArr(3) + "|" + strArr(4)
+
+
+
+//        todate2 = DateAdd("d", -1, CDate(strArr(4)))
+//        todate2 = Format(todate2, "dd-MMM-yyyy")
+
+
+//        strResult2 = ""
+
+
+
+//        sqlStr = "SELECT glcode,accno FROM depmst WHERE (closedate BETWEEN '" & strArr(3) & "' AND '" & strArr(4) & "') AND glcode<>'104270' AND customerid='" & custid & "' ORDER BY TO_NUMBER(glcode),TO_NUMBER(accno)"
+
+//        rsmain = obj.SingleSelectStat(sqlStr)
+
+//        If rsmain.recordcount > 0 Then
+
+
+//            If Not rsmain.eof And Not rsmain.bof Then
+//                Do Until rsmain.EOF
+
+
+//            sqlStr = "SELECT x.branchcode,x.customerid,x.glcode,x.ACCNO,x.name,x.pan,NVL(x.opbal,0), x.effecdate,TRUNC(x.roi,2),NVL(x.totalint,0),x.status FROM (SELECT branchcode,customerid,glcode,ACCNO,name,(SELECT PANNO FROM gencustinfomst WHERE customerid=D.customerid AND KYCID='2')pan,NVL(d.OPBAL,0) OPBAL,TO_CHAR(d.effdate,'DD-Mon-YYYY') effecdate , d.ROI , (NVL((SELECT SUM(ABS(INTAMOUNT)) FROM DEPINTACCRUEDDTLS WHERE  ACCNO = D.ACCNO AND GLCODE = D.GLCODE AND INTAMOUNT > 0 AND MODULEID = 'DEP' AND APPLICATIONDATE  BETWEEN '" & strArr(3) & "' AND '" & strArr(4) & "' AND BRANCHCODE = D.BRANCHCODE AND currencycode = D.currencycode AND (branchcode,glcode,accno,batchno,tranno) NOT IN (SELECT branchcode,glcode,accno,batchno,tranno FROM DEPINTACCRUEDDTLS WHERE ACCNO=D.ACCNO AND GLCODE=D.GLCODE AND BRANCHCODE=D.BRANCHCODE AND INTAMOUNT>0 AND  MODULEID='DEP' AND APPLICATIONDATE BETWEEN  '" & strArr(3) & "' AND '" & strArr(4) & "'  AND (remarks LIKE 'TDS From%' OR remarks LIKE 'TDSREFUND%') AND '" & strArr(4) & "' = (SELECT MAX(applicationdate) FROM DEPINTACCRUEDDTLS WHERE ACCNO=D.ACCNO AND GLCODE=D.GLCODE AND BRANCHCODE=D.BRANCHCODE AND INTAMOUNT>0  AND MODULEID='DEP' AND APPLICATIONDATE BETWEEN '" & strArr(3) & "' AND '" & todate2 & "' AND (remarks LIKE 'TDS From%' OR remarks LIKE 'TDSREFUND%')) )),0) - NVL((SELECT NVL(SUM(intamount),0) intamount FROM DEPINTACCRUEDDTLS WHERE ACCNO = D.ACCNO AND GLCODE = D.GLCODE AND BRANCHCODE = D.BRANCHCODE AND INTAMOUNT>0 AND MODULEID='DEP' AND APPLICATIONDATE = '" & strArr(4) & "' AND (remarks LIKE 'TDS From%')),0) + NVL((SELECT SUM(intamount) FROM DEPINTACCRUEDDTLS WHERE accno = D.accno AND glcode = D.glcode AND branchcode = D.branchcode AND currencycode = D.currencycode  AND TRANSFERTODEP BETWEEN '" & strArr(3) & "' AND '" & strArr(4) & "' AND REMARKS LIKE 'Excess Interest Adjusted%'),0) + NVL((SELECT SUM(ABS(amount)) FROM DEPTRAN WHERE  CHQFVG = 'DEPIP' AND accno = D.accno AND glcode= D.glcode AND MODULEID = 'DEP' AND  branchcode = D.branchcode  AND currencycode = D.currencycode AND APPLICATIONDATE BETWEEN '" & strArr(3) & "' AND '" & strArr(4) & "' AND (branchcode,glcode,accno,batchno,tranno) NOT IN (SELECT branchcode,glcode,accno,batchno,tranno FROM DEPTRAN WHERE ACCNO=D.ACCNO AND GLCODE=D.GLCODE AND BRANCHCODE=D.BRANCHCODE AND MODULEID='DEP' AND APPLICATIONDATE BETWEEN '" & strArr(3) & "' AND '" & strArr(4) & "'  AND (remarks LIKE 'TDS From%' OR remarks LIKE 'TDSREFUND%') AND '" & strArr(4) & "' = (SELECT MAX(applicationdate) FROM DEPTRAN  WHERE ACCNO=D.ACCNO AND GLCODE=D.GLCODE AND BRANCHCODE=D.BRANCHCODE AND MODULEID='DEP' AND APPLICATIONDATE BETWEEN '" & strArr(3) & "' AND '" & todate2 & "' AND (remarks LIKE 'TDS From%' OR remarks LIKE 'TDSREFUND%')))),0) - NVL((SELECT NVL(SUM(amount),0) intamount FROM DEPTRAN WHERE ACCNO = D.ACCNO AND GLCODE = D.GLCODE AND BRANCHCODE = D.BRANCHCODE AND AMOUNT>0 AND MODULEID='DEP' AND APPLICATIONDATE = '" & strArr(4) & "' AND (remarks LIKE 'TDS From%')),0) - NVL((SELECT NVL(SUM(intamount),0)intamount FROM DEPINTACCRUEDDTLS WHERE ACCNO = D.ACCNO AND GLCODE = D.GLCODE AND BRANCHCODE = D.BRANCHCODE AND INTAMOUNT>0 AND MODULEID='DEP' AND APPLICATIONDATE BETWEEN '" & strArr(3) & "' AND '" & strArr(4) & "'  AND (remarks LIKE 'TDSREFUND%')),0) + NVL((SELECT NVL(AMOUNT,0) FROM DEPTRAN WHERE ACCNO = D.ACCNO AND GLCODE = D.GLCODE AND EFFECTIVEDATE BETWEEN '" & strArr(3) & "' AND '" & strArr(4) & "' AND remarks LIKE 'Excess Int Rev To GL%' AND AMOUNT<0 AND BRANCHCODE = D.BRANCHCODE),0)) totalint,status FROM DEPMST D WHERE  accno = '" & rsmain(1).value & "' AND customerid='" & custid & "' AND glcode = '" & rsmain(0).value & "'  AND (CLOSEDATE IS NULL OR CLOSEDATE BETWEEN '" & strArr(3) & "' AND '" & strArr(4) & "') AND currencycode =  'INR') x WHERE x.totalint <>0"
+
+
+
+//                    rs = obj.SingleSelectStat(sqlStr)
+//                    If obj.ConnError = "Connected" Then
+//                        If Not rs.BOF And Not rs.EOF Then
+//                            Do Until rs.EOF
+
+//                                strResult2 = strResult2 & "'" & rs(0).value & "','" & rs(1).value & "','" & rs(2).value & "','" & rs(3).value & "','" & rs(4).value & "','" & rs(5).value & "','" & rs(6).value & "','" & rs(7).value & "','" & rs(8).value & "','" & rs(9).value & "','" & rs(10).value & "'|"
+
+//                                rs.movenext()
+//                            Loop
+//                        End If
+//                         if rs.state = 1 then
+
+//                            rs.close
+//                            rs = nothing
+
+//                            end if
+//                    End If
+
+//                    rsmain.movenext()
+//                Loop ''rsmain
+//            End If
+//        Else
+//            strResult2 = strResult2
+//        End If
+
+//        If strResult2<> "" Then
+//            strResult2 = Mid(strResult2, 1, strResult2.Length - 1)
+//        End If
+
+
+
+
+//        Dim ArrTran(2, 4)
+//        p = 0
+//        strinscnt = ""
+//        strdelcnt = ""
+
+
+//        sqlStr = "SELECT count(*) cnt FROM INTACRRUDREPORTTEMP where customerid='" & custid & "'"
+//        rscnt = obj.SingleSelectStat(sqlStr)
+
+//        If rscnt.recordcount > 0 Then
+//            If rscnt(0).value > 0 Then
+//                strdelcnt = "Y"
+//                ArrTran(p, 0) = "D"
+//                ArrTran(p, 1) = "INTACRRUDREPORTTEMP"
+//                ArrTran(p, 2) = ""
+//                ArrTran(p, 3) = ""
+//                'ArrTran(p, 4) = "branchcode = '" & strArr(1) & "'"
+//                ArrTran(p, 4) = "customerid='" & custid & "'"
+
+//            End If ''rscnt(0).value > 0
+//        End If ''rscnt.recordcount > 0
+
+//        If strdelcnt = "Y" Then
+//            Strmsg = obj2.DataTransactions(ArrTran)
+//        End If ''strdelcnt = "Y"
+
+//        If strResult2<> "" Then
+//            p = 0
+
+//            strinscnt = "Y"
+//            ArrTran(p, 0) = "I"
+//            ArrTran(p, 1) = "INTACRRUDREPORTTEMP"
+//            ArrTran(p, 2) = "BRANCHCODE, CUSTOMERID, GLCODE, ACCNO, NAME, PANNO, OPBAL, EFFDATE, ROI, INTEREST, STATUS"
+//            ArrTran(p, 3) = strResult2
+//            ArrTran(p, 4) = ""
+//        End If ''strResult2<> ""
+
+//        If strinscnt = "Y" Then
+//            If strdelcnt = "Y" Then
+//                If Strmsg = "Transaction Sucessful." Then
+//                    Strmsg = obj2.DataTransactions(ArrTran)
+//                Else
+//                    strResult2 = Strmsg
+//                End If '' Strmsg = "Transaction Sucessful."
+//            Else
+//                Strmsg = obj2.DataTransactions(ArrTran)
+//            End If ''strdelcnt = "Y"
+//        Else
+//            strResult2 = Strmsg
+//        End If ''strinscnt = "Y"
+
+//        If Strmsg = "Transaction Sucessful." Then
+
+
+//            strsql = "SELECT nvl(SUM(nvl(INTEREST,0)),0) int FROM INTACRRUDREPORTTEMP where Customerid='" & custid & "'"
+
+
+
+//        Else
+//            strsql = ""
+//        End If
+
+
+//        if rsmain.state = 1 then
+//        rsmain.close
+//        rsmain = nothing
+//        end if
+
+
+
+
+//        if rscnt.state = 1 then
+//        rscnt.close
+//        rscnt = nothing
+//        end if
+
+
+
+
+
+
+//       '' response.write(strval2)
+
+
+
+//        If strsql<> "" Then
+//            rsthresh = obj.SingleSelectStat(strsql)
+//            If rsthresh.RecordCount <= 0 Then
+//                dblcusttotintc = dblcusttotintc + 0
+//            Else
+//                dblcusttotintc = dblcusttotintc + IIf(IsDBNull(rsthresh(0).Value), 0, rsthresh(0).Value)
+//                if dblcusttotintc < 0 then
+//                    dblcusttotintc = mid(dblcusttotintc, 2)
+//                end if ''dblcusttotintc < 0
+//            End If ''rsthresh.RecordCount <= 0
+//             if rsthresh.state = 1 then
+//        rsthresh.close
+//        rsthresh = nothing
+//        end if
+//        End If ''strsql<> ""
+
+//        ''end for closing accounts
+
+
+
+
+
+//                    rs1.movenext()
+
+//                loop
+
+
+//                end if
+
+
+//                dblcusttotint1 = 0
+//       dblcusttotint1 = Cdbl(dblcusttotintr + dblcusttotintc)
+//       blncheckint = false
+//       if strArr(5) = ">" then
+
+//            if cdbl(dblcusttotint1) > cdbl(strArr(6)) then
+//            blncheckint = true
+
+//            else
+//                blncheckint = false
+
+//            end if
+//        end if
+//        if strArr(5) = "=" then
+
+//            if cdbl(dblcusttotint1) = cdbl(strArr(6)) then
+//            blncheckint = true
+
+//            else
+//                blncheckint = false
+
+//            end if
+//        end if
+//         if strArr(5) = "<" then
+
+//            if cdbl(dblcusttotint1) < cdbl(strArr(6)) then
+//            blncheckint = true
+
+//            else
+//                blncheckint = false
+
+//            end if
+//        end if
+//        if blncheckint = true then
+//        strResult = strResult & rspanno(0).value & "~" & strcustname & "~" & cstr(dblcusttotint1) & "~" & strmobileno & "|"
+//        end if
+
+//                rspanno.movenext()
+
+//                loop
+//        strResult = mid(strResult, 1, strResult.length - 1)
+
+//            else
+//                strResult = "0" & "|"
+//        end if
+
+
+//elseif strArr(0) = "GETMODCUSTAADHARUIDTLS" then
+//    strResult = ""
+
+//    obj = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+
+//    sqlStr = "SELECT AADHARUID FROM GENCUSTINFOMST WHERE CUSTOMERID ='" & strArr(2) & "'"
+
+//    rs = obj.SingleSelectStat(sqlStr)
+
+
+//    if obj.ConnError = "Connected" then
+
+//        if not rs.BOF and not rs.EOF then
+
+//        if isdbnull(rs(0).value) = false then
+
+//                if rs(0).value = strArr(1) then
+//                strResult = "0"
+
+//                    else
+//                sqlStr = "SELECT CUSTOMERID,NAME FROM GENCUSTINFOMST WHERE AADHARUID='" & strArr(1) & "'"
+
+//                    rs1 = obj.SingleSelectStat(sqlStr)
+
+
+//                        if obj.ConnError = "Connected" then
+
+//                                if not rs1.BOF and not rs1.EOF then
+
+
+//                                    do until rs1.EOF
+
+//                                        strResult = strResult & rs1(0).value & "~" & rs1(1).value & "|"
+
+//                                        rs1.movenext()
+
+//                                    loop
+//                                    strResult = mid(strResult, 1, strResult.length - 1)
+
+//                                else
+//                strResult = "0"
+
+//                                end if
+
+//                        end if
+
+//                    end if
+
+//                else
+
+//                            end if
+                
+
+//                        end if
+                
+//                    end if
+                
+//                    rs = nothing
+//                elseif strArr(0)= "Check194N" then
+//                dim strPAN206AAYN,strPAN206ABYN
+//                dim dblFrmAmt
+//                dim dbltdsrate
+//                dim dblCurTdAmt
+//                dim dblExistingTdsAmt
+//                dim dblBalance
+//                dim dblFinalTdAmt
+//                dim frmfinyr,tofinyr,frmyear,toyear,strmon,strAppdate1,dblAmount,dblTranAmt,dblThresHoldLmt
+//                    dim assyear
+//                    dim dblcummamt
+//                    dblcummamt = 0
+//dim strPanno
+//dim frm3finyr
+//dim strreturnfileyn
+//dim strcategorycode
+//dim blncheckpanno
+//dim dblamtpaid
+//dim arrtdsrates(2)
+//dim arrfrmamt(2)
+//dim arrtoamt(2)
+//dim dblCurTdAmtTot
+//dim dblcummamtTemp
+//dim strcustomertype
+//dblamtpaid = 0
+//blncheckpanno = "YES"
+//strPanno = ""
+
+//    strAppdate1 = strArr(6)
+
+//    dblAmount = strArr(7)
+
+
+//    strmon = Month(cdate(strAppdate1))
+
+
+//    if cint(strmon) <= 3  then
+//    frmyear = cint(Year(cdate(strAppdate1))) - 1
+//    toyear = Year(cdate(strAppdate1))
+//    else
+//                frmyear = Year(cdate(strAppdate1))
+//    toyear = cint(Year(cdate(strAppdate1))) + 1
+
+//    end if
+
+//    frmfinyr = "01-Apr-" & frmyear
+
+//    tofinyr = "31-Mar-" & toyear
+
+//    assyear = toyear & cint(Mid(toyear, 3, 2)) + 1
+
+//    dblTranAmt = 0
+
+//    strResult = ""
+
+//    '' trans amount
+
+//    rspan = Server.CreateObject("adodb.recordset")
+
+//    rscust = Server.CreateObject("adodb.recordset")
+
+//    rsmstall = Server.CreateObject("adodb.recordset")
+
+
+//        obj = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+//        sqlStr = "select panno,PAN206AAYN,PAN206ABYN,customertype from gencustinfomst where customerid = (select customerid from " & strArr(5) & "mst where branchcode = '" & strArr(1) & "' AND currencycode = '" & strArr(2) & "' and  glcode = '" & strArr(3) & "' AND accno = '" & strArr(4) & "')"
+
+//        rspan = obj.SingleSelectStat(sqlStr)
+
+//        if obj.ConnError = "Connected" then
+
+//        if not rspan.BOF and not rspan.EOF then
+
+//            strPanno = iif(isdbnull(rspan(0).value), "", rspan(0).value)
+
+//            strPAN206AAYN = iif(isdbnull(rspan(1).value), "N", rspan(1).value)
+
+//            strPAN206ABYN = iif(isdbnull(rspan(2).value), "N", rspan(2).value)
+
+//            strcustomertype = iif(isdbnull(rspan(3).value), "1", rspan(3).value)
+
+//        if strPanno = "" then
+//        sqlStr = "select customerid from " & strArr(5) & "mst where branchcode = '" & strArr(1) & "' AND currencycode = '" & strArr(2) & "' and  glcode = '" & strArr(3) & "' AND accno = '" & strArr(4) & "'"
+
+//        else
+//                sqlStr = "select customerid from gencustinfomst where panno ='" & strPanno & "'"
+
+//        end if
+
+//        rscust = obj.SingleSelectStat(sqlStr)
+
+//        if obj.ConnError = "Connected" then
+
+//            if not rscust.BOF and not rscust.EOF then
+
+//            do until rscust.EOF
+
+
+//        sqlStr = " select branchcode,currencycode,'SB' moduleid,glcode,accno from sbmst where customerid = '" & rscust(0).value & "' union all  " & _
+
+//        " select branchcode,currencycode,'CA' moduleid,glcode,accno from camst where customerid =  '" & rscust(0).value & "' union all " & _
+
+//        " select branchcode,currencycode,'CC' moduleid,glcode,accno from ccmst where customerid =  '" & rscust(0).value & "' union all " & _
+
+//        " select branchcode,currencycode,'DEP' moduleid,glcode,accno from depmst where customerid =  '" & rscust(0).value & "' union all " & _
+
+//        " select branchcode,currencycode,'LOAN' moduleid,glcode,accno from loanmst where customerid =  '" & rscust(0).value & "'"
+
+
+//        rsmstall = obj.SingleSelectStat(sqlStr)
+
+//        if obj.ConnError = "Connected" then
+
+//            if not rsmstall.BOF and not rsmstall.EOF then
+
+//            do until rsmstall.EOF
+
+
+//        sqlStr = "SELECT SUM(amount) FROM ( SELECT nvl(SUM(nvl(amount,0)),0)  amount FROM  " & rsmstall(2).value & "tranday WHERE modeoftran = 1 AND branchcode = '" & rsmstall(0).value & "' AND glcode = '" & rsmstall(3).value & "' AND accno = '" & rsmstall(4).value & "' AND applicationdate BETWEEN '" & frmfinyr & "' AND '" & tofinyr & "' UNION ALL SELECT nvl(SUM(nvl(amount,0)),0) amount FROM  " & rsmstall(2).value & "tran WHERE  modeoftran = 1 AND branchcode = '" & rsmstall(0).value & "' AND glcode = '" & rsmstall(3).value & "' AND accno = '" & rsmstall(4).value & "' AND applicationdate BETWEEN '" & frmfinyr & "' AND '" & tofinyr & "') a"
+
+
+//        rs = obj.SingleSelectStat(sqlStr)
+
+//        if obj.ConnError = "Connected" then
+
+//            if not rs.BOF and not rs.EOF then
+
+//                dblTranAmt = dblTranAmt + iif(isdbnull(rs(0).value), 0, rs(0).value)
+
+//            end if
+
+//        end if
+
+//    rsmstall.moveNext()
+
+//    loop
+//end if ''rsmstall
+//end if ''
+
+//if rsmstall.state = 1 then
+//rsmstall.close
+//rsmstall = nothing
+//end if
+
+
+//    rscust.moveNext()
+
+//    loop
+//end if ''rscust
+//end if
+
+//if rscust.state = 1 then
+//rscust.close
+//rscust = nothing
+//end if
+
+//end if ''rspan
+//end if ''
+//if rspan.state = 1 then
+//rspan.close
+//rspan = nothing
+//end if
+
+//dblFrmAmt = 0
+//dbltdsrate = 0
+//'' cummulative amount
+//dblcummamt = Math.Abs(cdbl(dblTranAmt)) + cdbl(dblAmount)
+
+
+//frm3finyr = DateAdd("yyyy", -3, cdate(frmfinyr))
+//strreturnfileyn = "D"
+//if strPanno<> "" then
+//sqlStr = "select RTNFILE  from TDSRETURNFILEDTLS where TRANSTATUS = 'A' and panno =  '" & strPanno & "'   AND fromdate >= '" & format(cdate(frm3finyr), "dd-MMM-yyyy") & "' AND todate <= '" & tofinyr & "'"
+// rs = obj.SingleSelectStat(sqlStr)
+
+//        if obj.ConnError = "Connected" then
+
+//            if not rs.BOF and not rs.EOF then
+
+//            strreturnfileyn = iif(isdbnull(rs(0).value), "N", rs(0).value)
+
+//            end if
+
+//        end if
+
+
+//    if rs.state = 1 then
+
+//    rs.close
+//    rs = nothing
+
+//    end if
+//end if ''strPanno<> ""
+
+//sqlStr = "SELECT RATE, nonpanrate FROM TDSPARM t where status = 'R'   and ( category = '" & strcustomertype & "' or category = '99') AND EFFECTIVEDATE = (SELECT MAX(EFFECTIVEDATE) FROM TDSPARM where status = 'R'   and category = t.category AND effectivedate <= '" & frmfinyr & "')"
+//rs = obj.SingleSelectStat(sqlStr)
+
+//        if obj.ConnError = "Connected" then
+
+//            if not rs.BOF and not rs.EOF then
+
+//            strnonpanrate = iif(isdbnull(rs(1).value), "0", rs(1).value)
+
+//            end if
+
+//        end if
+
+//if rs.state = 1 then
+//rs.close
+//rs = nothing
+//end if
+
+//strcategorycode = "A"
+//if strreturnfileyn = "Y" then
+//    strcategorycode = "B"
+
+//    else
+//                    strcategorycode = "A"
+//end if
+
+//''tds rate, toamount
+//sqlStr = "SELECT tdsrate,fromamt,toamt FROM gentdsdedslab WHERE CATEGORYCODE = '" & strcategorycode & "' and fromamt <= " & dblcummamt & "  AND EFFECTIVEDATE = (SELECT MAX(EFFECTIVEDATE) FROM gentdsdedslab WHERE CATEGORYCODE = '" & strcategorycode & "' and fromamt <= " & dblcummamt & " AND effectivedate <= '" & frmfinyr & "')"
+//i = 0
+//rs = obj.SingleSelectStat(sqlStr)
+
+//        if obj.ConnError = "Connected" then
+
+//            if not rs.BOF and not rs.EOF then
+
+//            while not rs.eof
+
+//            arrtdsrates(i) = iif(isdbnull(rs(0).value), 0, rs(0).value)
+
+//            arrfrmamt(i) = iif(isdbnull(rs(1).value), 0, rs(1).value)
+
+//            arrtoamt(i) = iif(isdbnull(rs(2).value), 0, rs(2).value)
+
+//            i = i + 1
+
+//            rs.movenext()
+
+//            end while
+
+//            else
+//                    dbltdsrate = 0
+
+//            dblFrmAmt = 0
+
+//            end if
+
+//        end if
+
+//if rs.state = 1 then
+//rs.close
+//rs = nothing
+//end if
+//if  Math.Abs(cdbl(dblTranAmt)) > dblFrmAmt then
+//dblamtpaid = dblAmount
+//else
+//                    dblamtpaid = dblcummamt
+//end if
+
+//''if strPanno = "" and strcategorycode = "A" and cdbl(dblcummamt) > 2000000 then
+//''blncheckpanno = "NO"
+//''  goto end1
+//''end if
+//'' existing tds amount
+//dblExistingTdsAmt = 0
+//if strPanno<> "" then
+//sqlStr = "SELECT nvl(SUM(nvl(amount,0)),0) amount FROM tdsdtls WHERE ITFORM = '194N' and panno = '" & strPanno & "' AND fromdate >= '" & frmfinyr & "' AND todate <= '" & tofinyr & "'"
+//else ''strPanno = ""
+
+//sqlStr = "SELECT nvl(SUM(nvl(amount,0)),0) amount FROM tdsdtls WHERE ITFORM = '194N'  AND fromdate >= '" & frmfinyr & "' AND todate <= '" & tofinyr & "' and customerid in (select customerid from " & strArr(5) & "mst where branchcode = '" & strArr(1) & "' AND currencycode = '" & strArr(2) & "' and  glcode = '" & strArr(3) & "' AND accno = '" & strArr(4) & "')"
+
+//end if
+//rs = obj.SingleSelectStat(sqlStr)
+
+//        if obj.ConnError = "Connected" then
+
+//            if not rs.BOF and not rs.EOF then
+
+//            dblExistingTdsAmt = iif(isdbnull(rs(0).value), 0, rs(0).value)
+
+//            else
+//                dblExistingTdsAmt = 0
+
+//            end if
+
+//        end if
+
+//if rs.state = 1 then
+//rs.close
+//rs = nothing
+//end if
+
+
+
+//'' balance
+//dblBalance = 0
+//sqlStr = "SELECT GETANYDAYBAL('" & strArr(1) & "','" & strArr(2) & "','" & strArr(5) & "','" & strArr(3) & "','" & strArr(4) & "','" & strAppdate1 & "') FROM DUAL"
+
+//    rs = obj.SingleSelectStat(sqlStr)
+
+//    if obj.ConnError = "Connected" then
+
+//        if not rs.BOF and not rs.EOF then
+
+//            dblBalance = iif(isdbnull(rs(0).value), 0, rs(0).value)
+
+//            dblBalance = Math.Abs(cdbl(dblBalance))
+
+//        else
+//                dblBalance = 0
+
+//        end if
+
+//    end if
+
+//if rs.state = 1 then
+//rs.close
+//rs = nothing
+//end if
+//'' current tds
+//i = 0
+//dblCurTdAmt = 0
+
+//dblCurTdAmtTot = 0
+//dblcummamtTemp = 0
+//dblcummamtTemp = dblcummamt
+//dblcummamtTemp1 = 0
+
+//for i = 0 to ubound(arrtdsrates)
+//if CDbl(arrtoamt(i)) > 0 then
+//    If CDbl(dblcummamtTemp) > CDbl(arrtoamt(i)) Then
+//        dblcummamtTemp1 = CDbl(arrtoamt(i)) - dblcummamtTemp1
+
+//    Else
+//        dblcummamtTemp1 = dblcummamtTemp - (CDbl(arrfrmamt(i)) - 1)
+
+//    End If
+
+//if strPAN206AAYN = "Y" then
+
+
+//    if cdbl(dblcummamtTemp1) > 0 then
+//        dblCurTdAmtTot = dblCurTdAmtTot + Math.Round(((dblcummamtTemp1 * cdbl(arrtdsrates(i))) / 100))
+
+//        dblFrmAmt = cdbl(arrfrmamt(i)) - 1
+
+//        dbltdsrate = cdbl(arrtdsrates(i))
+
+//    end if
+//else
+//    if cdbl(dblcummamtTemp1) > 0 then
+
+//    if cdbl(arrtdsrates(i)) > 0 then
+//        dblCurTdAmtTot = dblCurTdAmtTot + Math.Round(((dblcummamtTemp1 * cdbl(strnonpanrate)) / 100))
+
+//        dblFrmAmt = cdbl(arrfrmamt(i)) - 1
+
+//        dbltdsrate = cdbl(strnonpanrate)
+
+//    else
+//                dblCurTdAmtTot = dblCurTdAmtTot + Math.Round(((dblcummamtTemp1 * cdbl(arrtdsrates(i))) / 100))
+
+//        dblFrmAmt = cdbl(arrfrmamt(i)) - 1
+
+//        dbltdsrate = cdbl(arrtdsrates(i))
+
+//    end if
+
+//    end if
+//end if  ''strPAN206AAYN
+//end if
+//next i
+
+//dblCurTdAmt = dblCurTdAmtTot
+
+//dblFinalTdAmt = 0
+//dblFinalTdAmt = Math.Round(cdbl(dblCurTdAmt) - Math.Abs(cdbl(dblExistingTdsAmt)))
+//if dblFinalTdAmt <= 0 then
+//dblFinalTdAmt = 0
+//end if
+
+//end1:
+//if blncheckpanno = "NO" then
+//strResult = "No Panno|||||||||"
+//else
+//                strResult = dblBalance & "|" & dblFinalTdAmt & "|" & dblFrmAmt & "|" & dbltdsrate & "|" & dblTranAmt & "|" & frmfinyr & "|" & tofinyr & "|" & assyear & "|" & strPanno & "|" & dblamtpaid & "|" & strPAN206AAYN & "|" & strPAN206ABYN
+//end if
+
+
+//    elseif strArr(0) = "FRMANUALACC" then
+//    strResult = ""
+
+
+//        dim rschk
+
+//        Dim frmdate
+
+//        Dim strmon, stYer, stMnth, stCond
+
+//        Dim stryear
+
+
+//        dim todatetemp
+//        strmon = Month(Session("applicationdate"))
+//        stryear = Year(Session("applicationdate"))
+
+
+//        stYer = Year(strArr(4))
+//        stMnth = Month(strArr(4))
+//         frmdate = Format(CDate(strArr(4)), "dd-MMM-yyyy")
+//        if (stYer = stryear) and(stMnth > 3) then
+
+//            If strmon <= 3 Then
+
+//                ''frmdate = Format(CDate("01-Apr-" & stryear - 1), "dd-MMM-yyyy")
+
+//                frmdate1 = Format(CDate("01-APR-" & stryear - 1), "dd-MMM-yyyy")
+
+//                todate1 = Format(CDate("30-JUN-" & stryear - 1), "dd-MMM-yyyy")
+
+//                frmdate2 = Format(CDate("01-JUL-" & stryear - 1), "dd-MMM-yyyy")
+
+//                todate2 = Format(CDate("30-SEP-" & stryear - 1), "dd-MMM-yyyy")
+
+//                frmdate3 = Format(CDate("01-OCT-" & stryear - 1), "dd-MMM-yyyy")
+
+//                todate3 = Format(CDate("31-DEC-" & stryear - 1), "dd-MMM-yyyy")
+
+//                frmdate4 = Format(CDate("01-JAN-" & stryear), "dd-MMM-yyyy")
+
+//                todate4 = Format(CDate("31-MAR-" & stryear), "dd-MMM-yyyy")
+
+//            Else
+
+//                ''frmdate = Format(CDate("01-Apr-" & stryear), "dd-MMM-yyyy")
+
+//                frmdate1 = Format(CDate("01-APR-" & stryear), "dd-MMM-yyyy")
+
+//                todate1 = Format(CDate("30-JUN-" & stryear), "dd-MMM-yyyy")
+
+//                frmdate2 = Format(CDate("01-JUL-" & stryear), "dd-MMM-yyyy")
+
+//                todate2 = Format(CDate("30-SEP-" & stryear), "dd-MMM-yyyy")
+
+//                frmdate3 = Format(CDate("01-OCT-" & stryear), "dd-MMM-yyyy")
+
+//                todate3 = Format(CDate("31-DEC-" & stryear), "dd-MMM-yyyy")
+
+//                frmdate4 = Format(CDate("01-JAN-" & stryear + 1), "dd-MMM-yyyy")
+
+//                todate4 = Format(CDate("31-MAR-" & stryear + 1), "dd-MMM-yyyy")
+
+//            End If ''strmon <= 3
+
+
+//        else
+
+//                If stMnth <= 3 Then
+
+//                ''frmdate = Format(CDate("01-Apr-" & stryear - 1), "dd-MMM-yyyy")
+
+//                frmdate1 = Format(CDate("01-APR-" & stYer - 1), "dd-MMM-yyyy")
+
+//                todate1 = Format(CDate("30-JUN-" & stYer - 1), "dd-MMM-yyyy")
+
+//                frmdate2 = Format(CDate("01-JUL-" & stYer - 1), "dd-MMM-yyyy")
+
+//                todate2 = Format(CDate("30-SEP-" & stYer - 1), "dd-MMM-yyyy")
+
+//                frmdate3 = Format(CDate("01-OCT-" & stYer - 1), "dd-MMM-yyyy")
+
+//                todate3 = Format(CDate("31-DEC-" & stYer - 1), "dd-MMM-yyyy")
+
+//                frmdate4 = Format(CDate("01-JAN-" & stYer), "dd-MMM-yyyy")
+
+//                todate4 = Format(CDate("31-MAR-" & stYer), "dd-MMM-yyyy")
+
+//            Else
+
+//                ''frmdate = Format(CDate("01-Apr-" & stryear), "dd-MMM-yyyy")
+
+//                frmdate1 = Format(CDate("01-APR-" & stYer), "dd-MMM-yyyy")
+
+//                todate1 = Format(CDate("30-JUN-" & stYer), "dd-MMM-yyyy")
+
+//                frmdate2 = Format(CDate("01-JUL-" & stYer), "dd-MMM-yyyy")
+
+//                todate2 = Format(CDate("30-SEP-" & stYer), "dd-MMM-yyyy")
+
+//                frmdate3 = Format(CDate("01-OCT-" & stYer), "dd-MMM-yyyy")
+
+//                todate3 = Format(CDate("31-DEC-" & stYer), "dd-MMM-yyyy")
+
+//                frmdate4 = Format(CDate("01-JAN-" & stYer + 1), "dd-MMM-yyyy")
+
+//                todate4 = Format(CDate("31-MAR-" & stYer + 1), "dd-MMM-yyyy")
+
+//            End If ''strmon <= 3
+
+
+//        end if
+//         todate1_1 = Format(cdate(dateadd("d", -1, cdate(todate1))), "dd-MMM-yyyy")
+//        todate2_1 = Format(cdate(dateadd("d", -1, cdate(todate2))), "dd-MMM-yyyy")
+//        todate3_1 = Format(cdate(dateadd("d", -1, cdate(todate3))), "dd-MMM-yyyy")
+//        todate4_1 = Format(cdate(dateadd("d", -1, cdate(todate4))), "dd-MMM-yyyy")
+
+//        rsmain = Server.CreateObject("adodb.recordset")
+
+//        rschk = Server.CreateObject("adodb.recordset")
+
+//        rschk1 = Server.CreateObject("adodb.recordset")
+
+
+
+
+//        obj = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+//                sqlstr = ""
+
+//        sqlstr1 = "SELECT distinct glcode FROM DEPMST m  WHERE glcode != '104270' " & strArr(3) & " and  currencycode =  'INR' ORDER BY TO_NUMBER(glcode)"
+
+
+//resDtls1 = obj.SingleSelectStat(sqlstr1)
+//if resDtls1.recordcount > 0 then
+//do until resDtls1.eof
+
+//rs = objctr.singlerecordset("DEPTYPEMST", "INTCOMPOUNDYN, COMPINTACCRREVSEYN, INSTSYN", "glcode='" & resDtls1(0).value & "'")
+
+
+//    '	INTCOMPOUNDYN, COMPINTACCRREVSEYN, INSTSYN
+
+//    '			'N' 		AND 'N'			AND 'N' -- SIMPLE     DEPINTACCRUEDDTLS
+
+//    '			<>'N' 		AND 'Y' 		AND 'N' -- COMPOUND   DEPINTACCRUEDDTLS 
+
+//    '			<>'N' 		AND 'N' 		AND 'Y' -- COMPOUND   DEPINTACCRUEDDTLS
+
+//    '			<>'N' 		AND 'N' 		AND 'N' -- COMPOUND   DEPTRAN
+
+
+//    if ((rs(0).value = "N" and rs(1).value = "N" and rs(2).value = "N" ) or(rs(0).value<> "N" and rs(1).value = "Y" and rs(2).value = "N") or(rs(0).value<> "N" and rs(1).value = "N" and rs(2).value = "Y")) then
+
+
+
+//        if strArr(6) = "0" then
+
+//            sqlstr = " select x.branchcode, x.GLCODE, x.ACCNO, x.name,  x.Q1amt,x.T1amt, x.Q2amt,x.T2amt, x.Q3amt,x.T3amt, x.Q4amt,x.T4amt,x.flag from  ( SELECT m.branchcode, m.GLCODE, m.ACCNO,SUBSTR(m.name,1,35) name, (NVL((SELECT SUM(ABS(INTAMOUNT)) FROM DEPINTACCRUEDDTLS WHERE  ACCNO = m.ACCNO AND GLCODE = m.GLCODE AND INTAMOUNT > 0 AND MODULEID = 'DEP'  AND APPLICATIONDATE  BETWEEN '" & frmdate1 & "' AND  '" & todate1 & "' AND BRANCHCODE = m.BRANCHCODE  AND (branchcode,glcode,accno,batchno,tranno) NOT IN (SELECT branchcode,glcode,accno,batchno,tranno FROM DEPINTACCRUEDDTLS WHERE ACCNO=m.ACCNO AND GLCODE=m.GLCODE AND BRANCHCODE=m.BRANCHCODE AND INTAMOUNT>0 AND  MODULEID='DEP' AND APPLICATIONDATE BETWEEN  '" & frmdate1 & "' AND  '" & todate1 & "'  AND (remarks LIKE 'TDS From%' OR remarks LIKE 'TDSREFUND%') AND '" & todate1 & "' = (SELECT MAX(applicationdate) FROM DEPINTACCRUEDDTLS WHERE ACCNO=m.ACCNO AND GLCODE=m.GLCODE AND BRANCHCODE=m.BRANCHCODE AND INTAMOUNT>0  AND MODULEID='DEP' AND APPLICATIONDATE BETWEEN '" & frmdate1 & "' AND  '" & todate1_1 & "' AND (remarks LIKE 'TDS From%' OR remarks LIKE 'TDSREFUND%')) )),0)  + NVL((SELECT SUM(intamount) FROM DEPINTACCRUEDDTLS WHERE accno = m.accno AND glcode = m.glcode AND branchcode =    m.branchcode  AND NVL(TRANSFERTODEP , applicationdate) BETWEEN '" & frmdate1 & "' AND  '" & todate1 & "' AND (REMARKS LIKE 'Excess Interest Adjusted%'  OR REMARKS LIKE 'Excess Int Rev To GL%')),0) - NVL((SELECT SUM(intamount) FROM DEPINTACCRUEDDTLS WHERE accno = m.accno AND glcode = m.glcode AND branchcode = m.branchcode   and intamount > 0 AND NVL(TRANSFERTODEP , applicationdate) BETWEEN '" & frmdate1 & "' AND  '" & todate1 & "' AND (REMARKS LIKE 'Excess Interest Adjusted%'  OR REMARKS LIKE 'Excess Int Rev From%')),0)) Q1amt, (SELECT NVL(SUM(ABS(b.AMOUNT)),0) FROM TDSDTLS b WHERE b.APPLICATIONDATE BETWEEN '" & frmdate1 & "' AND '" & todate1 & "' AND b.REFUNDYN='N' AND b.amount IS NOT NULL AND b.accno=m.accno AND b.glcode=m.glcode AND b.branchcode=m.branchcode) T1amt, (NVL((SELECT SUM(ABS(INTAMOUNT)) FROM DEPINTACCRUEDDTLS WHERE  ACCNO = m.ACCNO AND GLCODE = m.GLCODE AND INTAMOUNT > 0 AND MODULEID = 'DEP' AND APPLICATIONDATE  BETWEEN '" & frmdate2 & "' AND  '" & todate2 & "' AND BRANCHCODE = m.BRANCHCODE  AND (branchcode,glcode,accno,batchno,tranno) NOT IN (SELECT branchcode,glcode,accno,batchno,tranno FROM DEPINTACCRUEDDTLS WHERE ACCNO=m.ACCNO AND GLCODE=m.GLCODE AND  BRANCHCODE=m.BRANCHCODE AND INTAMOUNT>0 AND  MODULEID='DEP' AND APPLICATIONDATE BETWEEN  '" & frmdate2 & "' AND  '" & todate2 & "'  AND (remarks LIKE 'TDS From%' OR remarks LIKE 'TDSREFUND%') AND '" & todate2 & "' = (SELECT MAX(applicationdate) FROM DEPINTACCRUEDDTLS WHERE ACCNO=m.ACCNO AND GLCODE=m.GLCODE AND BRANCHCODE=m.BRANCHCODE AND INTAMOUNT>0  AND MODULEID='DEP' AND APPLICATIONDATE BETWEEN '" & frmdate2 & "' AND  '" & todate2_1 & "' AND (remarks LIKE 'TDS From%' OR remarks LIKE 'TDSREFUND%')) )),0)  + NVL((SELECT SUM(intamount) FROM DEPINTACCRUEDDTLS WHERE accno = m.accno AND glcode = m.glcode AND branchcode = m.branchcode  AND NVL(TRANSFERTODEP , applicationdate) BETWEEN '" & frmdate2 & "' AND  '" & todate2 & "' AND (REMARKS LIKE 'Excess Interest Adjusted%'  OR REMARKS LIKE 'Excess Int Rev To GL%')),0)   - NVL((SELECT SUM(intamount) FROM DEPINTACCRUEDDTLS WHERE accno = m.accno AND glcode = m.glcode AND branchcode = m.branchcode   and intamount > 0 AND NVL(TRANSFERTODEP , applicationdate) BETWEEN '" & frmdate2 & "' AND  '" & todate2 & "' AND (REMARKS LIKE 'Excess Interest Adjusted%'  OR REMARKS LIKE 'Excess Int Rev From%')),0)) Q2amt, (SELECT NVL(SUM(ABS(b.AMOUNT)),0) FROM TDSDTLS b WHERE b.APPLICATIONDATE BETWEEN '" & frmdate2 & "' AND '" & todate2 & "' AND b.REFUNDYN='N' AND b.amount IS NOT NULL AND b.accno=m.accno AND b.glcode=m.glcode AND b.branchcode=m.branchcode) T2amt, (NVL((SELECT SUM(ABS(INTAMOUNT)) FROM DEPINTACCRUEDDTLS WHERE  ACCNO = m.ACCNO AND GLCODE = m.GLCODE AND INTAMOUNT > 0 AND MODULEID = 'DEP' AND APPLICATIONDATE  BETWEEN '" & frmdate3 & "' AND  '" & todate3 & "' AND BRANCHCODE = m.BRANCHCODE  AND (branchcode,glcode,accno,batchno,tranno) NOT IN (SELECT branchcode,glcode,accno,batchno,tranno FROM DEPINTACCRUEDDTLS WHERE ACCNO=m.ACCNO AND GLCODE=m.GLCODE AND BRANCHCODE=m.BRANCHCODE AND INTAMOUNT>0 AND  MODULEID='DEP' AND APPLICATIONDATE BETWEEN  '" & frmdate3 & "' AND  '" & todate3 & "'  AND (remarks LIKE 'TDS From%' OR remarks LIKE 'TDSREFUND%') AND '" & todate3 & "' = (SELECT MAX(applicationdate) FROM DEPINTACCRUEDDTLS WHERE ACCNO=m.ACCNO AND GLCODE=m.GLCODE AND BRANCHCODE=m.BRANCHCODE AND INTAMOUNT>0  AND MODULEID='DEP' AND APPLICATIONDATE BETWEEN '" & frmdate3 & "' AND  '" & todate3_1 & "' AND (remarks LIKE 'TDS From%' OR remarks LIKE 'TDSREFUND%')) )),0)  + NVL((SELECT SUM(intamount) FROM DEPINTACCRUEDDTLS WHERE accno = m.accno AND glcode = m.glcode AND branchcode = m.branchcode  AND NVL(TRANSFERTODEP , applicationdate) BETWEEN '" & frmdate3 & "' AND  '" & todate3 & "' AND (REMARKS LIKE 'Excess Interest Adjusted%'  OR REMARKS LIKE 'Excess Int Rev To GL%')),0)  - NVL((SELECT SUM(intamount) FROM DEPINTACCRUEDDTLS WHERE accno = m.accno AND glcode = m.glcode AND branchcode = m.branchcode   and intamount > 0 AND NVL(TRANSFERTODEP , applicationdate) BETWEEN '" & frmdate3 & "' AND  '" & todate3 & "' AND (REMARKS LIKE 'Excess Interest Adjusted%'  OR REMARKS LIKE 'Excess Int Rev From%')),0)) Q3amt, (SELECT NVL(SUM(ABS(b.AMOUNT)),0) FROM TDSDTLS b WHERE b.APPLICATIONDATE BETWEEN '" & frmdate3 & "' AND '" & todate3 & "' AND b.REFUNDYN='N' AND b.amount IS NOT NULL AND b.accno=m.accno AND b.glcode=m.glcode AND b.branchcode=m.branchcode) T3amt, (NVL((SELECT SUM(ABS(INTAMOUNT)) FROM DEPINTACCRUEDDTLS WHERE  ACCNO = m.ACCNO AND GLCODE = m.GLCODE AND INTAMOUNT > 0 AND MODULEID = 'DEP' AND APPLICATIONDATE  BETWEEN '" & frmdate4 & "' AND  '" & todate4 & "' AND BRANCHCODE = m.BRANCHCODE  AND (branchcode,glcode,accno,batchno,tranno) NOT IN (SELECT branchcode,glcode,accno,batchno,tranno FROM DEPINTACCRUEDDTLS WHERE ACCNO=m.ACCNO AND GLCODE=m.GLCODE AND BRANCHCODE=m.BRANCHCODE AND INTAMOUNT>0 AND  MODULEID='DEP' AND APPLICATIONDATE BETWEEN  '" & frmdate4 & "' AND  '" & todate4 & "'  AND (remarks LIKE 'TDS From%' OR remarks LIKE 'TDSREFUND%') AND '" & todate4 & "' = (SELECT MAX(applicationdate) FROM DEPINTACCRUEDDTLS WHERE ACCNO=m.ACCNO AND GLCODE=m.GLCODE AND BRANCHCODE=m.BRANCHCODE AND INTAMOUNT>0  AND MODULEID='DEP' AND APPLICATIONDATE BETWEEN '" & frmdate4 & "' AND  '" & todate4_1 & "' AND (remarks LIKE 'TDS From%' OR remarks LIKE 'TDSREFUND%')) )),0) - NVL((SELECT NVL(SUM(intamount),0) intamount FROM DEPINTACCRUEDDTLS WHERE ACCNO = m.ACCNO AND GLCODE = m.GLCODE AND BRANCHCODE = m.BRANCHCODE AND INTAMOUNT>0 AND MODULEID='DEP' AND APPLICATIONDATE = '" & todate4 & "' AND (remarks LIKE 'TDS From%')),0) + NVL((SELECT SUM(intamount) FROM DEPINTACCRUEDDTLS WHERE accno = m.accno AND glcode = m.glcode AND branchcode = m.branchcode  AND NVL(TRANSFERTODEP , applicationdate) BETWEEN '" & frmdate4 & "' AND  '" & todate4 & "' AND (REMARKS LIKE 'Excess Interest Adjusted%'  OR REMARKS LIKE 'Excess Int Rev To GL%')),0)   - NVL((SELECT SUM(intamount) FROM DEPINTACCRUEDDTLS WHERE accno = m.accno AND glcode = m.glcode AND branchcode = m.branchcode   and intamount > 0 AND NVL(TRANSFERTODEP , applicationdate) BETWEEN '" & frmdate4 & "' AND  '" & todate4 & "' AND (REMARKS LIKE 'Excess Interest Adjusted%'  OR REMARKS LIKE 'Excess Int Rev From%')),0)) Q4amt, (SELECT NVL(SUM(ABS(b.AMOUNT)),0) FROM TDSDTLS b WHERE  b.APPLICATIONDATE BETWEEN '" & frmdate4 & "' AND '" & todate4 & "' AND b.REFUNDYN='N' AND b.amount IS NOT NULL AND b.accno=m.accno AND b.glcode=m.glcode AND b.branchcode=m.branchcode) T4amt, (case when m.TDSYN = 'Y' then 'TDS' when m.NONTDS = 'Y' then 'NONTDS' when  m.EXMPFORMSRECYN = 'Y' then '15H' when m.FORMS15G = 'Y' then '15G' end ) flag   FROM depmst m WHERE m.glcode='" & resDtls1(0).value & "' and (m.closedate is null or m.closedate >= '" & frmdate & "') and m.EFFDATE <=  '" & todate4 & "'  " & strArr(3) & " AND m.branchcode='" & strArr(1) & "' GROUP BY m.branchcode,m.glcode,m.accno,m.name,(case when m.TDSYN = 'Y' then 'TDS' when m.NONTDS = 'Y' then 'NONTDS' when  m.EXMPFORMSRECYN = 'Y' then '15H' when m.FORMS15G = 'Y' then '15G' end )) x where ((x.Q1amt + x.Q2amt + x.Q3amt + x.Q4amt) > 0 )  ORDER BY TO_NUMBER(x.glcode),TO_NUMBER(x.accno) "
+
+
+
+
+//        else
+
+//            if strArr(3) = "" then
+//                stCond = " AND M.customerid IN (SELECT customerid FROM gencustinfomst WHERE branchcode='" & strArr(1) & "') "
+
+//            else
+//                stCond = ""
+
+//            end if
+
+
+//            sqlstr = "select x.branchcode, x.GLCODE, x.ACCNO, x.name,  x.Q1amt,x.T1amt, x.Q2amt,x.T2amt, x.Q3amt,x.T3amt, x.Q4amt,x.T4amt,x.flag from  (  SELECT m.branchcode, m.GLCODE, m.ACCNO,SUBSTR(M.name,1,35) name, (NVL((SELECT SUM(ABS(INTAMOUNT)) FROM DEPINTACCRUEDDTLS WHERE  ACCNO = m.ACCNO AND GLCODE = m.GLCODE AND INTAMOUNT > 0 AND MODULEID = 'DEP'  AND APPLICATIONDATE  BETWEEN '" & frmdate1 & "' AND  '" & todate1 & "' AND BRANCHCODE = m.BRANCHCODE  AND (branchcode,glcode,accno,batchno,tranno) NOT IN (SELECT branchcode,glcode,accno,batchno,tranno FROM DEPINTACCRUEDDTLS WHERE ACCNO=m.ACCNO AND GLCODE=m.GLCODE AND BRANCHCODE=m.BRANCHCODE AND INTAMOUNT>0 AND  MODULEID='DEP' AND APPLICATIONDATE BETWEEN  '" & frmdate1 & "' AND  '" & todate1 & "'  AND (remarks LIKE 'TDS From%' OR remarks LIKE 'TDSREFUND%') AND '" & todate1 & "' = (SELECT MAX(applicationdate) FROM DEPINTACCRUEDDTLS WHERE ACCNO=m.ACCNO AND GLCODE=m.GLCODE AND BRANCHCODE=m.BRANCHCODE AND INTAMOUNT>0  AND MODULEID='DEP' AND APPLICATIONDATE BETWEEN '" & frmdate1 & "' AND  '" & todate1_1 & "' AND (remarks LIKE 'TDS From%' OR remarks LIKE 'TDSREFUND%')) )),0)  + NVL((SELECT SUM(intamount) FROM DEPINTACCRUEDDTLS WHERE accno = m.accno AND glcode = m.glcode AND branchcode =    m.branchcode  AND NVL(TRANSFERTODEP , applicationdate) BETWEEN '" & frmdate1 & "' AND  '" & todate1 & "' AND (REMARKS LIKE 'Excess Interest Adjusted%'  OR REMARKS LIKE 'Excess Int Rev To GL%')),0) - NVL((SELECT SUM(intamount) FROM DEPINTACCRUEDDTLS WHERE accno = m.accno AND glcode = m.glcode AND branchcode = m.branchcode   and intamount > 0 AND NVL(TRANSFERTODEP , applicationdate) BETWEEN '" & frmdate1 & "' AND  '" & todate1 & "' AND (REMARKS LIKE 'Excess Interest Adjusted%'  OR REMARKS LIKE 'Excess Int Rev From%')),0)) Q1amt, (SELECT NVL(SUM(ABS(b.AMOUNT)),0) FROM TDSDTLS b WHERE b.APPLICATIONDATE BETWEEN '" & frmdate1 & "' AND '" & todate1 & "' AND b.REFUNDYN='N' AND b.amount IS NOT NULL AND b.accno=m.accno AND b.glcode=m.glcode AND b.branchcode=m.branchcode) T1amt, (NVL((SELECT SUM(ABS(INTAMOUNT)) FROM DEPINTACCRUEDDTLS WHERE  ACCNO = m.ACCNO AND GLCODE = m.GLCODE AND INTAMOUNT > 0 AND MODULEID = 'DEP' AND APPLICATIONDATE  BETWEEN '" & frmdate2 & "' AND  '" & todate2 & "' AND BRANCHCODE = m.BRANCHCODE  AND (branchcode,glcode,accno,batchno,tranno) NOT IN (SELECT branchcode,glcode,accno,batchno,tranno FROM DEPINTACCRUEDDTLS WHERE ACCNO=m.ACCNO AND GLCODE=m.GLCODE AND  BRANCHCODE=m.BRANCHCODE AND INTAMOUNT>0 AND  MODULEID='DEP' AND APPLICATIONDATE BETWEEN  '" & frmdate2 & "' AND  '" & todate2 & "'  AND (remarks LIKE 'TDS From%' OR remarks LIKE 'TDSREFUND%') AND '" & todate2 & "' = (SELECT MAX(applicationdate) FROM DEPINTACCRUEDDTLS WHERE ACCNO=m.ACCNO AND GLCODE=m.GLCODE AND BRANCHCODE=m.BRANCHCODE AND INTAMOUNT>0  AND MODULEID='DEP' AND APPLICATIONDATE BETWEEN '" & frmdate2 & "' AND  '" & todate2_1 & "' AND (remarks LIKE 'TDS From%' OR remarks LIKE 'TDSREFUND%')) )),0)  + NVL((SELECT SUM(intamount) FROM DEPINTACCRUEDDTLS WHERE accno = m.accno AND glcode = m.glcode AND branchcode = m.branchcode  AND NVL(TRANSFERTODEP , applicationdate) BETWEEN '" & frmdate2 & "' AND  '" & todate2 & "' AND (REMARKS LIKE 'Excess Interest Adjusted%'  OR REMARKS LIKE 'Excess Int Rev To GL%')),0)   - NVL((SELECT SUM(intamount) FROM DEPINTACCRUEDDTLS WHERE accno = m.accno AND glcode = m.glcode AND branchcode = m.branchcode   and intamount > 0 AND NVL(TRANSFERTODEP , applicationdate) BETWEEN '" & frmdate2 & "' AND  '" & todate2 & "' AND (REMARKS LIKE 'Excess Interest Adjusted%'  OR REMARKS LIKE 'Excess Int Rev From%')),0)) Q2amt, (SELECT NVL(SUM(ABS(b.AMOUNT)),0) FROM TDSDTLS b WHERE b.APPLICATIONDATE BETWEEN '" & frmdate2 & "' AND '" & todate2 & "' AND b.REFUNDYN='N' AND b.amount IS NOT NULL AND b.accno=m.accno AND b.glcode=m.glcode AND b.branchcode=m.branchcode) T2amt, (NVL((SELECT SUM(ABS(INTAMOUNT)) FROM DEPINTACCRUEDDTLS WHERE  ACCNO = m.ACCNO AND GLCODE = m.GLCODE AND INTAMOUNT > 0 AND MODULEID = 'DEP' AND APPLICATIONDATE  BETWEEN '" & frmdate3 & "' AND  '" & todate3 & "' AND BRANCHCODE = m.BRANCHCODE  AND (branchcode,glcode,accno,batchno,tranno) NOT IN (SELECT branchcode,glcode,accno,batchno,tranno FROM DEPINTACCRUEDDTLS WHERE ACCNO=m.ACCNO AND GLCODE=m.GLCODE AND BRANCHCODE=m.BRANCHCODE AND INTAMOUNT>0 AND  MODULEID='DEP' AND APPLICATIONDATE BETWEEN  '" & frmdate3 & "' AND  '" & todate3 & "'  AND (remarks LIKE 'TDS From%' OR remarks LIKE 'TDSREFUND%') AND '" & todate3 & "' = (SELECT MAX(applicationdate) FROM DEPINTACCRUEDDTLS WHERE ACCNO=m.ACCNO AND GLCODE=m.GLCODE AND BRANCHCODE=m.BRANCHCODE AND INTAMOUNT>0  AND MODULEID='DEP' AND APPLICATIONDATE BETWEEN '" & frmdate3 & "' AND  '" & todate3_1 & "' AND (remarks LIKE 'TDS From%' OR remarks LIKE 'TDSREFUND%')) )),0)  + NVL((SELECT SUM(intamount) FROM DEPINTACCRUEDDTLS WHERE accno = m.accno AND glcode = m.glcode AND branchcode = m.branchcode  AND NVL(TRANSFERTODEP , applicationdate) BETWEEN '" & frmdate3 & "' AND  '" & todate3 & "' AND (REMARKS LIKE 'Excess Interest Adjusted%'  OR REMARKS LIKE 'Excess Int Rev To GL%')),0)   - NVL((SELECT SUM(intamount) FROM DEPINTACCRUEDDTLS WHERE accno = m.accno AND glcode = m.glcode AND branchcode = m.branchcode   and intamount > 0 AND NVL(TRANSFERTODEP , applicationdate) BETWEEN '" & frmdate3 & "' AND  '" & todate3 & "' AND (REMARKS LIKE 'Excess Interest Adjusted%'  OR REMARKS LIKE 'Excess Int Rev From%')),0)) Q3amt, (SELECT NVL(SUM(ABS(b.AMOUNT)),0) FROM TDSDTLS b WHERE b.APPLICATIONDATE BETWEEN '" & frmdate3 & "' AND '" & todate3 & "' AND b.REFUNDYN='N' AND b.amount IS NOT NULL AND b.accno=m.accno AND b.glcode=m.glcode AND b.branchcode=m.branchcode) T3amt, (NVL((SELECT SUM(ABS(INTAMOUNT)) FROM DEPINTACCRUEDDTLS WHERE  ACCNO = m.ACCNO AND GLCODE = m.GLCODE AND INTAMOUNT > 0 AND MODULEID = 'DEP' AND APPLICATIONDATE  BETWEEN '" & frmdate4 & "' AND  '" & todate4 & "' AND BRANCHCODE = m.BRANCHCODE  AND (branchcode,glcode,accno,batchno,tranno) NOT IN (SELECT branchcode,glcode,accno,batchno,tranno FROM DEPINTACCRUEDDTLS WHERE ACCNO=m.ACCNO AND GLCODE=m.GLCODE AND BRANCHCODE=m.BRANCHCODE AND INTAMOUNT>0 AND  MODULEID='DEP' AND APPLICATIONDATE BETWEEN  '" & frmdate4 & "' AND  '" & todate4 & "'  AND (remarks LIKE 'TDS From%' OR remarks LIKE 'TDSREFUND%') AND '" & todate4 & "' = (SELECT MAX(applicationdate) FROM DEPINTACCRUEDDTLS WHERE ACCNO=m.ACCNO AND GLCODE=m.GLCODE AND BRANCHCODE=m.BRANCHCODE AND INTAMOUNT>0  AND MODULEID='DEP' AND APPLICATIONDATE BETWEEN '" & frmdate4 & "' AND  '" & todate4_1 & "' AND (remarks LIKE 'TDS From%' OR remarks LIKE 'TDSREFUND%')) )),0) - NVL((SELECT NVL(SUM(intamount),0) intamount FROM DEPINTACCRUEDDTLS WHERE ACCNO = m.ACCNO AND GLCODE = m.GLCODE AND BRANCHCODE = m.BRANCHCODE AND INTAMOUNT>0 AND MODULEID='DEP' AND APPLICATIONDATE = '" & todate4 & "' AND (remarks LIKE 'TDS From%')),0) + NVL((SELECT SUM(intamount) FROM DEPINTACCRUEDDTLS WHERE accno = m.accno AND glcode = m.glcode AND branchcode = m.branchcode  AND NVL(TRANSFERTODEP , applicationdate) BETWEEN '" & frmdate4 & "' AND  '" & todate4 & "' AND (REMARKS LIKE 'Excess Interest Adjusted%'  OR REMARKS LIKE 'Excess Int Rev To GL%')),0)   - NVL((SELECT SUM(intamount) FROM DEPINTACCRUEDDTLS WHERE accno = m.accno AND glcode = m.glcode AND branchcode = m.branchcode   and intamount > 0 AND NVL(TRANSFERTODEP , applicationdate) BETWEEN '" & frmdate4 & "' AND  '" & todate4 & "' AND (REMARKS LIKE 'Excess Interest Adjusted%'  OR REMARKS LIKE 'Excess Int Rev From%')),0)) Q4amt, (SELECT NVL(SUM(ABS(b.AMOUNT)),0) FROM TDSDTLS b WHERE b.APPLICATIONDATE BETWEEN '" & frmdate4 & "' AND '" & todate4 & "' AND b.REFUNDYN='N' AND b.amount IS NOT NULL AND b.accno=m.accno AND b.glcode=m.glcode AND b.branchcode=m.branchcode) T4amt, (case when m.TDSYN = 'Y' then 'TDS' when m.NONTDS = 'Y' then 'NONTDS' when  m.EXMPFORMSRECYN = 'Y' then '15H' when m.FORMS15G = 'Y' then '15G' end ) flag   FROM  DEPMST M WHERE  m.glcode='" & resDtls1(0).value & "' and (m.closedate is null or m.closedate >= '" & frmdate & "') and m.EFFDATE  <=  '" & todate4 & "' " & strArr(3) & "  " & stCond & " GROUP BY m.branchcode,m.glcode,m.accno,M.name,(CASE WHEN m.TDSYN = 'Y' THEN 'TDS' WHEN m.NONTDS = 'Y' THEN 'NONTDS' WHEN  m.EXMPFORMSRECYN = 'Y' THEN '15H' WHEN m.FORMS15G = 'Y' THEN '15G' END )) x where ((x.Q1amt + x.Q2amt + x.Q3amt + x.Q4amt) > 0 )  ORDER BY TO_NUMBER(x.glcode),TO_NUMBER(x.accno) "
+
+
+//        end if
+
+
+//            else
+
+//        if strArr(6) = "0" then
+
+//            sqlstr = " select x.branchcode, x.GLCODE, x.ACCNO, x.name,  x.Q1amt,x.T1amt, x.Q2amt,x.T2amt, x.Q3amt,x.T3amt, x.Q4amt,x.T4amt,x.flag from  (SELECT m.branchcode, m.GLCODE, m.ACCNO, SUBSTR(M.name,1,35) name, M.CUSTOMERID, (  NVL((SELECT SUM(ABS(E.AMOUNT)) FROM DEPTRAN E WHERE E.CHQFVG = 'DEPIP' AND E.ACCNO=m.ACCNO AND E.GLCODE=m.GLCODE AND E.MODULEID='DEP' AND E.BRANCHCODE=m.BRANCHCODE  AND E.applicationdate between '" & frmdate1 & "' AND '" & todate1 & "' AND (E.branchcode,E.glcode,E.accno,E.batchno,E.tranno) NOT IN (SELECT branchcode,glcode,accno,batchno,tranno FROM DEPTRAN C1 WHERE C1.ACCNO=E.ACCNO AND C1.GLCODE=E.GLCODE AND C1.BRANCHCODE=E.BRANCHCODE AND C1.CURRENCYCODE=E.CURRENCYCODE AND C1.MODULEID='DEP' AND C1.APPLICATIONDATE BETWEEN '" & frmdate1 & "' AND '" & todate1 & "'  AND (C1.remarks LIKE 'TDS From%' OR C1.remarks LIKE 'TDSREFUND%') AND C1.APPLICATIONDATE = (SELECT MAX(applicationdate) FROM DEPTRAN C2 WHERE C2.ACCNO=C1.ACCNO AND C2.GLCODE=C1.GLCODE AND C2.BRANCHCODE=C1.BRANCHCODE AND C2.CURRENCYCODE=C1.CURRENCYCODE AND  C2.MODULEID='DEP' AND C2.APPLICATIONDATE BETWEEN '" & frmdate1 & "' AND '" & todate1 & "' AND (remarks LIKE 'TDS From%' OR remarks LIKE 'TDSREFUND%')))),0)   + NVL((SELECT NVL(sum(AMOUNT),0) FROM DEPTRAN WHERE glcode=m.GLCODE AND accno=m.ACCNO AND EFFECTIVEDATE BETWEEN '" & frmdate1 & "' AND '" & todate1 & "' AND remarks LIKE 'Excess Int Rev To GL%' and AMOUNT<0 AND branchcode=m.BRANCHCODE),0)) Q1amt, (SELECT NVL(SUM(ABS(b.AMOUNT)),0) FROM TDSDTLS b WHERE b.APPLICATIONDATE BETWEEN '" & frmdate1 & "' AND '" & todate1 & "' AND b.REFUNDYN='N' AND b.amount IS NOT NULL AND b.accno=m.accno AND b.glcode=m.glcode AND b.branchcode=m.branchcode) T1amt, (  NVL((SELECT SUM(ABS(E.AMOUNT)) FROM DEPTRAN E WHERE E.CHQFVG = 'DEPIP' AND E.ACCNO=m.ACCNO AND E.GLCODE=m.GLCODE AND E.MODULEID='DEP' AND E.BRANCHCODE=m.BRANCHCODE AND E.applicationdate between '" & frmdate2 & "' AND '" & todate2 & "' AND (E.branchcode,E.glcode,E.accno,E.batchno,E.tranno) NOT IN (SELECT branchcode,glcode,accno,batchno,tranno FROM DEPTRAN C1 WHERE C1.ACCNO=E.ACCNO AND C1.GLCODE=E.GLCODE AND C1.BRANCHCODE=E.BRANCHCODE AND C1.CURRENCYCODE=E.CURRENCYCODE AND C1.MODULEID='DEP' AND C1.APPLICATIONDATE BETWEEN '" & frmdate2 & "' AND '" & todate2 & "'  AND (C1.remarks LIKE 'TDS From%' OR C1.remarks LIKE 'TDSREFUND%') AND C1.APPLICATIONDATE = (SELECT MAX(applicationdate) FROM DEPTRAN C2 WHERE C2.ACCNO=C1.ACCNO AND C2.GLCODE=C1.GLCODE AND C2.BRANCHCODE=C1.BRANCHCODE AND C2.CURRENCYCODE=C1.CURRENCYCODE AND  C2.MODULEID='DEP' AND C2.APPLICATIONDATE BETWEEN '" & frmdate2 & "' AND '" & todate2 & "' AND (remarks LIKE 'TDS From%' OR remarks LIKE 'TDSREFUND%')))),0)  + NVL((SELECT NVL(sum(AMOUNT),0) FROM DEPTRAN WHERE glcode=m.GLCODE AND accno=m.ACCNO AND EFFECTIVEDATE BETWEEN '" & frmdate2 & "' AND '" & todate2 & "' AND remarks LIKE 'Excess Int Rev To GL%' and AMOUNT<0 AND branchcode=m.BRANCHCODE),0)) Q2amt, (SELECT NVL(SUM(ABS(b.AMOUNT)),0) FROM TDSDTLS b WHERE b.APPLICATIONDATE BETWEEN '" & frmdate2 & "' AND '" & todate2 & "' AND b.REFUNDYN='N' AND b.amount IS NOT NULL AND b.accno=m.accno AND b.glcode=m.glcode AND b.branchcode=m.branchcode) T2amt, (  NVL((SELECT SUM(ABS(E.AMOUNT)) FROM DEPTRAN E WHERE E.CHQFVG = 'DEPIP' AND E.ACCNO=m.ACCNO AND E.GLCODE=m.GLCODE AND E.MODULEID='DEP' AND E.BRANCHCODE=m.BRANCHCODE AND E.applicationdate between '" & frmdate3 & "' AND '" & todate3 & "' AND (E.branchcode,E.glcode,E.accno,E.batchno,E.tranno) NOT IN (SELECT branchcode,glcode,accno,batchno,tranno FROM DEPTRAN C1 WHERE C1.ACCNO=E.ACCNO AND C1.GLCODE=E.GLCODE AND C1.BRANCHCODE=E.BRANCHCODE AND C1.CURRENCYCODE=E.CURRENCYCODE AND C1.MODULEID='DEP' AND C1.APPLICATIONDATE BETWEEN '" & frmdate3 & "' AND '" & todate3 & "'  AND (C1.remarks LIKE 'TDS From%' OR C1.remarks LIKE 'TDSREFUND%') AND C1.APPLICATIONDATE = (SELECT MAX(applicationdate) FROM DEPTRAN C2 WHERE C2.ACCNO=C1.ACCNO AND C2.GLCODE=C1.GLCODE AND C2.BRANCHCODE=C1.BRANCHCODE AND C2.CURRENCYCODE=C1.CURRENCYCODE AND  C2.MODULEID='DEP' AND C2.APPLICATIONDATE BETWEEN '" & frmdate3 & "' AND '" & todate3 & "' AND (remarks LIKE 'TDS From%' OR remarks LIKE 'TDSREFUND%')))),0)   + NVL((SELECT NVL(sum(AMOUNT),0) FROM DEPTRAN WHERE glcode=m.GLCODE AND accno=m.ACCNO AND EFFECTIVEDATE BETWEEN '" & frmdate3 & "' AND '" & todate3 & "' AND remarks LIKE 'Excess Int Rev To GL%' and AMOUNT<0 AND branchcode=m.BRANCHCODE),0)) Q3amt, (SELECT NVL(SUM(ABS(b.AMOUNT)),0) FROM TDSDTLS b WHERE b.APPLICATIONDATE BETWEEN '" & frmdate3 & "' AND '" & todate3 & "' AND b.REFUNDYN='N' AND b.amount IS NOT NULL AND b.accno=m.accno AND b.glcode=m.glcode AND b.branchcode=m.branchcode) T3amt, (  NVL((SELECT SUM(ABS(E.AMOUNT)) FROM DEPTRAN E WHERE E.CHQFVG = 'DEPIP' AND E.ACCNO=m.ACCNO AND E.GLCODE=m.GLCODE AND E.MODULEID='DEP' AND E.BRANCHCODE=m.BRANCHCODE AND E.applicationdate between '" & frmdate4 & "' AND '" & todate4 & "' AND (E.branchcode,E.glcode,E.accno,E.batchno,E.tranno) NOT IN (SELECT branchcode,glcode,accno,batchno,tranno FROM DEPTRAN C1 WHERE C1.ACCNO=E.ACCNO AND C1.GLCODE=E.GLCODE AND C1.BRANCHCODE=E.BRANCHCODE AND C1.CURRENCYCODE=E.CURRENCYCODE AND C1.MODULEID='DEP' AND C1.APPLICATIONDATE BETWEEN '" & frmdate4 & "' AND '" & todate4 & "'  AND (C1.remarks LIKE 'TDS From%' OR C1.remarks LIKE 'TDSREFUND%') AND C1.APPLICATIONDATE = (SELECT MAX(applicationdate) FROM DEPTRAN C2 WHERE C2.ACCNO=C1.ACCNO AND C2.GLCODE=C1.GLCODE AND C2.BRANCHCODE=C1.BRANCHCODE AND C2.CURRENCYCODE=C1.CURRENCYCODE AND  C2.MODULEID='DEP' AND C2.APPLICATIONDATE BETWEEN '" & frmdate4 & "' AND '" & todate4 & "' AND (remarks LIKE 'TDS From%' OR remarks LIKE 'TDSREFUND%')))),0)  + NVL((SELECT NVL(sum(AMOUNT),0) FROM DEPTRAN WHERE glcode=m.GLCODE AND accno=m.ACCNO AND EFFECTIVEDATE BETWEEN '" & frmdate4 & "' AND '" & todate4 & "' AND remarks LIKE 'Excess Int Rev To GL%' and AMOUNT<0 AND branchcode=m.BRANCHCODE),0)) Q4amt, (SELECT NVL(SUM(ABS(b.AMOUNT)),0) FROM TDSDTLS b WHERE b.APPLICATIONDATE BETWEEN '" & frmdate4 & "' AND '" & todate4 & "' AND b.REFUNDYN='N' AND b.amount IS NOT NULL AND b.accno=m.accno AND b.glcode=m.glcode AND b.branchcode=m.branchcode) T4amt,(case when m.TDSYN = 'Y' then 'TDS' when m.NONTDS = 'Y' then 'NONTDS' when  m.EXMPFORMSRECYN = 'Y' then '15H' when m.FORMS15G = 'Y' then '15G' end ) flag  FROM  DEPMST M WHERE  m.glcode='" & resDtls1(0).value & "' and (m.closedate is null or m.closedate >= '" & frmdate & "') and  m.EFFDATE <=  '" & todate4 & "'  " & strArr(3) & " AND m.branchcode='" & strArr(1) & "' GROUP BY m.branchcode,m.glcode,m.accno,M.name,M.CUSTOMERID,(case when m.TDSYN = 'Y' then 'TDS' when m.NONTDS = 'Y' then 'NONTDS' when  m.EXMPFORMSRECYN = 'Y' then '15H' when m.FORMS15G = 'Y' then '15G' end )) x where ((x.Q1amt + x.Q2amt + x.Q3amt + x.Q4amt) > 0 ) ORDER BY TO_NUMBER(x.glcode),TO_NUMBER(x.accno) "
+
+//        else
+//            if strArr(3) = "" then
+//                stCond = " AND M.customerid IN (SELECT customerid FROM gencustinfomst WHERE branchcode='" & strArr(1) & "') "
+
+//            else
+//                    stCond = ""
+
+//            end if
+
+
+//            sqlstr = "select x.branchcode, x.GLCODE, x.ACCNO, x.name,  x.Q1amt,x.T1amt, x.Q2amt,x.T2amt, x.Q3amt,x.T3amt, x.Q4amt,x.T4amt,x.flag from  ( SELECT m.branchcode, m.GLCODE, m.ACCNO, SUBSTR(M.name,1,35) name, M.CUSTOMERID, (  NVL((SELECT SUM(ABS(E.AMOUNT)) FROM DEPTRAN E WHERE E.CHQFVG = 'DEPIP' AND E.ACCNO=m.ACCNO AND E.GLCODE=m.GLCODE AND E.MODULEID='DEP' AND E.BRANCHCODE=m.BRANCHCODE  AND E.applicationdate between '" & frmdate1 & "' AND '" & todate1 & "' AND (E.branchcode,E.glcode,E.accno,E.batchno,E.tranno) NOT IN (SELECT branchcode,glcode,accno,batchno,tranno FROM DEPTRAN C1 WHERE C1.ACCNO=E.ACCNO AND C1.GLCODE=E.GLCODE AND C1.BRANCHCODE=E.BRANCHCODE AND C1.CURRENCYCODE=E.CURRENCYCODE AND C1.MODULEID='DEP' AND C1.APPLICATIONDATE BETWEEN '" & frmdate1 & "' AND '" & todate1 & "'  AND (C1.remarks LIKE 'TDS From%' OR C1.remarks LIKE 'TDSREFUND%') AND C1.APPLICATIONDATE = (SELECT MAX(applicationdate) FROM DEPTRAN C2 WHERE C2.ACCNO=C1.ACCNO AND C2.GLCODE=C1.GLCODE AND C2.BRANCHCODE=C1.BRANCHCODE AND C2.CURRENCYCODE=C1.CURRENCYCODE AND  C2.MODULEID='DEP' AND C2.APPLICATIONDATE BETWEEN '" & frmdate1 & "' AND '" & todate1 & "' AND (remarks LIKE 'TDS From%' OR remarks LIKE 'TDSREFUND%')))),0)   + NVL((SELECT NVL(sum(AMOUNT),0) FROM DEPTRAN WHERE glcode=m.GLCODE AND accno=m.ACCNO AND EFFECTIVEDATE BETWEEN '" & frmdate1 & "' AND '" & todate1 & "' AND remarks LIKE 'Excess Int Rev To GL%' and AMOUNT<0 AND branchcode=m.BRANCHCODE),0)) Q1amt, (SELECT NVL(SUM(ABS(b.AMOUNT)),0) FROM TDSDTLS b WHERE b.APPLICATIONDATE BETWEEN '" & frmdate1 & "' AND '" & todate1 & "' AND b.REFUNDYN='N' AND b.amount IS NOT NULL AND b.accno=m.accno AND b.glcode=m.glcode AND b.branchcode=m.branchcode) T1amt, (  NVL((SELECT SUM(ABS(E.AMOUNT)) FROM DEPTRAN E WHERE E.CHQFVG = 'DEPIP' AND E.ACCNO=m.ACCNO AND E.GLCODE=m.GLCODE AND E.MODULEID='DEP' AND E.BRANCHCODE=m.BRANCHCODE AND E.applicationdate between '" & frmdate2 & "' AND '" & todate2 & "' AND (E.branchcode,E.glcode,E.accno,E.batchno,E.tranno) NOT IN (SELECT branchcode,glcode,accno,batchno,tranno FROM DEPTRAN C1 WHERE C1.ACCNO=E.ACCNO AND C1.GLCODE=E.GLCODE AND C1.BRANCHCODE=E.BRANCHCODE AND C1.CURRENCYCODE=E.CURRENCYCODE AND C1.MODULEID='DEP' AND C1.APPLICATIONDATE BETWEEN '" & frmdate2 & "' AND '" & todate2 & "'  AND (C1.remarks LIKE 'TDS From%' OR C1.remarks LIKE 'TDSREFUND%') AND C1.APPLICATIONDATE = (SELECT MAX(applicationdate) FROM DEPTRAN C2 WHERE C2.ACCNO=C1.ACCNO AND C2.GLCODE=C1.GLCODE AND C2.BRANCHCODE=C1.BRANCHCODE AND C2.CURRENCYCODE=C1.CURRENCYCODE AND  C2.MODULEID='DEP' AND C2.APPLICATIONDATE BETWEEN '" & frmdate2 & "' AND '" & todate2 & "' AND (remarks LIKE 'TDS From%' OR remarks LIKE 'TDSREFUND%')))),0)  + NVL((SELECT NVL(sum(AMOUNT),0) FROM DEPTRAN WHERE glcode=m.GLCODE AND accno=m.ACCNO AND EFFECTIVEDATE BETWEEN '" & frmdate2 & "' AND '" & todate2 & "' AND remarks LIKE 'Excess Int Rev To GL%' and AMOUNT<0 AND branchcode=m.BRANCHCODE),0)) Q2amt, (SELECT NVL(SUM(ABS(b.AMOUNT)),0) FROM TDSDTLS b WHERE b.APPLICATIONDATE BETWEEN '" & frmdate2 & "' AND '" & todate2 & "' AND b.REFUNDYN='N' AND b.amount IS NOT NULL AND b.accno=m.accno AND b.glcode=m.glcode AND b.branchcode=m.branchcode) T2amt, (  NVL((SELECT SUM(ABS(E.AMOUNT)) FROM DEPTRAN E WHERE E.CHQFVG = 'DEPIP' AND E.ACCNO=m.ACCNO AND E.GLCODE=m.GLCODE AND E.MODULEID='DEP' AND E.BRANCHCODE=m.BRANCHCODE AND E.applicationdate between '" & frmdate3 & "' AND '" & todate3 & "' AND (E.branchcode,E.glcode,E.accno,E.batchno,E.tranno) NOT IN (SELECT branchcode,glcode,accno,batchno,tranno FROM DEPTRAN C1 WHERE C1.ACCNO=E.ACCNO AND C1.GLCODE=E.GLCODE AND C1.BRANCHCODE=E.BRANCHCODE AND C1.CURRENCYCODE=E.CURRENCYCODE AND C1.MODULEID='DEP' AND C1.APPLICATIONDATE BETWEEN '" & frmdate3 & "' AND '" & todate3 & "'  AND (C1.remarks LIKE 'TDS From%' OR C1.remarks LIKE 'TDSREFUND%') AND C1.APPLICATIONDATE = (SELECT MAX(applicationdate) FROM DEPTRAN C2 WHERE C2.ACCNO=C1.ACCNO AND C2.GLCODE=C1.GLCODE AND C2.BRANCHCODE=C1.BRANCHCODE AND C2.CURRENCYCODE=C1.CURRENCYCODE AND  C2.MODULEID='DEP' AND C2.APPLICATIONDATE BETWEEN '" & frmdate3 & "' AND '" & todate3 & "' AND (remarks LIKE 'TDS From%' OR remarks LIKE 'TDSREFUND%')))),0)   + NVL((SELECT NVL(sum(AMOUNT),0) FROM DEPTRAN WHERE glcode=m.GLCODE AND accno=m.ACCNO AND EFFECTIVEDATE BETWEEN '" & frmdate3 & "' AND '" & todate3 & "' AND remarks LIKE 'Excess Int Rev To GL%' and AMOUNT<0 AND branchcode=m.BRANCHCODE),0)) Q3amt, (SELECT NVL(SUM(ABS(b.AMOUNT)),0) FROM TDSDTLS b WHERE b.APPLICATIONDATE BETWEEN '" & frmdate3 & "' AND '" & todate3 & "' AND b.REFUNDYN='N' AND b.amount IS NOT NULL AND b.accno=m.accno AND b.glcode=m.glcode AND b.branchcode=m.branchcode) T3amt, (  NVL((SELECT SUM(ABS(E.AMOUNT)) FROM DEPTRAN E WHERE E.CHQFVG = 'DEPIP' AND E.ACCNO=m.ACCNO AND E.GLCODE=m.GLCODE AND E.MODULEID='DEP' AND E.BRANCHCODE=m.BRANCHCODE AND E.applicationdate between '" & frmdate4 & "' AND '" & todate4 & "' AND (E.branchcode,E.glcode,E.accno,E.batchno,E.tranno) NOT IN (SELECT branchcode,glcode,accno,batchno,tranno FROM DEPTRAN C1 WHERE C1.ACCNO=E.ACCNO AND C1.GLCODE=E.GLCODE AND C1.BRANCHCODE=E.BRANCHCODE AND C1.CURRENCYCODE=E.CURRENCYCODE AND C1.MODULEID='DEP' AND C1.APPLICATIONDATE BETWEEN '" & frmdate4 & "' AND '" & todate4 & "'  AND (C1.remarks LIKE 'TDS From%' OR C1.remarks LIKE 'TDSREFUND%') AND C1.APPLICATIONDATE = (SELECT MAX(applicationdate) FROM DEPTRAN C2 WHERE C2.ACCNO=C1.ACCNO AND C2.GLCODE=C1.GLCODE AND C2.BRANCHCODE=C1.BRANCHCODE AND C2.CURRENCYCODE=C1.CURRENCYCODE AND  C2.MODULEID='DEP' AND C2.APPLICATIONDATE BETWEEN '" & frmdate4 & "' AND '" & todate4 & "' AND (remarks LIKE 'TDS From%' OR remarks LIKE 'TDSREFUND%')))),0)  + NVL((SELECT NVL(sum(AMOUNT),0) FROM DEPTRAN WHERE glcode=m.GLCODE AND accno=m.ACCNO AND EFFECTIVEDATE BETWEEN '" & frmdate4 & "' AND '" & todate4 & "' AND remarks LIKE 'Excess Int Rev To GL%' and AMOUNT<0 AND branchcode=m.BRANCHCODE),0)) Q4amt, (SELECT NVL(SUM(ABS(b.AMOUNT)),0) FROM TDSDTLS b WHERE b.APPLICATIONDATE BETWEEN '" & frmdate4 & "' AND '" & todate4 & "' AND b.REFUNDYN='N' AND b.amount IS NOT NULL AND b.accno=m.accno AND b.glcode=m.glcode AND b.branchcode=m.branchcode) T4amt, (case when m.TDSYN = 'Y' then 'TDS' when m.NONTDS = 'Y' then 'NONTDS' when  m.EXMPFORMSRECYN = 'Y' then '15H' when m.FORMS15G = 'Y' then '15G' end ) flag  FROM DEPMST M WHERE  m.glcode='" & resDtls1(0).value & "' and (m.closedate is null or m.closedate >= '" & frmdate & "') and m.EFFDATE  <=  '" & todate4 & "' " & strArr(3) & "  " & stCond & " GROUP BY m.branchcode,m.glcode,m.accno,M.name,M.CUSTOMERID,(CASE WHEN m.TDSYN = 'Y' THEN 'TDS' WHEN m.NONTDS = 'Y' THEN 'NONTDS' WHEN  m.EXMPFORMSRECYN = 'Y' THEN '15H' WHEN m.FORMS15G = 'Y' THEN '15G' END )) x where ((x.Q1amt + x.Q2amt + x.Q3amt + x.Q4amt) > 0 ) ORDER BY TO_NUMBER(x.glcode),TO_NUMBER(x.accno) "
+
+
+//        end if
+
+
+//        end if  ''((rs(0).value = "N" and rs(1).value = "N" and rs(2).value = "N") or(rs(0).value<> "N" and rs(1).value = "Y" and rs(2).value = "N") or(rs(0).value<> "N" and rs(1).value = "N" and rs(2).value = "Y"))
+		
+//		rsmain = obj.SingleSelectStat(sqlStr)
+
+
+//        if obj.ConnError = "Connected" then
+
+//            if not rsmain.BOF and not rsmain.EOF then
+
+//                do until rsmain.EOF
+
+
+//                    if strArr(6) = "0" then
+
+//                        if strArr(3) = "" then
+
+//                        '	strResult=strResult & rsmain(1).value & "~" & rsmain(2).value & "~" & rsmain(3).value & "~" & iif(rsmain(4).value >0, rsmain(4).value,0) & "~" & rsmain(5).value & "~" & iif(rsmain(6).value>0,rsmain(6).value,0) & "~" & rsmain(7).value & "~" & iif(rsmain(8).value>0,rsmain(8).value,0) & "~" & rsmain(9).value & "~" & iif(rsmain(10).value>0,rsmain(10).value,0) & "~" & rsmain(11).value  & "~" & rsmain(12).value & "|"
+
+//                            strResult = strResult & rsmain(1).value & "~" & rsmain(2).value & "~" & rsmain(3).value & "~" & rsmain(4).value & "~" & rsmain(5).value & "~" & rsmain(6).value & "~" & rsmain(7).value & "~" & rsmain(8).value & "~" & rsmain(9).value & "~" & rsmain(10).value & "~" & rsmain(11).value & "~" & rsmain(12).value & "|"
+
+
+//                        else
+//                '	strResult=strResult & rsmain(3).value & "~" & iif(rsmain(4).value >0, rsmain(4).value,0) & "~" & rsmain(5).value & "~" & iif(rsmain(6).value>0,rsmain(6).value,0) & "~" & rsmain(7).value & "~" & iif(rsmain(8).value>0,rsmain(8).value,0) & "~" & rsmain(9).value & "~" & iif(rsmain(10).value>0,rsmain(10).value,0) & "~" & rsmain(11).value  & "~" & rsmain(12).value & "|"
+
+//                            strResult = strResult & rsmain(3).value & "~" & rsmain(4).value & "~" & rsmain(5).value & "~" & rsmain(6).value & "~" & rsmain(7).value & "~" & rsmain(8).value & "~" & rsmain(9).value & "~" & rsmain(10).value & "~" & rsmain(11).value & "~" & rsmain(12).value & "|"
+
+//                        end if
+
+//                    else
+//                        if strArr(3) = "" then
+
+//                        '	strResult=strResult & rsmain(0).value & "~" & rsmain(1).value & "~" & rsmain(2).value & "~" & rsmain(3).value & "~" & iif(rsmain(4).value >0, rsmain(4).value,0) & "~" & rsmain(5).value & "~" & iif(rsmain(6).value>0,rsmain(6).value,0) & "~" & rsmain(7).value & "~" & iif(rsmain(8).value>0,rsmain(8).value,0) & "~" & rsmain(9).value & "~" & iif(rsmain(10).value>0,rsmain(10).value,0) & "~" & rsmain(11).value  & "~" & rsmain(12).value & "|"
+
+//                strResult = strResult & rsmain(0).value & "~" & rsmain(1).value & "~" & rsmain(2).value & "~" & rsmain(3).value & "~" & rsmain(4).value & "~" & rsmain(5).value & "~" & rsmain(6).value & "~" & rsmain(7).value & "~" & rsmain(8).value & "~" & rsmain(9).value & "~" & rsmain(10).value & "~" & rsmain(11).value & "~" & rsmain(12).value & "|"
+
+//                        else
+//                '	strResult=strResult & rsmain(0).value & "~" & rsmain(3).value & "~" & iif(rsmain(4).value >0, rsmain(4).value,0) & "~" & rsmain(5).value & "~" & iif(rsmain(6).value>0,rsmain(6).value,0) & "~" & rsmain(7).value & "~" & iif(rsmain(8).value>0,rsmain(8).value,0) & "~" & rsmain(9).value & "~" & iif(rsmain(10).value>0,rsmain(10).value,0) & "~" & rsmain(11).value  & "~" & rsmain(12).value & "|"
+
+//                            strResult = strResult & rsmain(0).value & "~" & rsmain(3).value & "~" & rsmain(4).value & "~" & rsmain(5).value & "~" & rsmain(6).value & "~" & rsmain(7).value & "~" & rsmain(8).value & "~" & rsmain(9).value & "~" & rsmain(10).value & "~" & rsmain(11).value & "~" & rsmain(12).value & "|"
+
+
+//                        end if
+
+//                    end if
+
+
+
+//                    rsmain.movenext()
+
+//                loop
+
+//            '	strResult=mid(strResult,1,strResult.length-1)
+
+
+//            end if
+
+//        end if
+
+
+//resDtls1.movenext
+//loop
+//end if
+
+//        if strResult.length > 1 then
+//        strResult = mid(strResult, 1, strResult.length - 1)
+
+//        end if
+
+//        rsmain = nothing
+
+//    elseif strArr(0)= "FRMANUALCUST" then
+//    strResult = ""
+
+
+//        dim rschk
+
+//        Dim frmdate
+
+//        Dim strmon
+
+//        Dim stryear, stYer, stMnth, stCond
+
+
+//        dim todatetemp
+//        strmon = Month(Session("applicationdate"))
+//        stryear = Year(Session("applicationdate"))
+//        frmdate = Format(CDate(strArr(4)), "dd-MMM-yyyy")
+//        stYer = Year(strArr(4))
+//        stMnth = Month(strArr(4))
+
+
+//        if (stYer = stryear) and(stMnth > 3) then
+
+//            If strmon <= 3 Then
+
+//                ''frmdate = Format(CDate("01-Apr-" & stryear - 1), "dd-MMM-yyyy")
+
+//                frmdate1 = Format(CDate("01-APR-" & stryear - 1), "dd-MMM-yyyy")
+
+//                todate1 = Format(CDate("30-JUN-" & stryear - 1), "dd-MMM-yyyy")
+
+
+//                frmdate2 = Format(CDate("01-JUL-" & stryear - 1), "dd-MMM-yyyy")
+
+//                todate2 = Format(CDate("30-SEP-" & stryear - 1), "dd-MMM-yyyy")
+
+//                frmdate3 = Format(CDate("01-OCT-" & stryear - 1), "dd-MMM-yyyy")
+
+//                todate3 = Format(CDate("31-DEC-" & stryear - 1), "dd-MMM-yyyy")
+
+//                frmdate4 = Format(CDate("01-JAN-" & stryear), "dd-MMM-yyyy")
+
+//                todate4 = Format(CDate("31-MAR-" & stryear), "dd-MMM-yyyy")
+
+//            Else
+
+//                ''frmdate = Format(CDate("01-Apr-" & stryear), "dd-MMM-yyyy")
+
+//                frmdate1 = Format(CDate("01-APR-" & stryear), "dd-MMM-yyyy")
+
+//                todate1 = Format(CDate("30-JUN-" & stryear), "dd-MMM-yyyy")
+
+
+//                frmdate2 = Format(CDate("01-JUL-" & stryear), "dd-MMM-yyyy")
+
+//                todate2 = Format(CDate("30-SEP-" & stryear), "dd-MMM-yyyy")
+
+//                frmdate3 = Format(CDate("01-OCT-" & stryear), "dd-MMM-yyyy")
+
+//                todate3 = Format(CDate("31-DEC-" & stryear), "dd-MMM-yyyy")
+
+//                frmdate4 = Format(CDate("01-JAN-" & stryear + 1), "dd-MMM-yyyy")
+
+//                todate4 = Format(CDate("31-MAR-" & stryear + 1), "dd-MMM-yyyy")
+
+//            End If ''strmon <= 3
+
+
+//        else
+
+//                If stMnth <= 3 Then
+
+//                ''frmdate = Format(CDate("01-Apr-" & stryear - 1), "dd-MMM-yyyy")
+
+//                frmdate1 = Format(CDate("01-APR-" & stYer - 1), "dd-MMM-yyyy")
+
+//                todate1 = Format(CDate("30-JUN-" & stYer - 1), "dd-MMM-yyyy")
+
+
+//                frmdate2 = Format(CDate("01-JUL-" & stYer - 1), "dd-MMM-yyyy")
+
+//                todate2 = Format(CDate("30-SEP-" & stYer - 1), "dd-MMM-yyyy")
+
+//                frmdate3 = Format(CDate("01-OCT-" & stYer - 1), "dd-MMM-yyyy")
+
+//                todate3 = Format(CDate("31-DEC-" & stYer - 1), "dd-MMM-yyyy")
+
+//                frmdate4 = Format(CDate("01-JAN-" & stYer), "dd-MMM-yyyy")
+
+//                todate4 = Format(CDate("31-MAR-" & stYer), "dd-MMM-yyyy")
+
+//            Else
+
+//                ''frmdate = Format(CDate("01-Apr-" & stryear), "dd-MMM-yyyy")
+
+//                frmdate1 = Format(CDate("01-APR-" & stYer), "dd-MMM-yyyy")
+
+//                todate1 = Format(CDate("30-JUN-" & stYer), "dd-MMM-yyyy")
+
+
+//                frmdate2 = Format(CDate("01-JUL-" & stYer), "dd-MMM-yyyy")
+
+//                todate2 = Format(CDate("30-SEP-" & stYer), "dd-MMM-yyyy")
+
+//                frmdate3 = Format(CDate("01-OCT-" & stYer), "dd-MMM-yyyy")
+
+//                todate3 = Format(CDate("31-DEC-" & stYer), "dd-MMM-yyyy")
+
+//                frmdate4 = Format(CDate("01-JAN-" & stYer + 1), "dd-MMM-yyyy")
+
+//                todate4 = Format(CDate("31-MAR-" & stYer + 1), "dd-MMM-yyyy")
+
+//            End If ''strmon <= 3
+
+
+//        end if
+//        todate1_1 = Format(cdate(dateadd("d", -1, cdate(todate1))), "dd-MMM-yyyy")
+//        todate2_1 = Format(cdate(dateadd("d", -1, cdate(todate2))), "dd-MMM-yyyy")
+//        todate3_1 = Format(cdate(dateadd("d", -1, cdate(todate3))), "dd-MMM-yyyy")
+//        todate4_1 = Format(cdate(dateadd("d", -1, cdate(todate4))), "dd-MMM-yyyy")
+
+
+//        rsmain = Server.CreateObject("adodb.recordset")
+
+//        rschk = Server.CreateObject("adodb.recordset")
+
+//        rschk1 = Server.CreateObject("adodb.recordset")
+
+
+//        obj = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+
+
+//        sqlstr = ""
+
+//        sqlstr1 = "SELECT distinct glcode FROM DEPMST m  WHERE glcode != '104270' " & strArr(3) & " and  currencycode =  'INR' ORDER BY TO_NUMBER(glcode)"
+
+
+//resDtls1 = obj.SingleSelectStat(sqlstr1)
+//if resDtls1.recordcount > 0 then
+//do until resDtls1.eof
+
+//rs = objctr.singlerecordset("DEPTYPEMST", "INTCOMPOUNDYN, COMPINTACCRREVSEYN, INSTSYN", "glcode='" & resDtls1(0).value & "'")
+
+
+//    '	INTCOMPOUNDYN, COMPINTACCRREVSEYN, INSTSYN
+
+//    '			'N' 		AND 'N'			AND 'N' -- SIMPLE     DEPINTACCRUEDDTLS
+
+//    '			<>'N' 		AND 'Y' 		AND 'N' -- COMPOUND   DEPINTACCRUEDDTLS 
+
+//    '			<>'N' 		AND 'N' 		AND 'Y' -- COMPOUND   DEPINTACCRUEDDTLS
+
+//    '			<>'N' 		AND 'N' 		AND 'N' -- COMPOUND   DEPTRAN
+
+
+//    if ((rs(0).value = "N" and rs(1).value = "N" and rs(2).value = "N" ) or(rs(0).value<> "N" and rs(1).value = "Y" and rs(2).value = "N") or(rs(0).value<> "N" and rs(1).value = "N" and rs(2).value = "Y")) then
+
+
+//        if strArr(6) = "0" then
+
+//            sqlstr = " select x.branchcode, x.GLCODE, x.ACCNO, x.name, x.CUSTOMERID, x.Q1amt,x.T1amt, x.Q2amt,x.T2amt, x.Q3amt,x.T3amt, x.Q4amt,x.T4amt,x.flag,(select panno from gencustinfomst where rownum = 1 and  customerid = x.CUSTOMERID) panno from  (SELECT m.branchcode, m.GLCODE, m.ACCNO, SUBSTR(M.name,1,35) name, M.CUSTOMERID, (NVL((SELECT SUM(ABS(INTAMOUNT)) FROM DEPINTACCRUEDDTLS WHERE  ACCNO = m.ACCNO AND GLCODE = m.GLCODE AND INTAMOUNT > 0 AND MODULEID = 'DEP'  AND APPLICATIONDATE  BETWEEN '" & frmdate1 & "' AND  '" & todate1 & "' AND BRANCHCODE = m.BRANCHCODE  AND (branchcode,glcode,accno,batchno,tranno) NOT IN (SELECT branchcode,glcode,accno,batchno,tranno FROM DEPINTACCRUEDDTLS WHERE ACCNO=m.ACCNO AND GLCODE=m.GLCODE AND BRANCHCODE=m.BRANCHCODE AND INTAMOUNT>0 AND  MODULEID='DEP' AND APPLICATIONDATE BETWEEN  '" & frmdate1 & "' AND  '" & todate1 & "'  AND (remarks LIKE 'TDS From%' OR remarks LIKE 'TDSREFUND%') AND '" & todate1 & "' = (SELECT MAX(applicationdate) FROM DEPINTACCRUEDDTLS WHERE ACCNO=m.ACCNO AND GLCODE=m.GLCODE AND BRANCHCODE=m.BRANCHCODE AND INTAMOUNT>0  AND MODULEID='DEP' AND APPLICATIONDATE BETWEEN '" & frmdate1 & "' AND  '" & todate1_1 & "' AND (remarks LIKE 'TDS From%' OR remarks LIKE 'TDSREFUND%')) )),0)  + NVL((SELECT SUM(intamount) FROM DEPINTACCRUEDDTLS WHERE accno = m.accno AND glcode = m.glcode AND branchcode =    m.branchcode  AND NVL(TRANSFERTODEP , applicationdate) BETWEEN '" & frmdate1 & "' AND  '" & todate1 & "' AND (REMARKS LIKE 'Excess Interest Adjusted%'  OR REMARKS LIKE 'Excess Int Rev To GL%')),0)  - NVL((SELECT SUM(intamount) FROM DEPINTACCRUEDDTLS WHERE accno = m.accno AND glcode = m.glcode AND branchcode = m.branchcode   and intamount > 0 AND NVL(TRANSFERTODEP , applicationdate) BETWEEN '" & frmdate1 & "' AND  '" & todate1 & "' AND (REMARKS LIKE 'Excess Interest Adjusted%'  OR REMARKS LIKE 'Excess Int Rev From%')),0)) Q1amt, (SELECT NVL(SUM(ABS(b.AMOUNT)),0) FROM TDSDTLS b WHERE b.APPLICATIONDATE BETWEEN '" & frmdate1 & "' AND '" & todate1 & "' AND b.REFUNDYN='N' AND b.amount IS NOT NULL AND b.accno=m.accno AND b.glcode=m.glcode AND b.branchcode=m.branchcode) T1amt, (NVL((SELECT SUM(ABS(INTAMOUNT)) FROM DEPINTACCRUEDDTLS WHERE  ACCNO = m.ACCNO AND GLCODE = m.GLCODE AND INTAMOUNT > 0 AND MODULEID = 'DEP' AND APPLICATIONDATE  BETWEEN '" & frmdate2 & "' AND  '" & todate2 & "' AND BRANCHCODE = m.BRANCHCODE  AND (branchcode,glcode,accno,batchno,tranno) NOT IN (SELECT branchcode,glcode,accno,batchno,tranno FROM DEPINTACCRUEDDTLS WHERE ACCNO=m.ACCNO AND GLCODE=m.GLCODE AND  BRANCHCODE=m.BRANCHCODE AND INTAMOUNT>0 AND  MODULEID='DEP' AND APPLICATIONDATE BETWEEN  '" & frmdate2 & "' AND  '" & todate2 & "'  AND (remarks LIKE 'TDS From%' OR remarks LIKE 'TDSREFUND%') AND '" & todate2 & "' = (SELECT MAX(applicationdate) FROM DEPINTACCRUEDDTLS WHERE ACCNO=m.ACCNO AND GLCODE=m.GLCODE AND BRANCHCODE=m.BRANCHCODE AND INTAMOUNT>0  AND MODULEID='DEP' AND APPLICATIONDATE BETWEEN '" & frmdate2 & "' AND  '" & todate2_1 & "' AND (remarks LIKE 'TDS From%' OR remarks LIKE 'TDSREFUND%')) )),0)  + NVL((SELECT SUM(intamount) FROM DEPINTACCRUEDDTLS WHERE accno = m.accno AND glcode = m.glcode AND branchcode = m.branchcode  AND NVL(TRANSFERTODEP , applicationdate) BETWEEN '" & frmdate2 & "' AND  '" & todate2 & "' AND (REMARKS LIKE 'Excess Interest Adjusted%'  OR REMARKS LIKE 'Excess Int Rev To GL%')),0)  - NVL((SELECT SUM(intamount) FROM DEPINTACCRUEDDTLS WHERE accno = m.accno AND glcode = m.glcode AND branchcode = m.branchcode   and intamount > 0 AND NVL(TRANSFERTODEP , applicationdate) BETWEEN '" & frmdate2 & "' AND  '" & todate2 & "' AND (REMARKS LIKE 'Excess Interest Adjusted%'  OR REMARKS LIKE 'Excess Int Rev From%')),0)) Q2amt, (SELECT NVL(SUM(ABS(b.AMOUNT)),0) FROM TDSDTLS b WHERE b.APPLICATIONDATE BETWEEN '" & frmdate2 & "' AND '" & todate2 & "' AND b.REFUNDYN='N' AND b.amount IS NOT NULL AND b.accno=m.accno AND b.glcode=m.glcode AND b.branchcode=m.branchcode) T2amt, (NVL((SELECT SUM(ABS(INTAMOUNT)) FROM DEPINTACCRUEDDTLS WHERE  ACCNO = m.ACCNO AND GLCODE = m.GLCODE AND INTAMOUNT > 0 AND MODULEID = 'DEP' AND APPLICATIONDATE  BETWEEN '" & frmdate3 & "' AND  '" & todate3 & "' AND BRANCHCODE = m.BRANCHCODE  AND (branchcode,glcode,accno,batchno,tranno) NOT IN (SELECT branchcode,glcode,accno,batchno,tranno FROM DEPINTACCRUEDDTLS WHERE ACCNO=m.ACCNO AND GLCODE=m.GLCODE AND BRANCHCODE=m.BRANCHCODE AND INTAMOUNT>0 AND  MODULEID='DEP' AND APPLICATIONDATE BETWEEN  '" & frmdate3 & "' AND  '" & todate3 & "'  AND (remarks LIKE 'TDS From%' OR remarks LIKE 'TDSREFUND%') AND '" & todate3 & "' = (SELECT MAX(applicationdate) FROM DEPINTACCRUEDDTLS WHERE ACCNO=m.ACCNO AND GLCODE=m.GLCODE AND BRANCHCODE=m.BRANCHCODE AND INTAMOUNT>0  AND MODULEID='DEP' AND APPLICATIONDATE BETWEEN '" & frmdate3 & "' AND  '" & todate3_1 & "' AND (remarks LIKE 'TDS From%' OR remarks LIKE 'TDSREFUND%')) )),0)  + NVL((SELECT SUM(intamount) FROM DEPINTACCRUEDDTLS WHERE accno = m.accno AND glcode = m.glcode AND branchcode = m.branchcode  AND NVL(TRANSFERTODEP , applicationdate) BETWEEN '" & frmdate3 & "' AND  '" & todate3 & "' AND (REMARKS LIKE 'Excess Interest Adjusted%'  OR REMARKS LIKE 'Excess Int Rev To GL%')),0)  - NVL((SELECT SUM(intamount) FROM DEPINTACCRUEDDTLS WHERE accno = m.accno AND glcode = m.glcode AND branchcode = m.branchcode   and intamount > 0 AND NVL(TRANSFERTODEP , applicationdate) BETWEEN '" & frmdate3 & "' AND  '" & todate3 & "' AND (REMARKS LIKE 'Excess Interest Adjusted%'  OR REMARKS LIKE 'Excess Int Rev From%')),0)) Q3amt, (SELECT NVL(SUM(ABS(b.AMOUNT)),0) FROM TDSDTLS b WHERE b.APPLICATIONDATE BETWEEN '" & frmdate3 & "' AND '" & todate3 & "' AND b.REFUNDYN='N' AND b.amount IS NOT NULL AND b.accno=m.accno AND b.glcode=m.glcode AND b.branchcode=m.branchcode) T3amt, (NVL((SELECT SUM(ABS(INTAMOUNT)) FROM DEPINTACCRUEDDTLS WHERE  ACCNO = m.ACCNO AND GLCODE = m.GLCODE AND INTAMOUNT > 0 AND MODULEID = 'DEP' AND APPLICATIONDATE  BETWEEN '" & frmdate4 & "' AND  '" & todate4 & "' AND BRANCHCODE = m.BRANCHCODE  AND (branchcode,glcode,accno,batchno,tranno) NOT IN (SELECT branchcode,glcode,accno,batchno,tranno FROM DEPINTACCRUEDDTLS WHERE ACCNO=m.ACCNO AND GLCODE=m.GLCODE AND BRANCHCODE=m.BRANCHCODE AND INTAMOUNT>0 AND  MODULEID='DEP' AND APPLICATIONDATE BETWEEN  '" & frmdate4 & "' AND  '" & todate4 & "'  AND (remarks LIKE 'TDS From%' OR remarks LIKE 'TDSREFUND%') AND '" & todate4 & "' = (SELECT MAX(applicationdate) FROM DEPINTACCRUEDDTLS WHERE ACCNO=m.ACCNO AND GLCODE=m.GLCODE AND BRANCHCODE=m.BRANCHCODE AND INTAMOUNT>0  AND MODULEID='DEP' AND APPLICATIONDATE BETWEEN '" & frmdate4 & "' AND  '" & todate4_1 & "' AND (remarks LIKE 'TDS From%' OR remarks LIKE 'TDSREFUND%')) )),0) - NVL((SELECT NVL(SUM(intamount),0) intamount FROM DEPINTACCRUEDDTLS WHERE ACCNO = m.ACCNO AND GLCODE = m.GLCODE AND BRANCHCODE = m.BRANCHCODE AND INTAMOUNT>0 AND MODULEID='DEP' AND APPLICATIONDATE = '" & todate4 & "' AND (remarks LIKE 'TDS From%')),0) + NVL((SELECT SUM(intamount) FROM DEPINTACCRUEDDTLS WHERE accno = m.accno AND glcode = m.glcode AND branchcode = m.branchcode  AND NVL(TRANSFERTODEP , applicationdate) BETWEEN '" & frmdate4 & "' AND  '" & todate4 & "' AND (REMARKS LIKE 'Excess Interest Adjusted%'  OR REMARKS LIKE 'Excess Int Rev To GL%')),0)   - NVL((SELECT SUM(intamount) FROM DEPINTACCRUEDDTLS WHERE accno = m.accno AND glcode = m.glcode AND branchcode = m.branchcode   and intamount > 0 AND NVL(TRANSFERTODEP , applicationdate) BETWEEN '" & frmdate4 & "' AND  '" & todate4 & "' AND (REMARKS LIKE 'Excess Interest Adjusted%'  OR REMARKS LIKE 'Excess Int Rev From%')),0)) Q4amt, (SELECT NVL(SUM(ABS(b.AMOUNT)),0) FROM TDSDTLS b WHERE b.APPLICATIONDATE BETWEEN '" & frmdate4 & "' AND '" & todate4 & "' AND b.REFUNDYN='N' AND b.amount IS NOT NULL AND b.accno=m.accno AND b.glcode=m.glcode AND b.branchcode=m.branchcode) T4amt, (case when m.TDSYN = 'Y' then 'TDS' when m.NONTDS = 'Y' then 'NONTDS' when  m.EXMPFORMSRECYN = 'Y' then '15H' when m.FORMS15G = 'Y' then '15G' end ) flag  FROM  DEPMST M WHERE  m.glcode='" & resDtls1(0).value & "' and m.EFFDATE <=  '" & todate4 & "' AND (m.closedate is null or m.closedate >= '" & frmdate & "')  " & strArr(3) & "  AND M.branchcode='" & strArr(1) & "' GROUP BY m.branchcode,m.glcode,m.accno,M.name,M.CUSTOMERID,(CASE WHEN m.TDSYN = 'Y' THEN 'TDS' WHEN m.NONTDS = 'Y' THEN 'NONTDS' WHEN  m.EXMPFORMSRECYN = 'Y' THEN '15H' WHEN m.FORMS15G = 'Y' THEN '15G' END )) x where ((x.Q1amt + x.Q2amt + x.Q3amt + x.Q4amt) > 0 ) ORDER BY TO_NUMBER(x.CUSTOMERID) "
+
+
+//        else
+
+//            if strArr(3) = "" then
+//                stCond = " AND M.customerid IN (SELECT customerid FROM gencustinfomst WHERE branchcode='" & strArr(1) & "') "
+
+//            else
+//                stCond = ""
+
+//            end if
+
+
+//        sqlstr = " select x.branchcode, x.GLCODE, x.ACCNO, x.name, x.CUSTOMERID, x.Q1amt,x.T1amt, x.Q2amt,x.T2amt, x.Q3amt,x.T3amt, x.Q4amt,x.T4amt,x.flag,(select panno from gencustinfomst where rownum = 1 and  customerid = x.CUSTOMERID) panno  from  ( SELECT m.branchcode, m.GLCODE, m.ACCNO, SUBSTR(M.name,1,35) name , M.CUSTOMERID, (NVL((SELECT SUM(ABS(INTAMOUNT)) FROM DEPINTACCRUEDDTLS WHERE  ACCNO = m.ACCNO AND GLCODE = m.GLCODE AND INTAMOUNT > 0 AND MODULEID = 'DEP'  AND APPLICATIONDATE  BETWEEN '" & frmdate1 & "' AND  '" & todate1 & "' AND BRANCHCODE = m.BRANCHCODE  AND (branchcode,glcode,accno,batchno,tranno) NOT IN (SELECT branchcode,glcode,accno,batchno,tranno FROM DEPINTACCRUEDDTLS WHERE ACCNO=m.ACCNO AND GLCODE=m.GLCODE AND BRANCHCODE=m.BRANCHCODE AND INTAMOUNT>0 AND  MODULEID='DEP' AND APPLICATIONDATE BETWEEN  '" & frmdate1 & "' AND  '" & todate1 & "'  AND (remarks LIKE 'TDS From%' OR remarks LIKE 'TDSREFUND%') AND '" & todate1 & "' = (SELECT MAX(applicationdate) FROM DEPINTACCRUEDDTLS WHERE ACCNO=m.ACCNO AND GLCODE=m.GLCODE AND BRANCHCODE=m.BRANCHCODE AND INTAMOUNT>0  AND MODULEID='DEP' AND APPLICATIONDATE BETWEEN '" & frmdate1 & "' AND  '" & todate1_1 & "' AND (remarks LIKE 'TDS From%' OR remarks LIKE 'TDSREFUND%')) )),0)  + NVL((SELECT SUM(intamount) FROM DEPINTACCRUEDDTLS WHERE accno = m.accno AND glcode = m.glcode AND branchcode =    m.branchcode  AND NVL(TRANSFERTODEP , applicationdate) BETWEEN '" & frmdate1 & "' AND  '" & todate1 & "' AND (REMARKS LIKE 'Excess Interest Adjusted%'  OR REMARKS LIKE 'Excess Int Rev To GL%')),0)   - NVL((SELECT SUM(intamount) FROM DEPINTACCRUEDDTLS WHERE accno = m.accno AND glcode = m.glcode AND branchcode = m.branchcode   and intamount > 0 AND NVL(TRANSFERTODEP , applicationdate) BETWEEN '" & frmdate1 & "' AND  '" & todate1 & "' AND (REMARKS LIKE 'Excess Interest Adjusted%'  OR REMARKS LIKE 'Excess Int Rev From%')),0)) Q1amt, (SELECT NVL(SUM(ABS(b.AMOUNT)),0) FROM TDSDTLS b WHERE b.APPLICATIONDATE BETWEEN '" & frmdate1 & "' AND '" & todate1 & "' AND b.REFUNDYN='N' AND b.amount IS NOT NULL AND b.accno=m.accno AND b.glcode=m.glcode AND b.branchcode=m.branchcode) T1amt, (NVL((SELECT SUM(ABS(INTAMOUNT)) FROM DEPINTACCRUEDDTLS WHERE  ACCNO = m.ACCNO AND GLCODE = m.GLCODE AND INTAMOUNT > 0 AND MODULEID = 'DEP' AND APPLICATIONDATE  BETWEEN '" & frmdate2 & "' AND  '" & todate2 & "' AND BRANCHCODE = m.BRANCHCODE  AND (branchcode,glcode,accno,batchno,tranno) NOT IN (SELECT branchcode,glcode,accno,batchno,tranno FROM DEPINTACCRUEDDTLS WHERE ACCNO=m.ACCNO AND GLCODE=m.GLCODE AND  BRANCHCODE=m.BRANCHCODE AND INTAMOUNT>0 AND  MODULEID='DEP' AND APPLICATIONDATE BETWEEN  '" & frmdate2 & "' AND  '" & todate2 & "'  AND (remarks LIKE 'TDS From%' OR remarks LIKE 'TDSREFUND%') AND '" & todate2 & "' = (SELECT MAX(applicationdate) FROM DEPINTACCRUEDDTLS WHERE ACCNO=m.ACCNO AND GLCODE=m.GLCODE AND BRANCHCODE=m.BRANCHCODE AND INTAMOUNT>0  AND MODULEID='DEP' AND APPLICATIONDATE BETWEEN '" & frmdate2 & "' AND  '" & todate2_1 & "' AND (remarks LIKE 'TDS From%' OR remarks LIKE 'TDSREFUND%')) )),0)  + NVL((SELECT SUM(intamount) FROM DEPINTACCRUEDDTLS WHERE accno = m.accno AND glcode = m.glcode AND branchcode = m.branchcode  AND NVL(TRANSFERTODEP , applicationdate) BETWEEN '" & frmdate2 & "' AND  '" & todate2 & "' AND (REMARKS LIKE 'Excess Interest Adjusted%'  OR REMARKS LIKE 'Excess Int Rev To GL%')),0)  - NVL((SELECT SUM(intamount) FROM DEPINTACCRUEDDTLS WHERE accno = m.accno AND glcode = m.glcode AND branchcode = m.branchcode   and intamount > 0 AND NVL(TRANSFERTODEP , applicationdate) BETWEEN '" & frmdate2 & "' AND  '" & todate2 & "' AND (REMARKS LIKE 'Excess Interest Adjusted%'  OR REMARKS LIKE 'Excess Int Rev From%')),0)) Q2amt, (SELECT NVL(SUM(ABS(b.AMOUNT)),0) FROM TDSDTLS b WHERE b.APPLICATIONDATE BETWEEN '" & frmdate2 & "' AND '" & todate2 & "' AND b.REFUNDYN='N' AND b.amount IS NOT NULL AND b.accno=m.accno AND b.glcode=m.glcode AND b.branchcode=m.branchcode) T2amt, (NVL((SELECT SUM(ABS(INTAMOUNT)) FROM DEPINTACCRUEDDTLS WHERE  ACCNO = m.ACCNO AND GLCODE = m.GLCODE AND INTAMOUNT > 0 AND MODULEID = 'DEP' AND APPLICATIONDATE  BETWEEN '" & frmdate3 & "' AND  '" & todate3 & "' AND BRANCHCODE = m.BRANCHCODE  AND (branchcode,glcode,accno,batchno,tranno) NOT IN (SELECT branchcode,glcode,accno,batchno,tranno FROM DEPINTACCRUEDDTLS WHERE ACCNO=m.ACCNO AND GLCODE=m.GLCODE AND BRANCHCODE=m.BRANCHCODE AND INTAMOUNT>0 AND  MODULEID='DEP' AND APPLICATIONDATE BETWEEN  '" & frmdate3 & "' AND  '" & todate3 & "'  AND (remarks LIKE 'TDS From%' OR remarks LIKE 'TDSREFUND%') AND '" & todate3 & "' = (SELECT MAX(applicationdate) FROM DEPINTACCRUEDDTLS WHERE ACCNO=m.ACCNO AND GLCODE=m.GLCODE AND BRANCHCODE=m.BRANCHCODE AND INTAMOUNT>0  AND MODULEID='DEP' AND APPLICATIONDATE BETWEEN '" & frmdate3 & "' AND  '" & todate3_1 & "' AND (remarks LIKE 'TDS From%' OR remarks LIKE 'TDSREFUND%')) )),0)  + NVL((SELECT SUM(intamount) FROM DEPINTACCRUEDDTLS WHERE accno = m.accno AND glcode = m.glcode AND branchcode = m.branchcode  AND NVL(TRANSFERTODEP , applicationdate) BETWEEN '" & frmdate3 & "' AND  '" & todate3 & "' AND (REMARKS LIKE 'Excess Interest Adjusted%'  OR REMARKS LIKE 'Excess Int Rev To GL%')),0)  - NVL((SELECT SUM(intamount) FROM DEPINTACCRUEDDTLS WHERE accno = m.accno AND glcode = m.glcode AND branchcode = m.branchcode   and intamount > 0 AND NVL(TRANSFERTODEP , applicationdate) BETWEEN '" & frmdate3 & "' AND  '" & todate3 & "' AND (REMARKS LIKE 'Excess Interest Adjusted%'  OR REMARKS LIKE 'Excess Int Rev From%')),0)) Q3amt, (SELECT NVL(SUM(ABS(b.AMOUNT)),0) FROM TDSDTLS b WHERE b.APPLICATIONDATE BETWEEN '" & frmdate3 & "' AND '" & todate3 & "' AND b.REFUNDYN='N' AND b.amount IS NOT NULL AND b.accno=m.accno AND b.glcode=m.glcode AND b.branchcode=m.branchcode) T3amt, (NVL((SELECT SUM(ABS(INTAMOUNT)) FROM DEPINTACCRUEDDTLS WHERE  ACCNO = m.ACCNO AND GLCODE = m.GLCODE AND INTAMOUNT > 0 AND MODULEID = 'DEP' AND APPLICATIONDATE  BETWEEN '" & frmdate4 & "' AND  '" & todate4 & "' AND BRANCHCODE = m.BRANCHCODE  AND (branchcode,glcode,accno,batchno,tranno) NOT IN (SELECT branchcode,glcode,accno,batchno,tranno FROM DEPINTACCRUEDDTLS WHERE ACCNO=m.ACCNO AND GLCODE=m.GLCODE AND BRANCHCODE=m.BRANCHCODE AND INTAMOUNT>0 AND  MODULEID='DEP' AND APPLICATIONDATE BETWEEN  '" & frmdate4 & "' AND  '" & todate4 & "'  AND (remarks LIKE 'TDS From%' OR remarks LIKE 'TDSREFUND%') AND '" & todate4 & "' = (SELECT MAX(applicationdate) FROM DEPINTACCRUEDDTLS WHERE ACCNO=m.ACCNO AND GLCODE=m.GLCODE AND BRANCHCODE=m.BRANCHCODE AND INTAMOUNT>0  AND MODULEID='DEP' AND APPLICATIONDATE BETWEEN '" & frmdate4 & "' AND  '" & todate4_1 & "' AND (remarks LIKE 'TDS From%' OR remarks LIKE 'TDSREFUND%')) )),0) - NVL((SELECT NVL(SUM(intamount),0) intamount FROM DEPINTACCRUEDDTLS WHERE ACCNO = m.ACCNO AND GLCODE = m.GLCODE AND BRANCHCODE = m.BRANCHCODE AND INTAMOUNT>0 AND MODULEID='DEP' AND APPLICATIONDATE = '" & todate4 & "' AND (remarks LIKE 'TDS From%')),0) + NVL((SELECT SUM(intamount) FROM DEPINTACCRUEDDTLS WHERE accno = m.accno AND glcode = m.glcode AND branchcode = m.branchcode  AND NVL(TRANSFERTODEP , applicationdate) BETWEEN '" & frmdate4 & "' AND  '" & todate4 & "' AND (REMARKS LIKE 'Excess Interest Adjusted%'  OR REMARKS LIKE 'Excess Int Rev To GL%')),0)  - NVL((SELECT SUM(intamount) FROM DEPINTACCRUEDDTLS WHERE accno = m.accno AND glcode = m.glcode AND branchcode = m.branchcode   and intamount > 0 AND NVL(TRANSFERTODEP , applicationdate) BETWEEN '" & frmdate4 & "' AND  '" & todate4 & "' AND (REMARKS LIKE 'Excess Interest Adjusted%'  OR REMARKS LIKE 'Excess Int Rev From%')),0)) Q4amt, (SELECT NVL(SUM(ABS(b.AMOUNT)),0) FROM TDSDTLS b WHERE b.APPLICATIONDATE BETWEEN '" & frmdate4 & "' AND '" & todate4 & "' AND b.REFUNDYN='N' AND b.amount IS NOT NULL AND b.accno=m.accno AND b.glcode=m.glcode AND b.branchcode=m.branchcode) T4amt, (CASE WHEN m.TDSYN = 'Y' THEN 'TDS' WHEN m.NONTDS = 'Y' THEN 'NONTDS' WHEN  m.EXMPFORMSRECYN = 'Y' THEN '15H' WHEN m.FORMS15G = 'Y' THEN '15G' END ) flag  FROM DEPMST M WHERE m.glcode='" & resDtls1(0).value & "' and  m.EFFDATE  <=  '" & todate4 & "' AND (m.closedate IS NULL OR m.closedate >= '" & frmdate & "')   " & strArr(3) & " " & stCond & "  GROUP BY m.branchcode,m.glcode,m.accno,M.name,M.CUSTOMERID,(CASE WHEN m.TDSYN = 'Y' THEN 'TDS' WHEN m.NONTDS = 'Y' THEN 'NONTDS' WHEN  m.EXMPFORMSRECYN = 'Y' THEN '15H' WHEN m.FORMS15G = 'Y' THEN '15G' END )) x where ((x.Q1amt + x.Q2amt + x.Q3amt + x.Q4amt) > 0 ) ORDER BY TO_NUMBER(x.CUSTOMERID) "
+
+//        end if
+
+
+//        else
+
+//        if strArr(6) = "0" then
+
+//            sqlstr = " select x.branchcode, x.GLCODE, x.ACCNO, x.name, x.CUSTOMERID, x.Q1amt,x.T1amt, x.Q2amt,x.T2amt, x.Q3amt,x.T3amt, x.Q4amt,x.T4amt,x.flag,(select panno from gencustinfomst where rownum = 1 and  customerid = x.CUSTOMERID) panno  from  (SELECT m.branchcode, m.GLCODE, m.ACCNO, SUBSTR(M.name,1,35) name, M.CUSTOMERID, (  NVL((SELECT SUM(ABS(E.AMOUNT)) FROM DEPTRAN E WHERE E.CHQFVG = 'DEPIP' AND E.ACCNO=m.ACCNO AND E.GLCODE=m.GLCODE AND E.MODULEID='DEP' AND E.BRANCHCODE=m.BRANCHCODE  AND E.applicationdate between '" & frmdate1 & "' AND '" & todate1 & "' AND (E.branchcode,E.glcode,E.accno,E.batchno,E.tranno) NOT IN (SELECT branchcode,glcode,accno,batchno,tranno FROM DEPTRAN C1 WHERE C1.ACCNO=E.ACCNO AND C1.GLCODE=E.GLCODE AND C1.BRANCHCODE=E.BRANCHCODE AND C1.CURRENCYCODE=E.CURRENCYCODE AND C1.MODULEID='DEP' AND C1.APPLICATIONDATE BETWEEN '" & frmdate1 & "' AND '" & todate1 & "'  AND (C1.remarks LIKE 'TDS From%' OR C1.remarks LIKE 'TDSREFUND%') AND C1.APPLICATIONDATE = (SELECT MAX(applicationdate) FROM DEPTRAN C2 WHERE C2.ACCNO=C1.ACCNO AND C2.GLCODE=C1.GLCODE AND C2.BRANCHCODE=C1.BRANCHCODE AND C2.CURRENCYCODE=C1.CURRENCYCODE AND  C2.MODULEID='DEP' AND C2.APPLICATIONDATE BETWEEN '" & frmdate1 & "' AND '" & todate1 & "' AND (remarks LIKE 'TDS From%' OR remarks LIKE 'TDSREFUND%')))),0)   + NVL((SELECT NVL(sum(AMOUNT),0) FROM DEPTRAN WHERE glcode=m.GLCODE AND accno=m.ACCNO AND EFFECTIVEDATE BETWEEN '" & frmdate1 & "' AND '" & todate1 & "' AND remarks LIKE 'Excess Int Rev To GL%' and AMOUNT<0 AND branchcode=m.BRANCHCODE),0)) Q1amt, (SELECT NVL(SUM(ABS(b.AMOUNT)),0) FROM TDSDTLS b WHERE b.APPLICATIONDATE BETWEEN '" & frmdate1 & "' AND '" & todate1 & "' AND b.REFUNDYN='N' AND b.amount IS NOT NULL AND b.accno=m.accno AND b.glcode=m.glcode AND b.branchcode=m.branchcode) T1amt, (  NVL((SELECT SUM(ABS(E.AMOUNT)) FROM DEPTRAN E WHERE E.CHQFVG = 'DEPIP' AND E.ACCNO=m.ACCNO AND E.GLCODE=m.GLCODE AND E.MODULEID='DEP' AND E.BRANCHCODE=m.BRANCHCODE AND E.applicationdate between '" & frmdate2 & "' AND '" & todate2 & "' AND (E.branchcode,E.glcode,E.accno,E.batchno,E.tranno) NOT IN (SELECT branchcode,glcode,accno,batchno,tranno FROM DEPTRAN C1 WHERE C1.ACCNO=E.ACCNO AND C1.GLCODE=E.GLCODE AND C1.BRANCHCODE=E.BRANCHCODE AND C1.CURRENCYCODE=E.CURRENCYCODE AND C1.MODULEID='DEP' AND C1.APPLICATIONDATE BETWEEN '" & frmdate2 & "' AND '" & todate2 & "'  AND (C1.remarks LIKE 'TDS From%' OR C1.remarks LIKE 'TDSREFUND%') AND C1.APPLICATIONDATE = (SELECT MAX(applicationdate) FROM DEPTRAN C2 WHERE C2.ACCNO=C1.ACCNO AND C2.GLCODE=C1.GLCODE AND C2.BRANCHCODE=C1.BRANCHCODE AND C2.CURRENCYCODE=C1.CURRENCYCODE AND  C2.MODULEID='DEP' AND C2.APPLICATIONDATE BETWEEN '" & frmdate2 & "' AND '" & todate2 & "' AND (remarks LIKE 'TDS From%' OR remarks LIKE 'TDSREFUND%')))),0)  + NVL((SELECT NVL(sum(AMOUNT),0) FROM DEPTRAN WHERE glcode=m.GLCODE AND accno=m.ACCNO AND EFFECTIVEDATE BETWEEN '" & frmdate2 & "' AND '" & todate2 & "' AND remarks LIKE 'Excess Int Rev To GL%' and AMOUNT<0 AND branchcode=m.BRANCHCODE),0)) Q2amt, (SELECT NVL(SUM(ABS(b.AMOUNT)),0) FROM TDSDTLS b WHERE b.APPLICATIONDATE BETWEEN '" & frmdate2 & "' AND '" & todate2 & "' AND b.REFUNDYN='N' AND b.amount IS NOT NULL AND b.accno=m.accno AND b.glcode=m.glcode AND b.branchcode=m.branchcode) T2amt, (  NVL((SELECT SUM(ABS(E.AMOUNT)) FROM DEPTRAN E WHERE E.CHQFVG = 'DEPIP' AND E.ACCNO=m.ACCNO AND E.GLCODE=m.GLCODE AND E.MODULEID='DEP' AND E.BRANCHCODE=m.BRANCHCODE AND E.applicationdate between '" & frmdate3 & "' AND '" & todate3 & "' AND (E.branchcode,E.glcode,E.accno,E.batchno,E.tranno) NOT IN (SELECT branchcode,glcode,accno,batchno,tranno FROM DEPTRAN C1 WHERE C1.ACCNO=E.ACCNO AND C1.GLCODE=E.GLCODE AND C1.BRANCHCODE=E.BRANCHCODE AND C1.CURRENCYCODE=E.CURRENCYCODE AND C1.MODULEID='DEP' AND C1.APPLICATIONDATE BETWEEN '" & frmdate3 & "' AND '" & todate3 & "'  AND (C1.remarks LIKE 'TDS From%' OR C1.remarks LIKE 'TDSREFUND%') AND C1.APPLICATIONDATE = (SELECT MAX(applicationdate) FROM DEPTRAN C2 WHERE C2.ACCNO=C1.ACCNO AND C2.GLCODE=C1.GLCODE AND C2.BRANCHCODE=C1.BRANCHCODE AND C2.CURRENCYCODE=C1.CURRENCYCODE AND  C2.MODULEID='DEP' AND C2.APPLICATIONDATE BETWEEN '" & frmdate3 & "' AND '" & todate3 & "' AND (remarks LIKE 'TDS From%' OR remarks LIKE 'TDSREFUND%')))),0)   + NVL((SELECT NVL(sum(AMOUNT),0) FROM DEPTRAN WHERE glcode=m.GLCODE AND accno=m.ACCNO AND EFFECTIVEDATE BETWEEN '" & frmdate3 & "' AND '" & todate3 & "' AND remarks LIKE 'Excess Int Rev To GL%' and AMOUNT<0 AND branchcode=m.BRANCHCODE),0)) Q3amt, (SELECT NVL(SUM(ABS(b.AMOUNT)),0) FROM TDSDTLS b WHERE b.APPLICATIONDATE BETWEEN '" & frmdate3 & "' AND '" & todate3 & "' AND b.REFUNDYN='N' AND b.amount IS NOT NULL AND b.accno=m.accno AND b.glcode=m.glcode AND b.branchcode=m.branchcode) T3amt, (  NVL((SELECT SUM(ABS(E.AMOUNT)) FROM DEPTRAN E WHERE E.CHQFVG = 'DEPIP' AND E.ACCNO=m.ACCNO AND E.GLCODE=m.GLCODE AND E.MODULEID='DEP' AND E.BRANCHCODE=m.BRANCHCODE AND E.applicationdate between '" & frmdate4 & "' AND '" & todate4 & "' AND (E.branchcode,E.glcode,E.accno,E.batchno,E.tranno) NOT IN (SELECT branchcode,glcode,accno,batchno,tranno FROM DEPTRAN C1 WHERE C1.ACCNO=E.ACCNO AND C1.GLCODE=E.GLCODE AND C1.BRANCHCODE=E.BRANCHCODE AND C1.CURRENCYCODE=E.CURRENCYCODE AND C1.MODULEID='DEP' AND C1.APPLICATIONDATE BETWEEN '" & frmdate4 & "' AND '" & todate4 & "'  AND (C1.remarks LIKE 'TDS From%' OR C1.remarks LIKE 'TDSREFUND%') AND C1.APPLICATIONDATE = (SELECT MAX(applicationdate) FROM DEPTRAN C2 WHERE C2.ACCNO=C1.ACCNO AND C2.GLCODE=C1.GLCODE AND C2.BRANCHCODE=C1.BRANCHCODE AND C2.CURRENCYCODE=C1.CURRENCYCODE AND  C2.MODULEID='DEP' AND C2.APPLICATIONDATE BETWEEN '" & frmdate4 & "' AND '" & todate4 & "' AND (remarks LIKE 'TDS From%' OR remarks LIKE 'TDSREFUND%')))),0)  + NVL((SELECT NVL(sum(AMOUNT),0) FROM DEPTRAN WHERE glcode=m.GLCODE AND accno=m.ACCNO AND EFFECTIVEDATE BETWEEN '" & frmdate4 & "' AND '" & todate4 & "' AND remarks LIKE 'Excess Int Rev To GL%' and AMOUNT<0 AND branchcode=m.BRANCHCODE),0)) Q4amt, (SELECT NVL(SUM(ABS(b.AMOUNT)),0) FROM TDSDTLS b WHERE b.APPLICATIONDATE BETWEEN '" & frmdate4 & "' AND '" & todate4 & "' AND b.REFUNDYN='N' AND b.amount IS NOT NULL AND b.accno=m.accno AND b.glcode=m.glcode AND b.branchcode=m.branchcode) T4amt,(case when m.TDSYN = 'Y' then 'TDS' when m.NONTDS = 'Y' then 'NONTDS' when  m.EXMPFORMSRECYN = 'Y' then '15H' when m.FORMS15G = 'Y' then '15G' end ) flag  FROM  DEPMST M WHERE  m.glcode='" & resDtls1(0).value & "' and m.EFFDATE  <=  '" & todate4 & "' AND (m.closedate IS NULL OR m.closedate >= '" & frmdate & "')   " & strArr(3) & "  AND M.branchcode='" & strArr(1) & "' GROUP BY m.branchcode,m.glcode,m.accno,M.name,M.CUSTOMERID,(case when m.TDSYN = 'Y' then 'TDS' when m.NONTDS = 'Y' then 'NONTDS' when  m.EXMPFORMSRECYN = 'Y' then '15H' when m.FORMS15G = 'Y' then '15G' end )) x where ((x.Q1amt + x.Q2amt + x.Q3amt + x.Q4amt) > 0 ) ORDER BY TO_NUMBER(x.CUSTOMERID) "
+
+//        else
+//            if strArr(3) = "" then
+//                stCond = " AND M.customerid IN (SELECT customerid FROM gencustinfomst WHERE branchcode='" & strArr(1) & "') "
+
+//            else
+//                    stCond = ""
+
+//            end if
+
+
+//            sqlstr = "select x.branchcode, x.GLCODE, x.ACCNO, x.name, x.CUSTOMERID, x.Q1amt,x.T1amt, x.Q2amt,x.T2amt, x.Q3amt,x.T3amt, x.Q4amt,x.T4amt,x.flag,(select panno from gencustinfomst where rownum = 1 and  customerid = x.CUSTOMERID) panno  from  ( SELECT m.branchcode, m.GLCODE, m.ACCNO, SUBSTR(M.name,1,35) name, M.CUSTOMERID, (  NVL((SELECT SUM(ABS(E.AMOUNT)) FROM DEPTRAN E WHERE E.CHQFVG = 'DEPIP' AND E.ACCNO=m.ACCNO AND E.GLCODE=m.GLCODE AND E.MODULEID='DEP' AND E.BRANCHCODE=m.BRANCHCODE  AND E.applicationdate between '" & frmdate1 & "' AND '" & todate1 & "' AND (E.branchcode,E.glcode,E.accno,E.batchno,E.tranno) NOT IN (SELECT branchcode,glcode,accno,batchno,tranno FROM DEPTRAN C1 WHERE C1.ACCNO=E.ACCNO AND C1.GLCODE=E.GLCODE AND C1.BRANCHCODE=E.BRANCHCODE AND C1.CURRENCYCODE=E.CURRENCYCODE AND C1.MODULEID='DEP' AND C1.APPLICATIONDATE BETWEEN '" & frmdate1 & "' AND '" & todate1 & "'  AND (C1.remarks LIKE 'TDS From%' OR C1.remarks LIKE 'TDSREFUND%') AND C1.APPLICATIONDATE = (SELECT MAX(applicationdate) FROM DEPTRAN C2 WHERE C2.ACCNO=C1.ACCNO AND C2.GLCODE=C1.GLCODE AND C2.BRANCHCODE=C1.BRANCHCODE AND C2.CURRENCYCODE=C1.CURRENCYCODE AND  C2.MODULEID='DEP' AND C2.APPLICATIONDATE BETWEEN '" & frmdate1 & "' AND '" & todate1 & "' AND (remarks LIKE 'TDS From%' OR remarks LIKE 'TDSREFUND%')))),0)   + NVL((SELECT NVL(sum(AMOUNT),0) FROM DEPTRAN WHERE glcode=m.GLCODE AND accno=m.ACCNO AND EFFECTIVEDATE BETWEEN '" & frmdate1 & "' AND '" & todate1 & "' AND remarks LIKE 'Excess Int Rev To GL%' and AMOUNT<0 AND branchcode=m.BRANCHCODE),0)) Q1amt, (SELECT NVL(SUM(ABS(b.AMOUNT)),0) FROM TDSDTLS b WHERE b.APPLICATIONDATE BETWEEN '" & frmdate1 & "' AND '" & todate1 & "' AND b.REFUNDYN='N' AND b.amount IS NOT NULL AND b.accno=m.accno AND b.glcode=m.glcode AND b.branchcode=m.branchcode) T1amt, (  NVL((SELECT SUM(ABS(E.AMOUNT)) FROM DEPTRAN E WHERE E.CHQFVG = 'DEPIP' AND E.ACCNO=m.ACCNO AND E.GLCODE=m.GLCODE AND E.MODULEID='DEP' AND E.BRANCHCODE=m.BRANCHCODE AND E.applicationdate between '" & frmdate2 & "' AND '" & todate2 & "' AND (E.branchcode,E.glcode,E.accno,E.batchno,E.tranno) NOT IN (SELECT branchcode,glcode,accno,batchno,tranno FROM DEPTRAN C1 WHERE C1.ACCNO=E.ACCNO AND C1.GLCODE=E.GLCODE AND C1.BRANCHCODE=E.BRANCHCODE AND C1.CURRENCYCODE=E.CURRENCYCODE AND C1.MODULEID='DEP' AND C1.APPLICATIONDATE BETWEEN '" & frmdate2 & "' AND '" & todate2 & "'  AND (C1.remarks LIKE 'TDS From%' OR C1.remarks LIKE 'TDSREFUND%') AND C1.APPLICATIONDATE = (SELECT MAX(applicationdate) FROM DEPTRAN C2 WHERE C2.ACCNO=C1.ACCNO AND C2.GLCODE=C1.GLCODE AND C2.BRANCHCODE=C1.BRANCHCODE AND C2.CURRENCYCODE=C1.CURRENCYCODE AND  C2.MODULEID='DEP' AND C2.APPLICATIONDATE BETWEEN '" & frmdate2 & "' AND '" & todate2 & "' AND (remarks LIKE 'TDS From%' OR remarks LIKE 'TDSREFUND%')))),0)  + NVL((SELECT NVL(sum(AMOUNT),0) FROM DEPTRAN WHERE glcode=m.GLCODE AND accno=m.ACCNO AND EFFECTIVEDATE BETWEEN '" & frmdate2 & "' AND '" & todate2 & "' AND remarks LIKE 'Excess Int Rev To GL%' and AMOUNT<0 AND branchcode=m.BRANCHCODE),0)) Q2amt, (SELECT NVL(SUM(ABS(b.AMOUNT)),0) FROM TDSDTLS b WHERE b.APPLICATIONDATE BETWEEN '" & frmdate2 & "' AND '" & todate2 & "' AND b.REFUNDYN='N' AND b.amount IS NOT NULL AND b.accno=m.accno AND b.glcode=m.glcode AND b.branchcode=m.branchcode) T2amt, (  NVL((SELECT SUM(ABS(E.AMOUNT)) FROM DEPTRAN E WHERE E.CHQFVG = 'DEPIP' AND E.ACCNO=m.ACCNO AND E.GLCODE=m.GLCODE AND E.MODULEID='DEP' AND E.BRANCHCODE=m.BRANCHCODE AND E.applicationdate between '" & frmdate3 & "' AND '" & todate3 & "' AND (E.branchcode,E.glcode,E.accno,E.batchno,E.tranno) NOT IN (SELECT branchcode,glcode,accno,batchno,tranno FROM DEPTRAN C1 WHERE C1.ACCNO=E.ACCNO AND C1.GLCODE=E.GLCODE AND C1.BRANCHCODE=E.BRANCHCODE AND C1.CURRENCYCODE=E.CURRENCYCODE AND C1.MODULEID='DEP' AND C1.APPLICATIONDATE BETWEEN '" & frmdate3 & "' AND '" & todate3 & "'  AND (C1.remarks LIKE 'TDS From%' OR C1.remarks LIKE 'TDSREFUND%') AND C1.APPLICATIONDATE = (SELECT MAX(applicationdate) FROM DEPTRAN C2 WHERE C2.ACCNO=C1.ACCNO AND C2.GLCODE=C1.GLCODE AND C2.BRANCHCODE=C1.BRANCHCODE AND C2.CURRENCYCODE=C1.CURRENCYCODE AND  C2.MODULEID='DEP' AND C2.APPLICATIONDATE BETWEEN '" & frmdate3 & "' AND '" & todate3 & "' AND (remarks LIKE 'TDS From%' OR remarks LIKE 'TDSREFUND%')))),0)   + NVL((SELECT NVL(sum(AMOUNT),0) FROM DEPTRAN WHERE glcode=m.GLCODE AND accno=m.ACCNO AND EFFECTIVEDATE BETWEEN '" & frmdate3 & "' AND '" & todate3 & "' AND remarks LIKE 'Excess Int Rev To GL%' and AMOUNT<0 AND branchcode=m.BRANCHCODE),0)) Q3amt, (SELECT NVL(SUM(ABS(b.AMOUNT)),0) FROM TDSDTLS b WHERE b.APPLICATIONDATE BETWEEN '" & frmdate3 & "' AND '" & todate3 & "' AND b.REFUNDYN='N' AND b.amount IS NOT NULL AND b.accno=m.accno AND b.glcode=m.glcode AND b.branchcode=m.branchcode) T3amt, (  NVL((SELECT SUM(ABS(E.AMOUNT)) FROM DEPTRAN E WHERE E.CHQFVG = 'DEPIP' AND E.ACCNO=m.ACCNO AND E.GLCODE=m.GLCODE AND E.MODULEID='DEP' AND E.BRANCHCODE=m.BRANCHCODE AND E.applicationdate between '" & frmdate4 & "' AND '" & todate4 & "' AND (E.branchcode,E.glcode,E.accno,E.batchno,E.tranno) NOT IN (SELECT branchcode,glcode,accno,batchno,tranno FROM DEPTRAN C1 WHERE C1.ACCNO=E.ACCNO AND C1.GLCODE=E.GLCODE AND C1.BRANCHCODE=E.BRANCHCODE AND C1.CURRENCYCODE=E.CURRENCYCODE AND C1.MODULEID='DEP' AND C1.APPLICATIONDATE BETWEEN '" & frmdate4 & "' AND '" & todate4 & "'  AND (C1.remarks LIKE 'TDS From%' OR C1.remarks LIKE 'TDSREFUND%') AND C1.APPLICATIONDATE = (SELECT MAX(applicationdate) FROM DEPTRAN C2 WHERE C2.ACCNO=C1.ACCNO AND C2.GLCODE=C1.GLCODE AND C2.BRANCHCODE=C1.BRANCHCODE AND C2.CURRENCYCODE=C1.CURRENCYCODE AND  C2.MODULEID='DEP' AND C2.APPLICATIONDATE BETWEEN '" & frmdate4 & "' AND '" & todate4 & "' AND (remarks LIKE 'TDS From%' OR remarks LIKE 'TDSREFUND%')))),0)  + NVL((SELECT NVL(sum(AMOUNT),0) FROM DEPTRAN WHERE glcode=m.GLCODE AND accno=m.ACCNO AND EFFECTIVEDATE BETWEEN '" & frmdate4 & "' AND '" & todate4 & "' AND remarks LIKE 'Excess Int Rev To GL%' and AMOUNT<0 AND branchcode=m.BRANCHCODE),0)) Q4amt, (SELECT NVL(SUM(ABS(b.AMOUNT)),0) FROM TDSDTLS b WHERE b.APPLICATIONDATE BETWEEN '" & frmdate4 & "' AND '" & todate4 & "' AND b.REFUNDYN='N' AND b.amount IS NOT NULL AND b.accno=m.accno AND b.glcode=m.glcode AND b.branchcode=m.branchcode) T4amt, (case when m.TDSYN = 'Y' then 'TDS' when m.NONTDS = 'Y' then 'NONTDS' when  m.EXMPFORMSRECYN = 'Y' then '15H' when m.FORMS15G = 'Y' then '15G' end ) flag  FROM DEPMST M WHERE  m.glcode='" & resDtls1(0).value & "' and  m.EFFDATE  <=  '" & todate4 & "' AND (m.closedate IS NULL OR m.closedate >= '" & frmdate & "')  " & strArr(3) & " " & stCond & " GROUP BY m.branchcode,m.glcode,m.accno,M.name,M.CUSTOMERID,(CASE WHEN m.TDSYN = 'Y' THEN 'TDS' WHEN m.NONTDS = 'Y' THEN 'NONTDS' WHEN  m.EXMPFORMSRECYN = 'Y' THEN '15H' WHEN m.FORMS15G = 'Y' THEN '15G' END )) x where ((x.Q1amt + x.Q2amt + x.Q3amt + x.Q4amt) > 0 ) ORDER BY TO_NUMBER(x.CUSTOMERID) "
+
+
+//        end if
+
+
+//        end if  ''((rs(0).value = "N" and rs(1).value = "N" and rs(2).value = "N") or(rs(0).value<> "N" and rs(1).value = "Y" and rs(2).value = "N") or(rs(0).value<> "N" and rs(1).value = "N" and rs(2).value = "Y"))
+//		rsmain = obj.SingleSelectStat(sqlStr)
+
+
+//        if obj.ConnError = "Connected" then
+
+//            if not rsmain.BOF and not rsmain.EOF then
+
+//                do until rsmain.EOF
+
+
+//                    if strArr(6) = "0" then
+
+//                        if strArr(3) = "" then
+
+//                        '	strResult=strResult & rsmain(1).value & "~" & rsmain(2).value & "~" & rsmain(3).value & "~" & rsmain(4).value & "~" & iif(rsmain(5).value>0,rsmain(5).value,0) & "~" & rsmain(6).value & "~" & iif(rsmain(7).value>0,rsmain(7).value,0) & "~" & rsmain(8).value & "~" & iif(rsmain(9).value>0,rsmain(9).value,0) & "~" & rsmain(10).value & "~" & iif(rsmain(11).value>0,rsmain(11).value,0) & "~" & iif(rsmain(12).value>0,rsmain(12).value,0) & "~" & rsmain(13).value  & "~" & rsmain(14).value   &"|"
+
+//                            strResult = strResult & rsmain(1).value & "~" & rsmain(2).value & "~" & rsmain(3).value & "~" & rsmain(4).value & "~" & rsmain(5).value & "~" & rsmain(6).value & "~" & rsmain(7).value & "~" & rsmain(8).value & "~" & rsmain(9).value & "~" & rsmain(10).value & "~" & rsmain(11).value & "~" & rsmain(12).value & "~" & rsmain(13).value & "~" & rsmain(14).value & "|"
+
+//                        else
+//                '	strResult=strResult & rsmain(1).value & "~" & rsmain(2).value & "~" & rsmain(3).value & "~" & iif(rsmain(5).value>0,rsmain(5).value,0) & "~" & rsmain(6).value & "~" & iif(rsmain(7).value>0,rsmain(7).value,0) & "~" & rsmain(8).value & "~" & iif(rsmain(9).value>0,rsmain(9).value,0) & "~" & rsmain(10).value & "~" & iif(rsmain(11).value>0,rsmain(11).value,0) & "~" & iif(rsmain(12).value>0,rsmain(12).value,0) & "~" & rsmain(13).value  & "~" & rsmain(14).value   &"|"
+
+//                            strResult = strResult & rsmain(1).value & "~" & rsmain(2).value & "~" & rsmain(3).value & "~" & rsmain(5).value & "~" & rsmain(6).value & "~" & rsmain(7).value & "~" & rsmain(8).value & "~" & rsmain(9).value & "~" & rsmain(10).value & "~" & rsmain(11).value & "~" & rsmain(12).value & "~" & rsmain(13).value & "~" & rsmain(14).value & "|"
+
+//                        end if
+
+//                    else
+//                        if strArr(3) = "" then
+
+//                        '	strResult=strResult & rsmain(0).value & "~" & rsmain(1).value & "~" & rsmain(2).value & "~" & rsmain(3).value & "~" & rsmain(4).value & "~" & iif(rsmain(5).value>0,rsmain(5).value,0) & "~" & rsmain(6).value & "~" & iif(rsmain(7).value>0,rsmain(7).value,0) & "~" & rsmain(8).value & "~" & iif(rsmain(9).value>0,rsmain(9).value,0) & "~" & rsmain(10).value & "~" & iif(rsmain(11).value>0,rsmain(11).value,0) & "~" & iif(rsmain(12).value>0,rsmain(12).value,0) & "~" & rsmain(13).value  & "~" & rsmain(14).value   &"|"
+
+//                            strResult = strResult & rsmain(0).value & "~" & rsmain(1).value & "~" & rsmain(2).value & "~" & rsmain(3).value & "~" & rsmain(4).value & "~" & rsmain(5).value & "~" & rsmain(6).value & "~" & rsmain(7).value & "~" & rsmain(8).value & "~" & rsmain(9).value & "~" & rsmain(10).value & "~" & rsmain(11).value & "~" & rsmain(12).value & "~" & rsmain(13).value & "~" & rsmain(14).value & "|"
+
+//                        else
+//                '	strResult=strResult & rsmain(0).value & "~" & rsmain(1).value & "~" & rsmain(2).value & "~" & rsmain(3).value & "~" & iif(rsmain(5).value>0,rsmain(5).value,0) & "~" & rsmain(6).value & "~" & iif(rsmain(7).value>0,rsmain(7).value,0) & "~" & rsmain(8).value & "~" & iif(rsmain(9).value>0,rsmain(9).value,0) & "~" & rsmain(10).value & "~" & iif(rsmain(11).value>0,rsmain(11).value,0) & "~" & iif(rsmain(12).value>0,rsmain(12).value,0) & "~" & rsmain(13).value  & "~" & rsmain(14).value   &"|"
+
+//                            strResult = strResult & rsmain(0).value & "~" & rsmain(1).value & "~" & rsmain(2).value & "~" & rsmain(3).value & "~" & rsmain(5).value & "~" & rsmain(6).value & "~" & rsmain(7).value & "~" & rsmain(8).value & "~" & rsmain(9).value & "~" & rsmain(10).value & "~" & rsmain(11).value & "~" & rsmain(12).value & "~" & rsmain(13).value & "~" & rsmain(14).value & "|"
+
+//                        end if
+
+//                    end if
+
+
+
+//                    rsmain.movenext()
+
+//                loop
+
+//                'strResult=mid(strResult,1,strResult.length-1)
+
+//            end if
+
+//        end if
+
+
+
+
+//resDtls1.movenext
+//loop
+//end if
+
+//        if strResult.length > 1 then
+//        strResult = mid(strResult, 1, strResult.length - 1)
+
+//        end if
+
+//        rsmain = nothing
+
+
+//    elseif strArr(0)= "FRMANUALPAN" then
+//    strResult = ""
+
+
+//        dim rschk
+
+//        Dim frmdate
+
+//        Dim strmon
+
+//        Dim stryear, stYer, stMnth, stCond
+
+//    '	dim frmdate1,todate1,frmdate2,todate2,frmdate3,todate3,frmdate4,todate4
+
+//        dim todatetemp
+//        strmon = Month(Session("applicationdate"))
+//        stryear = Year(Session("applicationdate"))
+
+
+//        stYer = Year(strArr(4))
+//        stMnth = Month(strArr(4))
+//         frmdate = Format(CDate(strArr(4)), "dd-MMM-yyyy")
+//        if (stYer = stryear) and(stMnth > 3) then
+
+//            If strmon <= 3 Then
+
+//                ''frmdate = Format(CDate("01-Apr-" & stryear - 1), "dd-MMM-yyyy")
+
+//                frmdate1 = Format(CDate("01-APR-" & stryear - 1), "dd-MMM-yyyy")
+
+//                todate1 = Format(CDate("30-JUN-" & stryear - 1), "dd-MMM-yyyy")
+
+//                frmdate2 = Format(CDate("01-JUL-" & stryear - 1), "dd-MMM-yyyy")
+
+//                todate2 = Format(CDate("30-SEP-" & stryear - 1), "dd-MMM-yyyy")
+
+//                frmdate3 = Format(CDate("01-OCT-" & stryear - 1), "dd-MMM-yyyy")
+
+//                todate3 = Format(CDate("31-DEC-" & stryear - 1), "dd-MMM-yyyy")
+
+//                frmdate4 = Format(CDate("01-JAN-" & stryear), "dd-MMM-yyyy")
+
+//                todate4 = Format(CDate("31-MAR-" & stryear), "dd-MMM-yyyy")
+
+//            Else
+
+//                ''frmdate = Format(CDate("01-Apr-" & stryear), "dd-MMM-yyyy")
+
+//                frmdate1 = Format(CDate("01-APR-" & stryear), "dd-MMM-yyyy")
+
+//                todate1 = Format(CDate("30-JUN-" & stryear), "dd-MMM-yyyy")
+
+//                frmdate2 = Format(CDate("01-JUL-" & stryear), "dd-MMM-yyyy")
+
+//                todate2 = Format(CDate("30-SEP-" & stryear), "dd-MMM-yyyy")
+
+//                frmdate3 = Format(CDate("01-OCT-" & stryear), "dd-MMM-yyyy")
+
+//                todate3 = Format(CDate("31-DEC-" & stryear), "dd-MMM-yyyy")
+
+//                frmdate4 = Format(CDate("01-JAN-" & stryear + 1), "dd-MMM-yyyy")
+
+//                todate4 = Format(CDate("31-MAR-" & stryear + 1), "dd-MMM-yyyy")
+
+//            End If ''strmon <= 3
+
+
+//        else
+
+//                If stMnth <= 3 Then
+
+//                ''frmdate = Format(CDate("01-Apr-" & stryear - 1), "dd-MMM-yyyy")
+
+//                frmdate1 = Format(CDate("01-APR-" & stYer - 1), "dd-MMM-yyyy")
+
+//                todate1 = Format(CDate("30-JUN-" & stYer - 1), "dd-MMM-yyyy")
+
+//                frmdate2 = Format(CDate("01-JUL-" & stYer - 1), "dd-MMM-yyyy")
+
+//                todate2 = Format(CDate("30-SEP-" & stYer - 1), "dd-MMM-yyyy")
+
+//                frmdate3 = Format(CDate("01-OCT-" & stYer - 1), "dd-MMM-yyyy")
+
+//                todate3 = Format(CDate("31-DEC-" & stYer - 1), "dd-MMM-yyyy")
+
+//                frmdate4 = Format(CDate("01-JAN-" & stYer), "dd-MMM-yyyy")
+
+//                todate4 = Format(CDate("31-MAR-" & stYer), "dd-MMM-yyyy")
+
+//            Else
+
+//                ''frmdate = Format(CDate("01-Apr-" & stryear), "dd-MMM-yyyy")
+
+//                frmdate1 = Format(CDate("01-APR-" & stYer), "dd-MMM-yyyy")
+
+//                todate1 = Format(CDate("30-JUN-" & stYer), "dd-MMM-yyyy")
+
+//                frmdate2 = Format(CDate("01-JUL-" & stYer), "dd-MMM-yyyy")
+
+//                todate2 = Format(CDate("30-SEP-" & stYer), "dd-MMM-yyyy")
+
+//                frmdate3 = Format(CDate("01-OCT-" & stYer), "dd-MMM-yyyy")
+
+//                todate3 = Format(CDate("31-DEC-" & stYer), "dd-MMM-yyyy")
+
+//                frmdate4 = Format(CDate("01-JAN-" & stYer + 1), "dd-MMM-yyyy")
+
+//                todate4 = Format(CDate("31-MAR-" & stYer + 1), "dd-MMM-yyyy")
+
+//            End If ''strmon <= 3
+//        end if
+//        todate1_1 = Format(cdate(dateadd("d", -1, cdate(todate1))), "dd-MMM-yyyy")
+//        todate2_1 = Format(cdate(dateadd("d", -1, cdate(todate2))), "dd-MMM-yyyy")
+//        todate3_1 = Format(cdate(dateadd("d", -1, cdate(todate3))), "dd-MMM-yyyy")
+//        todate4_1 = Format(cdate(dateadd("d", -1, cdate(todate4))), "dd-MMM-yyyy")
+
+
+//        rsmain = Server.CreateObject("adodb.recordset")
+
+//        rschk = Server.CreateObject("adodb.recordset")
+
+//        rschk1 = Server.CreateObject("adodb.recordset")
+
+
+//        obj = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+
+
+
+//            sqlstr = ""
+
+//        sqlstr1 = "SELECT distinct glcode FROM DEPMST m,gencustinfomst n   WHERE m.customerid = n.customerid and  glcode != '104270' " & strArr(3) & " and  m.currencycode =  'INR' ORDER BY TO_NUMBER(glcode)"
+
+
+//resDtls1 = obj.SingleSelectStat(sqlstr1)
+//if resDtls1.recordcount > 0 then
+//do until resDtls1.eof
+
+//rs = objctr.singlerecordset("DEPTYPEMST", "INTCOMPOUNDYN, COMPINTACCRREVSEYN, INSTSYN", "glcode='" & resDtls1(0).value & "'")
+
+
+//    '	INTCOMPOUNDYN, COMPINTACCRREVSEYN, INSTSYN
+
+//    '			'N' 		AND 'N'			AND 'N' -- SIMPLE     DEPINTACCRUEDDTLS
+
+//    '			<>'N' 		AND 'Y' 		AND 'N' -- COMPOUND   DEPINTACCRUEDDTLS 
+
+//    '			<>'N' 		AND 'N' 		AND 'Y' -- COMPOUND   DEPINTACCRUEDDTLS
+
+//    '			<>'N' 		AND 'N' 		AND 'N' -- COMPOUND   DEPTRAN
+
+
+//    if ((rs(0).value = "N" and rs(1).value = "N" and rs(2).value = "N" ) or(rs(0).value<> "N" and rs(1).value = "Y" and rs(2).value = "N") or(rs(0).value<> "N" and rs(1).value = "N" and rs(2).value = "Y")) then
+
+
+//        if strArr(6) = "0" then
+
+
+//            sqlstr = "select x.branchcode, x.GLCODE, x.ACCNO, x.name, x.PANNO, x.Q1amt,x.T1amt, x.Q2amt,x.T2amt, x.Q3amt,x.T3amt, x.Q4amt,x.T4amt,x.flag from  ( SELECT m.branchcode, m.GLCODE, m.ACCNO, SUBSTR(m.name,1,35) name, N.PANNO, (NVL((SELECT SUM(ABS(INTAMOUNT)) FROM DEPINTACCRUEDDTLS WHERE  ACCNO = m.ACCNO AND GLCODE = m.GLCODE AND INTAMOUNT > 0 AND MODULEID = 'DEP'  AND APPLICATIONDATE  BETWEEN '" & frmdate1 & "' AND  '" & todate1 & "' AND BRANCHCODE = m.BRANCHCODE  AND (branchcode,glcode,accno,batchno,tranno) NOT IN (SELECT branchcode,glcode,accno,batchno,tranno FROM DEPINTACCRUEDDTLS WHERE ACCNO=m.ACCNO AND GLCODE=m.GLCODE AND BRANCHCODE=m.BRANCHCODE AND INTAMOUNT>0 AND  MODULEID='DEP' AND APPLICATIONDATE BETWEEN  '" & frmdate1 & "' AND  '" & todate1 & "'  AND (remarks LIKE 'TDS From%' OR remarks LIKE 'TDSREFUND%') AND '" & todate1 & "' = (SELECT MAX(applicationdate) FROM DEPINTACCRUEDDTLS WHERE ACCNO=m.ACCNO AND GLCODE=m.GLCODE AND BRANCHCODE=m.BRANCHCODE AND INTAMOUNT>0  AND MODULEID='DEP' AND APPLICATIONDATE BETWEEN '" & frmdate1 & "' AND  '" & todate1_1 & "' AND (remarks LIKE 'TDS From%' OR remarks LIKE 'TDSREFUND%')) )),0)  + NVL((SELECT SUM(intamount) FROM DEPINTACCRUEDDTLS WHERE accno = m.accno AND glcode = m.glcode AND branchcode =    m.branchcode  AND NVL(TRANSFERTODEP , applicationdate) BETWEEN '" & frmdate1 & "' AND  '" & todate1 & "' AND (REMARKS LIKE 'Excess Interest Adjusted%'  OR REMARKS LIKE 'Excess Int Rev To GL%')),0)    - NVL((SELECT SUM(intamount) FROM DEPINTACCRUEDDTLS WHERE accno = m.accno AND glcode = m.glcode AND branchcode = m.branchcode   and intamount > 0 AND NVL(TRANSFERTODEP , applicationdate) BETWEEN '" & frmdate1 & "' AND  '" & todate1 & "' AND (REMARKS LIKE 'Excess Interest Adjusted%'  OR REMARKS LIKE 'Excess Int Rev From%')),0)) Q1amt, (SELECT NVL(SUM(ABS(b.AMOUNT)),0) FROM TDSDTLS b WHERE b.APPLICATIONDATE BETWEEN '" & frmdate1 & "' AND '" & todate1 & "' AND b.REFUNDYN='N' AND b.amount IS NOT NULL AND b.accno=m.accno AND b.glcode=m.glcode AND b.branchcode=m.branchcode) T1amt, (NVL((SELECT SUM(ABS(INTAMOUNT)) FROM DEPINTACCRUEDDTLS WHERE  ACCNO = m.ACCNO AND GLCODE = m.GLCODE AND INTAMOUNT > 0 AND MODULEID = 'DEP' AND APPLICATIONDATE  BETWEEN '" & frmdate2 & "' AND  '" & todate2 & "' AND BRANCHCODE = m.BRANCHCODE  AND (branchcode,glcode,accno,batchno,tranno) NOT IN (SELECT branchcode,glcode,accno,batchno,tranno FROM DEPINTACCRUEDDTLS WHERE ACCNO=m.ACCNO AND GLCODE=m.GLCODE AND  BRANCHCODE=m.BRANCHCODE AND INTAMOUNT>0 AND  MODULEID='DEP' AND APPLICATIONDATE BETWEEN  '" & frmdate2 & "' AND  '" & todate2 & "'  AND (remarks LIKE 'TDS From%' OR remarks LIKE 'TDSREFUND%') AND '" & todate2 & "' = (SELECT MAX(applicationdate) FROM DEPINTACCRUEDDTLS WHERE ACCNO=m.ACCNO AND GLCODE=m.GLCODE AND BRANCHCODE=m.BRANCHCODE AND INTAMOUNT>0  AND MODULEID='DEP' AND APPLICATIONDATE BETWEEN '" & frmdate2 & "' AND  '" & todate2_1 & "' AND (remarks LIKE 'TDS From%' OR remarks LIKE 'TDSREFUND%')) )),0)  + NVL((SELECT SUM(intamount) FROM DEPINTACCRUEDDTLS WHERE accno = m.accno AND glcode = m.glcode AND branchcode = m.branchcode  AND NVL(TRANSFERTODEP , applicationdate) BETWEEN '" & frmdate2 & "' AND  '" & todate2 & "' AND (REMARKS LIKE 'Excess Interest Adjusted%'  OR REMARKS LIKE 'Excess Int Rev To GL%')),0)   - NVL((SELECT SUM(intamount) FROM DEPINTACCRUEDDTLS WHERE accno = m.accno AND glcode = m.glcode AND branchcode = m.branchcode   and intamount > 0 AND NVL(TRANSFERTODEP , applicationdate) BETWEEN '" & frmdate2 & "' AND  '" & todate2 & "' AND (REMARKS LIKE 'Excess Interest Adjusted%'  OR REMARKS LIKE 'Excess Int Rev From%')),0)) Q2amt, (SELECT NVL(SUM(ABS(b.AMOUNT)),0) FROM TDSDTLS b WHERE b.APPLICATIONDATE BETWEEN '" & frmdate2 & "' AND '" & todate2 & "' AND b.REFUNDYN='N' AND b.amount IS NOT NULL AND b.accno=m.accno AND b.glcode=m.glcode AND b.branchcode=m.branchcode) T2amt, (NVL((SELECT SUM(ABS(INTAMOUNT)) FROM DEPINTACCRUEDDTLS WHERE  ACCNO = m.ACCNO AND GLCODE = m.GLCODE AND INTAMOUNT > 0 AND MODULEID = 'DEP' AND APPLICATIONDATE  BETWEEN '" & frmdate3 & "' AND  '" & todate3 & "' AND BRANCHCODE = m.BRANCHCODE  AND (branchcode,glcode,accno,batchno,tranno) NOT IN (SELECT branchcode,glcode,accno,batchno,tranno FROM DEPINTACCRUEDDTLS WHERE ACCNO=m.ACCNO AND GLCODE=m.GLCODE AND BRANCHCODE=m.BRANCHCODE AND INTAMOUNT>0 AND  MODULEID='DEP' AND APPLICATIONDATE BETWEEN  '" & frmdate3 & "' AND  '" & todate3 & "'  AND (remarks LIKE 'TDS From%' OR remarks LIKE 'TDSREFUND%') AND '" & todate3 & "' = (SELECT MAX(applicationdate) FROM DEPINTACCRUEDDTLS WHERE ACCNO=m.ACCNO AND GLCODE=m.GLCODE AND BRANCHCODE=m.BRANCHCODE AND INTAMOUNT>0  AND MODULEID='DEP' AND APPLICATIONDATE BETWEEN '" & frmdate3 & "' AND  '" & todate3_1 & "' AND (remarks LIKE 'TDS From%' OR remarks LIKE 'TDSREFUND%')) )),0)  + NVL((SELECT SUM(intamount) FROM DEPINTACCRUEDDTLS WHERE accno = m.accno AND glcode = m.glcode AND branchcode = m.branchcode  AND NVL(TRANSFERTODEP , applicationdate) BETWEEN '" & frmdate3 & "' AND  '" & todate3 & "' AND (REMARKS LIKE 'Excess Interest Adjusted%'  OR REMARKS LIKE 'Excess Int Rev To GL%')),0) - NVL((SELECT SUM(intamount) FROM DEPINTACCRUEDDTLS WHERE accno = m.accno AND glcode = m.glcode AND branchcode = m.branchcode   and intamount > 0 AND NVL(TRANSFERTODEP , applicationdate) BETWEEN '" & frmdate3 & "' AND  '" & todate3 & "' AND (REMARKS LIKE 'Excess Interest Adjusted%'  OR REMARKS LIKE 'Excess Int Rev From%')),0)) Q3amt, (SELECT NVL(SUM(ABS(b.AMOUNT)),0) FROM TDSDTLS b WHERE b.APPLICATIONDATE BETWEEN '" & frmdate3 & "' AND '" & todate3 & "' AND b.REFUNDYN='N' AND b.amount IS NOT NULL AND b.accno=m.accno AND b.glcode=m.glcode AND b.branchcode=m.branchcode) T3amt, (NVL((SELECT SUM(ABS(INTAMOUNT)) FROM DEPINTACCRUEDDTLS WHERE  ACCNO = m.ACCNO AND GLCODE = m.GLCODE AND INTAMOUNT > 0 AND MODULEID = 'DEP' AND APPLICATIONDATE  BETWEEN '" & frmdate4 & "' AND  '" & todate4 & "' AND BRANCHCODE = m.BRANCHCODE  AND (branchcode,glcode,accno,batchno,tranno) NOT IN (SELECT branchcode,glcode,accno,batchno,tranno FROM DEPINTACCRUEDDTLS WHERE ACCNO=m.ACCNO AND GLCODE=m.GLCODE AND BRANCHCODE=m.BRANCHCODE AND INTAMOUNT>0 AND  MODULEID='DEP' AND APPLICATIONDATE BETWEEN  '" & frmdate4 & "' AND  '" & todate4 & "'  AND (remarks LIKE 'TDS From%' OR remarks LIKE 'TDSREFUND%') AND '" & todate4 & "' = (SELECT MAX(applicationdate) FROM DEPINTACCRUEDDTLS WHERE ACCNO=m.ACCNO AND GLCODE=m.GLCODE AND BRANCHCODE=m.BRANCHCODE AND INTAMOUNT>0  AND MODULEID='DEP' AND APPLICATIONDATE BETWEEN '" & frmdate4 & "' AND  '" & todate4_1 & "' AND (remarks LIKE 'TDS From%' OR remarks LIKE 'TDSREFUND%')) )),0) - NVL((SELECT NVL(SUM(intamount),0) intamount FROM DEPINTACCRUEDDTLS WHERE ACCNO = m.ACCNO AND GLCODE = m.GLCODE AND BRANCHCODE = m.BRANCHCODE AND INTAMOUNT>0 AND MODULEID='DEP' AND APPLICATIONDATE = '" & todate4 & "' AND (remarks LIKE 'TDS From%')),0) + NVL((SELECT SUM(intamount) FROM DEPINTACCRUEDDTLS WHERE accno = m.accno AND glcode = m.glcode AND branchcode = m.branchcode  AND NVL(TRANSFERTODEP , applicationdate) BETWEEN '" & frmdate4 & "' AND  '" & todate4 & "' AND (REMARKS LIKE 'Excess Interest Adjusted%'  OR REMARKS LIKE 'Excess Int Rev To GL%')),0)  - NVL((SELECT SUM(intamount) FROM DEPINTACCRUEDDTLS WHERE accno = m.accno AND glcode = m.glcode AND branchcode = m.branchcode   and intamount > 0 AND NVL(TRANSFERTODEP , applicationdate) BETWEEN '" & frmdate4 & "' AND  '" & todate4 & "' AND (REMARKS LIKE 'Excess Interest Adjusted%'  OR REMARKS LIKE 'Excess Int Rev From%')),0)) Q4amt, (SELECT NVL(SUM(ABS(b.AMOUNT)),0) FROM TDSDTLS b WHERE b.APPLICATIONDATE BETWEEN '" & frmdate4 & "' AND '" & todate4 & "' AND b.REFUNDYN='N' AND b.amount IS NOT NULL AND b.accno=m.accno AND b.glcode=m.glcode AND b.branchcode=m.branchcode) T4amt,(case when m.TDSYN = 'Y' then 'TDS' when m.NONTDS = 'Y' then 'NONTDS' when  m.EXMPFORMSRECYN = 'Y' then '15H' when m.FORMS15G = 'Y' then '15G' end ) flag  FROM DEPMST M, GENCUSTINFOMST N WHERE M.glcode='" & resDtls1(0).value & "' AND m.EFFDATE  <=  '" & todate4 & "' AND (m.closedate IS NULL OR m.closedate >= '" & frmdate & "') and M.customerid=N.customerid AND N.KYCID='2' AND N.PANNO IS NOT NULL " & strArr(3) & " AND N.branchcode='" & strArr(1) & "' GROUP BY m.branchcode,m.glcode,m.accno,m.name,N.PANNO,(case when m.TDSYN = 'Y' then 'TDS' when m.NONTDS = 'Y' then 'NONTDS' when  m.EXMPFORMSRECYN = 'Y' then '15H' when m.FORMS15G = 'Y' then '15G' end )) x where ((x.Q1amt + x.Q2amt + x.Q3amt + x.Q4amt) > 0 )  ORDER BY TO_CHAR(x.PANNO),TO_NUMBER(x.glcode),TO_NUMBER(x.accno) "
+
+//        else
+
+//            if strArr(3) = "" then
+//                stCond = " AND N.customerid IN (SELECT customerid FROM gencustinfomst WHERE branchcode='" & strArr(1) & "') "
+
+//            else
+//                stCond = ""
+
+//            end if
+
+
+
+//        '
+
+
+//            sqlstr = "select x.branchcode, x.GLCODE, x.ACCNO, x.name, x.PANNO, x.Q1amt,x.T1amt, x.Q2amt,x.T2amt, x.Q3amt,x.T3amt, x.Q4amt,x.T4amt,x.flag from  ( SELECT m.branchcode, m.GLCODE, m.ACCNO, SUBSTR(m.name,1,35) name , N.PANNO, (NVL((SELECT SUM(ABS(INTAMOUNT)) FROM DEPINTACCRUEDDTLS WHERE  ACCNO = m.ACCNO AND GLCODE = m.GLCODE AND INTAMOUNT > 0 AND MODULEID = 'DEP'  AND APPLICATIONDATE  BETWEEN '" & frmdate1 & "' AND  '" & todate1 & "' AND BRANCHCODE = m.BRANCHCODE  AND (branchcode,glcode,accno,batchno,tranno) NOT IN (SELECT branchcode,glcode,accno,batchno,tranno FROM DEPINTACCRUEDDTLS WHERE ACCNO=m.ACCNO AND GLCODE=m.GLCODE AND BRANCHCODE=m.BRANCHCODE AND INTAMOUNT>0 AND  MODULEID='DEP' AND APPLICATIONDATE BETWEEN  '" & frmdate1 & "' AND  '" & todate1 & "'  AND (remarks LIKE 'TDS From%' OR remarks LIKE 'TDSREFUND%') AND '" & todate1 & "' = (SELECT MAX(applicationdate) FROM DEPINTACCRUEDDTLS WHERE ACCNO=m.ACCNO AND GLCODE=m.GLCODE AND BRANCHCODE=m.BRANCHCODE AND INTAMOUNT>0  AND MODULEID='DEP' AND APPLICATIONDATE BETWEEN '" & frmdate1 & "' AND  '" & todate1_1 & "' AND (remarks LIKE 'TDS From%' OR remarks LIKE 'TDSREFUND%')) )),0)  + NVL((SELECT SUM(intamount) FROM DEPINTACCRUEDDTLS WHERE accno = m.accno AND glcode = m.glcode AND branchcode =    m.branchcode  AND NVL(TRANSFERTODEP , applicationdate) BETWEEN '" & frmdate1 & "' AND  '" & todate1 & "' AND (REMARKS LIKE 'Excess Interest Adjusted%'  OR REMARKS LIKE 'Excess Int Rev To GL%')),0)  - NVL((SELECT SUM(intamount) FROM DEPINTACCRUEDDTLS WHERE accno = m.accno AND glcode = m.glcode AND branchcode = m.branchcode   and intamount > 0 AND NVL(TRANSFERTODEP , applicationdate) BETWEEN '" & frmdate1 & "' AND  '" & todate1 & "' AND (REMARKS LIKE 'Excess Interest Adjusted%'  OR REMARKS LIKE 'Excess Int Rev From%')),0)) Q1amt, (SELECT NVL(SUM(ABS(b.AMOUNT)),0) FROM TDSDTLS b WHERE b.APPLICATIONDATE BETWEEN '" & frmdate1 & "' AND '" & todate1 & "' AND b.REFUNDYN='N' AND b.amount IS NOT NULL AND b.accno=m.accno AND b.glcode=m.glcode AND b.branchcode=m.branchcode) T1amt, (NVL((SELECT SUM(ABS(INTAMOUNT)) FROM DEPINTACCRUEDDTLS WHERE  ACCNO = m.ACCNO AND GLCODE = m.GLCODE AND INTAMOUNT > 0 AND MODULEID = 'DEP' AND APPLICATIONDATE  BETWEEN '" & frmdate2 & "' AND  '" & todate2 & "' AND BRANCHCODE = m.BRANCHCODE  AND (branchcode,glcode,accno,batchno,tranno) NOT IN (SELECT branchcode,glcode,accno,batchno,tranno FROM DEPINTACCRUEDDTLS WHERE ACCNO=m.ACCNO AND GLCODE=m.GLCODE AND  BRANCHCODE=m.BRANCHCODE AND INTAMOUNT>0 AND  MODULEID='DEP' AND APPLICATIONDATE BETWEEN  '" & frmdate2 & "' AND  '" & todate2 & "'  AND (remarks LIKE 'TDS From%' OR remarks LIKE 'TDSREFUND%') AND '" & todate2 & "' = (SELECT MAX(applicationdate) FROM DEPINTACCRUEDDTLS WHERE ACCNO=m.ACCNO AND GLCODE=m.GLCODE AND BRANCHCODE=m.BRANCHCODE AND INTAMOUNT>0  AND MODULEID='DEP' AND APPLICATIONDATE BETWEEN '" & frmdate2 & "' AND  '" & todate2_1 & "' AND (remarks LIKE 'TDS From%' OR remarks LIKE 'TDSREFUND%')) )),0)  + NVL((SELECT SUM(intamount) FROM DEPINTACCRUEDDTLS WHERE accno = m.accno AND glcode = m.glcode AND branchcode = m.branchcode  AND NVL(TRANSFERTODEP , applicationdate) BETWEEN '" & frmdate2 & "' AND  '" & todate2 & "' AND (REMARKS LIKE 'Excess Interest Adjusted%'  OR REMARKS LIKE 'Excess Int Rev To GL%')),0)   - NVL((SELECT SUM(intamount) FROM DEPINTACCRUEDDTLS WHERE accno = m.accno AND glcode = m.glcode AND branchcode = m.branchcode   and intamount > 0 AND NVL(TRANSFERTODEP , applicationdate) BETWEEN '" & frmdate2 & "' AND  '" & todate2 & "' AND (REMARKS LIKE 'Excess Interest Adjusted%'  OR REMARKS LIKE 'Excess Int Rev From%')),0)) Q2amt, (SELECT NVL(SUM(ABS(b.AMOUNT)),0) FROM TDSDTLS b WHERE b.APPLICATIONDATE BETWEEN '" & frmdate2 & "' AND '" & todate2 & "' AND b.REFUNDYN='N' AND b.amount IS NOT NULL AND b.accno=m.accno AND b.glcode=m.glcode AND b.branchcode=m.branchcode) T2amt, (NVL((SELECT SUM(ABS(INTAMOUNT)) FROM DEPINTACCRUEDDTLS WHERE  ACCNO = m.ACCNO AND GLCODE = m.GLCODE AND INTAMOUNT > 0 AND MODULEID = 'DEP' AND APPLICATIONDATE  BETWEEN '" & frmdate3 & "' AND  '" & todate3 & "' AND BRANCHCODE = m.BRANCHCODE  AND (branchcode,glcode,accno,batchno,tranno) NOT IN (SELECT branchcode,glcode,accno,batchno,tranno FROM DEPINTACCRUEDDTLS WHERE ACCNO=m.ACCNO AND GLCODE=m.GLCODE AND BRANCHCODE=m.BRANCHCODE AND INTAMOUNT>0 AND  MODULEID='DEP' AND APPLICATIONDATE BETWEEN  '" & frmdate3 & "' AND  '" & todate3 & "'  AND (remarks LIKE 'TDS From%' OR remarks LIKE 'TDSREFUND%') AND '" & todate3 & "' = (SELECT MAX(applicationdate) FROM DEPINTACCRUEDDTLS WHERE ACCNO=m.ACCNO AND GLCODE=m.GLCODE AND BRANCHCODE=m.BRANCHCODE AND INTAMOUNT>0  AND MODULEID='DEP' AND APPLICATIONDATE BETWEEN '" & frmdate3 & "' AND  '" & todate3_1 & "' AND (remarks LIKE 'TDS From%' OR remarks LIKE 'TDSREFUND%')) )),0)  + NVL((SELECT SUM(intamount) FROM DEPINTACCRUEDDTLS WHERE accno = m.accno AND glcode = m.glcode AND branchcode = m.branchcode  AND NVL(TRANSFERTODEP , applicationdate) BETWEEN '" & frmdate3 & "' AND  '" & todate3 & "' AND (REMARKS LIKE 'Excess Interest Adjusted%'  OR REMARKS LIKE 'Excess Int Rev To GL%')),0)   - NVL((SELECT SUM(intamount) FROM DEPINTACCRUEDDTLS WHERE accno = m.accno AND glcode = m.glcode AND branchcode = m.branchcode   and intamount > 0 AND NVL(TRANSFERTODEP , applicationdate) BETWEEN '" & frmdate3 & "' AND  '" & todate3 & "' AND (REMARKS LIKE 'Excess Interest Adjusted%'  OR REMARKS LIKE 'Excess Int Rev From%')),0)) Q3amt, (SELECT NVL(SUM(ABS(b.AMOUNT)),0) FROM TDSDTLS b WHERE b.APPLICATIONDATE BETWEEN '" & frmdate3 & "' AND '" & todate3 & "' AND b.REFUNDYN='N' AND b.amount IS NOT NULL AND b.accno=m.accno AND b.glcode=m.glcode AND b.branchcode=m.branchcode) T3amt, (NVL((SELECT SUM(ABS(INTAMOUNT)) FROM DEPINTACCRUEDDTLS WHERE  ACCNO = m.ACCNO AND GLCODE = m.GLCODE AND INTAMOUNT > 0 AND MODULEID = 'DEP' AND APPLICATIONDATE  BETWEEN '" & frmdate4 & "' AND  '" & todate4 & "' AND BRANCHCODE = m.BRANCHCODE  AND (branchcode,glcode,accno,batchno,tranno) NOT IN (SELECT branchcode,glcode,accno,batchno,tranno FROM DEPINTACCRUEDDTLS WHERE ACCNO=m.ACCNO AND GLCODE=m.GLCODE AND BRANCHCODE=m.BRANCHCODE AND INTAMOUNT>0 AND  MODULEID='DEP' AND APPLICATIONDATE BETWEEN  '" & frmdate4 & "' AND  '" & todate4 & "'  AND (remarks LIKE 'TDS From%' OR remarks LIKE 'TDSREFUND%') AND '" & todate4 & "' = (SELECT MAX(applicationdate) FROM DEPINTACCRUEDDTLS WHERE ACCNO=m.ACCNO AND GLCODE=m.GLCODE AND BRANCHCODE=m.BRANCHCODE AND INTAMOUNT>0  AND MODULEID='DEP' AND APPLICATIONDATE BETWEEN '" & frmdate4 & "' AND  '" & todate4_1 & "' AND (remarks LIKE 'TDS From%' OR remarks LIKE 'TDSREFUND%')) )),0) - NVL((SELECT NVL(SUM(intamount),0) intamount FROM DEPINTACCRUEDDTLS WHERE ACCNO = m.ACCNO AND GLCODE = m.GLCODE AND BRANCHCODE = m.BRANCHCODE AND INTAMOUNT>0 AND MODULEID='DEP' AND APPLICATIONDATE = '" & todate4 & "' AND (remarks LIKE 'TDS From%')),0) + NVL((SELECT SUM(intamount) FROM DEPINTACCRUEDDTLS WHERE accno = m.accno AND glcode = m.glcode AND branchcode = m.branchcode  AND NVL(TRANSFERTODEP , applicationdate) BETWEEN '" & frmdate4 & "' AND  '" & todate4 & "' AND (REMARKS LIKE 'Excess Interest Adjusted%'  OR REMARKS LIKE 'Excess Int Rev To GL%')),0) - NVL((SELECT SUM(intamount) FROM DEPINTACCRUEDDTLS WHERE accno = m.accno AND glcode = m.glcode AND branchcode = m.branchcode   and intamount > 0 AND NVL(TRANSFERTODEP , applicationdate) BETWEEN '" & frmdate4 & "' AND  '" & todate4 & "' AND (REMARKS LIKE 'Excess Interest Adjusted%'  OR REMARKS LIKE 'Excess Int Rev From%')),0)) Q4amt, (SELECT NVL(SUM(ABS(b.AMOUNT)),0) FROM TDSDTLS b WHERE b.APPLICATIONDATE BETWEEN '" & frmdate4 & "' AND '" & todate4 & "' AND b.REFUNDYN='N' AND b.amount IS NOT NULL AND b.accno=m.accno AND b.glcode=m.glcode AND b.branchcode=m.branchcode) T4amt,(case when m.TDSYN = 'Y' then 'TDS' when m.NONTDS = 'Y' then 'NONTDS' when  m.EXMPFORMSRECYN = 'Y' then '15H' when m.FORMS15G = 'Y' then '15G' end ) flag  FROM DEPMST M, GENCUSTINFOMST N WHERE  M.glcode='" & resDtls1(0).value & "' AND m.EFFDATE  <=  '" & todate4 & "' AND (m.closedate IS NULL OR m.closedate >= '" & frmdate & "') and  M.customerid=N.customerid  AND N.KYCID='2' AND N.PANNO IS NOT NULL " & strArr(3) & " " & stCond & " GROUP BY m.branchcode,m.glcode,m.accno,m.name,N.PANNO,(case when m.TDSYN = 'Y' then 'TDS' when m.NONTDS = 'Y' then 'NONTDS' when  m.EXMPFORMSRECYN = 'Y' then '15H' when m.FORMS15G = 'Y' then '15G' end )) x where ((x.Q1amt + x.Q2amt + x.Q3amt + x.Q4amt) > 0 ) ORDER BY TO_CHAR(x.PANNO),TO_NUMBER(x.glcode),TO_NUMBER(x.accno) "
+
+
+//        end if
+
+//        else
+
+//        if strArr(6) = "0" then
+
+//            sqlstr = " select x.branchcode, x.GLCODE, x.ACCNO, x.name, x.panno, x.Q1amt,x.T1amt, x.Q2amt,x.T2amt, x.Q3amt,x.T3amt, x.Q4amt,x.T4amt,x.flag from  (SELECT m.branchcode, m.GLCODE, m.ACCNO, SUBSTR(M.name,1,35) name, N.PANNO, (  NVL((SELECT SUM(ABS(E.AMOUNT)) FROM DEPTRAN E WHERE E.CHQFVG = 'DEPIP' AND E.ACCNO=m.ACCNO AND E.GLCODE=m.GLCODE AND E.MODULEID='DEP' AND E.BRANCHCODE=m.BRANCHCODE  AND E.applicationdate between '" & frmdate1 & "' AND '" & todate1 & "' AND (E.branchcode,E.glcode,E.accno,E.batchno,E.tranno) NOT IN (SELECT branchcode,glcode,accno,batchno,tranno FROM DEPTRAN C1 WHERE C1.ACCNO=E.ACCNO AND C1.GLCODE=E.GLCODE AND C1.BRANCHCODE=E.BRANCHCODE AND C1.CURRENCYCODE=E.CURRENCYCODE AND C1.MODULEID='DEP' AND C1.APPLICATIONDATE BETWEEN '" & frmdate1 & "' AND '" & todate1 & "'  AND (C1.remarks LIKE 'TDS From%' OR C1.remarks LIKE 'TDSREFUND%') AND C1.APPLICATIONDATE = (SELECT MAX(applicationdate) FROM DEPTRAN C2 WHERE C2.ACCNO=C1.ACCNO AND C2.GLCODE=C1.GLCODE AND C2.BRANCHCODE=C1.BRANCHCODE AND C2.CURRENCYCODE=C1.CURRENCYCODE AND  C2.MODULEID='DEP' AND C2.APPLICATIONDATE BETWEEN '" & frmdate1 & "' AND '" & todate1 & "' AND (remarks LIKE 'TDS From%' OR remarks LIKE 'TDSREFUND%')))),0)   + NVL((SELECT NVL(sum(AMOUNT),0) FROM DEPTRAN WHERE glcode=m.GLCODE AND accno=m.ACCNO AND EFFECTIVEDATE BETWEEN '" & frmdate1 & "' AND '" & todate1 & "' AND remarks LIKE 'Excess Int Rev To GL%' and AMOUNT<0 AND branchcode=m.BRANCHCODE),0)) Q1amt, (SELECT NVL(SUM(ABS(b.AMOUNT)),0) FROM TDSDTLS b WHERE b.APPLICATIONDATE BETWEEN '" & frmdate1 & "' AND '" & todate1 & "' AND b.REFUNDYN='N' AND b.amount IS NOT NULL AND b.accno=m.accno AND b.glcode=m.glcode AND b.branchcode=m.branchcode) T1amt, (  NVL((SELECT SUM(ABS(E.AMOUNT)) FROM DEPTRAN E WHERE E.CHQFVG = 'DEPIP' AND E.ACCNO=m.ACCNO AND E.GLCODE=m.GLCODE AND E.MODULEID='DEP' AND E.BRANCHCODE=m.BRANCHCODE AND E.applicationdate between '" & frmdate2 & "' AND '" & todate2 & "' AND (E.branchcode,E.glcode,E.accno,E.batchno,E.tranno) NOT IN (SELECT branchcode,glcode,accno,batchno,tranno FROM DEPTRAN C1 WHERE C1.ACCNO=E.ACCNO AND C1.GLCODE=E.GLCODE AND C1.BRANCHCODE=E.BRANCHCODE AND C1.CURRENCYCODE=E.CURRENCYCODE AND C1.MODULEID='DEP' AND C1.APPLICATIONDATE BETWEEN '" & frmdate2 & "' AND '" & todate2 & "'  AND (C1.remarks LIKE 'TDS From%' OR C1.remarks LIKE 'TDSREFUND%') AND C1.APPLICATIONDATE = (SELECT MAX(applicationdate) FROM DEPTRAN C2 WHERE C2.ACCNO=C1.ACCNO AND C2.GLCODE=C1.GLCODE AND C2.BRANCHCODE=C1.BRANCHCODE AND C2.CURRENCYCODE=C1.CURRENCYCODE AND  C2.MODULEID='DEP' AND C2.APPLICATIONDATE BETWEEN '" & frmdate2 & "' AND '" & todate2 & "' AND (remarks LIKE 'TDS From%' OR remarks LIKE 'TDSREFUND%')))),0)  + NVL((SELECT NVL(sum(AMOUNT),0) FROM DEPTRAN WHERE glcode=m.GLCODE AND accno=m.ACCNO AND EFFECTIVEDATE BETWEEN '" & frmdate2 & "' AND '" & todate2 & "' AND remarks LIKE 'Excess Int Rev To GL%' and AMOUNT<0 AND branchcode=m.BRANCHCODE),0)) Q2amt, (SELECT NVL(SUM(ABS(b.AMOUNT)),0) FROM TDSDTLS b WHERE b.APPLICATIONDATE BETWEEN '" & frmdate2 & "' AND '" & todate2 & "' AND b.REFUNDYN='N' AND b.amount IS NOT NULL AND b.accno=m.accno AND b.glcode=m.glcode AND b.branchcode=m.branchcode) T2amt, (  NVL((SELECT SUM(ABS(E.AMOUNT)) FROM DEPTRAN E WHERE E.CHQFVG = 'DEPIP' AND E.ACCNO=m.ACCNO AND E.GLCODE=m.GLCODE AND E.MODULEID='DEP' AND E.BRANCHCODE=m.BRANCHCODE AND E.applicationdate between '" & frmdate3 & "' AND '" & todate3 & "' AND (E.branchcode,E.glcode,E.accno,E.batchno,E.tranno) NOT IN (SELECT branchcode,glcode,accno,batchno,tranno FROM DEPTRAN C1 WHERE C1.ACCNO=E.ACCNO AND C1.GLCODE=E.GLCODE AND C1.BRANCHCODE=E.BRANCHCODE AND C1.CURRENCYCODE=E.CURRENCYCODE AND C1.MODULEID='DEP' AND C1.APPLICATIONDATE BETWEEN '" & frmdate3 & "' AND '" & todate3 & "'  AND (C1.remarks LIKE 'TDS From%' OR C1.remarks LIKE 'TDSREFUND%') AND C1.APPLICATIONDATE = (SELECT MAX(applicationdate) FROM DEPTRAN C2 WHERE C2.ACCNO=C1.ACCNO AND C2.GLCODE=C1.GLCODE AND C2.BRANCHCODE=C1.BRANCHCODE AND C2.CURRENCYCODE=C1.CURRENCYCODE AND  C2.MODULEID='DEP' AND C2.APPLICATIONDATE BETWEEN '" & frmdate3 & "' AND '" & todate3 & "' AND (remarks LIKE 'TDS From%' OR remarks LIKE 'TDSREFUND%')))),0)   + NVL((SELECT NVL(sum(AMOUNT),0) FROM DEPTRAN WHERE glcode=m.GLCODE AND accno=m.ACCNO AND EFFECTIVEDATE BETWEEN '" & frmdate3 & "' AND '" & todate3 & "' AND remarks LIKE 'Excess Int Rev To GL%' and AMOUNT<0 AND branchcode=m.BRANCHCODE),0)) Q3amt, (SELECT NVL(SUM(ABS(b.AMOUNT)),0) FROM TDSDTLS b WHERE b.APPLICATIONDATE BETWEEN '" & frmdate3 & "' AND '" & todate3 & "' AND b.REFUNDYN='N' AND b.amount IS NOT NULL AND b.accno=m.accno AND b.glcode=m.glcode AND b.branchcode=m.branchcode) T3amt, (  NVL((SELECT SUM(ABS(E.AMOUNT)) FROM DEPTRAN E WHERE E.CHQFVG = 'DEPIP' AND E.ACCNO=m.ACCNO AND E.GLCODE=m.GLCODE AND E.MODULEID='DEP' AND E.BRANCHCODE=m.BRANCHCODE AND E.applicationdate between '" & frmdate4 & "' AND '" & todate4 & "' AND (E.branchcode,E.glcode,E.accno,E.batchno,E.tranno) NOT IN (SELECT branchcode,glcode,accno,batchno,tranno FROM DEPTRAN C1 WHERE C1.ACCNO=E.ACCNO AND C1.GLCODE=E.GLCODE AND C1.BRANCHCODE=E.BRANCHCODE AND C1.CURRENCYCODE=E.CURRENCYCODE AND C1.MODULEID='DEP' AND C1.APPLICATIONDATE BETWEEN '" & frmdate4 & "' AND '" & todate4 & "'  AND (C1.remarks LIKE 'TDS From%' OR C1.remarks LIKE 'TDSREFUND%') AND C1.APPLICATIONDATE = (SELECT MAX(applicationdate) FROM DEPTRAN C2 WHERE C2.ACCNO=C1.ACCNO AND C2.GLCODE=C1.GLCODE AND C2.BRANCHCODE=C1.BRANCHCODE AND C2.CURRENCYCODE=C1.CURRENCYCODE AND  C2.MODULEID='DEP' AND C2.APPLICATIONDATE BETWEEN '" & frmdate4 & "' AND '" & todate4 & "' AND (remarks LIKE 'TDS From%' OR remarks LIKE 'TDSREFUND%')))),0)  + NVL((SELECT NVL(sum(AMOUNT),0) FROM DEPTRAN WHERE glcode=m.GLCODE AND accno=m.ACCNO AND EFFECTIVEDATE BETWEEN '" & frmdate4 & "' AND '" & todate4 & "' AND remarks LIKE 'Excess Int Rev To GL%' and AMOUNT<0 AND branchcode=m.BRANCHCODE),0)) Q4amt, (SELECT NVL(SUM(ABS(b.AMOUNT)),0) FROM TDSDTLS b WHERE b.APPLICATIONDATE BETWEEN '" & frmdate4 & "' AND '" & todate4 & "' AND b.REFUNDYN='N' AND b.amount IS NOT NULL AND b.accno=m.accno AND b.glcode=m.glcode AND b.branchcode=m.branchcode) T4amt,(case when m.TDSYN = 'Y' then 'TDS' when m.NONTDS = 'Y' then 'NONTDS' when  m.EXMPFORMSRECYN = 'Y' then '15H' when m.FORMS15G = 'Y' then '15G' end ) flag  FROM DEPMST M, GENCUSTINFOMST N WHERE  M.glcode='" & resDtls1(0).value & "' AND m.EFFDATE  <=  '" & todate4 & "' AND (m.closedate IS NULL OR m.closedate >= '" & frmdate & "') and  M.customerid=N.customerid  AND N.KYCID='2' AND N.PANNO IS NOT NULL " & strArr(3) & " " & stCond & "  GROUP BY m.branchcode,m.glcode,m.accno,M.name,n.panno,(case when m.TDSYN = 'Y' then 'TDS' when m.NONTDS = 'Y' then 'NONTDS' when  m.EXMPFORMSRECYN = 'Y' then '15H' when m.FORMS15G = 'Y' then '15G' end )) x where ((x.Q1amt + x.Q2amt + x.Q3amt + x.Q4amt) > 0 ) ORDER BY TO_CHAR(x.PANNO),TO_NUMBER(x.glcode),TO_NUMBER(x.accno) "
+
+//        else
+//            if strArr(3) = "" then
+//                stCond = " AND M.customerid IN (SELECT customerid FROM gencustinfomst WHERE branchcode='" & strArr(1) & "') "
+
+//            else
+//                    stCond = ""
+
+//            end if
+
+
+//            sqlstr = "select x.branchcode, x.GLCODE, x.ACCNO, x.name, x.panno, x.Q1amt,x.T1amt, x.Q2amt,x.T2amt, x.Q3amt,x.T3amt, x.Q4amt,x.T4amt,x.flag from  ( SELECT m.branchcode, m.GLCODE, m.ACCNO, SUBSTR(M.name,1,35) name, N.PANNO, (NVL((SELECT SUM(ABS(E.AMOUNT)) FROM DEPTRAN E WHERE E.CHQFVG = 'DEPIP' AND E.ACCNO=m.ACCNO AND E.GLCODE=m.GLCODE AND E.MODULEID='DEP' AND E.BRANCHCODE=m.BRANCHCODE  AND E.applicationdate between '" & frmdate1 & "' AND '" & todate1 & "' AND (E.branchcode,E.glcode,E.accno,E.batchno,E.tranno) NOT IN (SELECT branchcode,glcode,accno,batchno,tranno FROM DEPTRAN C1 WHERE C1.ACCNO=E.ACCNO AND C1.GLCODE=E.GLCODE AND C1.BRANCHCODE=E.BRANCHCODE AND C1.CURRENCYCODE=E.CURRENCYCODE AND C1.MODULEID='DEP' AND C1.APPLICATIONDATE BETWEEN '" & frmdate1 & "' AND '" & todate1 & "'  AND (C1.remarks LIKE 'TDS From%' OR C1.remarks LIKE 'TDSREFUND%') AND C1.APPLICATIONDATE = (SELECT MAX(applicationdate) FROM DEPTRAN C2 WHERE C2.ACCNO=C1.ACCNO AND C2.GLCODE=C1.GLCODE AND C2.BRANCHCODE=C1.BRANCHCODE AND C2.CURRENCYCODE=C1.CURRENCYCODE AND  C2.MODULEID='DEP' AND C2.APPLICATIONDATE BETWEEN '" & frmdate1 & "' AND '" & todate1 & "' AND (remarks LIKE 'TDS From%' OR remarks LIKE 'TDSREFUND%')))),0)   + NVL((SELECT NVL(sum(AMOUNT),0) FROM DEPTRAN WHERE glcode=m.GLCODE AND accno=m.ACCNO AND EFFECTIVEDATE BETWEEN '" & frmdate1 & "' AND '" & todate1 & "' AND remarks LIKE 'Excess Int Rev To GL%' and AMOUNT<0 AND branchcode=m.BRANCHCODE),0)) Q1amt, (SELECT NVL(SUM(ABS(b.AMOUNT)),0) FROM TDSDTLS b WHERE b.APPLICATIONDATE BETWEEN '" & frmdate1 & "' AND '" & todate1 & "' AND b.REFUNDYN='N' AND b.amount IS NOT NULL AND b.accno=m.accno AND b.glcode=m.glcode AND b.branchcode=m.branchcode) T1amt, (  NVL((SELECT SUM(ABS(E.AMOUNT)) FROM DEPTRAN E WHERE E.CHQFVG = 'DEPIP' AND E.ACCNO=m.ACCNO AND E.GLCODE=m.GLCODE AND E.MODULEID='DEP' AND E.BRANCHCODE=m.BRANCHCODE AND E.applicationdate between '" & frmdate2 & "' AND '" & todate2 & "' AND (E.branchcode,E.glcode,E.accno,E.batchno,E.tranno) NOT IN (SELECT branchcode,glcode,accno,batchno,tranno FROM DEPTRAN C1 WHERE C1.ACCNO=E.ACCNO AND C1.GLCODE=E.GLCODE AND C1.BRANCHCODE=E.BRANCHCODE AND C1.CURRENCYCODE=E.CURRENCYCODE AND C1.MODULEID='DEP' AND C1.APPLICATIONDATE BETWEEN '" & frmdate2 & "' AND '" & todate2 & "'  AND (C1.remarks LIKE 'TDS From%' OR C1.remarks LIKE 'TDSREFUND%') AND C1.APPLICATIONDATE = (SELECT MAX(applicationdate) FROM DEPTRAN C2 WHERE C2.ACCNO=C1.ACCNO AND C2.GLCODE=C1.GLCODE AND C2.BRANCHCODE=C1.BRANCHCODE AND C2.CURRENCYCODE=C1.CURRENCYCODE AND  C2.MODULEID='DEP' AND C2.APPLICATIONDATE BETWEEN '" & frmdate2 & "' AND '" & todate2 & "' AND (remarks LIKE 'TDS From%' OR remarks LIKE 'TDSREFUND%')))),0)  + NVL((SELECT NVL(sum(AMOUNT),0) FROM DEPTRAN WHERE glcode=m.GLCODE AND accno=m.ACCNO AND EFFECTIVEDATE BETWEEN '" & frmdate2 & "' AND '" & todate2 & "' AND remarks LIKE 'Excess Int Rev To GL%' and AMOUNT<0 AND branchcode=m.BRANCHCODE),0)) Q2amt, (SELECT NVL(SUM(ABS(b.AMOUNT)),0) FROM TDSDTLS b WHERE b.APPLICATIONDATE BETWEEN '" & frmdate2 & "' AND '" & todate2 & "' AND b.REFUNDYN='N' AND b.amount IS NOT NULL AND b.accno=m.accno AND b.glcode=m.glcode AND b.branchcode=m.branchcode) T2amt, (  NVL((SELECT SUM(ABS(E.AMOUNT)) FROM DEPTRAN E WHERE E.CHQFVG = 'DEPIP' AND E.ACCNO=m.ACCNO AND E.GLCODE=m.GLCODE AND E.MODULEID='DEP' AND E.BRANCHCODE=m.BRANCHCODE AND E.applicationdate between '" & frmdate3 & "' AND '" & todate3 & "' AND (E.branchcode,E.glcode,E.accno,E.batchno,E.tranno) NOT IN (SELECT branchcode,glcode,accno,batchno,tranno FROM DEPTRAN C1 WHERE C1.ACCNO=E.ACCNO AND C1.GLCODE=E.GLCODE AND C1.BRANCHCODE=E.BRANCHCODE AND C1.CURRENCYCODE=E.CURRENCYCODE AND C1.MODULEID='DEP' AND C1.APPLICATIONDATE BETWEEN '" & frmdate3 & "' AND '" & todate3 & "'  AND (C1.remarks LIKE 'TDS From%' OR C1.remarks LIKE 'TDSREFUND%') AND C1.APPLICATIONDATE = (SELECT MAX(applicationdate) FROM DEPTRAN C2 WHERE C2.ACCNO=C1.ACCNO AND C2.GLCODE=C1.GLCODE AND C2.BRANCHCODE=C1.BRANCHCODE AND C2.CURRENCYCODE=C1.CURRENCYCODE AND  C2.MODULEID='DEP' AND C2.APPLICATIONDATE BETWEEN '" & frmdate3 & "' AND '" & todate3 & "' AND (remarks LIKE 'TDS From%' OR remarks LIKE 'TDSREFUND%')))),0)   + NVL((SELECT NVL(sum(AMOUNT),0) FROM DEPTRAN WHERE glcode=m.GLCODE AND accno=m.ACCNO AND EFFECTIVEDATE BETWEEN '" & frmdate3 & "' AND '" & todate3 & "' AND remarks LIKE 'Excess Int Rev To GL%' and AMOUNT<0 AND branchcode=m.BRANCHCODE),0)) Q3amt, (SELECT NVL(SUM(ABS(b.AMOUNT)),0) FROM TDSDTLS b WHERE b.APPLICATIONDATE BETWEEN '" & frmdate3 & "' AND '" & todate3 & "' AND b.REFUNDYN='N' AND b.amount IS NOT NULL AND b.accno=m.accno AND b.glcode=m.glcode AND b.branchcode=m.branchcode) T3amt, (  NVL((SELECT SUM(ABS(E.AMOUNT)) FROM DEPTRAN E WHERE E.CHQFVG = 'DEPIP' AND E.ACCNO=m.ACCNO AND E.GLCODE=m.GLCODE AND E.MODULEID='DEP' AND E.BRANCHCODE=m.BRANCHCODE AND E.applicationdate between '" & frmdate4 & "' AND '" & todate4 & "' AND (E.branchcode,E.glcode,E.accno,E.batchno,E.tranno) NOT IN (SELECT branchcode,glcode,accno,batchno,tranno FROM DEPTRAN C1 WHERE C1.ACCNO=E.ACCNO AND C1.GLCODE=E.GLCODE AND C1.BRANCHCODE=E.BRANCHCODE AND C1.CURRENCYCODE=E.CURRENCYCODE AND C1.MODULEID='DEP' AND C1.APPLICATIONDATE BETWEEN '" & frmdate4 & "' AND '" & todate4 & "'  AND (C1.remarks LIKE 'TDS From%' OR C1.remarks LIKE 'TDSREFUND%') AND C1.APPLICATIONDATE = (SELECT MAX(applicationdate) FROM DEPTRAN C2 WHERE C2.ACCNO=C1.ACCNO AND C2.GLCODE=C1.GLCODE AND C2.BRANCHCODE=C1.BRANCHCODE AND C2.CURRENCYCODE=C1.CURRENCYCODE AND  C2.MODULEID='DEP' AND C2.APPLICATIONDATE BETWEEN '" & frmdate4 & "' AND '" & todate4 & "' AND (remarks LIKE 'TDS From%' OR remarks LIKE 'TDSREFUND%')))),0)  + NVL((SELECT NVL(sum(AMOUNT),0) FROM DEPTRAN WHERE glcode=m.GLCODE AND accno=m.ACCNO AND EFFECTIVEDATE BETWEEN '" & frmdate4 & "' AND '" & todate4 & "' AND remarks LIKE 'Excess Int Rev To GL%' and AMOUNT<0 AND branchcode=m.BRANCHCODE),0)) Q4amt, (SELECT NVL(SUM(ABS(b.AMOUNT)),0) FROM TDSDTLS b WHERE b.APPLICATIONDATE BETWEEN '" & frmdate4 & "' AND '" & todate4 & "' AND b.REFUNDYN='N' AND b.amount IS NOT NULL AND b.accno=m.accno AND b.glcode=m.glcode AND b.branchcode=m.branchcode) T4amt, (case when m.TDSYN = 'Y' then 'TDS' when m.NONTDS = 'Y' then 'NONTDS' when  m.EXMPFORMSRECYN = 'Y' then '15H' when m.FORMS15G = 'Y' then '15G' end ) flag  FROM DEPMST M, GENCUSTINFOMST N WHERE  M.glcode='" & resDtls1(0).value & "' AND m.EFFDATE  <=  '" & todate4 & "' AND (m.closedate IS NULL OR m.closedate >= '" & frmdate & "') and M.customerid=N.customerid  AND N.KYCID='2' AND N.PANNO IS NOT NULL " & strArr(3) & " " & stCond & " GROUP BY m.branchcode,m.glcode,m.accno,M.name,n.panno,(CASE WHEN m.TDSYN = 'Y' THEN 'TDS' WHEN m.NONTDS = 'Y' THEN 'NONTDS' WHEN  m.EXMPFORMSRECYN = 'Y' THEN '15H' WHEN m.FORMS15G = 'Y' THEN '15G' END )) x where ((x.Q1amt + x.Q2amt + x.Q3amt + x.Q4amt) > 0 ) ORDER BY TO_CHAR(x.PANNO),TO_NUMBER(x.glcode),TO_NUMBER(x.accno) "
+
+
+//        end if
+
+
+//        end if  ''((rs(0).value = "N" and rs(1).value = "N" and rs(2).value = "N") or(rs(0).value<> "N" and rs(1).value = "Y" and rs(2).value = "N") or(rs(0).value<> "N" and rs(1).value = "N" and rs(2).value = "Y"))
+
+		
+//		rsmain = obj.SingleSelectStat(sqlStr)
+
+
+//        if obj.ConnError = "Connected" then
+
+//            if not rsmain.BOF and not rsmain.EOF then
+
+
+//                do until rsmain.EOF
+
+
+//                    if strArr(6) = "0" then
+
+//                        if strArr(3) = "" then
+
+//                        '	strResult=strResult & rsmain(1).value & "~" & rsmain(2).value & "~" & rsmain(3).value & "~" & rsmain(4).value & "~" & iif(rsmain(5).value>0,rsmain(5).value,0) & "~" & rsmain(6).value & "~" & iif(rsmain(7).value>0,rsmain(7).value,0) & "~" & rsmain(8).value & "~" & iif(rsmain(9).value>0,rsmain(9).value,0) & "~" & rsmain(10).value & "~" & iif(rsmain(11).value>0,rsmain(11).value,0) & "~" & rsmain(12).value  & "~" & rsmain(13).value  & "|"
+
+//                            strResult = strResult & rsmain(1).value & "~" & rsmain(2).value & "~" & rsmain(3).value & "~" & rsmain(4).value & "~" & rsmain(5).value & "~" & rsmain(6).value & "~" & rsmain(7).value & "~" & rsmain(8).value & "~" & rsmain(9).value & "~" & rsmain(10).value & "~" & rsmain(11).value & "~" & rsmain(12).value & "~" & rsmain(13).value & "|"
+
+//                        else
+//                '	strResult=strResult & rsmain(1).value & "~" & rsmain(2).value & "~" & rsmain(3).value & "~" & iif(rsmain(5).value>0,rsmain(5).value,0) & "~" & rsmain(6).value & "~" & iif(rsmain(7).value>0,rsmain(7).value,0) & "~" & rsmain(8).value & "~" & iif(rsmain(9).value>0,rsmain(9).value,0) & "~" & rsmain(10).value & "~" & iif(rsmain(11).value>0,rsmain(11).value,0) & "~" & rsmain(12).value  & "~" & rsmain(13).value  & "|"
+
+//                            strResult = strResult & rsmain(1).value & "~" & rsmain(2).value & "~" & rsmain(3).value & "~" & rsmain(5).value & "~" & rsmain(6).value & "~" & rsmain(7).value & "~" & rsmain(8).value & "~" & rsmain(9).value & "~" & rsmain(10).value & "~" & rsmain(11).value & "~" & rsmain(12).value & "~" & rsmain(13).value & "|"
+
+//                        end if
+
+//                    else
+//                        if strArr(3) = "" then
+
+//                    '		strResult=strResult & rsmain(0).value & "~" & rsmain(1).value & "~" & rsmain(2).value & "~" & rsmain(3).value & "~" & rsmain(4).value & "~" & iif(rsmain(5).value>0,rsmain(5).value,0) & "~" & rsmain(6).value & "~" & iif(rsmain(7).value>0,rsmain(7).value,0) & "~" & rsmain(8).value & "~" & iif(rsmain(9).value>0,rsmain(9).value,0) & "~" & rsmain(10).value & "~" & iif(rsmain(11).value>0,rsmain(11).value,0) & "~" & rsmain(12).value  & "~" & rsmain(13).value  & "|"
+
+//                            strResult = strResult & rsmain(0).value & "~" & rsmain(1).value & "~" & rsmain(2).value & "~" & rsmain(3).value & "~" & rsmain(4).value & "~" & rsmain(5).value & "~" & rsmain(6).value & "~" & rsmain(7).value & "~" & rsmain(8).value & "~" & rsmain(9).value & "~" & rsmain(10).value & "~" & rsmain(11).value & "~" & rsmain(12).value & "~" & rsmain(13).value & "|"
+
+//                        else
+//                '	strResult=strResult & rsmain(0).value & "~" & rsmain(1).value & "~" & rsmain(2).value & "~" & rsmain(3).value & "~" & iif(rsmain(5).value>0,rsmain(5).value,0) & "~" & rsmain(6).value & "~" & iif(rsmain(7).value>0,rsmain(7).value,0) & "~" & rsmain(8).value & "~" & iif(rsmain(9).value>0,rsmain(9).value,0) & "~" & rsmain(10).value & "~" & iif(rsmain(11).value>0,rsmain(11).value,0) & "~" & rsmain(12).value  & "~" & rsmain(13).value  & "|"
+
+//                strResult = strResult & rsmain(0).value & "~" & rsmain(1).value & "~" & rsmain(2).value & "~" & rsmain(3).value & "~" & rsmain(5).value & "~" & rsmain(6).value & "~" & rsmain(7).value & "~" & rsmain(8).value & "~" & rsmain(9).value & "~" & rsmain(10).value & "~" & rsmain(11).value & "~" & rsmain(12).value & "~" & rsmain(13).value & "|"
+
+//                        end if
+
+//                    end if
+
+
+
+//                    rsmain.movenext()
+
+//                loop
+
+//                'strResult=mid(strResult,1,strResult.length-1)
+
+//            end if
+
+//        end if
+
+//        resDtls1.movenext
+//loop
+//end if
+
+//        if strResult.length > 1 then
+//        strResult = mid(strResult, 1, strResult.length - 1)
+
+//        end if
+
+//        rsmain = nothing
+
+
+
+//elseif strArr(0)= "FRM61REPORT" then
+//    strResult = ""
+
+
+//    obj = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+
+//    if frmname = "MAHARAJA" then
+
+//        staccond = ""
+
+//        staccd = ""
+
+//        stCustid = " AND a.customerid NOT IN (SELECT customerid FROM GENCUSTHOLDDTLS) "
+
+
+//    else
+//                staccond = ""
+
+//        staccd = ""
+
+//        stCustid = " "
+
+//    end if
+
+
+//        if strArr(1) = "CA" and strArr(7) = "1" then
+
+//                    sqlStr = " SELECT A.customerid, a.branchcode, a.moduleid, a.glcode, a.accno, SUBSTR(B.NAME,0,30), SUM(a.AMOUNT) cashdep,NVL((SELECT SUM(amount) FROM catran  WHERE modeoftran = '" & strArr(7) & "' AND " & strArr(2) & " AND accno = a.accno AND glcode = a.glcode AND branchcode = a.branchcode ),0) cashwthdrwl, a.status,a.clsdate ,a.CATEGORYCODE, SUBSTR(NVL(a.OPERATEDBY,B.NAME),0,25) ,TO_CHAR(a.REGDATE,'DD-Mon-YYYY'),TO_CHAR(b.CUSTDOB,'DD-Mon-YYYY') ,  b.CUSTMOBILE, b.PANNO, b.AADHARUID,  substr((b.MAILADDRESS1||', '|| b.MAILADDRESS2||', ' ||b.MAILADDRESS3||', ' ||b.MAILADDRESS4 ||', ' ||b.MAILADDRESS5),0,75) Address FROM ( SELECT T.customerid,T.branchcode, T.moduleid,T.glcode, T.accno,T.name, T.amount,M.status,TO_CHAR(M.closedate, 'DD-Mon-yyyy') clsdate, M.CATEGORYCODE, M.OPERATEDBY,M.REGDATE   FROM catran T,camst M WHERE T." & strArr(2) & " AND T.modeoftran=" & strArr(5) & " AND M.accno=T.accno  AND M.glcode=T.glcode AND M.branchcode=T.BRANCHCODE ) a, GENCUSTINFOMST B WHERE A.CUSTOMERID=B.CUSTOMERID " & strArr(6) & " AND a.customerid IN ( SELECT d.customerid FROM ( SELECT A.customerid, SUM(A.AMOUNT) FROM ( SELECT customerid, amount   FROM catran WHERE " & strArr(2) & " AND modeoftran=" & strArr(5) & " ) a, GENCUSTINFOMST B WHERE A.CUSTOMERID=B.CUSTOMERID  " & stCustid & "  " & strArr(4) & "  GROUP BY A.customerid,B.NAME HAVING " & strArr(3) & " )d ) GROUP BY A.customerid,a.branchcode, a.moduleid,a.glcode, a.accno,B.NAME, a.status,a.clsdate,a.CATEGORYCODE, a.OPERATEDBY ,a.REGDATE, b.CUSTDOB, b.CUSTMOBILE, b.PANNO, b.AADHARUID,  b.MAILADDRESS1, b.MAILADDRESS2, b.MAILADDRESS3, b.MAILADDRESS4, b.MAILADDRESS5 ORDER BY TO_NUMBER(A.customerid), a.glcode "
+
+
+//        elseif strArr(1)= "CA"  and strArr(7) = "2" then
+
+//                    sqlStr = " SELECT A.customerid, a.branchcode, a.moduleid, a.glcode, a.accno, SUBSTR(B.NAME,0,30),NVL((SELECT SUM(amount) FROM catran  WHERE modeoftran = '" & strArr(7) & "' AND " & strArr(2) & " AND accno = a.accno AND glcode = a.glcode AND branchcode = a.branchcode ),0) cashwthdrwl, SUM(a.AMOUNT) cashdep, a.status,a.clsdate ,a.CATEGORYCODE, SUBSTR(NVL(a.OPERATEDBY,B.NAME),0,25) ,TO_CHAR(a.REGDATE,'DD-Mon-YYYY'),TO_CHAR(b.CUSTDOB,'DD-Mon-YYYY') ,  b.CUSTMOBILE, b.PANNO, b.AADHARUID,  substr((b.MAILADDRESS1||', '|| b.MAILADDRESS2||', ' ||b.MAILADDRESS3||', ' ||b.MAILADDRESS4 ||', ' ||b.MAILADDRESS5),0,75) Address FROM ( SELECT T.customerid,T.branchcode, T.moduleid,T.glcode, T.accno,T.name, T.amount,M.status,TO_CHAR(M.closedate, 'DD-Mon-yyyy') clsdate, M.CATEGORYCODE, M.OPERATEDBY,M.REGDATE   FROM catran T,camst M WHERE T." & strArr(2) & " AND T.modeoftran=" & strArr(5) & " AND M.accno=T.accno  AND M.glcode=T.glcode AND M.branchcode=T.BRANCHCODE ) a, GENCUSTINFOMST B WHERE A.CUSTOMERID=B.CUSTOMERID " & strArr(6) & " AND a.customerid IN ( SELECT d.customerid FROM ( SELECT A.customerid, SUM(A.AMOUNT) FROM ( SELECT customerid, amount   FROM catran WHERE " & strArr(2) & " AND modeoftran=" & strArr(5) & " ) a, GENCUSTINFOMST B WHERE A.CUSTOMERID=B.CUSTOMERID  " & stCustid & "  " & strArr(4) & "  GROUP BY A.customerid,B.NAME HAVING " & strArr(3) & " )d ) GROUP BY A.customerid,a.branchcode, a.moduleid,a.glcode, a.accno,B.NAME, a.status,a.clsdate,a.CATEGORYCODE, a.OPERATEDBY ,a.REGDATE, b.CUSTDOB, b.CUSTMOBILE, b.PANNO, b.AADHARUID,  b.MAILADDRESS1, b.MAILADDRESS2, b.MAILADDRESS3, b.MAILADDRESS4, b.MAILADDRESS5 ORDER BY TO_NUMBER(A.customerid), a.glcode "
+
+
+//        end if
+
+
+//        rs = obj.SingleSelectStat(sqlStr)
+
+
+//            if obj.ConnError = "Connected" then
+
+//                if not rs.BOF and not rs.EOF then
+
+
+//                    do until rs.EOF
+
+
+//                    strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "~" & rs(7).value & "~" & rs(8).value & "~" & rs(9).value & "~" & rs(10).value & "~" & rs(11).value & "~" & rs(12).value & "~" & rs(13).value & "~" & rs(14).value & "~" & rs(15).value & "~" & rs(16).value & "~" & rs(17).value & "|"
+
+
+//                    rs.movenext()
+
+//                    loop
+//                end if
+
+//            end if
+
+
+//        if strResult = "" then
+//            strResult = "No Records"
+
+//        else
+//                        strResult = mid(strResult, 1, strResult.length - 1)
+
+//        end if
+
+
+//    rs = nothing
+
+//               elseif strArr(0) = "SFTREP" then
+//dim blncheck
+//dim dblpaidcash
+//dblpaidcash = 0
+
+//        strResult = ""
+
+//            if frmname = "MAHARAJA" then
+//            stCustid = " a.customerid NOT IN (SELECT customerid FROM GENCUSTHOLDDTLS) "
+
+//            else
+//                stCustid = " 1=1 "
+
+//            end if
+
+
+//        obj = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+
+//            if strArr(4) = "" then
+
+//                sqlStr = " SELECT  a.customerid, SUBSTR(a.name,0,35) name , a.custype, a.gender, SUBSTR(a.FATHERNAME,0,35) fname, a.PANNO,  a.AADHARUID, a.DOB, a.nationality, a.Address, a.PIN, a.state, a.mobile, a.mail, a.amount,NVL((SELECT SUM(amount) FROM deptran WHERE MODEOFTRAN = '2' AND customerid=a.customerid AND " & strArr(2) & " ),0) crcash,ABS(NVL((SELECT SUM(amount) FROM deptran WHERE MODEOFTRAN  IN (1,3,5) AND serviceid=4 AND customerid=a.customerid AND " & strArr(2) & " ),0)) paidcash ,NVL((SELECT SUM(amount) FROM deptran WHERE serviceid = '3' AND customerid=a.customerid AND " & strArr(2) & " ),0) renamt  FROM (SELECT  M.customerid, M.name, C.NARRATION custype, DECODE (G.CUSTSEX,'M','Male','F','Female')  gender, G.FATHERNAME, G.PANNO,  G.AADHARUID, TO_CHAR(G.CUSTDOB,'DD-Mon-YYYY') DOB, 'INDIAN' nationality,SUBSTR((G.MAILADDRESS1||', '|| G.MAILADDRESS2||', ' ||G.MAILADDRESS3||', ' ||G.MAILADDRESS4 ),0,75) Address, G.MAILADDRESS5 PIN, 'AP' state,G.CUSTMOBILE mobile, G.CUSTEMAIL mail, SUM(T.amount) amount FROM deptran T,depmst M,gencustinfomst G,GENCATEGORYMST C WHERE T." & strArr(2) & " AND T.serviceid='2' AND M.accno=T.accno  AND M.glcode=T.glcode AND M.branchcode=T.BRANCHCODE  AND M.customerid = G.Customerid AND G.CUSTOMERTYPE = C.CATEGORYCODE AND (M.branchcode,M.glcode, M.ACCNO,M.customerid) NOT IN (SELECT branchcode,  glcode,ACCNO,customerid FROM DEPMST Z WHERE Z.CLOSEDATE-Z.EFFDATE+1<=(SELECT MINPERIODDAYS FROM GENMINMAXBALANCEMST b WHERE b.GLCODE=Z.GLCODE AND STATUS='R') AND Z." & strArr(6) & " AND M.customerid = Z.Customerid   ) " & strArr(5) & " HAVING " & strArr(3) & " GROUP BY M.customerid,  M.name, C.NARRATION, G.CUSTDOB, G.CUSTSEX, G.MAILADDRESS1,G.MAILADDRESS2,G.MAILADDRESS3,G.MAILADDRESS4 ,G.MAILADDRESS5, G.PANNO, G.FATHERNAME, G.AADHARUID,G.CUSTMOBILE, G.CUSTEMAIL) a where " & stCustid & " ORDER BY a.customerid "
+
+
+//            elseif strArr(4) = "ACCOUNTWISE" then
+
+//                sqlStr = " SELECT branchcode, customerid,glcode, accno, name, amount FROM ( SELECT  branchcode, customerid, glcode, accno, SUBSTR(name,0,35) name, amount FROM deptran x  WHERE x." & strArr(2) & " AND x.serviceid=2 AND  x.ACCNO NOT IN (SELECT ACCNO FROM DEPMST Z WHERE Z.CLOSEDATE-Z.EFFDATE+1<=(SELECT MINPERIODDAYS FROM GENMINMAXBALANCEMST b WHERE b.GLCODE=Z.GLCODE AND b.STATUS='R') AND Z." & strArr(6) & "  and x.customerid=z.customerid and x.accno=z.accno and x.glcode=z.glcode and x.branchcode=z.branchcode)  AND x.customerid IN ( SELECT customerid FROM ( SELECT  a.customerid,  a.amount  FROM (SELECT  M.customerid, SUM(T.amount) amount FROM deptran T,depmst M,gencustinfomst G,GENCATEGORYMST C WHERE T." & strArr(2) & " AND T.serviceid='2' AND M.accno=T.accno  AND M.glcode=T.glcode AND M.branchcode=T.BRANCHCODE AND M.customerid = G.Customerid AND G.CUSTOMERTYPE = C.CATEGORYCODE AND  T.ACCNO NOT IN (SELECT ACCNO FROM DEPMST Z WHERE Z.CLOSEDATE-Z.EFFDATE+1<=(SELECT MINPERIODDAYS FROM GENMINMAXBALANCEMST b WHERE b.GLCODE=Z.GLCODE AND b.STATUS='R') AND Z." & strArr(6) & "  and T.customerid=z.customerid and T.accno=z.accno and T.glcode=z.glcode and T.branchcode=z.branchcode) " & strArr(5) & " HAVING " & strArr(3) & "  GROUP BY M.customerid ) a where  " & stCustid & " ))) h ORDER BY customerid "
+
+
+//            end if
+
+
+//            rs = obj.SingleSelectStat(sqlStr)
+
+//            blncheck = "NO"
+
+//            if obj.ConnError = "Connected" then
+
+//                if not rs.BOF and not rs.EOF then
+
+
+//                    do until rs.EOF
+
+
+//                    if strArr(4) = ""
+
+//                blncheck = "NO"
+
+//                dblpaidcash = 0
+
+//                sqlStr = "  SELECT DISTINCT branchcode,glcode,accno  FROM deptran WHERE MODEOFTRAN IN (1,3,5) AND serviceid=4 AND customerid='" & rs(0).value & "' AND " & strArr(2) & ""
+
+//                 rs1 = obj.SingleSelectStat(sqlStr)
+
+//                 if obj.ConnError = "Connected" then
+
+//                            if not rs1.BOF and not rs1.EOF then
+
+//                            while not rs1.eof
+//                    sqlStr = " SELECT remarks  FROM deptran WHERE MODEOFTRAN  IN (1,3,5) AND serviceid=4 and branchcode = '" & rs1(0).value & "' and glcode = '" & rs1(1).value & "' and accno = '" & rs1(2).value & "' AND  customerid='" & rs(0).value & "' AND " & strArr(2) & ""
+
+//                    rscheck = obj.SingleSelectStat(sqlStr)
+
+//                    blncheck = "NO"
+
+//                    if obj.ConnError = "Connected" then
+
+//                            if not rscheck.BOF and not rscheck.EOF then
+
+
+//                                do until rscheck.EOF
+
+//                                if isdbnull(rscheck(0).value) = false then
+
+//                                if UCase(rscheck(0).value) = "AUTO RENEWAL" then
+//                                    blncheck = "YES"
+
+//                                    exit Do
+
+//                                    else
+//                blncheck = "NO"
+
+//                                    end if
+
+//                                end if
+
+//                                rscheck.movenext()
+
+//                                loop
+
+//                                else
+//                    blncheck = "NO"
+
+//                                end if
+
+//                                if rscheck.state = 1 then
+
+//                                rscheck.close
+//                                rscheck = nothing
+
+//                                end if
+
+
+//                            else
+//                    blncheck = "NO"
+
+//                    end if
+
+
+//                            if blncheck = "YES" then
+//                            sqlStr = "SELECT SUM(amount) FROM deptran t WHERE MODEOFTRAN IN (1,3,5) AND serviceid=4 AND customerid='" & rs(0).value & "' AND " & strArr(2) & "  AND applicationdate IN ( SELECT closedate FROM depmst WHERE customerid = '" & rs(0).value & "' and branchcode = t.branchcode and glcode = t.glcode and accno = t.accno ) and branchcode = '" & rs1(0).value & "' and glcode = '" & rs1(1).value & "' and accno = '" & rs1(2).value & "'"
+
+//                            else
+//                    ''sqlStr = " SELECT SUM(amount)  FROM deptran WHERE MODEOFTRAN  IN (1,3,5) AND serviceid=4 AND customerid='" & rs(0).value & "' AND " & strArr(2) & ""
+
+//                            sqlStr = "SELECT SUM(amount) FROM deptran t WHERE MODEOFTRAN IN (1,3,5) AND serviceid=4 AND customerid='" & rs(0).value & "' AND " & strArr(2) & "  AND applicationdate IN ( SELECT closedate FROM depmst WHERE customerid = '" & rs(0).value & "' and branchcode = t.branchcode and glcode = t.glcode and accno = t.accno ) and branchcode = '" & rs1(0).value & "' and glcode = '" & rs1(1).value & "' and accno = '" & rs1(2).value & "'"
+
+//                            end if
+
+//                        rscheck = obj.SingleSelectStat(sqlStr)
+
+
+//                    if obj.ConnError = "Connected" then
+
+//                            if not rscheck.BOF and not rscheck.EOF then
+
+//                                    if isdbnull(rscheck(0).value) = true  then
+//                                    dblpaidcash = dblpaidcash + 0
+
+//                                    else
+//                dblpaidcash = dblpaidcash + rscheck(0).value
+
+//                                    end if
+
+//                                else
+//                    dblpaidcash = dblpaidcash + 0
+
+//                            end if
+
+//                                if rscheck.state = 1 then
+
+//                                rscheck.close
+//                                rscheck = nothing
+
+//                                end if
+
+//                    end if
+
+//                    rs1.movenext()
+
+//                    end while
+
+//                    end if
+
+//                            if rs1.state = 1 then
+
+//                                rs1.close
+//                                rs1 = nothing
+
+//                            end if
+
+//                    end if
+
+//                        strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "~" & rs(7).value & "~" & rs(8).value & "~" & rs(9).value & "~" & rs(10).value & "~" & rs(11).value & "~" & rs(12).value & "~" & rs(13).value & "~" & rs(14).value & "~" & rs(15).value & "~" & Math.Abs(dblpaidcash) & "~" & rs(17).value & "|"
+
+
+
+
+//                    elseif strArr(4) = "ACCOUNTWISE"
+
+
+//                        strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "|"
+
+
+//                    end if
+
+
+//                    rs.movenext()
+
+//                    loop
+//                end if
+
+//            end if
+
+
+//            if strResult = "" then
+//                strResult = "No Records"
+
+//            else
+//                        strResult = mid(strResult, 1, strResult.length - 1)
+
+//            end if
+
+
+//        rs = nothing
+
+
+//       elseif strArr(0)= "TOPDEPLOAN" then
+//    strResult = ""
+
+
+//    obj = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+
+//        if strArr(1) = "DEP" then
+
+//        if strArr(5) = "Accountwise" then
+//            sqlStr = " SELECT b.branchcode,b.glcode,b.accno,b.name,b.amount FROM ( SELECT a.branchcode,a.glcode,a.accno,a.name,a.amount,RANK() OVER (ORDER BY TO_NUMBER(a.amount) DESC) accrank FROM ( SELECT branchcode,glcode,accno,SUBSTR(name,1,25) name,opbal amount FROM depmst m WHERE " & strArr(4) & " applicationdate <= '" & strArr(2) & "' AND (closedate IS NULL OR closedate > '" & strArr(2) & "') ) A ) b WHERE accrank <=" & strArr(3) & " "
+
+
+//            rs = obj.SingleSelectStat(sqlStr)
+
+
+//        if obj.ConnError = "Connected" then
+
+//            if not rs.BOF and not rs.EOF then
+
+
+//                do until rs.EOF
+
+
+//                strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "|"
+
+
+//                rs.movenext()
+
+//                loop
+
+//            end if
+
+//        end if
+
+//        else
+
+//                        sqlStr = " SELECT b.customerid,b.panno,b.name,b.amount,b.maturitydate FROM ( SELECT a.customerid,a.name,a.panno,a.amount,a.maturitydate,RANK() OVER (ORDER BY TO_NUMBER(a.amount) DESC) accrank FROM ( SELECT customerid,(SELECT panno FROM gencustinfomst WHERE customerid =  m.customerid) panno,SUBSTR(name,1,25) name,opbal amount,to_char(maturitydate,'dd-Mon-yyyy') maturitydate FROM depmst m WHERE " & strArr(4) & " applicationdate <= '" & strArr(2) & "' AND (closedate IS NULL OR closedate > '" & strArr(2) & "') ) A ) b WHERE accrank <=" & strArr(3) & " "
+
+
+//            rs = obj.SingleSelectStat(sqlStr)
+
+
+//        if obj.ConnError = "Connected" then
+
+//            if not rs.BOF and not rs.EOF then
+
+
+//                do until rs.EOF
+
+//                strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "|"
+
+//                rs.movenext()
+
+//                loop
+//            end if
+
+//        end if
+
+
+//        end if  ''strArr(5) = "Accountwise"
+
+//            strResult = mid(strResult, 1, strResult.length - 1)
+
+
+//    rs = nothing
+
+
+//        elseif strArr(1)= "LOAN" then
+//        dim strAssetClass
+//        dim dblclsbal
+//        dim dblclsbal105
+//        dim dblclsballncc
+//        dblclsbal = 0
+
+//        dblclsballncc = 0
+
+//        dblclsbal105 = 0
+
+//         sqlStr = "SELECT ABS(SUM(closingbalance)) FROM gengldaybook  m WHERE " & strArr(4) & "  moduleid in ('LOAN','CC') AND applicationdate = (SELECT MAX(applicationdate) FROM gengldaybook WHERE  applicationdate <= '" & strArr(2) & "' AND moduleid in ('LOAN','CC') AND branchcode = m.branchcode ) ORDER BY glcode,branchcode"
+
+
+// rsgengl = obj.SingleSelectStat(sqlStr)
+// if obj.ConnError = "Connected" then
+
+//            if not rsgengl.BOF and not rsgengl.EOF then
+
+//                if isdbnull(rsgengl(0).value) then
+//                dblclsballncc = 0
+
+//                else
+//                dblclsballncc = rsgengl(0).value
+
+//                end if
+
+//            end if
+// end if
+// if rsgengl.state = 1 then
+
+//    rsgengl.close
+//    rsgengl = nothing
+// end if
+// dblclsbal105 = 0
+
+//      sqlStr = "SELECT ABS(SUM(closingbalance)) FROM gengldaybook  m WHERE " & strArr(4) & "  glcode = 105015 AND applicationdate = (SELECT MAX(applicationdate) FROM gengldaybook WHERE  applicationdate <= '" & strArr(2) & "' AND glcode = m.glcode AND branchcode = m.branchcode ) ORDER BY glcode,branchcode"
+
+
+// rsgengl105 = obj.SingleSelectStat(sqlStr)
+// if obj.ConnError = "Connected" then
+
+//            if not rsgengl105.BOF and not rsgengl105.EOF then
+
+//                if isdbnull(rsgengl105(0).value) then
+//                dblclsbal105 = 0
+
+//                else
+//                dblclsbal105 = rsgengl105(0).value
+
+//                end if
+
+//            end if
+// end if
+// if rsgengl105.state = 1 then
+
+//    rsgengl105.close
+//    rsgengl105 = nothing
+// end if
+
+
+// dblclsbal = cdbl(dblclsballncc) - cdbl(dblclsbal105)
+
+//     dim strfullaccno
+
+//     dim strnoofrec
+
+//      strfullaccno = ""
+
+//      strnoofrec = ""
+
+//     if frmname = "MAHARAJA" then
+//     strnoofrec = " ROW_NUM1 "
+
+//     strfullaccno = " b.branchcode||b.glcode||lpad(b.accno,7,'0') "
+
+//     else if frmname = "PCUB" then
+//     strfullaccno = " b.accno "
+
+//     strnoofrec = " accrank "
+
+//     else
+//                strfullaccno = " b.branchcode||b.glcode||lpad(b.accno,7,'0') "
+
+//     strnoofrec = " accrank "
+
+//     end if
+
+
+//        sqlStr = " SELECT b.branchcode,b.glcode," & strfullaccno & " accno ,b.name,round(b.amount,2),ROUND(((b.amount/" & dblclsbal & ") * 100),2) || '%' totadvan,round(b.outbal,2),b.modid FROM ( SELECT  a.branchcode,a.glcode,a.accno,a.name,a.amount,A.OUTBAL,a.modid, RANK() OVER (ORDER BY TO_NUMBER(a.amount) DESC) accrank,ROW_NUMBER() OVER (ORDER BY TO_NUMBER(a.amount) DESC ) AS ROW_NUM1  FROM ( SELECT branchcode,glcode,accno,SUBSTR(name,1,25) name,SANCTIONEDAMT amount,TO_NUMBER(ABS(GETANYDAYBAL(M.BRANCHCODE,M.CURRENCYCODE,'LOAN',M.GLCODE,M.ACCNO,'" & strArr(2) & "'))) OUTBAL,'LOAN' modid FROM loanmst M WHERE " & strArr(4) & "  applicationdate <= '" & strArr(2) & "' AND (closedate IS NULL OR closedate > '" & strArr(2) & "') UNION ALL SELECT m.branchcode, m.glcode, m.accno,m.name, NVL((SELECT MIN(LINKEDAMOUNT) FROM ( SELECT branchcode,LINKEDGLCODE,LINKEDACCNO,linkedamount,expirydate FROM genlimitlnk UNION ALL SELECT branchcode,LINKEDGLCODE,LINKEDACCNO,linkedamount,expirydate FROM genlimitlnkhist) g WHERE  expirydate = (SELECT MIN(expirydate) FROM ( SELECT branchcode,LINKEDGLCODE,LINKEDACCNO,linkedamount,expirydate FROM genlimitlnk UNION ALL SELECT branchcode,LINKEDGLCODE,LINKEDACCNO,linkedamount,expirydate FROM genlimitlnkhist) WHERE expirydate >= '" & strArr(2) & "' AND branchcode = g.branchcode AND LINKEDGLCODE = g.LINKEDGLCODE AND linkedaccno = g.linkedaccno ) AND  branchcode =  m.branchcode AND linkedglcode = m.glcode AND linkedaccno = m.accno GROUP BY branchcode,linkedglcode,linkedaccno),0) linkedamount ,(SELECT ABS(getanydaybal(M.branchcode,'INR','CC',M.glcode,M.accno,'" & strArr(2) & "'))  FROM DUAL) OUTBAL,'CC' modid  FROM  ccmst m WHERE  " & strArr(4) & "  (m.closedate IS NULL OR m.closedate > '" & strArr(2) & "') GROUP BY m.branchcode,m.glcode, m.accno,M.NAME )  A WHERE a.outbal <> 0) b WHERE " & strnoofrec & " <=" & strArr(3) & ""
+
+
+//    rs = obj.SingleSelectStat(sqlStr)
+
+
+//        if obj.ConnError = "Connected" then
+
+//            if not rs.BOF and not rs.EOF then
+
+
+//                do until rs.EOF
+
+
+//                sqlStr = "  SELECT CASE WHEN assetstatus  = 'S' THEN  'Standard' WHEN assetstatus  = 'SS' THEN  'Sub Standard' WHEN assetstatus  = 'Loss Assets' THEN  'LA' WHEN assetstatus  = 'D1' THEN  'Doubtfull One' WHEN assetstatus  = 'D2'  THEN  'Doubtfull Two'WHEN assetstatus  = 'D3'  THEN  'Doubtfull Three' END FROM " & rs(7).value & "mst WHERE branchcode||glcode||LPAD(accno,7,'0') = '" & rs(2).value & "'"
+
+
+//                rs1 = obj.SingleSelectStat(sqlStr)
+
+//                strAssetClass = ""
+
+//                if obj.ConnError = "Connected" then
+
+//                    if not rs1.BOF and not rs1.EOF then
+
+//                            if isdbnull(rs1(0).value) then
+//                            strAssetClass = ""
+
+//                            else
+//                strAssetClass = rs1(0).value
+
+//                            end if
+
+//                    end if
+
+//                end if
+
+
+//                if rs1.state = 1 then
+
+//                rs1.close
+//                rs1 = nothing
+
+//                end if
+
+//                strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "~" & strAssetClass & "|"
+
+
+//                rs.movenext()
+
+//                loop
+
+//            end if
+
+//        end if
+
+
+//            strResult = mid(strResult, 1, strResult.length - 1)
+
+
+
+//        if rs.state = 1 then
+//        rs.close
+//        rs = nothing
+//        end if
+
+
+
+
+
+//        end if
+
+
+
+//        end if
+        }
+
+        public void GetDetailsFunction()
+        {
+        //    function Details()
+        //    {
+        //        var type = "<%=strArr(0)%>"
+    
+        //    var strResult = "<%=strResult%>"
+    
+        //    if (type == "GETSERVICETAX")
+        //            window.attachEvent(window.parent.getResult(strResult))
+
+        //    else if (type == "GETBATCHTRANNO")
+        //            window.attachEvent(window.parent.BatchTranNo(strResult))
+
+        //    else if (type == "GETBANKDESC")
+        //            window.attachEvent(window.parent.bankDesc(strResult))
+
+        //    else if (type == "GETBRANCHDESC")
+        //            window.attachEvent(window.parent.branchDesc(strResult))
+
+        //    else if (type == "GETMEMBER")
+        //            window.attachEvent(window.parent.dispMember(strResult))
+
+        //    else if ((type == "LEAFCHARGE") || (type == "CHARGE") || (type == "NEFTRTGSCOMMCHRGS") || (type == "GetGSTCharges") || (type == "NEFTRTGSCOMMCHRGSTRANS"))
+        //            window.attachEvent(window.parent.dispCharge(strResult))
+
+        //    else if (type == "REMCANCCHARGES")
+        //            window.attachEvent(window.parent.DispRemCancCharges(strResult))
+
+        //    else if (type == "ISSUEBANK")
+        //            window.attachEvent(window.parent.dispBanks(strResult))
+
+        //    else if (type == "GETACCNAME")
+        //            window.attachEvent(window.parent.dispName(strResult))
+
+        //    else if (type == "POSTINTEREST")
+        //            window.attachEvent(window.parent.populateInterest(strResult))
+
+        //    else if (type == "GETCERTIFICATES")
+        //            window.attachEvent(window.parent.dispCertificates(strResult))
+
+        //    else if ((type == "GETSHARENAME") || (type == "GETSHARENAME1"))
+        //            window.attachEvent(window.parent.dispTrName(strResult))
+
+        //    else if (type == "GETINSTRUMENT")
+        //            window.attachEvent(window.parent.printInstrument(strResult))
+
+        //    else if (type == "GETLIEN")
+        //            window.attachEvent(window.parent.lienPop(strResult))
+
+        //    else if (type == "GETMINPERIOD")
+        //            window.attachEvent(window.parent.minPeriod(strResult))
+
+        //    else if (type == "GETJOINTHOLDER")
+        //            window.attachEvent(window.parent.GetJointHolderVal(strResult))
+
+        //    else if (type == "CheckThreshHoldLimit")
+        //            window.attachEvent(window.parent.GetThreshHoldLimit(strResult))
+
+        //    else if (type == "GETCCDRCRLIENYN")
+        //        {
+        //            window.attachEvent(window.parent.GETCCDRCRLIENYN1(strResult))
+
+        //    }
+        //        else if (type == "GETDRCRLIENYN")
+        //        {
+        //            //alert(strResult)
+        //            window.attachEvent(window.parent.GETDRCRLIENYN1(strResult))
+    
+        //    }
+        //        else if (type == "GETDRCRLIENAMT")
+        //        {
+        //            //alert(strResult)
+        //            window.attachEvent(window.parent.GETDRCRLIENAMT1(strResult))
+    
+        //    }
+        //        else if (type == "GETNEXTGL")
+        //            window.attachEvent(window.parent.popNextGl(strResult))
+    
+        //    else if (type == "GETMATDATE")
+        //            window.attachEvent(window.parent.popMatDate(strResult))
+
+        //    else if (type == "GETGROUPCODE")
+        //            window.attachEvent(window.parent.popGroupCode(strResult))
+
+        //    else if (type == "GETMAXSNO")
+        //            window.attachEvent(window.parent.popMaxSno(strResult))
+
+        //    else if (type == "GETAGENTNAME")
+        //            window.attachEvent(window.parent.popAgentName(strResult))
+
+        //    else if (type == "GETAGENTACCNAME")
+        //            window.attachEvent(window.parent.popAgentAccName(strResult))
+
+        //    else if (type == "GETGLACCTYPE")
+        //            window.attachEvent(window.parent.popGlAccType(strResult))
+
+        //    else if (type == "GETPURPOSEDESC")
+        //            window.attachEvent(window.parent.popPurposeDesc(strResult))
+
+        //    else if (type == "GETNOMINEE")
+        //            window.attachEvent(window.parent.popNominee(strResult))
+
+        //    else if (type == "GETUSERDTLS")
+        //            window.attachEvent(window.parent.popUserDtls(strResult))
+
+        //    else if (type == "GETSUBNATURE")
+        //            window.attachEvent(window.parent.popSubnature(strResult))
+
+        //    else if (type == "INSERTUSERDATA")
+        //            window.attachEvent(window.parent.popResult(strResult))
+
+        //    else if (type == "USERCONFIGDATA")
+        //            window.attachEvent(window.parent.popConfigData(strResult))
+
+        //    else if (type == "GETDETAILS")
+        //            window.attachEvent(window.parent.popGetdetail(strResult))
+
+        //    else if (type == "MATDEP")
+        //            window.attachEvent(window.parent.popMatdetail(strResult))
+
+        //    else if (type == "MATDEPXL")
+        //            window.attachEvent(window.parent.popMatdetailXL(strResult))
+
+        //    else if (type == "deltran")
+        //            window.attachEvent(window.parent.popDelTran(strResult))
+
+        //    else if (type == "delabbtran")
+        //            window.attachEvent(window.parent.popDelTran(strResult))
+
+        //    else if (type == "GETCUSTOMERID")
+        //            window.attachEvent(window.parent.popCustId(strResult))
+
+        //    else if (type == "GETCUSTOMERID2")
+        //            window.attachEvent(window.parent.popCustId2(strResult))
+
+        //    else if (type == "GETCUSTOMERID3")
+        //            window.attachEvent(window.parent.popCustId3(strResult))
+
+        //    else if ((type == "GETSCHOOLDESC") || (type == "GETSCHBRANCHDESC") || (type == "GETSTUDENTDESC"))
+        //            window.attachEvent(window.parent.popSchoolDesc(type + "|" + strResult))
+
+        //    else if (type == "GETBRANCHID")
+        //            window.attachEvent(window.parent.popBranchId(strResult))
+
+        //    else if (type == "GETBRANCHDTLS")
+        //            window.attachEvent(window.parent.popBranchDtls(strResult))
+
+        //    else if (type == "GETLOANNPAINT")
+        //            window.attachEvent(window.parent.popLoanNPAInt(strResult))
+
+        //    else if ((type == "GETAMOUNTDTLS") || (type == "GETAMOUNTDTLSBRIFSCCODE") || (type == "GETAMOUNTDTLSLMTAMT"))
+        //            window.attachEvent(window.parent.popAmtDtls(strResult))
+
+        //    else if (type == "GETAMOUNTDTLSBRIFSCCODEMINAMT")
+        //            window.attachEvent(window.parent.popAmtDtls(strResult))
+
+        //    else if (type == "GETSBCADRCRLIENDTLS")
+        //            window.attachEvent(window.parent.GetDRCRLienDtls(strResult))
+
+        //    else if (type == "GETBRIFSCCODE")
+        //            window.attachEvent(window.parent.CheckIFSCCode(strResult))
+
+        //    else if (type == "GETDrMobileNo")
+        //            window.attachEvent(window.parent.popGetDrMobNo(strResult))
+
+        //    else if ((type == "SetMobileNo") || (type == "SetMobileNoNEFTRTGS"))
+        //            window.attachEvent(window.parent.GetMobileNo(strResult))
+
+        //    else if (type == "GETPANDTLS")
+        //            window.attachEvent(window.parent.popPanDtls(strResult))
+
+        //    else if (type == "GETAADHARUIDTLS")
+        //            window.attachEvent(window.parent.popAADHARUIDDtls(strResult))
+
+        //    else if ((type == "QUE15GA") || (type == "QUE15HA") || (type == "QUE15GAN") || (type == "QUE15HAN") || (type == "QUE15GC") || (type == "QUE15GAC") || (type == "QUE15GNC") || (type == "QUE15GNA") || (type == "QUE15HC") || (type == "QUE15HAC") || (type == "QUE15HANC") || (type == "QUE15HANA") || (type == "QUE15HCU") || (type == "QUE15GCU") || (type == "FRMTDS") || (type == "FRMNONTDS"))
+        //            window.attachEvent(window.parent.popD15ghDtls(strResult))
+
+        //    else if (type == "AadharExp")
+        //            window.attachEvent(window.parent.popAadrDtls(strResult))
+
+        //    else if (type == "ToatalAadharRec")
+        //            window.attachEvent(window.parent.popAadrDtls(strResult))
+
+        //    else if (type == "AadharPosted")
+        //            window.attachEvent(window.parent.popAadrDtls(strResult))
+
+        //    else if (type == "AadharNonPosted")
+        //            window.attachEvent(window.parent.popAadrDtls(strResult))
+
+        //    else if (type == "AadhaFileName")
+        //            window.attachEvent(window.parent.popAadrFname(strResult))
+
+        //    else if (type == "AadhaFName")
+        //            window.attachEvent(window.parent.popAadrFilname(strResult))
+
+        //    else if ((type == "Form15G") || (type == "Form15H"))
+        //            window.attachEvent(window.parent.popFrm15G(strResult))
+
+        //    else if (type == "AadharPay")
+        //            window.attachEvent(window.parent.popAadrPay(strResult))
+
+        //    else if ((type == "NORTRAN") || (type == "NORTRANNR") || (type == "NORCAS") || (type == "NORABBTRAN") || (type == "NORABBTRANNR"))
+        //            window.attachEvent(window.parent.popLoandtls(strResult))
+
+        //    else if (type == "CUSTID")
+        //            window.attachEvent(window.parent.popCustid(strResult))
+
+        //    else if ((type == "FRM26TDSCUST") || (type == "FRM26TDSACC") || (type == "FRM2615GHACC") || (type == "FRM2615GHCUST") || (type == "FRM26TDSWISEACC"))
+        //            window.attachEvent(window.parent.popFrm26q(strResult))
+
+        //    else if (type == "TDSREF")
+        //            window.attachEvent(window.parent.popTdsref(strResult))
+
+        //    else if (type == "SLNO")
+        //            window.attachEvent(window.parent.popSlno(strResult))
+
+        //    else if (type == "FRM15GHREP")
+        //            window.attachEvent(window.parent.popTdsRep(strResult))
+
+        //    else if (type == "GETCUSTCHECK")
+        //            window.attachEvent(window.parent.popCuschk(strResult))
+
+        //    else if (type == "GETFROZDTLS")
+        //            window.attachEvent(window.parent.popFrozDtls(strResult))
+
+        //    else if (type == "BalDisplay")
+        //            window.attachEvent(window.parent.popDisplay(strResult))
+
+        //    else if (type == "ShareNotallot")
+        //            window.attachEvent(window.parent.popSharnotallo(strResult))
+
+        //    else if (type == "ShareVal")
+        //            window.attachEvent(window.parent.popSharval(strResult))
+
+        //    else if (type == "REFUNDDTLS")
+        //            window.attachEvent(window.parent.popRefdtls(strResult))
+
+        //    else if (type == "SUBNATURE")
+        //            window.attachEvent(window.parent.popSubnature(strResult))
+
+        //    else if (type == "MANUALDTLS")
+        //            window.attachEvent(window.parent.popManuldtls(strResult))
+
+        //    else if (type == "CLGDTLS")
+        //            window.attachEvent(window.parent.popClgdtls(strResult))
+
+        //    else if (type == "LCKOPDTLS")
+        //            window.attachEvent(window.parent.popLckopdt(strResult))
+
+        //    else if ((type == "FRMTDSACC") || (type == "FRMTDSCUST") || (type == "FRMTDSPAN"))
+        //            window.attachEvent(window.parent.popTDS(strResult))
+
+        //    else if (type == "SALARYDTLS")
+        //            window.attachEvent(window.parent.popSal(strResult))
+
+        //    else if (type == "CASHPOSITION")
+        //            window.attachEvent(window.parent.popCash(strResult))
+
+        //    else if (type == "GETOPDATE")
+        //            window.attachEvent(window.parent.popGetdat(strResult))
+
+        //    else if (type == "NOMREP")
+        //            window.attachEvent(window.parent.popNomdetail(strResult))
+
+        //    else if ((type == "BLCAGENTWISEDET") || (type == "BLCAGENTWISESUM") || (type == "BLCACCWISE") || (type == "BLCAGENTWISETRN"))
+        //            window.attachEvent(window.parent.GetBLCAgentWise(strResult))
+
+        //    else if (type == "GETPAN")
+        //            window.attachEvent(window.parent.popPanno(strResult))
+
+        //    else if ((type == "FRMANUALACC") || (type == "FRMANUALCUST") || (type == "FRMANUALPAN"))
+        //            window.attachEvent(window.parent.popAnual(strResult))
+
+        //    else if (type == "SLNOVALUE")
+        //            window.attachEvent(window.parent.popSlno(strResult))
+
+        //    else if (type == "DATECHECK")
+        //            window.attachEvent(window.parent.popChkdat(strResult))
+
+        //    else if (type == "MONCHK")
+        //            window.attachEvent(window.parent.popMondat(strResult))
+
+        //    else if (type == "AMTCHK")
+        //            window.attachEvent(window.parent.popAmtchk(strResult))
+
+        //    else if (type == "AMOUNTROI")
+        //            window.attachEvent(window.parent.popRoi(strResult))
+
+        //    else if (type == "SALTYP")
+        //            window.attachEvent(window.parent.popSalTyp(strResult))
+
+        //    else if (type == "SALTYPDATA")
+        //            window.attachEvent(window.parent.popSalData(strResult))
+
+        //    else if (type == "PARDATA")
+        //            window.attachEvent(window.parent.popPardat(strResult))
+
+        //    else if (type == "EMPDEDDTLS")
+        //            window.attachEvent(window.parent.popEmpded(strResult))
+
+        //    else if (type == "MEMBERDTLS")
+        //            window.attachEvent(window.parent.popMemdtls(strResult))
+
+        //    else if (type == "CUSTDTLS")
+        //            window.attachEvent(window.parent.popCusdtls(strResult))
+
+        //    else if (type == "FRMINTACRCUST")
+        //            window.attachEvent(window.parent.popIntAcrud(strResult))
+
+        //    else if (type == "USERWISE")
+        //            window.attachEvent(window.parent.popUserRep(strResult))
+
+        //    else if (type == "CDRATIO")
+        //            window.attachEvent(window.parent.popCdrat(strResult))
+
+        //    else if (type == "CRRSLR")
+        //            window.attachEvent(window.parent.popCRRSLRrat(strResult))
+
+        //    else if (type == "REFDETAIL")
+        //            window.attachEvent(window.parent.popRefDtls(strResult))
+
+        //    else if (type == "VALDETAL")
+        //            window.attachEvent(window.parent.popValdtls(strResult))
+
+        //    else if ((type == "CHQSLNO") || (type == "BCSLNO"))
+        //            window.attachEvent(window.parent.popChsl(strResult))
+
+        //    else if (type == "FRMCHQNO")
+        //            window.attachEvent(window.parent.popFrmCh(strResult))
+
+        //    else if (type == "GRIDDETAIL")
+        //            window.attachEvent(window.parent.popGridDtls(strResult))
+
+        //    else if (type == "LOCKADVDTLS")
+        //            window.attachEvent(window.parent.popLokadv(strResult))
+
+        //    else if (type == "DAYREPORT")
+        //            window.attachEvent(window.parent.popDaydetls(strResult))
+
+        //    else if (type == "RUNDETAIL")
+        //            window.attachEvent(window.parent.popRunDtls(strResult))
+
+        //    else if (type == "EMPARDAT")
+        //            window.attachEvent(window.parent.popEmprdat(strResult))
+
+        //    else if (type == "getpendintcashaccname")
+        //            window.attachEvent(window.parent.getpendintcashaccname(strResult))
+
+        //    else if (type == "getpendintcashglname")
+        //            window.attachEvent(window.parent.getpendintcashglname(strResult))
+
+        //    else if (type == "GETCARDDAT")
+        //            window.attachEvent(window.parent.getCard(strResult))
+
+        //    else if ((type == "CARDFILEGEN") || (type == "CARDUPDATFILEGEN"))
+        //            window.attachEvent(window.parent.popCardfile(strResult))
+
+        //    else if (type == "CBSFILES")
+        //            window.attachEvent(window.parent.popCBSFiles(strResult))
+
+        //    else if (type == "CTSCLEAR")
+        //            window.attachEvent(window.parent.popCTSFiles(strResult))
+
+        //    else if (type == "CTSCLEARINWARDRET")
+        //            window.attachEvent(window.parent.popInwardRetCTSFiles(strResult))
+
+        //    else if (type == "CTSCLEARINWANDINWRET")
+        //            window.attachEvent(window.parent.popInwandInwRetCTSFiles(strResult))
+
+        //    else if (type == "ATMCARDTLS")
+        //            window.attachEvent(window.parent.popGridDisplay(strResult))
+
+        //    else if (type == "LOGINOUTDETAIL")
+        //            window.attachEvent(window.parent.popLogDetail(strResult))
+
+        //    else if (type == "HOEODETAILS")
+        //            window.attachEvent(window.parent.popHeodDetail(strResult))
+
+        //    else if (type == "ATMPOSITION")
+        //            window.attachEvent(window.parent.popAtmDetail(strResult))
+
+        //    else if (type == "FRM61REPORT")
+        //            window.attachEvent(window.parent.popFrm61(strResult))
+
+        //    else if (type == "FRMMODREPORT")
+        //            window.attachEvent(window.parent.popMrep(strResult))
+
+        //    else if (type == "CARDREQUEST")
+        //            window.attachEvent(window.parent.popReqcust(strResult))
+
+        //    else if (type == "RTGSNEFTREP")
+        //            window.attachEvent(window.parent.popNftRep(strResult))
+
+        //    else if (type == "SBCADRCRLIEN")
+        //            window.attachEvent(window.parent.popSBCADRCRLIEN(strResult))
+
+        //    else if (type == "NEFTOUTWARD")
+        //            window.attachEvent(window.parent.NEFTOUTWARDREP(strResult))
+
+        //    else if (type == "NEFTINWARD")
+        //            window.attachEvent(window.parent.NEFTINWARDREP(strResult))
+
+        //    else if (type == "RTGSINWARD")
+        //            window.attachEvent(window.parent.RTGSINWARDREP(strResult))
+
+        //    else if (type == "NEFTOUTWARDRETURN")
+        //            window.attachEvent(window.parent.NEFTOUTWARDRETURNREP(strResult))
+
+        //    else if (type == "NEFTINWARDRETURN")
+        //            window.attachEvent(window.parent.NEFTINWARDRETURNREP(strResult))
+
+        //    else if (type == "RTGSINWARDRETURN")
+        //            window.attachEvent(window.parent.RTGSINWARDRETURNREP(strResult))
+
+        //    else if (type == "RTGSOUTWARDRETURN")
+        //            window.attachEvent(window.parent.RTGSOUTWARDRETURNREP(strResult))
+
+        //    else if (type == "RTGSOUTWARD")
+        //            window.attachEvent(window.parent.RTGSOUTWARDREP(strResult))
+
+        //    else if (type == "INOPRDTLS")
+        //            window.attachEvent(window.parent.popIopdtls(strResult))
+
+        //    else if (type == "INOPREPT")
+        //            window.attachEvent(window.parent.popIoprpt(strResult))
+
+        //    else if ((type == "WITHOUTPANDTLS") || (type == "WITHOUTAADHARDTLS") || (type == "BOTHPANNOANDAADHARDTLS") || (type == "WITHOUTBOTHPANNOANDAADHARDTLS"))
+        //            window.attachEvent(window.parent.popPanDtls(strResult))
+
+        //    else if (type == "GSTRCUSTID")
+        //            window.attachEvent(window.parent.popGstrDtls(strResult))
+
+        //    else if (type == "GSTREPORT")
+        //            window.attachEvent(window.parent.popGstrepDtls(strResult))
+
+        //    else if (type == "SERCHCUST")
+        //            window.attachEvent(window.parent.popCustser(strResult))
+
+        //    else if (type == "INTDATE")
+        //            window.attachEvent(window.parent.popIntdat(strResult))
+
+        //    else if (type == "INTRATEDTLS")
+        //            window.attachEvent(window.parent.popIntratdat(strResult))
+
+        //    else if (type == "PHOTOSIGNDTLS")
+        //            window.attachEvent(window.parent.popPhosignDat(strResult))
+
+        //    else if (type == "CHARTYP")
+        //            window.attachEvent(window.parent.popChrgDat(strResult))
+
+        //    else if (type == "CHARREPORT")
+        //            window.attachEvent(window.parent.popRepcharDat(strResult))
+
+        //    else if (type == "DTLSCRD")
+        //            window.attachEvent(window.parent.popDtlscrd(strResult))
+
+        //    else if (type == "TERMINAL")
+        //            window.attachEvent(window.parent.popTerdtls(strResult))
+
+        //    else if (type == "POSRENTDTLS")
+        //            window.attachEvent(window.parent.popPosrentdtls(strResult))
+
+        //    else if (type == "POSRENTGENRAT")
+        //            window.attachEvent(window.parent.popPosrentgent(strResult))
+
+        //    else if (type == "REPORTPOSDTLS")
+        //            window.attachEvent(window.parent.popRepPosdtls(strResult))
+
+        //    else if (type == "POSDTLSREPRT")
+        //            window.attachEvent(window.parent.popRepRentdtls(strResult))
+
+        //    else if (type == "POSISSUEDTLSREPRT")
+        //            window.attachEvent(window.parent.popRepIssudtls(strResult))
+
+        //    else if (type == "MERCHVAL")
+        //            window.attachEvent(window.parent.popMastdtls(strResult))
+
+        //    else if (type == "MODISSUVAL")
+        //            window.attachEvent(window.parent.popModIssudtls(strResult))
+
+        //    else if (type == "MEMDTLS")
+        //            window.attachEvent(window.parent.popMemberdtls(strResult))
+
+        //    else if (type == "NONMEMDTLS")
+        //            window.attachEvent(window.parent.popNonMemberdtls(strResult))
+
+        //    else if (type == "LoanRepayDtls")
+        //            window.attachEvent(window.parent.popLoanRepayDtls(strResult))
+
+        //    else if (type == "LoanRepayAccName")
+        //            window.attachEvent(window.parent.popLoanRepayAccname(strResult))
+
+        //    else if (type == "StmntOfAccChrgs")
+        //            window.attachEvent(window.parent.DispTranMsg(strResult))
+    
+        //    window.close()
+    
+        //}
+        }
+
+        public void GetDetails1Function()
+        {
+            //function Details()
+            //{
+            //    var type = "<%=strArr(0)%>"
+
+            //var strResult = "<%=strResult%>"
+
+            //if (type == "FRM61REPORT")
+            //        window.attachEvent(window.parent.popFrm61(strResult))
+
+            //    else if (type == "SERINDEFUNCTINFO")
+            //        window.attachEvent(window.parent.popSERINDEFUNCTINFO(strResult))
+
+            //    else if (type == "TOPDEPLOAN")
+            //        window.attachEvent(window.parent.popTopdeplon(strResult))
+
+            //    else if (type == "Check194N")
+            //        window.attachEvent(window.parent.Get194Ndtls(strResult))
+
+            //    else if (type == "OTHERITFORMS")
+            //        window.attachEvent(window.parent.popOthItFrmAcr(strResult))
+
+            //    else if ((type == "CustIntProjByCust") || (type == "CustIntProjByPanno"))
+            //        window.attachEvent(window.parent.popCustIntProjAcr(strResult))
+
+            //    else if (type == "GETMODCUSTPANDTLS")
+            //        window.attachEvent(window.parent.popPanDtls(strResult))
+
+            //    else if (type == "ATMCARDTLS")
+            //        window.attachEvent(window.parent.popGridDisplay(strResult))
+
+            //    else if ((type == "FRMANUALACC") || (type == "FRMANUALCUST") || (type == "FRMANUALPAN"))
+            //        window.attachEvent(window.parent.popAnual(strResult))
+
+            //    else if (type == "SFTREP")
+            //        window.attachEvent(window.parent.popSftDtls(strResult))
+
+            //    else if (type == "GETMODCUSTAADHARUIDTLS")
+            //        window.attachEvent(window.parent.popAADHARUIDDtls(strResult))
+
+            //    else if (type == "LCKRENTPAIDTLS")
+            //        window.attachEvent(window.parent.popLCKRENTPAIDTLS(strResult))
+
+            //    else if (type == "GETRDAMOUNTCHECK")
+            //        window.attachEvent(window.parent.popGETRDAMOUNTCHECK(strResult))
+
+            //    else if (type == "loanopeningdate")
+            //        window.attachEvent(window.parent.popGETloanopeningdate(strResult))
+
+            //    window.close()
+
+            //    }
+        }
+    }
+}

@@ -1,9 +1,140 @@
-﻿function datecheck(obj) {
-  var dt, arrDt
+﻿
+/************* Basic Fields Validations *************/
+
+function ValidateEmail(emailField) {
+  debugger;
+  if (emailField.value != "") {
+    var reg = /^([A-Za-z0-9_\-\.])+\@([A-Za-z0-9_\-\.])+\.([A-Za-z]{2,4})$/;
+    if (reg.test(emailField) == false) {
+      bankingAlert('Please enter valid email address.');
+      emailField.value = '';
+      emailField.trigger('focus');
+      return false;
+    }
+    return true;
+  }
+}
+
+function ValidateGSTIN(gstField) {
+  debugger;
+  if (gstField != "") {
+    if (eval(gstField.length) != 15) {
+      bankingAlert("Enter Valid GST IN");
+      gstField = '';
+      gstField.trigger('focus');
+    }
+  }
+}
+
+function ValidateCKYCID(ckycField) {
+  debugger;
+  if (ckycField != "") {
+    if (eval(ckycField.length) != 14) {
+      bankingAlert("Enter Valid CKYCID");
+      ckycField = '';
+      ckycField.trigger('focus');
+    }
+  }
+}
+
+function ValidateAadhaar(aadhaarNumber, branchCode) {
+  debugger;
+  if (aadhaarNumber == "") {
+    bankingAlert("Enter Valid Aadhaar Id");
+    if (eval(aadhaarNumber.length) != 12) {
+      aadhaarNumber = '';
+      aadhaarNumber.trigger('focus');
+    }
+  }
+  else {
+    var st = "GETAADHARUIDTLS" + "|" + aadhaarNumber + "|" + branchCode;
+    var result = AjaxGet('/GetDetails/GetAadhaarDetails?aadhaarNumber=' + st, true);
+    if (result != "0") {
+      var stVal = result.split("|");
+      var stCus = stVal[0].split("~");
+      bankingAlert("This AADHAR card have already Customerid :" + stCus[0] + " and Name :" + stCus[1]);
+      aadhaarNumber = '';
+      aadhaarNumber.trigger('focus');
+      return;
+    }
+  }
+}
+
+function ValidatePANNumber(panNumber, branchCode) {
+  if (panNumber == "") {
+    bankingAlert("Please Enter PAN Number");
+    return;
+  }
+  else {
+    if ((panNumber.length == "10") && (panNumber.substring(0, 10)).match("[(/).]+")) {
+      bankingAlert("Not a valid PAN Number");
+      panNumber = '';
+      panNumber.trigger('');
+      return;
+    }
+    else {
+      if (panNumber.length == "10") {
+        if ((panNumber.substring(0, 5)).match(/^[a-zA-Z]+$/) && (panNumber.substring(5, 9)).match(/^[0-9]+$/) && (panNumber.substring(9, 10)).match(/^[a-zA-Z]+$/)) {
+          var st = "GETPANDTLS" + "|" + panNumber.toUpperCase() + "|" + branchCode;
+          var result = AjaxGet('/GetDetails/GetPANDetails?panNumber=' + st, true);
+          if (result != "0") {
+            var stVal = result.split("|");
+            var stCus = stVal[0].split("~");
+            bankingAlert("This Pan card have already Customerid :" + stCus[0] + " and Name :" + stCus[1]);
+            panNumber = '';
+            panNumber.trigger('');
+            return;
+          }
+        }
+        else {
+          bankingAlert("Not a valid PAN Number");
+          panNumber = '';
+          panNumber.trigger('');
+          return;
+        }
+      }
+      else {
+        bankingAlert("Not a valid PAN Number")
+        panNumber = '';
+        panNumber.trigger('');
+        return;
+      }
+    }
+  }
+}
+
+
+/************* Ajax Calls *************/
+
+function AjaxGetPromise(url) {
+  return new Promise((resolve, reject) => {
+    $.ajax({
+      url: url,
+      type: 'GET',
+      success: resolve,
+      error: reject
+    });
+  });
+}
+
+async function FetchData(url) {
+  try {
+    const response = await AjaxGetPromise(url);
+    console.log(response); // now response has the data
+  } catch (err) {
+    console.error(err);
+  }
+}
+
+
+/************* Others *************/
+
+function DateCheck(obj) {
+  var dt, arrDt;
   if (obj.value == "")
     return;
 
-  dt = obj.value
+  dt = obj;
   dt = dt.toUpperCase();
   arrDt = dt.split("-")
   if (eval(arrDt[0].length) != 2)
@@ -62,7 +193,7 @@
     }
 
     dt = arrDt[0] + arrDt[1] + arrDt[2]
-    obj.value = dt
+    obj = dt;
   }
   formatDate(obj)
 }
@@ -77,7 +208,7 @@ function formatDate(obj) {
     len = dateval;
     if (len.length != 8) {
       bankingAlert("Enter Date In Valid Date Format");
-      obj.value = ""
+      obj = '';
       obj.select();
       return false;
     }
@@ -91,56 +222,56 @@ function formatDate(obj) {
       noDays = getDays((len.substring(2, 4) - 1), yy)
       if ((len.substring(0, 2) > 31) || (len.substring(2, 4) > 12)) {
         bankingAlert('No Of Days (or) Months Exceeds The Limit');
-        obj.value = ""
-        obj.focus();
+        obj = '';
+        obj.trigger('focus');
         obj.select();
         return false;
       }
       else if ((len.substring(0, 2) < 1) || (len.substring(2, 4) < 1)) {
         bankingAlert('No Of Days (or) Months Not Equal To Zero');
-        obj.focus();
+        obj.trigger('focus');
         obj.select();
         return false;
       }
       else if (len.substring(4, 8) < 1950) {
         bankingAlert('Year Should Not Be Less Than 1950');
-        obj.focus();
+        obj.trigger('focus');
         obj.select();
         return false;
       }
       else if (len.substring(0, 2) > noDays) {
         bankingAlert("Enter DD Value Not More Than " + noDays);
-        obj.focus();
+        obj.trigger('focus');
         obj.select();
         return false;
       }
       else {
-        obj.value = date1;
-        copyDtls(obj)
+        obj = date1;
+        CopyDetails(obj);
       }
     }
   }
 }
 
-function getDays(month, year) {
+function GetDays(month, year) {
   var monarr = new Array(12);
-  monarr[0] = 31
-  monarr[1] = (leapYear(year)) ? 29 : 28
-  monarr[2] = 31
-  monarr[3] = 30
-  monarr[4] = 31
-  monarr[5] = 30
-  monarr[6] = 31
-  monarr[7] = 31
-  monarr[8] = 30
-  monarr[9] = 31
-  monarr[10] = 30
-  monarr[11] = 31
-  return monarr[month]
+  monarr[0] = 31;
+  monarr[1] = (LeapYear(year)) ? 29 : 28;
+  monarr[2] = 31;
+  monarr[3] = 30;
+  monarr[4] = 31;
+  monarr[5] = 30;
+  monarr[6] = 31;
+  monarr[7] = 31;
+  monarr[8] = 30;
+  monarr[9] = 31;
+  monarr[10] = 30;
+  monarr[11] = 31;
+  return monarr[month];
 }
 
-function copyDtls(obj) {
-  var dt, arrDt
+function CopyDetails(obj) {
+  var dt, arrDt;
 
   if (obj.value == "")
     return;
@@ -179,7 +310,7 @@ function copyDtls(obj) {
   obj.value = dt
 }
 
-function leapYear(year) {
+function LeapYear(year) {
   if (year % 4 == 0) {
     return true;
   }
@@ -230,44 +361,16 @@ function changeMonth(str) {
   return strMonth;
 }
 
-function ValidateEmail(emailField) {
-  debugger;
-  if (emailField.value != "") {
-    var reg = /^([A-Za-z0-9_\-\.])+\@([A-Za-z0-9_\-\.])+\.([A-Za-z]{2,4})$/;
-    if (reg.test(emailField.value) == false) {
-      bankingAlert('Please enter valid email address.');
-      emailField.value = '';
-      emailField.trigger('focus');
-      return false;
-    }
-    return true;
-  }
-}
-
-function ValidateGSTIN(gstField) {
-  debugger;
-  if (gstField.value != "") {
-    if (eval(gstField.value.length) != 15) {
-      bankingAlert("Enter Valid GST IN");
-      gstField.value = '';
-      gstField.trigger('focus');
-    }
-  }
-}
-
-function ValidateCKYCID(ckycField) {
-  debugger;
-  if (ckycField.value != "") {
-    if (eval(ckycField.length) != 14) {
-      bankingAlert("Enter Valid CKYCID");
-      ckycField.value = '';
-      ckycField.trigger('focus');
-    }
-  }
-}
-
 function bankingAlert(response) {
-  bankingAlert(response);
+  debugger;
+  $("#mandatoryFieldsAlert").text(response);
+  $("#mandatoryFieldsAlert").removeClass('d-none');
+}
+
+function bankingModal(response) {
+  debugger;
+  $("#errorMessage").text(response);
+  $("#errorModal").modal('show');
 }
 
 

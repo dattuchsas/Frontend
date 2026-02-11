@@ -6,6 +6,7 @@
         public const string Dashboard = "Dashboard";
         public const string Customer = "Customer";
         public const string User = "User";
+        public const string GetDetails = "GetDetails";
     }
 
     public class ActionNames

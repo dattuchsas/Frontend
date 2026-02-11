@@ -18,6 +18,13 @@ $(document).ready(function () {
     let description = $("#KYCType option:selected").text();
     let kycNo = $("#KYCNumber").val();
 
+    if (id != "" && kycNo == "") {
+      $("#mandatoryFieldsAlert").text('Please KYC Number.');
+      $("#mandatoryFieldsAlert").removeClass('d-none');
+      window.scrollTo(0, 0);
+      return;
+    }
+
     documents.push({
       id: id,
       file: file,
@@ -77,49 +84,31 @@ $(document).ready(function () {
   });
 
   $("#searchById").on('click', function () {
-    var str, st;
+    var searchType = $("#idSearch").val();
+    var searchString = $("#idSearchValue").val();
 
-    if ($("#idSearch").val() == "PAN") {
-      if ($("#idSearchValue").val().length != "10") {
-          bankingAlert("Not a valid PAN Number")
-          $("#idSearchValue").val('');
-          $("#idSearchValue").trigger("focus");
-          return;
-        }
-      if (($("#idSearchValue").val().length == "10") && ($("#idSearchValue").val().substring(0, 10)).match("[(/).]+")) {
-          bankingAlert("Not a valid PAN Number")
-          $("#idSearchValue").val('');
-          $("#idSearchValue").trigger("focus");
-          return;
-        }
-      str = " (UPPER(PANNO) LIKE '" + $("#idSearchValue").val().toUpperCase() + "' ) "
+    if (searchType == "") {
+      bankingAlert('Search Customer Type is mandatory.');
+      return;
     }
 
-    if ($("#idSearch").val() == "AADHAR") {
-      if ($("#idSearchValue").val().length != "12") {
-        bankingAlert("Not a valid Aadhar")
-        $("#idSearchValue").val('');
-        $("#idSearchValue").trigger("focus");
+    if (searchType != "" && searchString == "") {
+      if (searchType == "PAN") {
+        bankingAlert('Customer PAN Number is mandatory.');
         return;
       }
-      if (($("#idSearchValue").val().length == "12") && ($("#idSearchValue").val().substring(0, 12)).match("[(/).]+")) {
-        bankingAlert("Not a valid Aadhar")
-        $("#idSearchValue").val('');
-        $("#idSearchValue").trigger("focus");
+      else {
+        bankingAlert('Customer Aadhaar Card number is mandatory.');
         return;
       }
-      str = " (UPPER(AADHARUID) LIKE '" + $("#idSearchValue").val().toUpperCase() + "' ) "
     }
 
-    st = "SERCHCUST" + "|" + str;
-    // window.document.all['iGetDtls'].src = "getDtls.aspx?st=" + st
+    SearchCustomer();
   });
 
   $("#MembershipNumber").on('blur', function () {
-    if ($(this).val() == "") {
+    if ($("#MemberId").is(':checked') == true && $(this).val() == "") {
       bankingAlert("Please enter the Member Id.");
-      $(this).val('');
-      $(this).trigger("focus");
       return;
     }
     else {
@@ -144,6 +133,66 @@ $(document).ready(function () {
   $('#newCustomerForm').on('submit', function (event) {
     event.preventDefault();
     debugger;
+
+    if ($("#Salutation").val() == "" || $("#CustomerType").val() == "" || $("#Personal_DOB").val() == "" || $("#Mailing_FlatNo").val() == "" ||
+      $("#Mailing_Building").val() == "" || $("#Mailing_Pincode").val() == "" || $("#Personal_Gender").val() == "" ||
+      $("#Personal_MaritalStatus").val() == "" || $("#Personal_Mobile").val() == "") {
+      $("#mandatoryFieldsAlert").text('Please fill all the mandatory or fields with * marks.');
+      $("#mandatoryFieldsAlert").removeClass('d-none');
+      window.scrollTo(0, 0);
+      return;
+    }
+    else {
+      $("#mandatoryFieldsAlert").addClass('d-none');
+    }
+
+    if ($("#KYCType").val() != "" && $("#KYCNumber").val() == "") {
+      $("#mandatoryFieldsAlert").text('Please KYC Number.');
+      $("#mandatoryFieldsAlert").removeClass('d-none');
+      window.scrollTo(0, 0);
+      return;
+    }
+    else {
+      $("#mandatoryFieldsAlert").addClass('d-none');
+    }
+
+    if (eval($("#Mailing_Pincode").val()) == "0") {
+      bankingAlert("Invalid Pincode");
+      return;
+    }
+    if (eval($("#Mailing_Phone").val()) == "0") {
+      bankingAlert("Invalid Phone No.");
+      return;
+    }
+    if (eval($("#Personal_Mobile").val()) == "0") {
+      bankingAlert("Invalid Mobile No.");
+      return;
+    }
+    if ($("#Personal_CKYCID").val() != "") {
+      if ($("#Personal_CKYCEnrollDate").val() == "") {
+        bankingAlert("CKYC Enroll Date should not be null.");
+        return;
+      }
+    }
+    if ($("#Personal_PANNo").val() != "") {
+      if ($("#Personal_PANAAYN").is(':checked') == false) {
+        bankingAlert("PAN206AAYN should be checked compulsory");
+        return;
+      }
+    }
+    if ($("#CustomerName").val() == "") {
+      bankingAlert("Name cannot be null..");
+      return;
+    }
+    if ($("#CustomerType").val() == "") {
+      bankingAlert("Customer Type cannot be null..");
+      return;
+    }
+    if ($("#Personal_RelationName").val() == "") {
+      bankingAlert("Father Name cannot be null..");
+      return;
+    }
+
     let form = document.getElementById("newCustomerForm");
     let formData = new FormData(form);
 
@@ -158,46 +207,18 @@ $(document).ready(function () {
       type: "POST",
       url: form.action,
       data: formData,
+      async: true,
       processData: false, // REQUIRED
       contentType: false, // REQUIRED
       success: function (response) {
-        bankingAlert(response);
+        bankingAlert(result);
+        window.scrollTo(0, 0);
       },
       error: function (err) {
         console.error(err);
       }
     });
   });
-
-
-  //$('#newCustomerForm').on('submit', function (event) {
-  //  debugger;
-  //  // Prevent default form submission
-  //  event.preventDefault();
-
-  //  // Customer Type, DOB, Salutation, Gender, Marital Status, Mobile
-
-  //  var formData = $(this);
-  //  var url = formData.attr('action');
-
-  //  documents.forEach((doc, index) => {
-  //    formData.append(`files[${index}]`, doc.file);
-  //  });
-
-  //  $.ajax({
-  //    type: 'POST',
-  //    url: url,
-  //    data: formData.serialize(), // Serializes the form data into a URL-encoded string
-  //    success: function (response) {
-  //      // Handle the success response
-  //      bankingAlert(response);
-  //      //$('#responseMessage').html('<p style="color: green;">Form submitted successfully!</p>');
-  //    }
-  //  });
-  //});
-
-
-
 });
 
 function DisplayDate() {
@@ -207,7 +228,7 @@ function DisplayDate() {
 }
 
 function IsMinor() {
-  st = $("#Personal_DOB").val() + "|" + "txtDob"
+  st = $("#Personal_DOB").val() + "|" + "txtDob";
   // window.document.all['iBatch'].src = '<%="http://" & session("moduledir")& "/GEN/"%>' + "datecheck.aspx?strVal=" + st
 }
 
@@ -249,298 +270,116 @@ function DisplayDOBDate() {
   }
 }
 
-function ok() {
-  if (eval(window.document.frmNewCustomer.txtAddress5.value) == "0") {
-    bankingAlert("Invalid Pin No.")
-    window.document.frmNewCustomer.txtAddress5.select()
-    return
-  }
-  if (eval(window.document.frmNewCustomer.txtphone1.value) == "0") {
-    bankingAlert("Invalid Phone No.")
-    window.document.frmNewCustomer.txtphone1.select()
-    return
-  }
-  if (eval(window.document.frmNewCustomer.txtphone2.value) == "0") {
-    bankingAlert("Invalid Phone No.")
-    window.document.frmNewCustomer.txtphone2.select()
-    return
-  }
-  if (eval(window.document.frmNewCustomer.txtphone3.value) == "0") {
-    bankingAlert("Invalid Phone No.")
-    window.document.frmNewCustomer.txtphone3.select()
-    return
-  }
-  if (eval(window.document.frmNewCustomer.txtMobile.value) == "0") {
-    bankingAlert("Invalid Mobile No.")
-    window.document.frmNewCustomer.txtMobile.select()
-    return
-  }
-  if (eval(window.document.frmNewCustomer.txtFax.value) == "0") {
-    bankingAlert("Invalid Fax No.")
-    window.document.frmNewCustomer.txtFax.select()
-    return
-  }
-
-  if (window.document.frmNewCustomer.txtName.disabled == true) {
-    window.close()
-    return
-  }
-
-  if (window.document.frmNewCustomer.chkbMember.checked == true) {
-    if (window.document.frmNewCustomer.txtMemId.value == "") {
-      bankingAlert("Member Id Should not be null.")
-      window.document.frmNewCustomer.txtMemId.focus()
-      return
+function SearchCustomer() {
+  debugger;
+  var stPan, str, st;
+  if ($("#idSearch").val() == "PAN") {
+    stPan = $("#idSearchValue").val();
+    if (stPan.length != "10") {
+      bankingAlert("Not a valid PAN Number.")
+      return;
     }
-  }
-
-  if (window.document.frmNewCustomer.txtckycid.value != "") {
-    if (window.document.frmNewCustomer.txtckycenrollDt.value == "") {
-      bankingAlert("CKYC Enroll Date Should not be null.")
-      window.document.frmNewCustomer.txtckycenrollDt.focus()
-      return
+    if ((stPan.length == "10") && (stPan.substring(0, 10)).match("[(/).]+")) {
+      bankingAlert("Not a valid PAN Number");
+      return;
     }
+    str = " (UPPER(PANNO) LIKE '" + $("#idSearchValue").val().toUpperCase() + "' ) "
   }
 
-  var code = "<%=code%>"
-
-  code = code.split("@@")
-
-  var brcode = "'" + code[0] + "'"
-  var crcode = "'" + code[1] + "'"
-
-  window.document.frmNewCustomer.hidbrcrcode.value = code[0] + "~~" + code[1] + "~~" + code[2] + "~~" + code[3] + "~~" + code[4]
-
-  //var stname = window.document.frmNewCustomer.txtName.value
-  //var address = window.document.frmNewCustomer.txtAddress1.value
-  //var dob = window.document.frmNewCustomer.txtDob.value
-  //var fathername = window.document.frmNewCustomer.txtfathername.value
-  //var gender
-  //if (window.document.frmNewCustomer.optGender(0).checked == true)
-  //  gender = "M"
-  //else
-  //  gender = "F"
-
-  //var address2 = "'" + window.document.frmNewCustomer.txtAddress2.value + "'"
-  //var address3 = "'" + window.document.frmNewCustomer.txtAddress3.value + "'"
-  //var address4 = "'" + window.document.frmNewCustomer.txtAddress4.value + "'"
-  //var address5 = "'" + window.document.frmNewCustomer.txtAddress5.value + "'"
-  //var emailid = "'" + window.document.frmNewCustomer.txtMail.value + "'"
-  //var phone1 = "'" + window.document.frmNewCustomer.txtphone1.value + "'"
-  //var phone2 = "'" + window.document.frmNewCustomer.txtphone2.value + "'"
-  //var phone3 = "'" + window.document.frmNewCustomer.txtphone3.value + "'"
-  //var mobile = "'" + window.document.frmNewCustomer.txtMobile.value + "'"
-  //var fax = "'" + window.document.frmNewCustomer.txtFax.value + "'"
-  //var typeid = window.document.frmNewCustomer.txtCustType.value
-  //var panno = "'" + window.document.frmNewCustomer.txtPan.value + "'"
-  //var riskcategory = window.document.frmNewCustomer.slctRiskcat.selectedIndex
-  //var memId = window.document.frmNewCustomer.txtMemId.value
-  //var gstin = "'" + window.document.frmNewCustomer.txtgstin.value + "'"
-  //var ckycid = "'" + window.document.frmNewCustomer.txtckycid.value + "'"
-
-
-
-  //if (window.document.frmNewCustomer.chkMinor.checked == false)
-  //  var minoryn = "'N'"
-  //else
-  //  var minoryn = "'Y'"
-  //if ((minoryn == "'Y'") && (dob == "")) {
-  //  bankingAlert("DOB can not be null..")
-  //  return
-  //}
-
-  if (window.document.frmNewCustomer.txtPan.value != "") {
-    if (window.document.frmNewCustomer.chkpan206aayn.checked == false) {
-      bankingAlert("pan 206AAYN Should Be Checked Compulsory")
-      return
+  if ($("#idSearch").val() == "AADHAAR") {
+    stPan = $("#idSearchValue").val();
+    if (stPan.length != "12") {
+      bankingAlert("Not a valid Aadhaar Number");
+      return;
     }
-  }
-
-  if (window.document.frmNewCustomer.txtName.value == "") {
-    bankingAlert("Name Cannot be null..")
-    window.document.frmNewCustomer.txtName.focus()
-    return
-  }
-
-  if (window.document.frmNewCustomer.txtCustType.value == "") {
-    bankingAlert("Customer Type Cannot be null..")
-    window.document.frmNewCustomer.cmdCustType.focus()
-    return
-  }
-
-  if (window.document.frmNewCustomer.txtfathername.value == "") {
-    bankingAlert("Father Name Cannot be null..")
-    window.document.frmNewCustomer.txtfathername.focus()
-    return
-  }
-
-  if (window.document.frmNewCustomer.txtAddress1.value == "") {
-    bankingAlert("Address Cannot be null..")
-    window.document.frmNewCustomer.txtAddress1.focus()
-    return
-  }
-
-  // Values for KYC 
-  var kot = "'"
-  var kycvals = ""
-
-  var rows = window.document.frmNewCustomer.MfgKYC.Rows
-
-  if (rows > 1) {
-    for (icnt = 1; icnt < rows; icnt++) {
-      var kycid = window.document.frmNewCustomer.MfgKYC.TextMatrix(icnt, 1)
-      var kycno = window.document.frmNewCustomer.MfgKYC.TextMatrix(icnt, 3)
-
-
-      var kyclnk = kycid + "," + kycno
-      kycvals = kycvals + "|" + kyclnk
+    if ((stPan.length == "12") && (stPan.substring(0, 12)).match("[(/).]+")) {
+      bankingAlert("Not a valid Aadhaar Number");
+      return;
     }
-    kycvals = kycvals.substr(1)
+    str = " (UPPER(AADHARUID) LIKE '" + $("#idSearchValue").val().toUpperCase() + "' ) "
   }
-  var strOccupation = window.document.frmNewCustomer.cmboccupation.selectedIndex
-  var strAnualInc = window.document.frmNewCustomer.cmbannincome.selectedIndex
 
-  var mainstr = "'" + stname + "','" + fathername + "','" + gender + "','" + address + "'," + address2 + "," + address3 + "," + address4 + "," + address5 + "," + emailid + "," + phone1 + ", " + phone2 + "," + phone3 + "," + mobile + "," + fax + ",'" + dob + "'," + minoryn + "," + typeid + "," + brcode + "," + crcode + "," + panno + "," + gstin + "," + ckycid + "," + strOccupation + "," + strAnualInc
+  st = "SERCHCUST" + "|" + str
 
-  window.document.frmNewCustomer.hidkycid.value = kycvals
-  window.document.frmNewCustomer.hidDOB.value = dob
-  window.document.frmNewCustomer.hidMinor.value = minoryn
+  $.ajax({
+    url: '/GetDetails/SearchCustomer?searchString=' + encodeURIComponent(st),
+    type: 'GET',
+    success: function (response) {
+      debugger;
+      if (response == "No Records") {
+        bankingAlert("No Customer Id found with this " + $("#idSearchValue").val());
+        return;
+      }
+      else {
+        var stmain1 = response.Split('~');
+        bankingAlert("Customer ID: " + stmain1[0]);
+        if (stmain1[1] == "N") {
+          bankingAlert("This PAN Card is Inactive");
+          return;
+        }
+        var st;
+        if ($("#idSearch").val() == "PAN") {
+          st = "SERINDEFUNCTINFO" + "|" + $("#idSearchValue").val();
 
-  window.document.frmNewCustomer.hidcustvals.value = mainstr
-
-  window.document.frmNewCustomer.action = "newcustomerinsert.aspx?main=" + main
-  window.document.frmNewCustomer.method = "POST"
-  window.document.frmNewCustomer.submit()
+          $.ajax({
+            url: '/GetDetails/GetPANDefunctInfo?searchString=' + encodeURIComponent(st),
+            type: 'GET',
+            success: function (checkResponse) {
+              debugger;
+              if (checkResponse == "YES") {
+                bankingAlert("This PAN No marked as Defunct");
+                return;
+              }
+            },
+            error: function (err) {
+              console.log(err);
+            }
+          });
+        }
+        return;
+      }
+    },
+    error: function (err) {
+      console.log(err);
+    }
+  });
 }
 
+function IsMemberField() {
+  debugger;
+  if ($("#MemberId").is(':checked') == true) {
+    $("#MembershipNumber").val('');
+    $("#MembershipName").val('');
+  }
+}
 
-//function panCheck() {
-//  var code = "<%=code%>"
+function checkDiv() {
+  var prasad = "SAS Enterprises"
+}
 
-//  code = code.split("@@")
-//  var brcode = code[0]
-
-//  var panNum
-//  panNum = window.document.frmNewCustomer.txtPan.value
-
-//  //if(document.frmNewCustomer.slckyctype.selectedIndex=="2")
-//  //{
-//  if (window.document.frmNewCustomer.txtPan.value == "") {
-//    bankingAlert("Please Enter Pan Number")
-//    //	document.frmNewCustomer.slckyctype.selectedIndex.focus()
-//    return;
-//  }
-//  else {
-//    if ((panNum.length == "10") && (panNum.substring(0, 10)).match("[(/).]+")) {
-//      bankingAlert("Not a valid PanNumber")
-//      window.document.frmNewCustomer.txtPan.value = ""
-//    }
-//    else {
-//      if (panNum.length == "10") {
-
-//        //if((panNum.substring(0,5)).match("[A-Za-z]+")&&(panNum.substring(5,9)).match("[0-9]+")&&(panNum.substring(9,10)).match("[A-Za-z]+"))
-//        if ((panNum.substring(0, 5)).match(/^[a-zA-Z]+$/) && (panNum.substring(5, 9)).match(/^[0-9]+$/) && (panNum.substring(9, 10)).match(/^[a-zA-Z]+$/)) {
-//          var st = "GETPANDTLS" + "|" + panNum.toUpperCase() + "|" + brcode
-//          //bankingAlert(st)
-//          window.document.all['iGetDtls'].src = "getDtls.aspx?st=" + st
-
-//        }
-//        else {
-//          bankingAlert("Not a valid PanNumber")
-//          window.document.frmNewCustomer.txtPan.value = ""
-//          window.document.frmNewCustomer.txtPan.focus()
-//          return;
-//        }
-//      }
-//      else {
-//        bankingAlert("Not a valid PanNumber")
-//        window.document.frmNewCustomer.txtPan.value = ""
-//        window.document.frmNewCustomer.txtPan.focus()
-//        return;
-//      }
-//    }
-//  }
-//  //}
-//}
-
-//function validateaadharid() {
-//  var code = "<%=code%>"
-//  code = code.split("@@")
-//  var brcode = code[0]
-//  if (window.document.frmNewCustomer.txtAdharID.value != "") {
-//    if (eval(window.document.frmNewCustomer.txtAdharID.value.length) != 12) {
-//      bankingAlert("Enter Valid Aadhar ID");
-//      window.document.frmNewCustomer.txtAdharID.value = "";
-//      window.document.frmNewCustomer.txtAdharID.focus();
-//    }
-//    var st = "GETAADHARUIDTLS" + "|" + window.document.frmNewCustomer.txtAdharID.value + "|" + brcode
-//    window.document.all['iGetDtls'].src = "getDtls.aspx?st=" + st
-//  }
-//}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-//var main = '<%=st%>'
-
-
+function GetType() {
+  st = "CustType|Cust"
+  window.showModalDialog('<%="http://" & session("moduledir")& "/GEN/"%>' + "ListCustomer.aspx" + "?" + "st=" + st, window, "status:no;dialogwidth:350px;dialogheight:170px; dialogleft:200px; dialogtop:260px")
+}
 
 
 
 //function GetDateDif(str, str1, str2) {
-//  //window.document.frmNewCustomer.txtbox.value=eval(str)+" -- "+eval(str1)+" -- "+eval(str2))
-
 //  if (eval(str) >= 0) {
 //    bankingAlert("DOB should Be Less Than Application Date..")
-//    //if(str1=="txtDob")
 //    window.document.frmNewCustomer.txtDob.value = ""
 //    window.document.frmNewCustomer.chkMinor.checked = false
 //    return
 //  }
-//  //bankingAlert("raja")	
 //  if (window.document.frmNewCustomer.chkMinor.checked == true) {
 //    if ((eval(str2) / 365) > 18) {
-//      //bankingAlert("Invalid Minor DOB")
 //      window.document.frmNewCustomer.chkMinor.checked = false
-//      //window.document.frmNewCustomer.txtDob.value=""
 //      return
 //    }
-//    /*else{
-//    window.document.frmNewCustomer.chkMinor.checked=false
-//    return	
-//    }*/
-
 //  }
 //  else {
 //    if ((eval(str2) / 365) > 18) {
-//      //bankingAlert("Invalid Minor DOB")
 //      window.document.frmNewCustomer.chkMinor.checked = false
-//      //window.document.frmNewCustomer.txtDob.value=""
 //      return
 //    }
 //    else {
@@ -548,35 +387,6 @@ function ok() {
 //      return
 //    }
 //  }
-
-
-//}
-
-//checkDiv()
-//function checkDiv() {
-//  var prasad = "SAS Enterprises"
-//  /*
-//  window.document.frmNewCustomer.txtDob.value=""
-//  if(window.document.frmNewCustomer.chkMinor.checked==true)
-//  {
-//  window.document.frmNewCustomer.all.spdob.style.display="block"
-//  window.document.frmNewCustomer.all.sptxtdob.style.display="block"
-//  window.document.frmNewCustomer.txtDob.disabled=false
-//  window.document.frmNewCustomer.dtpCustomer.Enabled=true 
-//  }
-//  else
-//  {
-//  window.document.frmNewCustomer.all.spdob.style.display="none"
-//  window.document.frmNewCustomer.all.sptxtdob.style.display="none"
-//  window.document.frmNewCustomer.txtDob.disabled=true
-//  window.document.frmNewCustomer.dtpCustomer.Enabled=true 
-//  }
-//  */
-//}
-
-//function GetType() {
-//  st = "CustType|Cust"
-//  window.showModalDialog('<%="http://" & session("moduledir")& "/GEN/"%>' + "ListCustomer.aspx" + "?" + "st=" + st, window, "status:no;dialogwidth:350px;dialogheight:170px; dialogleft:200px; dialogtop:260px")
 //}
 
 //function dispOccCode(str) {
@@ -592,35 +402,6 @@ function ok() {
 //      window.document.frmNewCustomer.chkMinor.disabled = true
 //    }
 //  }
-//}
-
-
-//function popCustser(str) {
-//  if (str == "No Records") {
-//    bankingAlert("No CustId Found With This " + window.document.frmNewCustomer.selSercust.value) //
-//    return;
-//  }
-//  else {
-//    var stmain1 = str.split("~")
-//    bankingAlert(" Customer ID = " + stmain1[0])
-//    if (stmain1[1] == "N") {
-//      bankingAlert("This PanCard IS Inactive")
-//    }
-//    var stPan, st
-//    if (window.document.frmNewCustomer.selSercust.value == "PAN") {
-//      stPan = window.document.frmNewCustomer.txtSerch.value
-//      st = "SERINDEFUNCTINFO" + "|" + stPan
-//      window.document.all['iGetDtls'].src = "getDtls1.aspx?st=" + st
-//    }
-//    return;
-//  }
-//}
-
-//function popSERINDEFUNCTINFO(str) {
-//  if (str == "YES") {
-//    bankingAlert("This PAnno Marked As Defunct")
-//  }
-
 //}
 
 //function CheckResult() {
@@ -696,24 +477,16 @@ function ok() {
 //}
 
 //function Display(str1) {
-//  //bankingAlert("hoe u")
-//  //bankingAlert(str1)
 //  var StrArrFld = new String()
 //  var StrArrFlds = new String()
 //  if (str1.length > 0) {
 //    if (str1 == "") {
-//      //bankingAlert(str)
 //      window.close()
 //      return
 //    }
-//    //bankingAlert(str)
 //    str2 = str1.split(">>")
 //    str = str2[0].split("|")
 //    StrArrFld = str2[1].split("|")
-//    //bankingAlert(str.length)
-//    //bankingAlert(str.join(","))
-//    //bankingAlert(str[20])
-//    //	bankingAlert(str[0] + " " + str[1])
 //    if (str[0] == "MemberName") {
 //      if (str[1] == "NoMember") {
 //        bankingAlert("Invalid Member Id.")
@@ -729,10 +502,7 @@ function ok() {
 //    window.document.frmNewCustomer.txtName.value = str[15]
 //    window.document.frmNewCustomer.txtCustType.value = str[14]
 
-//    //	bankingAlert(str)
-//    //	bankingAlert(str[14])
 //    if (str[14].length > 0)
-
 //      if (StrArrFld != "") {
 //        // kyc details
 //        for (jcnt = 0; jcnt <= StrArrFld.length - 1; jcnt++) {
@@ -762,30 +532,12 @@ function ok() {
 //    window.document.frmNewCustomer.txtMobile.value = str[10]
 //    window.document.frmNewCustomer.txtFax.value = str[11]
 //    window.document.frmNewCustomer.txtDob.value = str[12]
-//    /*	if(str[18]=="N")
-//      {
-//      window.document.frmNewCustomer.slctRiskcat.selectedIndex=4
-//      }
-//      else if(str[18]=="L")
-//      {
-//      window.document.frmNewCustomer.slctRiskcat.selectedIndex=1
-//      }
-//      else if(str[18]=="M")
-//      {
-//      window.document.frmNewCustomer.slctRiskcat.selectedIndex=2
-//      }
-//      else if(str[18]=="H")
-//      {
-//      window.document.frmNewCustomer.slctRiskcat.selectedIndex=3
-//      }
-//      */
 
 //    if (str[18] != "") {
 //      window.document.frmNewCustomer.slctRiskcat.value = str[18]
 //    }
 
 //    if (str[19] != "") {
-//      //window.document.frmNewCustomer.chkbMember.checked=true
 //      window.document.frmNewCustomer.txtMemId.value = str[19]
 //    }
 
@@ -807,13 +559,10 @@ function ok() {
 
 //    if (str[13] == "Y") {
 //      window.document.frmNewCustomer.chkMinor.checked = true
-//      //window.document.frmNewCustomer.all.spdob.style.display="block"
-//      //window.document.frmNewCustomer.all.sptxtdob.style.display="block"
 //    }
 //    else {
 //      window.document.frmNewCustomer.chkMinor.checked = false
 //    }
-//    //bankingAlert(str[25])
 //    if (str[25] == "Y")
 //      window.document.frmNewCustomer.chkGlobal.checked = true
 //    else
@@ -876,65 +625,4 @@ function ok() {
 //      return
 //    }
 //  }
-//}
-
-//function showTooltip(div, desc) {
-//  div.style.display = 'block';
-//  //div.style.align = 'left';
-//  div.style.position = 'absolute';
-//  //div.style.width = '200';
-//  div.style.backgroundColor = '#FFFACD';
-//  div.style.border = 'thin solid';
-//  div.style.padding = '1px';
-//  div.innerHTML = '<div style="padding-left:10; padding-right:5">' + desc + '</div>';
-//}
-
-//function hideTooltip(div) {
-//  div.style.display = 'none';
-//}
-
-function IsMemberField() {
-  debugger;
-  if ($("#MemberId").val() == 'checked') {
-    // window.document.all.spanMember.style.visibility = "visible"
-  }
-  else {
-    $("#MembershipNumber").val('');
-    $("#MembershipName").val('');
-  }
-}
-
-//function popAADHARUIDDtls(str) {
-//  if (str == "0") {
-
-//  }
-//  else {
-//    var stVal = str.split("|")
-
-//    var stCus = stVal[0].split("~")
-
-//    bankingAlert("This AADHAR card have already Customerid :" + stCus[0] + " and Name :" + stCus[1])
-//    window.document.frmNewCustomer.txtAdharID.value = "";
-//    window.document.frmNewCustomer.txtAdharID.focus();
-//  }
-//}
-
-//function popPanDtls(str) {
-//  if (str == "0") {
-
-//  }
-//  else {
-//    var stVal = str.split("|")
-
-//    var stCus = stVal[0].split("~")
-
-//    bankingAlert("This Pan card have already Customerid :" + stCus[0] + " and Name :" + stCus[1])
-//    window.document.frmNewCustomer.txtPan.value = ""
-//    window.document.frmNewCustomer.txtPan.focus()
-//  }
-//}
-
-//function kycclear() {
-//  window.document.frmNewCustomer.txtKYCNo.value = ""
-//  window.document.frmNewCustomer.slckyctype.options(0).selected = true
 //}
