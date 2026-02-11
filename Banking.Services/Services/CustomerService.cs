@@ -311,9 +311,14 @@ namespace Banking.Services
                     }
 
                     kycdtlsvals1 = kycdtlsvals1.Substring(1);
+
+                    foreach (var file in kycDocuments)
+                    {
+                        SaveFile(file.File, customerid, file.KYCNo);
+                    }
                 }
 
-                if (!string.IsNullOrWhiteSpace(ckycenrolldate))
+                if (!string.IsNullOrWhiteSpace(ckycid) && !string.IsNullOrWhiteSpace(ckycenrolldate))
                 {
                     CKYCEnrollmentDateModel result = await _generalValidationService.GetCKYCEnrollDetails(ckycenrolldate);
 
@@ -321,14 +326,6 @@ namespace Banking.Services
                     CKYCENROLLDTLScols = "SNO, CUSTOMERID, CKYCID, ENROLLDT, DUEDATE, STATUS, REMARKS, APPLICATIONDATE, USERID, MACHINEID, SYSTEMDATE";
                     CKYCENROLLDTLSvals = "'" + result.CKYCSno + "','" + customerid + "','" + ckycid.ToUpper() + "','" + ckycenrolldate + "','" + result.DueDate +
                         "','N','New Enrollment','" + appdate + "','" + userid + "','" + machineid + "',sysdate";
-                }
-
-                if (customerModel.IsMailingSameAsPermanent)
-                {
-                    //           custfields = custfields & ",PMTADDRESS1,PMTADDRESS2,PMTADDRESS3,PMTADDRESS4,PMTADDRESS5"
-                    //           custvals = custvals & ",'" & Request.Form("txtAddress1") & "','" & Request.Form("txtAddress2") & "'," & _
-                    //                                 "'" & Request.Form("txtAddress3") & "','" & Request.Form("txtAddress4") & "'," & _
-                    //                                 "'" & Request.Form("txtAddress5") & "'"
                 }
 
                 string tableName = "GENCUSTINFOMST";
@@ -339,15 +336,24 @@ namespace Banking.Services
 
                 string custValues = "'" + customerModel.CustomerName + "','" + customerModel.Personal_RelationName + "','" + customerModel.Personal_Gender + "','" +
                     customerModel.Mailing_FlatNo + "','" + customerModel.Mailing_Building + "','" + customerModel.Mailing_Area + "','" + customerModel.Mailing_City + "','" +
-                    customerModel.Mailing_Pincode + "','" + customerModel.Personal_Email + "','" + customerModel.Mailing_Phone + "','" + customerModel.Permanent_Phone + "','" +
-                    customerModel.Office_Phone + "','" + customerModel.Personal_Mobile + "','" + fax + "','" + customerModel.Personal_DOB + "'," + minor + "," +
-                    customerModel.CustomerType + ",'" + brcode + "','" + crcode + "','" + customerModel.Personal_PANNo + "','" + kycidgstin + "','" +
-                    customerModel.Personal_CKYCID + "'," + customerModel.Occupation_Id + "," + customerModel.Occupation_Income + ",'" + strsmsyn + "','" + userid +
-                    "','" + machineid + "','" + appdate + "',sysdate,'" + globalcode + "','" + customerModel.CustomerId + "','" + customerModel.RiskCategory + "', '" + memId +
-                    "','" + kycidadhar + "'," + customerModel.Salutation + "," + customerModel.Relation_Type + "," + "" + customerModel.Personal_Religion +
-                    ",'" + kycidpanno + "','" + strmobaccyn + "','" + strpan206aayn + "','" + strpan206abyn + "'";
+                    customerModel.Mailing_Pincode + "','" + customerModel.Personal_Email + "','" + 
+                    (string.IsNullOrWhiteSpace(customerModel.Mailing_Phone) ? "0" : customerModel.Mailing_Phone) + "','" +
+                    (string.IsNullOrWhiteSpace(customerModel.Permanent_Phone) ? "0" : customerModel.Permanent_Phone) + "','" +
+                    (string.IsNullOrWhiteSpace(customerModel.Office_Phone) ? "0" : customerModel.Office_Phone) + "','" + customerModel.Personal_Mobile + "','" + fax + "','" + 
+                    customerModel.Personal_DOB + "'," + minor + "," + customerModel.CustomerType + ",'" + brcode + "','" + crcode + "','" + customerModel.Personal_PANNo + 
+                    "','" + kycidgstin + "','" + customerModel.Personal_CKYCID + "'," + customerModel.Occupation_Id + "," + customerModel.Occupation_Income + ",'" + strsmsyn + 
+                    "','" + userid + "','" + machineid + "','" + appdate + "',sysdate,'" + globalcode + "','" + customerid + "','" + customerModel.RiskCategory + "', '" + 
+                    memId + "','" + kycidadhar + "'," + customerModel.Salutation + "," + customerModel.Personal_Relation + "," + "" + customerModel.Personal_Religion + ",'" + 
+                    kycidpanno + "','" + strmobaccyn + "','" + strpan206aayn + "','" + strpan206abyn + "'";
 
-                string[,] arrtrans = null!;
+                if (customerModel.IsMailingSameAsPermanent)
+                {
+                    custFields = custFields + ",PMTADDRESS1,PMTADDRESS2,PMTADDRESS3,PMTADDRESS4,PMTADDRESS5";
+                    custValues = custValues + ",'" + customerModel.Mailing_FlatNo + "','" + customerModel.Mailing_Building + "','" + customerModel.Mailing_Area + "','" +
+                        customerModel.Mailing_City + "','" + customerModel.Mailing_Pincode + "'";
+                }
+
+                string[,] arrtrans = new string[3, 5];
                 int arrcnt = 0;
 
                 arrtrans[arrcnt, 0] = "I";
@@ -367,7 +373,7 @@ namespace Banking.Services
                     arrtrans[arrcnt, 4] = "";
                 }
 
-                if (!string.IsNullOrEmpty(ckycenrolldate))
+                if (!string.IsNullOrWhiteSpace(ckycid) && !string.IsNullOrWhiteSpace(ckycenrolldate))
                 {
                     arrcnt++;
                     arrtrans[arrcnt, 0] = "I";
@@ -377,16 +383,14 @@ namespace Banking.Services
                     arrtrans[arrcnt, 4] = "";
                 }
 
+                Console.WriteLine(arrtrans);
+
                 return await _databaseFactory.ProcessDataTransactions(arrtrans);
 
-
                 //if (strMessage.Equals("Transaction Sucessful."))
-                //{
-                //    //main = codestr(4)
-                //    // Response.Redirect("newcustomer.aspx?record=" & customerid & "|" & name & "|" & brcode & "|" & crcode & "|" & codestr(2) & "|" & codestr(3) & "|" & main & "|" & custtype & "|" & custdesc & "|" & dob & "|" & minor & "|" & riskcategory)
-                //}
+                //    Response.Redirect("newcustomer.aspx?record=" & customerid & "|" & name & "|" & brcode & "|" & crcode & "|" & codestr(2) & "|" & codestr(3) & "|" & main & "|" & custtype & "|" & custdesc & "|" & dob & "|" & minor & "|" & riskcategory)
                 //else
-                //    // Response.Redirect("newcustomer.aspx?record=" & "GENCUSTINFOMST: " + strMessage);
+                //    Response.Redirect("newcustomer.aspx?record=" & "GENCUSTINFOMST: " + strMessage);
             }
             catch (Exception ex)
             {
@@ -398,6 +402,24 @@ namespace Banking.Services
         public async Task<string> GetCustomerListByName(string name)
         {
             return await _nameSearchService.GetCustomerListByName(name);
+        }
+
+        private void SaveFile(IFormFile? formFile, string customerId, string kycNo)
+        {
+            if (formFile != null)
+            {
+                string folderPath = @$"C:\BankingFiles\{customerId}";
+
+                if (!Directory.Exists(folderPath))
+                    Directory.CreateDirectory(folderPath);
+
+                string filePath = string.Concat(folderPath, "\\", formFile.FileName);
+
+                if (!File.Exists(filePath))
+                {
+                    formFile.CopyTo(new FileStream(filePath, FileMode.Create));
+                }
+            }
         }
     }
 }

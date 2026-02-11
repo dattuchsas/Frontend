@@ -275,5 +275,13 @@ namespace Banking.Frontend.Controllers
 
             return RedirectToAction("Index", vmodx[1]);
         }
+
+        [HttpGet]
+        public IActionResult SearchCustomer(string searchString)
+        {
+            string search = searchString.Split("|")[1];
+
+            return Content("Test~Test", "text/plain");
+        }
     }
 }
