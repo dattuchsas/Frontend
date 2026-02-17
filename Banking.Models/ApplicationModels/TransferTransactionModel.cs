@@ -24,6 +24,7 @@ namespace Banking.Models
         public List<SelectListItem>? ModuleList { get; set; }
 
         public string? AccountType { get; set; }
+        public string? ApplicationName { get; set; }
         public DateTime? EffectiveDate { get; set; }
         public float? Amount { get; set; }
         public string? Narration { get; set; }
@@ -42,6 +43,47 @@ namespace Banking.Models
         public string? LimitExpiryDate { get; set; }
         public string? GSTIN { get; set; }
 
+        public string? TODLimit { get; set; }
+        public string? AvailableLimit { get; set; }
+        public string? PendingIntAmount { get; set; }
+        public string? InterestAmount { get; set; }
+        public string? NoofPendingInstallments { get; set; }
+        public string? NPAIntAmount { get; set; }
+        public string? SanctionAmount { get; set; }
+        public string? DisbursementAmount { get; set; }
+
+        public string? RD_OpAmount { get; set; }
+        public string? RD_OpDate { get; set; }
+        public string? RD_ROI { get; set; }
+        public string? RD_IntAccr { get; set; }
+        public string? RD_IntPaidUpto { get; set; }
+        public string? RD_MaturityAmount { get; set; }
+        public string? RD_MaturityDate { get; set; }
+        public string? RD_EffectiveDate { get; set; }
+        public string? RD_CurrAmount { get; set; }
+
+        public string? Remm_IssuedOnBank { get; set; }
+        public string? Remm_IssuedOnBranch { get; set; }
+        public string? Remm_Favouring { get; set; }
+        public string? Remm_Commission { get; set; }
+        public string? Remm_RecipientName { get; set; }
+        public string? Remm_GST { get; set; }
+        public string? Remm_CESS { get; set; }
+        public string? Remm_PAN { get; set; }
+        public string? Remm_Mobile { get; set; }
+        public string? Remm_Address1 { get; set; }
+        public string? Remm_Address2 { get; set; }
+        public string? Remm_Address3 { get; set; }
+
+        public string? ChequeType { get; set; }
+        public string? ChequeNo { get; set; }
+        public string? ChequeDate { get; set; }
+        public string? ChequeFavouring { get; set; }
+
+        public string? DebitTransactions { get; set; }
+        public string? CreditTransactions { get; set; }
+        public string? Total { get; set; }
+        public string? Difference { get; set; }
 
         #region Hidden Fields
 

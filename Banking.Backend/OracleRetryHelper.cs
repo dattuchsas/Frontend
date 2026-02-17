@@ -1,6 +1,8 @@
 ﻿using Banking.Models;
 using Oracle.ManagedDataAccess.Client;
 using System.Data;
+using System.Threading;
+using System.Transactions;
 
 namespace Banking.Backend
 {
@@ -73,16 +75,18 @@ namespace Banking.Backend
         {
             int attempt = 0;
             Exception lastException = null!;
-            DataTable dataTable = new DataTable();
 
             while (attempt < _maxRetries)
             {
+                using var connection = new OracleConnection(_connectionString);
+                await connection.OpenAsync(CancellationToken.None);
+
+                await using var transaction = connection.BeginTransaction();
+
                 try
                 {
-                    using var connection = new OracleConnection(_connectionString);
-                    await connection.OpenAsync(CancellationToken.None);
-
                     using var cmd = connection.CreateCommand();
+                    cmd.Transaction = transaction;
                     cmd.CommandText = query;
 
                     var result = cmd.ExecuteNonQuery();
@@ -94,6 +98,7 @@ namespace Banking.Backend
                         connection.Dispose();
                     }
 
+                    await transaction.CommitAsync(CancellationToken.None);
                     return result;
                 }
                 catch (OracleException ex) when (IsTransient(ex))
@@ -104,11 +109,19 @@ namespace Banking.Backend
                     if (attempt >= _maxRetries)
                         break;
 
+                    await transaction.RollbackAsync(CancellationToken.None);
+
+                    connection.Close();
+                    connection.Dispose();
+
                     int delay = _initialDelayMs * (int)Math.Pow(2, attempt - 1);
                     await Task.Delay(delay, CancellationToken.None);
                 }
                 catch (OracleException ex)
                 {
+                    await transaction.RollbackAsync(CancellationToken.None);
+                    connection.Close();
+                    connection.Dispose();
                     throw new Exception(OracleErrorMapper.GetFriendlyMessage(ex));
                 }
             }
