@@ -11,6 +11,8 @@
     <PackageReference Include="Humanizer" Version="3.0.1" />
     <PackageReference Include="Microsoft.AspNet.Mvc" Version="5.3.0" />
     <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="8.0.23" />
+    <PackageReference Include="Serilog" Version="4.3.1" />
+    <PackageReference Include="Serilog.Sinks.File" Version="7.0.0" />
   </ItemGroup>
 
   <ItemGroup>

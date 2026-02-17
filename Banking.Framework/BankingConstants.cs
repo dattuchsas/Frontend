@@ -56,6 +56,7 @@
         public const string ControllerName = "ControllerName";
         public const string SelectedModule = "SelectedModule";
         public const string QueryString = "QueryString";
+        public const string ReferrerUrl = "ReferrerUrl";
     }
 
     public class BankingConstants
