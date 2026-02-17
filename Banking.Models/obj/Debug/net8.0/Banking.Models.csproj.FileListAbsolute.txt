@@ -34,3 +34,16 @@ K:\Banking\Github\Banking.Frontend\Frontend\Banking.Models\obj\Debug\net8.0\Bank
 K:\Banking\Github\Banking.Frontend\Frontend\Banking.Models\obj\Debug\net8.0\refint\Banking.Models.dll
 K:\Banking\Github\Banking.Frontend\Frontend\Banking.Models\obj\Debug\net8.0\Banking.Models.pdb
 K:\Banking\Github\Banking.Frontend\Frontend\Banking.Models\obj\Debug\net8.0\ref\Banking.Models.dll
+C:\Vikram\Banking.Models\bin\Debug\net8.0\Banking.Models.deps.json
+C:\Vikram\Banking.Models\bin\Debug\net8.0\Banking.Models.dll
+C:\Vikram\Banking.Models\bin\Debug\net8.0\Banking.Models.pdb
+C:\Vikram\Banking.Models\obj\Debug\net8.0\Banking.Models.csproj.AssemblyReference.cache
+C:\Vikram\Banking.Models\obj\Debug\net8.0\Banking.Models.GeneratedMSBuildEditorConfig.editorconfig
+C:\Vikram\Banking.Models\obj\Debug\net8.0\Banking.Models.AssemblyInfoInputs.cache
+C:\Vikram\Banking.Models\obj\Debug\net8.0\Banking.Models.AssemblyInfo.cs
+C:\Vikram\Banking.Models\obj\Debug\net8.0\Banking.Models.csproj.CoreCompileInputs.cache
+C:\Vikram\Banking.Models\obj\Debug\net8.0\Banking.Models.sourcelink.json
+C:\Vikram\Banking.Models\obj\Debug\net8.0\Banking.Models.dll
+C:\Vikram\Banking.Models\obj\Debug\net8.0\refint\Banking.Models.dll
+C:\Vikram\Banking.Models\obj\Debug\net8.0\Banking.Models.pdb
+C:\Vikram\Banking.Models\obj\Debug\net8.0\ref\Banking.Models.dll

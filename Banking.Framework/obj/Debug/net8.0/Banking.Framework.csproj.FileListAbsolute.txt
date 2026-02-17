@@ -24,3 +24,16 @@ K:\Banking\Github\Banking.Frontend\Frontend\Banking.Framework\obj\Debug\net8.0\B
 K:\Banking\Github\Banking.Frontend\Frontend\Banking.Framework\obj\Debug\net8.0\refint\Banking.Framework.dll
 K:\Banking\Github\Banking.Frontend\Frontend\Banking.Framework\obj\Debug\net8.0\Banking.Framework.pdb
 K:\Banking\Github\Banking.Frontend\Frontend\Banking.Framework\obj\Debug\net8.0\ref\Banking.Framework.dll
+C:\Vikram\Banking.Framework\bin\Debug\net8.0\Banking.Framework.deps.json
+C:\Vikram\Banking.Framework\bin\Debug\net8.0\Banking.Framework.dll
+C:\Vikram\Banking.Framework\bin\Debug\net8.0\Banking.Framework.pdb
+C:\Vikram\Banking.Framework\obj\Debug\net8.0\Banking.Framework.csproj.AssemblyReference.cache
+C:\Vikram\Banking.Framework\obj\Debug\net8.0\Banking.Framework.GeneratedMSBuildEditorConfig.editorconfig
+C:\Vikram\Banking.Framework\obj\Debug\net8.0\Banking.Framework.AssemblyInfoInputs.cache
+C:\Vikram\Banking.Framework\obj\Debug\net8.0\Banking.Framework.AssemblyInfo.cs
+C:\Vikram\Banking.Framework\obj\Debug\net8.0\Banking.Framework.csproj.CoreCompileInputs.cache
+C:\Vikram\Banking.Framework\obj\Debug\net8.0\Banking.Framework.sourcelink.json
+C:\Vikram\Banking.Framework\obj\Debug\net8.0\Banking.Framework.dll
+C:\Vikram\Banking.Framework\obj\Debug\net8.0\refint\Banking.Framework.dll
+C:\Vikram\Banking.Framework\obj\Debug\net8.0\Banking.Framework.pdb
+C:\Vikram\Banking.Framework\obj\Debug\net8.0\ref\Banking.Framework.dll
