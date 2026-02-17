@@ -4,10 +4,15 @@ using Banking.Models;
 using Humanizer;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json.Linq;
+using System;
 using System.Data;
 using System.Diagnostics;
+using System.Diagnostics.Eventing.Reader;
+using System.Reflection.Metadata;
 using System.Runtime.InteropServices;
+using System.Security.Cryptography;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 using static System.Net.Mime.MediaTypeNames;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 
@@ -16,10 +21,12 @@ namespace Banking.Services
     public class GetDetailsService : IGetDetailsService
     {
         private readonly IDatabaseService _databaseFactory;
+        private readonly IListService _listService;
 
         public GetDetailsService(IOptions<DatabaseSettings> databaseSettings)
         {
             _databaseFactory = new DatabaseService(databaseSettings.Value);
+            _listService = new ListService(databaseSettings);
         }
 
         // GETAADHARUIDTLS
@@ -110,6 +117,24 @@ namespace Banking.Services
             BankingExtensions.ReleaseMemory(dataTable);
 
             return strResult;
+        }
+
+        // ServiceId
+        public async Task<string> GetServiceList(string searchString)
+        {
+            string whereCond = string.Empty;
+            string[] search = searchString.Split('|');
+
+            if (search[1] == "Dbt")
+                whereCond = "Code in ('1','3','4','7','8','9')";
+            else if (search[1] == "Cdt")
+                whereCond = "Code in('1','2','3','4','7')";
+            else if (search[1] == "Clg")
+                whereCond = "Code in('1','8')";
+
+            DataTable dataTable = await _databaseFactory.SingleRecordSet("GENSERVICETYPESPMT", "CODE,NARRATION", whereCond, "CODE");
+
+            return string.Join("|", dataTable.Rows.Cast<DataRow>().Select(row => $"{row.ItemArray[0]}~{row.ItemArray[1]}"));
         }
 
         public void GetDetails()
@@ -15215,6 +15240,3744 @@ namespace Banking.Services
             //    window.close()
 
             //    }
+        }
+
+        public void GetTransList()
+        {
+            //<% Response.CacheControl = "no-cache" %>
+            //<% Response.AddHeader("Pragma", "no-cache") %>
+            //<% Response.Expires = -1 %>
+            //<% hidsearch = request.form("hidsearch") %>
+            //<%
+
+            //    dim strType,userid,brchCd,atype,Modid,status,strBatNo,strArrBatNo,strLstBatNo
+            //    strType = Request.QueryString("st")
+
+            //    userid = session("userid")
+
+            //    brchCd = Request.QueryString("brchCd")
+
+            //    atype = Request.QueryString("atype")
+
+            //    Modid = Request.QueryString("Modid")
+
+            //    status = "Y"
+
+            //    strLstBatNo = ""
+
+            //    strArrBatNo = ""
+
+            //    strBatNo = ""
+
+            //%>
+
+            //dim connerr
+            //dim obj, rs, rsNew
+            //dim cnt
+            //dim objrep
+            //'dim disp,brCode,glcode,crCode
+            // '   disp=split(strType,"|")
+            //   ' brCode=disp(1)
+
+            //    'modid=disp(2)
+            //    'glcode=disp(3)
+            //    'crCode=disp(4)
+            //   rs = server.CreateObject("adodb.recordset")
+            //   rs1 = server.CreateObject("adodb.recordset")
+            //   obj = server.CreateObject("queryrecordsets.fetchrecordsets")
+            //   objbr = server.CreateObject("GeneralTranQueries.TransactionQueries")
+
+            //     obj1 = server.CreateObject("generaltranqueries.transactionqueries")
+
+            //     objrep = server.CreateObject("ReportPurposeOnly.Reportonly")
+            //if strType = "Branch" then
+
+            //     rs = obj.singlerecordset("GENBANKBRANCHMST", "Branchcode,narration")
+
+
+            //elseif strType = "BLevel" then
+            //     rs = obj.singlerecordset("GENBANKLEVELMST", "code,narration")
+
+
+            //elseif strType = "Bruser" then
+            //     rs = objbr.BranchCodes(cstr(userid))
+
+
+            //elseif left(strType,6)= "Userid" then
+            //    atype = mid(strType, 7, len(strType))
+            //     rs = obj.singlerecordset("genusermst", "userid,name", "branchcode='" & atype & "'")
+
+            //elseif strType = "Currency" then
+            //     rs = obj.singlerecordset("GENCURRENCYTYPEMST", "currencycode,narration")
+
+            //elseif strType = "Curr" then
+
+            //     rs = obj.singlerecordset("GENCURRENCYTYPEMST", "currencycode,narration,precision")
+            //elseif strType = "FxCurr" then
+
+            //     rs = obj.singlerecordset("GENCURRENCYTYPEMST", "currencycode,narration,precision")
+
+            //elseif strType = "Tellerbranch" then
+
+            //     obj = server.CreateObject("GeneralTranQueries.TransactionQueries")
+
+
+            //     rs = obj.BranchCodes(cstr(session("userid")))
+
+
+            //elseif left(strType,12)= "Tellermodule" then
+
+            //    obj = server.CreateObject("GeneralTranQueries.TransactionQueries")
+
+
+            //    k = split(strType, "|")
+
+
+            //     rs = obj.ModuleID(cstr(k(1)), "")
+
+
+            //elseif left(strType,11)= "Telleraccno" then
+
+            //    k = split(strType, "|")
+
+            //     obj = server.CreateObject("GeneralTranQueries.TransactionQueries")
+
+            //    'Response.Write k(5)
+
+            //    if cstr(k(2)) = "FXREM" then
+            //         rs = obj.AccountNumbers(cstr(k(1)), cstr(k(2)), cstr(k(3)), cstr(k(4)),,, cstr(k(6)))
+
+            //    else
+            //                rs = obj.AccountNumbers(cstr(k(1)), cstr(k(2)), cstr(k(3)), cstr(k(4)),,,, cstr(hidsearch))
+
+            //    end if
+
+            //    connerr = obj.ConnError
+
+
+            //    if obj.connerror<>"" then
+            //        kstr = "Norecords"
+
+            //        Errstr = obj.ConnError
+
+            //    end if
+            //elseif left(strType, 12) = "Tellerglcode" then
+
+            //     obj = server.CreateObject("GeneralTranQueries.TransactionQueries")
+
+            //    k = split(strType, "|")
+
+            //     rs = obj.GLCodes(cstr(k(1)), cstr(k(2)))
+
+
+            //elseif strType = "Module" then
+            //     rs = obj.singlerecordset("genmoduletypesmst", "moduleid,Narration", "implementedyn='Y'")
+
+
+            //elseif left(strType,6)= "Glcode" then
+            //   'stname=left(strType,2)
+            //   'atype=mid(strType,7,len(strType))
+            //    rs = obj.singlerecordset("genglsheetmst", "glcode,NARRATION", "moduleid='" & atype & "'")
+            //elseif left(strType,14)= "PigTelleraggno" then
+            //   k = split(strType, "|")
+            //    rs = obj.singlerecordset("pigmyagentmst", "agentcode,agentname", "branchcode='" & k(1) & "' and moduleid='" & k(2) & "' and glcode='" & k(3) & "' and accno='" & k(4) & "' and status='R'")
+
+
+            //  elseif left(strType,14)= "PigTelleraccno" then
+            //   k = split(strType, "|")
+            //    rs = obj.singlerecordset("pigmyaccountsmst", "accno,name,LIENSTATUS", "branchcode='" & k(1) & "' and currencycode='" & k(2) & "' and glcode='" & k(3) & "' and agentcode='" & k(4) & "' and status='R' order by to_number(accno)")
+            //elseif left(strType,5)= "Accno" then
+            //    'stname=left(strType,5)
+            //    'atype=mid(strType,6,len(strType))
+            //    dim objTrn
+            //    objTrn = Server.CreateObject("GeneralTranQueries.TransactionQueries")
+            //    rs = objTrn.AccountNumbers(cstr(brchCd), cstr(Modid), cstr(atype))
+
+            //     objTrn = nothing
+
+
+            //elseif left(strType,6)= "CustID" then
+            //dim stname
+            //    stname = left(strType, 4)
+            //    atype = mid(strType, 7)
+            //     rs = obj.singlerecordset("GENCUSTINFOMST", "customerid,custname", "")
+
+
+            //elseif left(strType,7)= "TransNo" then
+            //dim stname
+            //    stname = left(strType, 5)
+            //    atype = mid(strType, 8)
+            //     rs = obj.singlerecordset("translog", "tranno,amount", "glcode='" & atype & "'", "tranno")
+
+
+            //elseif left(strType,11)= "Cashiertype" then
+            //dim stname
+            //    stname = left(strType, 11)
+
+            //    k = split(strType, "*")
+
+            //     rs = obj.singlerecordset("CASHCASHIERTYPEMST", "cashiertypeid,narration", "BRANCHCODE='" & k(1) & "'", "cashiertypeid")
+            //elseif strType = "Cashier" then
+            //dim stname,strcond,strfld,strtab
+
+            //    stname = strType
+
+            //    strcond = " W.USERID = U.USERID AND W.USERID NOT IN (SELECT CASHIERID FROM CASHCOUNTERMST)"
+
+            //    strfld = "DISTINCT W.USERID,U.NAME"
+
+            //    strtab = "GENWORKALLOTMENTMST W,GENUSERMST U"
+
+            //     rs = obj.singlerecordset(cstr(strtab), cstr(strfld), cstr(strcond))
+
+
+            //elseif left(strType,9)= "Cashierid" then
+            //dim stname
+            //    stname = strType
+
+            //    k = split(strType, "*")
+
+            //     rs = obj.singlerecordset("cashcashierposmst cash,genusermst gen", "cash.cashierid,gen.name", "cash.cashierid=gen.userid and cash.cashierid <> '" & cstr(userid) & "' ")
+
+
+            //elseif left(strType,6)= "CashID" then
+            //    k = split(strType, "|")
+
+            //     rs = obj.singlerecordset("cashcountermst cash,genusermst gen", "distinct(cash.cashierid),gen.name", "cash.cashierid=gen.userid and upper(trim(cash.cashierid)) <> '" & ucase(trim(cstr(userid))) & "' and gen.branchcode='" & k(1) & "'")
+
+
+            //elseif left(strType,14)= "AllotedCashier" then
+            //dim stname,cash
+            //    stname = strType
+
+            //    cash = split(stname, "*")
+            //     rs = obj.singlerecordset("CASHALLOTMENTSTRN CASH,GENUSERMST GEN", "DISTINCT(CASH.CASHIERID),GEN.NAME", "CASH.CASHIERID=GEN.USERID AND CASH.BRANCHCODE='" & CASH(1) & "' AND CASH.CURRENCYCODE='" & CASH(2) & "'", "CASH.CASHIERID")
+
+
+            //elseif left(strType,9)= "Allotment" then
+            //    k = split(strType, "*")
+
+
+            //     rs = obj.singlerecordset("cashallotmentstrn", "Allotmentno", "cashierid='" & k(1) & "' and counterno = '" & k(2) & "' and status='P'", "allotmentno")
+
+
+            //elseif strtype = "Bankcode" then
+            //     rs = obj.singlerecordset("Genbankmst", "Bankname,BANKCODE")
+
+
+            //elseif left(strtype,10)= "Cashiermgt" then
+            //    k = split(strtype, "*")
+
+            //     rs = obj.singlerecordset("cashcountermst cash,genusermst gen", "distinct(cash.cashierid),gen.name", "cash.branchcode='" & k(1) & "' and cash.currencycode='" & k(2) & "' and cash.cashierid=gen.userid and cash.cashierid not in ('" & ucase(userid) & "')")
+
+
+            //elseif left(strtype,16)= "Cashrefundaccept" then
+            //    k = split(strtype, "*")
+
+            //     rs = obj.singlerecordset("cashrefundstrn cash,genusermst gen", "distinct(cash.REFUNDEDUSERID),gen.name", "cash.branchcode='" & k(1) & "' and cash.currencycode='" & k(2) & "' and cash.REFUNDEDUSERID=gen.userid  and cash.status='P' and cash.USERID <> '" & userid & "'")
+
+
+            //elseif left(strtype,7)= "Cashacc" then
+            //    k = split(strtype, "*")
+
+            //     rs = obj.singlerecordset("CASHTRANSBTCASHIERSTRN cash,genusermst gen", "distinct(cash.fromcashierid),gen.name", "cash.branchcode='" & k(1) & "' and cash.currencycode='" & k(2) & "' and cash.FROMcashierid=gen.userid and cash.status='P' and cash.tocashierid='" & cstr(userid) & "'", "cash.fromcashierid")
+
+
+            //' Suspence Start
+            //elseif left(strtype,12)= "Categorycode" then
+
+            //    k = split(strtype, "|")
+
+
+            //     rs = obj.singlerecordset("SCRCATEGORYMST", "DISTINCT CATEGORYCODE,CATEGORYNAME")
+            //' Suspence End
+
+            //elseif left(strtype,11)= "CutsoiledNo" then
+
+            //    k = split(strtype, "|")
+
+
+            //     rs = obj.singlerecordset("CASHCUTNSPOILNOTESMST", "CUTSOILTRANNO,custid,RECEIVEDFROM", "UPPER(TRIM(branchcode))='" & UCASE(TRIM(k(1))) & "' and UPPER(TRIM(currencycode))='" & UCASE(TRIM(k(2))) & "'")
+
+            //'-------prsrem
+
+            //elseif left(strType,8)= "issonbnk" then
+            //   k = split(strType, "~")
+
+            //      ''' for fetching the remtype from the remittypemst for selected glcode
+
+            //    'rs=obj.singlerecordset("REMTYPEMST","REMTYPE","upper(REMGLCODE)='"&k(1)&"' and " & _
+
+            //    '						" upper(NATIVAORAGENCY)='A' and upper(status)='R'")
+
+            //    rs = obj.singlerecordset("REMTYPEMST", "REMTYPE,upper(NATIVAORAGENCY)", _
+
+            //        "upper(REMGLCODE)='" & k(1) & "' and upper(status)='R'")
+
+
+            //    if not rs.EOF and not rs.BOF then
+
+            //          if rs(0).value = "ADD" or rs(0).value = "TC" then
+
+            //            'rs=obj.singlerecordset("GENOTHERBANKMST","Bankcode,BANKNAME", _
+
+            //            '"upper(status)='R'")
+
+
+            //            dim strCond
+
+
+            //            'Code commented by radhika on 13 may 2008
+
+            //            'reason: Agency DD can issue on different branches of same bank 
+
+            //            '        But this concept is under testing
+
+            //            'strCond="upper(trim(OURBRANCHCODE))='" & trim(k(2)) & "' AND status='R' " & _
+
+            //            '" AND bankcode IN (SELECT DISTINCT OTHERBANKCODE  FROM REMISSUEBANKMST " & _
+
+            //            '" WHERE upper(trim(BRANCHCODE))='" & trim(k(2)) & "' AND  " & _
+
+            //            '" upper(trim(CURRENCYCODE))='" & trim(k(3)) & "' " & _
+
+            //            '" AND upper(trim(REMTYPE))='" & trim(rs(0).value) & "' AND status='R')"
+
+
+            //            'response.write("<br><br> strCond=" & strCond)
+
+            //            'response.end
+
+
+            //            'rs=obj.singlerecordset("GENOTHERBANKMST","BANKCODE,BANKNAME", _
+
+            //            'strCond)		 
+
+
+            //            'New code is
+
+            //            strCond = "status='R' AND bankcode IN (SELECT DISTINCT OTHERBANKCODE" & _
+
+            //                " FROM REMISSUEBANKMST WHERE UPPER(trim(CURRENCYCODE))='" & _
+
+            //                trim(k(3)) & "' AND UPPER(trim(REMTYPE))='" & _
+
+            //                 trim(rs(0).value) & "' AND status='R')"
+
+
+            //            rs = obj.singlerecordset("GENCORRESPBANKSMST", "BANKCODE,BANKNAME", _
+
+            //            strCond)
+
+
+            //        elseif rs(0).value = "DD" or rs(0).value = "TT" or rs(0).value = "MT"  _
+            //            or rs(0).value = "BC" or rs(0).value = "GC" or rs(0).value = "PO" then
+            //            rs = obj.singleRecordSet("GENBANKPARM", "BANKCODE,bankname", "")
+
+            //        else
+            //                rs = obj.singleRecordSet("GENBANKPARM", "BANKCODE,bankname", "")
+
+            //        end if
+
+            //    else
+            //                    rs = obj.singleRecordSet("GENBANKPARM", "BANKCODE,bankname", "")
+
+            //    end if
+
+            //elseif left(strType, 9) = "nftsonbnk" or left(strType,12)= "Matnftsonbnk" or left(strType,13)= "Autonftsonbnk" then
+
+            //rs = obj.singlerecordset("GENCORRESPBANKSMST", "BANKCODE,BANKNAME", "status = 'R'")
+
+            //elseif left(strType,8)= "IMPSBank" then
+
+            //sqlStr = "SELECT DISTINCT bank bank ,bank bank1 FROM BANKIFSCDTLS ORDER BY bank"
+            //rs = objrep.SingleSelectStat(sqlStr)
+
+
+            //elseif left(strType,9)= "IMPSState" then
+            //k = split(strType, "~")
+            //sqlStr = "select distinct state state , state state1 from BANKIFSCDTLS where bank = '" & k(1) & "' order by state"
+            //rs = objrep.SingleSelectStat(sqlStr)
+
+            //elseif left(strType,12)= "IMPSDistrict" then
+
+            //k = split(strType, "~")
+            //sqlStr = "select distinct DISTRICT DISTRICT,DISTRICT DISTRICT1 from BANKIFSCDTLS where bank = '" & k(1) & "' and state ='" & k(2) & "' order by DISTRICT"
+            //rs = objrep.SingleSelectStat(sqlStr)
+
+            //elseif left(strType,8)= "IMPSCity" then
+
+            //k = split(strType, "~")
+            //sqlStr = "select distinct CITY CITY,CITY CITY1 from BANKIFSCDTLS where bank = '" & k(1) & "' and state ='" & k(2) & "' and district = '" & k(3) & "' order by CITY"
+            //rs = objrep.SingleSelectStat(sqlStr)
+
+
+            //elseif left(strType,10)= "IMPSBranch" then
+
+            //k = split(strType, "~")
+            //sqlStr = "select distinct BRANCH BRANCH,BRANCH BRANCH1 from BANKIFSCDTLS where bank = '" & k(1) & "' and state ='" & k(2) & "' and district = '" & k(3) & "' and CITY = '" & k(4) & "' order by BRANCH"
+            //rs = objrep.SingleSelectStat(sqlStr)
+
+
+            //elseif left(strType,12)= "nftsonbranch" or left(strType,15)= "Matnftsonbranch" or left(strType,16)= "Autonftsonbranch" then
+
+            //k = split(strType, "~")
+            //rs = obj.singlerecordset("GENCORRESPBANKBRANCHESMST", "BRANCHCODE, BRANCHNAME", "BANKCODE = '" & k(1) & "' and status = 'R'")
+
+            //elseif left(strType,11)= "nftsacctype" or left(strType,14)= "Matnftsacctype"  or left(strType,15)= "Autonftsacctype" then
+
+            //rs = obj.singlerecordset("CLGMICRINSTRTYPEMST", "MICRINSTRCODE, MICRINSTRDESC", "ACTIVEYN= 'Y' AND status = 'R'")
+
+            //elseif left(strType,12)= "stopissonbnk" then
+            //   k = split(strType, "~")
+
+
+            //      if k(1) = "ADD" then
+            //        rs = obj.singlerecordset("GENCORRESPBANKSMST", "Bankcode,BANKNAME", "upper(status)='R'")
+
+            //    else
+            //                rs = obj.singleRecordSet("GENBANKPARM", "BANKCODE,bankname", "")
+
+
+            //    end if
+            //'elseif strType="issonbr" then
+            //elseif left(strType,7)= "issonbr" then
+            //    dim bankcode, strCond
+
+            //        'original code commented by radhika on 14 may 2008
+
+            //     'rs=obj.singlerecordset("GENBANKBRANCHMST","BRANCHCODE,BRANCHNAME")	
+
+
+            //     'new code is
+
+            //     bankcode = split(strType, "~")
+
+            //     if bankcode(1) = "ADD" or bankcode(1)= "TC" then
+            //        strCond = "status='R' AND upper(trim(BANKCODE))='" & trim(bankcode(2)) & "'"
+
+
+            //        rs = obj.singlerecordset("GENCORRESPBANKBRANCHESMST", "BRANCHCODE, BRANCHNAME", _
+
+            //        strCond)
+
+            //     else
+            //                rs = obj.singlerecordset("GENBANKBRANCHMST", "BRANCHCODE,BRANCHNAME")
+
+            //     end if
+
+
+            //elseif left(strType, 10) = "issonothbr" then
+            //dim bankcode
+            //    bankcode = split(strType, "~")
+            //    dim strCond
+
+
+            //    if bankcode(1) = "ADD" or bankcode(1)= "TC" then
+            //'		 rs=obj.singlerecordset("GENOTHERBRANCHMST", _
+            //'		"BRANCHCODE,BRANCHNAME","UPPER(BANKCODE)='" & ucase(trim(bankcode(2))) & _
+            //'		"' ")	
+
+
+            //        'strCond="upper(trim(OURBRANCHCODE))='" & trim(bankcode(3)) & "' AND status='R' "& _
+
+            //        '" AND upper(trim(BANKCODE))='" & trim(bankcode(2)) & "'" & _
+
+            //        '" AND BRANCHCODE IN (SELECT DISTINCT OTHERBRANCHCODE FROM REMISSUEBANKMST " & _
+
+            //        '" WHERE upper(trim(BRANCHCODE))='" & trim(bankcode(3)) & "' AND  " & _
+
+            //        '" upper(trim(CURRENCYCODE))='" & trim(bankcode(4)) & "' " & _
+
+            //        '" AND upper(trim(REMTYPE))='" & trim(bankcode(1)) & "'" & _
+
+            //        '" AND upper(trim(OTHERBANKCODE))='" & trim(bankcode(2)) & "'" & _
+
+            //        '" AND status='R')"
+
+
+            //         'rs=obj.singlerecordset("GENOTHERBRANCHMST", "BRANCHCODE, BRANCHNAME",strCond)
+
+
+            //        'new code is 
+
+            //        strCond = "status='R' AND upper(trim(BANKCODE))='" & trim(bankcode(2)) & "'"
+
+
+            //        rs = obj.singlerecordset("GENCORRESPBANKBRANCHESMST", "BRANCHCODE, BRANCHNAME", _
+
+            //        strCond)
+
+
+            //    elseif bankcode(1)= "AOB" then
+            //         rs = obj.singlerecordset("GENBANKBRANCHMST", _
+
+            //        "BRANCHCODE,BRANCHNAME", "UPPER(BANKCODE)='" & trim(bankcode(2)) & "' and status='R'")
+
+            //    elseif bankcode(1)= "OthBrs" then
+            //    rs = obj.singlerecordset("GENCORRESPBANKBRANCHESMST", "BRANCHCODE,BRANCHNAME", "STATUS='R' AND UPPER(BANKCODE)='" & ucase(trim(bankcode(2))) & "'")
+
+            //    else
+            //                rs = obj.singlerecordset("GENBANKBRANCHMST", _
+           
+            //                   "BRANCHCODE,BRANCHNAME", "UPPER(BANKCODE)='" & ucase(trim(bankcode(2))) & "' " & _
+           
+            //                   "")
+
+            //    end if
+
+            //elseif left(strType,9)= "DispAccNo" then
+            //disp = split(strType, "|")
+            //    brCode = disp(1)
+            //    modid = disp(2)
+            //    glcode = disp(3)
+            //    crCode = disp(4)
+            // if left(ucase(modid), 2) <> "TM" then
+            // dim strWhr
+            //    strWhr = "upper(moduleid)='" & ucase(trim(modid)) & "'"
+            //     '''or  upper(M.accno)=upper(D.disposalaccno)
+            //     rs = obj.singlerecordset("GENMODULEMST", "mastertable", cstr(strWhr))
+            //    if rs.RecordCount > 0 then
+            //    dim table1,tables
+            //        table1 = rs(0).value
+            //        tables = rs(0).value & " M,GENDISPOSALDTLSTEMP D"
+
+
+            //        strWhr = "upper(D.branchcode)='" & ucase(trim(brCode)) & "' and upper(D.currencycode)='" & _
+
+            //                ucase(trim(crCode)) & "'and upper(D.moduleid)='" & ucase(trim(modid)) & "'" & _
+
+            //               " and upper(D.glcode)='" & ucase(trim(glcode)) & "' and upper(D.transtatus)='P'" & _
+
+            //               " and D.batchno is null and D.tranno is null and " & _
+
+            //               "upper(M.branchcode)=upper(D.branchcode) and upper(M.currencycode)" & _
+
+            //               "=upper(D.currencycode) " & _
+
+            //              " and upper(M.glcode)=upper(D.glcode) and upper(M.accno)=upper(D.accno)"
+
+
+            //        'and upper(M.moduleid)=upper(D.moduleid) 
+            //         rs = obj.singlerecordset(cstr(tables), _
+            //        "distinct(nvl(D.accno,D.disposalaccno)),M.name", cstr(strWhr))
+
+
+            //   end if
+            // else
+            //                    dim strWhr
+
+
+            //       strWhr = "upper(D.branchcode)='" & ucase(trim(brCode)) & "' and upper(D.currencycode)='" & _
+
+            //                ucase(trim(crCode)) & "'and upper(D.moduleid)='" & ucase(trim(modid)) & "'" & _
+
+            //               " and upper(D.glcode)='" & ucase(trim(glcode)) & "' and upper(D.transtatus)='P'" & _
+
+            //               " and D.batchno is null and D.tranno is null "
+
+
+
+            //  rs = obj.singlerecordset("GENDISPOSALDTLSTEMP D", "distinct(nvl(D.accno,D.disposalaccno))", cstr(strWhr))
+
+            // end if
+
+
+            //'-----Link Module
+            //elseif left(strType,9)= "LnkModule" then
+
+            //     obj = server.CreateObject("GeneralTranQueries.TransactionQueries")
+
+
+            //    k = split(strType, "|")
+
+
+            //     rs = obj.ModuleID(cstr(k(1)), "N", "N")
+
+
+            //elseif left(strType,9)= "LnkGlcode" then
+            // obj = server.CreateObject("GeneralTranQueries.TransactionQueries")
+
+            //    k = split(strType, "|")
+
+            //     rs = obj.GLCodes(cstr(k(1)), cstr(k(2)))
+
+
+            //elseif left(strType,8)= "LnkAccno" then
+
+            //    k = split(strType, "|")
+            //    modId = ucase(k(2))
+            //    glCode = ucase(k(3))
+            //    if modId<>"TM" then
+            //       obj = server.CreateObject("GeneralTranQueries.TransactionQueries")
+
+            //       rs = obj.AccountNumbers(cstr(k(1)), cstr(modId), cstr(glCode), cstr(k(4)))
+
+            //    else
+            //                dim strWhr
+
+            //       strWhr = "upper(glcode)='" & glCode & "' and upper(status)='R'"
+
+            //        rs = obj.singlerecordset("TMGENTYPEMST", "upper(mastertable) mstTab", cstr(strWhr))
+
+            //       if rs.RecordCount > 0 and rs("mstTab")<> "" then
+            //       dim mstTab
+            //          mstTab = rs("mstTab")
+
+            //          strWhr = "upper(status)='R'"
+
+            //         rs = obj.singlerecordset(cstr(mstTab), "accno", cstr(strWhr), "to_number(accno)")
+
+            //       end if
+
+            //    end if
+
+
+            //    connerr = obj.ConnError
+
+            //      if obj.connerror<>"" then
+            //        kstr = "Norecords"
+
+            //        Errstr = obj.ConnError
+
+            //    end if
+
+
+            //'-----Link Module Ends 
+            //''''--------clearing--------------------------------------------------------------
+            //''' for clearing moduleid
+            //elseif left(strType,9)= "CLGModule" then
+
+            //     obj = server.CreateObject("GeneralTranQueries.TransactionQueries")
+
+
+            //    k = split(strType, "|")
+
+
+            //     rs = obj.ModuleID(cstr(k(1)), "N", "N")
+            //''' for clearing glcode
+
+            //elseif left(strType,9)= "CLGGlcode" then
+            //obj = server.CreateObject("GeneralTranQueries.TransactionQueries")
+
+            //    k = split(strType, "|")
+
+            //     rs = obj.GLCodes(cstr(k(1)), cstr(k(2)))
+
+            //elseif left(strType,8)= "CLGAccno" then
+
+            //    k = split(strType, "|")
+
+            //     obj = server.CreateObject("GeneralTranQueries.TransactionQueries")
+
+            //     rs = obj.AccountNumbers(cstr(k(1)), cstr(k(2)), cstr(k(3)), cstr(k(4)))
+
+
+            //    connerr = obj.ConnError
+
+
+            //    if obj.connerror<>"" then
+            //        kstr = "Norecords"
+
+            //        Errstr = obj.ConnError
+
+            //    end if
+
+
+
+            //elseif left(strType, 11) = "retCLGAccno" then
+
+            //    k = split(strType, "|")
+
+            //     'obj=server.CreateObject("GeneralTranQueries.TransactionQueries")
+
+            //     'rs=obj.AccountNumbers(cstr(k(1)),cstr(k(2)),cstr(k(3)),cstr(k(4)))
+
+            //    modid1 = k(2) & "MST"
+
+            //    objaccno = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+            //'sqlstr= "SELECT ACCNO,Name,Customerid,status FROM " & modid1 & " WHERE UPPER(trim(branchcode))='"& k(1) &"' AND UPPER(trim(glcode))='"& k(3) &"' AND  transtatus IN ('A') AND UPPER(trim(currencycode))='"& k(4) &"'  ORDER BY to_number(accno)"
+            //sqlstr = "SELECT ACCNO,Name,Customerid FROM " & modid1 & " WHERE UPPER(trim(branchcode))='" & k(1) & "' AND UPPER(trim(glcode))='" & k(3) & "' AND  transtatus IN ('A') AND UPPER(trim(currencycode))='" & k(4) & "'  ORDER BY to_number(accno)"
+
+            //rs = objaccno.SingleSelectStat(sqlstr)
+            //if not hidsearch = "" then
+            //        searchby = split(hidsearch, "|")
+
+            //            if searchby(0) = "name" then
+            //        sqlstr = "SELECT ACCNO,Name,Customerid FROM " & modid1 & " WHERE UPPER(trim(branchcode))='" & k(1) & "' AND UPPER(trim(glcode))='" & k(3) & "' AND  transtatus IN ('A') AND UPPER(trim(currencycode))='" & k(4) & "' and name like '" & Ucase(searchby(1)) & "%' ORDER BY to_number(accno)"
+
+            //        rs = objaccno.SingleSelectStat(sqlstr)
+
+
+            //            else if searchby(0) = "num" then
+            //        sqlstr = "SELECT ACCNO,Name,Customerid FROM " & modid1 & " WHERE UPPER(trim(branchcode))='" & k(1) & "' AND UPPER(trim(glcode))='" & k(3) & "' AND  transtatus IN ('A') AND UPPER(trim(currencycode))='" & k(4) & "' and accno like '" & Ucase(searchby(1)) & "%' ORDER BY to_number(accno)"
+
+            //        rs = objaccno.SingleSelectStat(sqlstr)
+
+
+            //            end if
+
+            //    end if
+
+
+            //    connerr = obj.ConnError
+
+
+            //    if obj.connerror<>"" then
+            //        kstr = "Norecords"
+
+            //        Errstr = obj.ConnError
+
+            //    end if
+
+
+            //''for bankcode
+
+            //elseif left(strType, 7) = "CLGBank" then
+
+            //    k = split(strType, "|")
+
+            //     rs = obj.singlerecordset("GENOTHERBANKMST", "BANKCODE,BANKNAME", _
+
+            //    "ourbranchcode='" & k(1) & "'", "BANKCODE")
+
+            //    if obj.connerror<>"" then
+            //        kstr = "Norecords"
+
+            //        Errstr = obj.ConnError
+
+            //    end if
+
+            //''for clgbranchcodes
+
+            //elseif left(strType, 9) = "CLGBranch" then
+
+            //    k = split(strType, "|")
+
+            //     rs = obj.singlerecordset("GENOTHERBRANCHMST", "BRANCHCODE,BRANCHNAME", _
+
+            //    "BANKCODE='" & k(1) & "' and ourbranchcode='" & k(2) & "'", "BANKCODE")
+
+            //    if obj.connerror<>"" then
+            //        kstr = "Norecords"
+
+            //        Errstr = obj.ConnError
+
+            //    end if
+
+            //''for clgReasoncodes
+
+            //elseif left(strType, 9) = "CLGReason" then
+
+            //    k = split(strType, "|")
+
+            //     rs = obj.singlerecordset("CLGRETURNREASONMST", "CODE,DESCRIPTION", "", "CODE")
+
+            //    if obj.connerror<>"" then
+            //        kstr = "Norecords"
+
+            //        Errstr = obj.ConnError
+
+            //    end if
+            //''''-------------------------------------------------------------------------------- -
+            //'''''This is Code is for vouching  Details.
+            //'''-----------------------------------------------------------------------------------
+            //elseif left(strType,13)= "VochServiceid" then
+            //dim ser,whcond
+
+            //      ser = split(strtype, "|")
+
+
+            //    if ser(1) = "3" then
+            //       whcond = "Code in('1')"
+            //    elseif ser(1)= "4" then
+            //       'whcond="Code in('1','2')"
+            //       whcond = "Code in('1')"
+            //    end if
+
+            //     rs = obj.singlerecordset("GENSERVICETYPESPMT", "CODE,NARRATION", cstr(whcond), "CODE")
+
+
+            //elseif left(strType,14)= "ChargeModuleid" then
+
+
+            //   atype = Split(strType, "|")
+
+
+            //    rs = obj1.ModuleID(cstr(atype(1)), "")
+
+
+            //  if atype(2) = "4" and atype(3)= "1" then
+
+
+            //    rs.Filter = "moduleid<>'CLG'"
+
+
+            //  elseif atype(2)= "4" and atype(3)= "2" then
+
+
+            //    rs.Filter = "moduleid='CA' or moduleid='DEP' or  moduleid='SB'"
+
+
+            // elseif atype(2)= "3" and atype(3)= "1" then
+
+
+            //    rs.Filter = "moduleid<>'CLG' AND moduleid<>'DEP' " & _
+
+            //    "AND moduleid<>'FXDEP' AND moduleid<>'FXREM' AND moduleid<>'REM' " & _
+
+            //    "AND moduleid<>'LOAN' AND moduleid<>'LOCKER'"
+
+
+
+            //  end if
+            //  ''' for contra moduleids,description
+            // elseif left(strType,14)= "ContraModuleid" then
+            //    atype = Split(strType, "|")
+
+            //        rs = obj1.ModuleID(cstr(atype(1)), "")
+
+
+            // ''' for contra glcodes,description
+
+            //    elseif left(strType,12)= "ContraGlcode" then
+            // dim strflds
+            //   strflds = split(strtype, "|")
+            //       rs = obj.singlerecordset(cstr(strflds(2)) & "typemst", _
+
+            //             strflds(3) & ",(select narration from genglsheetmst where " & _
+
+            //             "glcode=" & strflds(3) & " and branchcode='" & strflds(1) & "')", cstr(strflds(4)))
+
+
+            //  elseif left(strtype,13)= "ContraAccCode" then
+
+            //        k = split(strtype, "|")
+            //       rs = obj1.AccountNumbers(cstr(k(1)), cstr(k(2)), cstr(k(3)), cstr(k(4)))
+            //elseif left(strtype,12)= "ChargeGlcode" then
+
+            //      k = split(strtype, "|")
+            //        rs = obj1.GLCodes(cstr(k(1)), cstr(k(2)))
+
+
+            //elseif left(strtype,13)= "ChargeAccCode" then
+
+            //        k = split(strtype, "|")
+            //       rs = obj1.AccountNumbers(cstr(k(1)), cstr(k(2)), cstr(k(3)), cstr(k(4)))
+
+
+            //elseif strType = "catcode" then
+            //      rs = obj.singlerecordset("GENCATEGORYMST", "CATEGORYCODE,NARRATION", "categorycode<>'99'")
+
+
+            //elseif strType = "remcode" then
+            //      rs = obj.singlerecordset("FXREMTYPEMST a,FXGENMODEOFREMITTANCEMST b", _
+
+            //             "a.modeofremittance, narration", "a.modeofremittance=b.modeofremittance")
+
+
+
+            //'Forex
+            //elseif left(strtype,11)= "fxratecodes" then
+            //dim strValue,strWhr
+            //     strValue = split(strtype, "|")
+
+
+            //     strWhr = "sourcecurrencycode='" & strValue(2) & "' AND ratecategory=category and upper(a.status)='R'"
+
+
+            //     if strValue(1) = "C" then
+            //         rs = obj.singlerecordset("FXGENCARDRATECATEGORIESMST b,FXGENCARDRATESPMT a", _
+
+            //                        "category,NARRATION,rate", cstr(strWhr))
+            //     elseif strValue(1)= "N" then
+            //        strWhr = "currencycode='" & strValue(2) & "' AND a.category=b.category and upper(a.status)='R'"
+            //         rs = obj.singlerecordset("FXGENNOTIONALCATEGORIESMST b,FXGENNOTIONALRATESPMT a", _
+            //        " a.category,NARRATION,rate", cstr(strWhr))
+            //     elseif strValue(1)= "D" then
+            //        strWhr = "status='R'"
+            //         rs = obj.singlerecordset("FXDEALINGROOMMST", "CODE,NARRATION,'0'", cstr(strWhr))
+            //     elseif strValue(1)= "F" then
+            //        strWhr = "upper(status)='R' and upper(transtatus)='A'"
+            //         rs = obj.singlerecordset("FXFCMST", "accno,name,rate", cstr(strWhr))
+            //     end if
+
+
+            //elseif left(strType, 7) = "BatchNo" then
+            //    strVal = split(strType, "|")
+
+            //    brcode = strVal(1)
+
+            //    crcode = strVal(2)
+
+            //    whrAdd = strVal(3)
+
+            //    abbYN = strVal(4)
+
+
+            //    dim whrBr
+
+            //    if ucase(abbYN) <> "Y" then
+            //      whrBr = "upper(branchcode)='" & ucase(brcode) & "' and abbbranchcode is null "
+
+            //    else
+            //                whrBr = "upper(abbbranchcode)='" & ucase(brcode) & "'"
+
+            //    end if
+
+
+            //    whrCond = whrBr & " and upper(currencycode)='" & _
+
+            //    ucase(trim(crcode)) & "' and upper(transtatus)='P' and approvedby is null " & _
+
+            //    "and approvedmachine is null " & whrAdd
+
+
+            //     rs = obj.singlerecordset("GENTRANSLOG", "distinct(BATCHNO)", cstr(whrCond), "batchno")
+            //'------Code Added by Monica-25-NOV-09 to display Name along with the BatchNo----------ORG----------	 
+
+            //     rsNew = Nothing
+
+            //     rsNew = obj.singlerecordset("GENTRANSLOG", "distinct(BATCHNO),NAME", cstr(whrCond), "batchno")
+
+            //     cnt = 0
+
+            //     DO UNTIL rsNew.EOF
+
+
+            //        IF(cnt = 0) THEN
+            //            strArrBatNo = rsNew(1).value & "-----" & rsNew(0).value
+
+            //        ELSEIf(strBatNo<>rsNew(0).value) THEN
+            //            strArrBatNo = strArrBatNo & "|" & rsNew(1).value & "-----" & rsNew(0).value
+
+            //        END IF
+
+
+            //        strBatNo = rsNew(0).value
+
+
+            //        rsNew.MoveNext
+            //        cnt = cnt + 1
+
+            //     LOOP
+            //     cnt = 0
+
+            //     strLstBatNo = split(strArrBatNo, "|")
+            //'-----End of -Code Added by Monica-25-NOV-09 to display Name along with the BatchNo----------ORG----------
+
+            //elseif left(strType,10)= "RefBatchNo" then
+            //    strVal = split(strType, "|")
+
+            //    brcode = strVal(1)
+
+            //    crcode = strVal(2)
+
+            //    whrAdd = strVal(3)
+
+            //    abbYN = strVal(4)
+
+
+            //    dim whrBr
+
+            //    if ucase(abbYN) <> "Y" then
+            //      whrBr = "upper(branchcode)='" & ucase(brcode) & "' and abbbranchcode is null "
+
+            //    else
+            //                whrBr = "upper(abbbranchcode)='" & ucase(brcode) & "'"
+
+            //    end if
+
+
+            //    whrCond = whrBr & " and upper(currencycode)='" & _
+
+            //    ucase(trim(crcode)) & "' and upper(transtatus)='P' and approvedby is null " & _
+
+            //    "and approvedmachine is null " & whrAdd
+
+
+            //     rs = obj.singlerecordset("GENTRANSLOG", "distinct(BATCHNO)", cstr(whrCond), "batchno")
+            //'------Code Added by Monica-25-NOV-09 to display Name along with the BatchNo----------ORG----------	 
+
+            //     rsNew = Nothing
+
+            //     rsNew = obj.singlerecordset("GENTRANSLOG", "distinct(BATCHNO),NAME,RATEREFCODE", cstr(whrCond), "batchno")
+
+            //     cnt = 0
+
+            //     DO UNTIL rsNew.EOF
+
+
+            //        IF(cnt = 0) THEN
+            //            strArrBatNo = rsNew(1).value & "-----" & rsNew(0).value & "-----" & rsNew(2).value
+
+            //        ELSEIf(strBatNo<>rsNew(0).value) THEN
+            //            strArrBatNo = strArrBatNo & "|" & rsNew(1).value & "-----" & rsNew(0).value & "-----" & rsNew(2).value
+
+            //        END IF
+
+
+            //        strBatNo = rsNew(0).value
+
+
+            //        rsNew.MoveNext
+            //        cnt = cnt + 1
+
+            //     LOOP
+            //     cnt = 0
+
+            //     strLstBatNo = split(strArrBatNo, "|")
+            //'-----End of -Code Added by Monica-25-NOV-09 to display Name along with the BatchNo----------ORG----------
+
+
+            //elseif left(strType,10)= "DelBatchNo" then
+            //    strVal = split(strType, "|")
+
+            //    brcode = strVal(1)
+
+            //    crcode = strVal(2)
+
+            //    abbYN = strVal(3)
+
+
+            //    dim whrBr
+
+            //    if ucase(abbYN) <> "Y" then
+            //      whrBr = "upper(branchcode)='" & ucase(brcode) & "' and abbbranchcode is null "
+
+            //    else
+            //                whrBr = "upper(abbbranchcode)='" & ucase(brcode) & "'"
+
+            //    end if
+
+
+            //    whrCond = whrBr & " and upper(currencycode)='" & _
+
+            //    ucase(trim(crcode)) & "' and upper(DELETEDTRANSTATUS)='P' and DELETEDAPPROVEDBY is null " & _
+
+            //    "and DELETEDAPPROVEDMACHINE  is null "
+
+
+            //     rs = obj.singlerecordset("GENDELETEDTRANSLOG", "distinct(BATCHNO)", cstr(whrCond), "batchno")
+
+
+            //     rsNew = Nothing
+
+            //     rsNew = obj.singlerecordset("GENDELETEDTRANSLOG", "distinct(BATCHNO),NAME", cstr(whrCond), "batchno")
+
+            //     cnt = 0
+
+            //     DO UNTIL rsNew.EOF
+
+
+            //        IF(cnt = 0) THEN
+            //            strArrBatNo = rsNew(1).value & "-----" & rsNew(0).value
+
+            //        ELSEIf(strBatNo<>rsNew(0).value) THEN
+            //            strArrBatNo = strArrBatNo & "|" & rsNew(1).value & "-----" & rsNew(0).value
+
+            //        END IF
+
+
+            //        strBatNo = rsNew(0).value
+
+
+            //        rsNew.MoveNext
+            //        cnt = cnt + 1
+
+            //     LOOP
+            //     cnt = 0
+
+            //     strLstBatNo = split(strArrBatNo, "|")
+
+            //elseif left(strType,8)= "BatchVer" then
+            //    strVal = split(strType, "|")
+
+            //    brcode = strVal(1)
+
+            //    crcode = strVal(2)
+
+            //    whrAdd = strVal(3)
+
+            //    payMode = strVal(4)
+
+            //    abbYN = strVal(5)
+
+            //    dim whrExt, strFld, strTab
+
+            //    if payMode = "ALL" then
+
+            //       if abbYN<>"Y" then
+
+            //          whrExt = "' and ((e.verifiedby IS NULL AND t.approvedby IS NOT NULL and " & _
+
+            //                "upper(t.exceptionyn)='Y' AND UPPER(e.branchcode)='" & _
+
+            //                ucase(brcode) & "') or " & _
+
+            //                " (p.verifiedby IS NULL AND UPPER(p.branchcode)='" & ucase(brcode) & _
+
+            //                "' and t.verifiedby is null AND t.approvedby IS NOT NULL " & _
+
+            //                " AND upper(t.cashpaidyn)='Y'))"
+            //       else
+            //                whrExt = "' and ((e.verifiedby IS NULL AND t.approvedby IS NOT NULL and " & _
+
+            //                 "upper(t.exceptionyn)='Y') or " & _
+
+            //                 " (p.verifiedby IS NULL and t.verifiedby is null AND t.approvedby " & _
+
+            //                 "IS NOT NULL AND upper(t.cashpaidyn)='Y'))"
+            //       end if
+
+
+            //        'strTab="GENEXCEPTIONALTRANDAY e,CASHTELLERPAYMENTSTRANDAY p,GENTRANSLOG t" 
+
+            //        strFld = "distinct(T.BATCHNO)"
+
+
+            //    elseif payMode = "TRANS" or payMode = "CLG" then
+            //        whrExt = "' and e.verifiedby IS NULL  AND t.approvedby IS NOT NULL " & _
+
+            //               " and UPPER(e.branchcode)='" & ucase(brcode) & "'"
+
+
+            //        'strTab="GENEXCEPTIONALTRANDAY e,CASHTELLERPAYMENTSTRANDAY p,GENTRANSLOG t"
+
+            //        strFld = "distinct(e.BATCHNO)"
+            //    elseif payMode = "TELLER" then
+            //        whrExt = "' and p.verifiedby IS NULL  and t.verifiedby is null " & _
+
+            //                " AND t.approvedby IS NOT NULL and upper(t.cashpaidyn)='Y'" & _
+
+            //                " and upper(p.branchcode)='" & ucase(brcode) & "'"
+
+
+            //        'strTab="CASHTELLERPAYMENTSTRANDAY p,GENTRANSLOG t"
+
+            //        strFld = "distinct(p.BATCHNO)"
+            //    elseif payMode = "CASH" then
+            //        whrExt = "' and e.verifiedby IS NULL  AND t.approvedby IS NOT NULL " & _
+
+            //               "and t.batchno not in(select batchno from CASHTELLERPAYMENTSTRANDAY)" & _
+
+            //               " and upper(e.branchcode)='" & ucase(brcode) & "'"
+
+
+            //        'strTab="GENEXCEPTIONALTRANDAY e,CASHTELLERPAYMENTSTRANDAY p,GENTRANSLOG t"
+
+            //        strFld = "distinct(e.BATCHNO)"
+
+            //    end if
+
+
+            //    strTab = "GENEXCEPTIONALTRANDAY e,CASHTELLERPAYMENTSTRANDAY p,GENTRANSLOG t"
+
+
+            //    if abbYN<>"Y" then
+            //    whrCond = "t.branchcode=p.branchcode(+) AND t.currencycode=p.currencycode(+)" & _
+            //            " AND t.batchno=p.batchno(+) AND t.branchcode=e.branchcode(+)" & _
+            //            " AND t.currencycode=e.currencycode(+) AND t.batchno=e.batchno(+)" & _
+
+            //            " and upper(t.branchcode)='" & ucase(brcode) & "' and upper(t.currencycode)='" & _
+
+            //            ucase(trim(crcode)) & whrExt & " and t.abbbranchcode is null AND " & _
+
+            //            "t.BATCHNO IN (SELECT t.batchno FROM " & _
+            //            " gentranslog t WHERE t.approvedby IS NOT NULL) AND t.batchno " & _
+            //            " NOT IN(SELECT t.batchno FROM gentranslog t WHERE t.approvedby IS NULL)" & _
+            //            whrAdd
+            //    else
+            //                whrCond = "t.branchcode=p.branchcode(+) AND t.currencycode=p.currencycode(+)" & _
+            //            " AND t.batchno=p.batchno(+) AND t.branchcode=e.branchcode(+)" & _
+            //            " AND t.currencycode=e.currencycode(+) AND t.batchno=e.batchno(+)" & _
+
+            //            " and upper(t.abbbranchcode)='" & ucase(brcode) & "' and upper(t.currencycode)='" & _
+
+            //            ucase(trim(crcode)) & whrExt & " AND t.BATCHNO IN (SELECT t.batchno FROM " & _
+            //            " gentranslog t WHERE t.approvedby IS NOT NULL) AND t.batchno " & _
+            //            " NOT IN(SELECT t.batchno FROM gentranslog t WHERE t.approvedby IS NULL)" & _
+            //            whrAdd
+            //    end if
+
+
+            //     rs = obj.singlerecordset(cstr(strTab), cstr(strFld), cstr(whrCond), "batchno")
+
+
+            //     '------Code Added by Monica-27-NOV-09 to display Name along with the BatchNo--------------------	 
+
+            //        strFld = "t.batchno, t.name FROM GENTRANSLOG t WHERE t.batchno IN (SELECT " & strFld
+
+            //        whrCond = whrCond & ")"
+
+
+            //        rsNew = Nothing
+
+            //        rsNew = obj.singlerecordset(cstr(strTab), cstr(strFld), cstr(whrCond), "batchno")
+
+            //        cnt = 0
+
+            //        DO UNTIL rsNew.EOF
+
+
+            //            IF(cnt = 0) THEN
+            //                strArrBatNo = rsNew(1).value & "-----" & rsNew(0).value
+
+            //            ELSEIf(strBatNo<>rsNew(0).value) THEN
+            //                strArrBatNo = strArrBatNo & "|" & rsNew(1).value & "-----" & rsNew(0).value
+
+            //            END IF
+
+
+            //            strBatNo = rsNew(0).value
+
+
+            //            rsNew.MoveNext
+            //            cnt = cnt + 1
+
+            //        LOOP
+            //        cnt = 0
+
+            //        strLstBatNo = split(strArrBatNo, "|")
+            //'-----End of -Code Added by Monica-27-NOV-09 to display Name along with the BatchNo--------------------	 
+
+
+
+            //elseif left(strType,8)= "BatchDel" then
+            //    strVal = split(strType, "|")
+
+            //    brcode = strVal(1)
+
+            //    crcode = strVal(2)
+
+            //    whrAdd = strVal(3)
+
+            //    abbYN = strVal(4)
+
+            //    moduleid = strVal(5)
+
+
+            //    dim whrBr
+
+            //    if abbYN<>"Y" then
+            //       whrBr = "upper(branchcode)='" & ucase(brcode) & "' and abbbranchcode is null"
+
+            //    else
+            //                whrBr = "upper(abbbranchcode)='" & ucase(brcode) & "'"
+
+            //    end if
+
+
+            //    'Note: This code was changed by Radhika on 22-oct-2007
+
+            //    if abbYN<>"Y" then
+
+            //    if moduleid = "CASH" then
+            //        whrCond = whrBr & " and upper(currencycode)='" & _
+
+            //        ucase(trim(crcode)) & "' and upper(nvl(cashpaidyn,'N')) in ('Y','N') " & _
+
+            //        whrAdd & " and Cashierid='" & userid & "'"
+
+            //    else
+            //                whrCond = whrBr & " and upper(currencycode)='" & _
+
+            //        ucase(trim(crcode)) & "' and upper(nvl(cashpaidyn,'N'))<>'Y' " & _
+
+            //        whrAdd & " And Cashierid is null"
+
+            //    end if
+
+            //    else '' ABB Entries Only
+            //        whrCond = whrBr & " and upper(currencycode)='" & _
+
+            //        ucase(trim(crcode)) & "' and upper(nvl(cashpaidyn,'N')) in ('Y','N') " & whrAdd
+
+            //    end if
+
+
+            //     rs = obj.singlerecordset("GENTRANSLOG", "distinct(BATCHNO)", cstr(whrCond), "batchno")
+
+            //'------Code Added by Monica-26-NOV-09 to display Name along with the BatchNo--------------------	 
+
+            //     rsNew = Nothing
+
+            //     rsNew = obj.singlerecordset("GENTRANSLOG", "distinct(BATCHNO),NAME", cstr(whrCond), "batchno")
+
+            //     cnt = 0
+
+            //     DO UNTIL rsNew.EOF
+
+
+            //        IF(cnt = 0) THEN
+            //            strArrBatNo = rsNew(1).value & "-----" & rsNew(0).value
+
+            //        ELSEIf(strBatNo<>rsNew(0).value) THEN
+            //            strArrBatNo = strArrBatNo & "|" & rsNew(1).value & "-----" & rsNew(0).value
+
+            //        END IF
+
+
+            //        strBatNo = rsNew(0).value
+
+
+            //        rsNew.MoveNext
+            //        cnt = cnt + 1
+
+            //     LOOP
+            //     cnt = 0
+
+            //     strLstBatNo = split(strArrBatNo, "|")
+            //'-----End of -Code Added by Monica-26-NOV-09 to display Name along with the BatchNo--------------------	 
+
+            //    'Response.Write whrcond
+
+            //elseif left(strType,16)= "NEFTRTGSBatchDel" then
+            //    strVal = split(strType, "|")
+
+            //    brcode = strVal(1)
+
+            //    crcode = strVal(2)
+
+            //    whrAdd = strVal(3)
+
+            //    abbYN = strVal(4)
+
+            //    moduleid = strVal(5)
+
+
+            //    dim whrBr
+
+            //    if abbYN<>"Y" then
+            //       whrBr = "upper(branchcode)='" & ucase(brcode) & "' and abbbranchcode is null"
+
+            //    else
+            //                whrBr = "upper(abbbranchcode)='" & ucase(brcode) & "'"
+
+            //    end if
+
+
+            //    'Note: This code was changed by Radhika on 22-oct-2007
+
+            //    if abbYN<>"Y" then
+
+            //    if moduleid = "CASH" then
+            //        whrCond = whrBr & " and upper(currencycode)='" & _
+
+            //        ucase(trim(crcode)) & "' and upper(nvl(cashpaidyn,'N')) in ('Y','N') " & _
+
+            //        whrAdd & " and Cashierid='" & userid & "'"
+
+            //    else
+            //                whrCond = whrBr & " and upper(currencycode)='" & _
+
+            //        ucase(trim(crcode)) & "' and upper(nvl(cashpaidyn,'N'))<>'Y' " & _
+
+            //        whrAdd & ""
+
+            //    end if
+
+            //    else '' ABB Entries Only
+            //        whrCond = whrBr & " and upper(currencycode)='" & _
+
+            //        ucase(trim(crcode)) & "' and upper(nvl(cashpaidyn,'N')) in ('Y','N') " & whrAdd
+
+            //    end if
+
+
+            //     rs = obj.singlerecordset("GENTRANSLOG", "distinct(BATCHNO)", cstr(whrCond), "batchno")
+
+            //'------Code Added by Monica-26-NOV-09 to display Name along with the BatchNo--------------------	 
+
+            //     rsNew = Nothing
+
+            //     rsNew = obj.singlerecordset("GENTRANSLOG", "distinct(BATCHNO),NAME", cstr(whrCond), "batchno")
+
+            //     cnt = 0
+
+            //     DO UNTIL rsNew.EOF
+
+
+            //        IF(cnt = 0) THEN
+            //            strArrBatNo = rsNew(1).value & "-----" & rsNew(0).value
+
+            //        ELSEIf(strBatNo<>rsNew(0).value) THEN
+            //            strArrBatNo = strArrBatNo & "|" & rsNew(1).value & "-----" & rsNew(0).value
+
+            //        END IF
+
+
+            //        strBatNo = rsNew(0).value
+
+
+            //        rsNew.MoveNext
+            //        cnt = cnt + 1
+
+            //     LOOP
+            //     cnt = 0
+
+            //     strLstBatNo = split(strArrBatNo, "|")
+            //'-----End of -Code Added by Monica-26-NOV-09 to display Name along with the BatchNo--------------------	 
+
+            //    'Response.Write whrcond
+
+
+
+            //    ''code added by jyothsna for transaction deletion report
+            //elseif left(strType, 8) = "BatchRep" then
+            //    strVal = split(strType, "|")
+
+            //    brcode = strVal(1)
+
+            //    crcode = strVal(2)
+
+            //    whrAdd = strVal(3)
+
+            //    abbYN = strVal(4)
+
+            //    moduleid = strVal(5)
+
+
+            //    dim whrBr
+
+            //    if abbYN<>"Y" then
+            //       whrBr = "upper(branchcode)='" & ucase(brcode) & "' and abbbranchcode is null"
+
+            //    else
+            //                whrBr = "upper(abbbranchcode)='" & ucase(brcode) & "'"
+
+            //    end if
+
+
+            //        whrCond = whrBr & " and upper(currencycode)='" & _
+
+            //        ucase(trim(crcode)) & "' " & whrAdd
+
+
+            //         rs = obj.singlerecordset("GENTRANSLOGDEM", "distinct(BATCHNO)", cstr(whrCond), "batchno")
+
+
+            //        rsNew = Nothing
+
+            //        rsNew = obj.singlerecordset("GENTRANSLOGDEM", "distinct(BATCHNO),NAME", cstr(whrCond), "batchno")
+
+
+            //        cnt = 0
+
+            //     DO UNTIL rsNew.EOF
+
+
+            //        IF(cnt = 0) THEN
+            //            strArrBatNo = rsNew(1).value & "-----" & rsNew(0).value
+
+            //        ELSEIf(strBatNo<>rsNew(0).value) THEN
+            //            strArrBatNo = strArrBatNo & "|" & rsNew(1).value & "-----" & rsNew(0).value
+
+            //        END IF
+
+
+            //        strBatNo = rsNew(0).value
+
+
+            //        rsNew.MoveNext
+            //        cnt = cnt + 1
+
+            //     LOOP
+            //     cnt = 0
+
+            //     strLstBatNo = split(strArrBatNo, "|")
+
+
+
+            //    ''end of code , jyo
+
+            //elseif left(strType, 16) = "DepRenCloseAccno" then
+            //     strVal = split(strType, "|")
+
+            //     brcode = strVal(1)
+
+            //     modId = strVal(2)
+
+            //     glCode = strval(3)
+
+            //     crcode = strVal(4)
+
+            //     serId = strVal(5)
+
+
+            //     whrCond = "upper(branchcode)='" & ucase(trim(brcode)) & _
+
+            //             "' and upper(currencycode)='" & ucase(trim(crcode)) & _
+
+            //             "' and upper(linkmoduleid)='" & ucase(trim(modId)) & _
+
+            //             "' and upper(linkglcode)='" & ucase(trim(glCode)) & "' and upper(status)='P'" & _
+
+            //             "  and batchno IN(SELECT DISTINCT(batchno) from gentemptranslog " & _
+            //             " WHERE moduleid='DEP' AND serviceid='" & trim(serId) & "')"
+
+
+            //      rs = obj.singlerecordset("GENTEMPTRANSLOG", "DISTINCT(linkaccno),linkaccname", cstr(whrCond), "linkaccname")
+
+
+            //elseif left(strType,10)= "GETSCHOOLS" then
+            //    strVal = split(strType, "|")
+
+            //    if strVal(1) = "CASH" then
+            //        rs = obj.singlerecordset("SCHOOLBATCHDTLS A, SCHOOLMST V", "A.ACCNO, V.NAME, A.CASHBATCHNO", "NVL(A.CASHBATCHSTATUS, 'O')='O' AND A.APPLICATIONDATE='" & session("applicationdate") & "' AND A.ACCNO=V.ACCNO AND V.GLCODE=A.GLCODE AND V.BRANCHCODE=A.BRANCHCODE AND V.CURRENCYCODE=A.CURRENCYCODE", "TO_NUMBER(A.ACCNO)")
+
+            //    else
+            //                rs = obj.singlerecordset("SCHOOLBATCHDTLS A, SCHOOLMST V", "A.ACCNO, V.NAME, A.TRANSFERBATCHNO", "NVL(A.TRANSFERBATCHSTATUS, 'O')='O' AND A.APPLICATIONDATE='" & session("applicationdate") & "' AND A.ACCNO=V.ACCNO AND V.GLCODE=A.GLCODE AND V.BRANCHCODE=A.BRANCHCODE AND V.CURRENCYCODE=A.CURRENCYCODE", "TO_NUMBER(A.ACCNO)")
+
+            //    end if
+            //elseif left(strType, 11) = "GETBRANCHES" then
+            //    strVal = split(strType, "|")
+
+            //    if strVal(4) = "CASH" then
+            //        rs = obj.singlerecordset("SCHOOLBRANCHMST", "SCHOOLBRANCHID, SCHBRANCHNAME", "SCHOOLACCNO='" & strVal(1) & "' AND (SCHOOLACCNO, GLCODE)=(SELECT ACCNO, GLCODE FROM SCHOOLBATCHDTLS WHERE CASHBATCHNO='" & strVal(2) & "' AND APPLICATIONDATE='" & strVal(3) & "')")
+
+            //    else
+            //                rs = obj.singlerecordset("SCHOOLBRANCHMST", "SCHOOLBRANCHID, SCHBRANCHNAME", "SCHOOLACCNO='" & strVal(1) & "' AND (SCHOOLACCNO, GLCODE)=(SELECT ACCNO, GLCODE FROM SCHOOLBATCHDTLS WHERE TRANSFERBATCHNO='" & strVal(2) & "' AND APPLICATIONDATE='" & strVal(3) & "')")
+
+            //    end if
+
+
+            //elseif left(strType, 11) = "GETSTUDENTS" then
+            //    strVal = split(strType, "|")
+
+            //    if strVal(3) = "CASH" then
+            //        rs = obj.singlerecordset("SCHOOLSTUDENTINFOMST", "STUDENTID, NAME", "(SCHOOLACCNO, GLCODE)=(SELECT ACCNO, GLCODE FROM SCHOOLBATCHDTLS WHERE CASHBATCHNO='" & strVal(1) & "' AND APPLICATIONDATE='" & strVal(2) & "') AND SCHOOLBRANCHID='" & strVal(4) & "'")
+
+            //    else
+            //                rs = obj.singlerecordset("SCHOOLSTUDENTINFOMST", "STUDENTID, NAME", "(SCHOOLACCNO, GLCODE)=(SELECT ACCNO, GLCODE FROM SCHOOLBATCHDTLS WHERE TRANSFERBATCHNO='" & strVal(1) & "' AND APPLICATIONDATE='" & strVal(2) & "') AND SCHOOLBRANCHID='" & strVal(4) & "'")
+
+            //    end if
+
+
+
+            //end if
+
+        }
+
+        public void GetTransListFunction()
+        {
+//            function displaydiv()
+//            {
+//                var type = "<%= strType%>"
+
+
+//    var requestType = type.substring(0, 11)
+
+
+//        if ((requestType == "Telleraccno") || (requestType == "retCLGAccno"))
+//                {
+//                    document.getElementById("divsearch").style.display = "block"
+
+//        document.frmList.txtsearch.focus();
+//                }
+
+//                var hidstr = "<%=hidsearch%>"
+//     var searchstr
+//     if (hidstr != "")
+//                {
+//                    var searchstr = hidstr.split("|")
+//     document.getElementById("cmb_search").value = searchstr[0]
+//     window.document.frmList.txtsearch.value = searchstr[1]
+//     }
+
+//            }
+
+//            function funcsearch()
+//            {
+//                var strdata = "<%= strType%>"
+        
+//        if (window.document.frmList.cmbsearch.selectedIndex < 0)
+//                {
+//                    alert("Plaese select name or number");
+//                    return
+
+//        }
+//                else if (window.document.frmList.txtsearch.value == "")
+//                {
+//                    alert("plaese enter type for search");
+//                    return
+        
+//        }
+//                else
+//                {
+//                    window.document.frmList.hidsearch.value = window.document.frmList.cmbsearch.options[window.document.frmList.cmbsearch.selectedIndex].value
+//                    + "|" + window.document.frmList.txtsearch.value
+        
+
+//        window.document.frmList.action = "TranList.aspx?st=" + strdata
+        
+//        window.document.frmList.method = "post"
+        
+//        window.document.frmList.submit();
+//                }
+//            }
+
+//            function cleartext()
+//            {
+//                document.frmList.txtsearch.value = "";
+//            }
+
+//            function List()
+//            {
+//                var kstr, ints, intk, intp
+//            var callerWindowObj = dialogArguments;
+
+//                if (window.document.frmList.hdnLst.value == "NO")
+//                {
+//                    return
+//                }
+//                if (window.document.frmList.cmbList.selectedIndex < 0)
+//                {
+//                    alert("Select Any Code")
+//                }
+//                else
+//                {
+//                    //kstr= window.document.frmList.cmbList.options[window.document.frmList.cmbList.selectedIndex].text
+//                    kstr = window.document.frmList.cmbList.value
+                
+//    type = "<%=strType%>"
+//                if (type == "Branch")
+//                    {
+
+//                        //window.attachEvent(window.parent.Branchid(kstr))
+//                        callerWindowObj.Branchid(kstr)
+                
+//        window.close()
+//                }
+//                    if (type == "Bruser")
+//                    {   //window.attachEvent(window.opener.Bruser(kstr))
+//                        callerWindowObj.Bruser(kstr)
+                    
+//    window.close()
+//                    }
+//                    // --------------- imps --------------
+//                    else if (type.substring(0, 8) == "IMPSBank")
+//                    {
+//                        callerWindowObj.GetIMPSBankDisp(kstr)
+                    
+//    window.close()
+//                    }
+//                    else if (type.substring(0, 9) == "IMPSState")
+//                    {
+//                        callerWindowObj.GetIMPSStateDisp(kstr)
+                    
+//    window.close()
+//                    }
+//                    else if (type.substring(0, 12) == "IMPSDistrict")
+//                    {
+//                        callerWindowObj.GetIMPSDistrictDisp(kstr)
+                    
+//    window.close()
+//                    }
+//                    else if (type.substring(0, 8) == "IMPSCity")
+//                    {
+//                        callerWindowObj.GetIMPSCityDisp(kstr)
+                    
+//    window.close()
+//                    }
+//                    else if (type.substring(0, 10) == "IMPSBranch")
+//                    {
+//                        callerWindowObj.GetIMPSBranchDisp(kstr)
+                    
+//    window.close()
+//                    }
+
+//                    //-------------------------PRSREM--------------------
+//                    else if ((type.substring(0, 8) == "issonbnk") ||
+//                    (type.substring(0, 12) == "stopissonbnk"))
+//                    {
+//                        callerWindowObj.issuedonbnk(kstr)
+                    
+//    window.close()
+//                    }
+//                    else if (type.substring(0, 9) == "nftsonbnk")
+//                    {
+//                        callerWindowObj.nftsonbank(kstr)
+                    
+//    window.close()
+//                    }
+//                    else if (type.substring(0, 12) == "Matnftsonbnk")
+//                    {
+//                        callerWindowObj.nftsonbankMat(kstr)
+                    
+//    window.close()
+//                    }
+//                    else if (type.substring(0, 13) == "Autonftsonbnk")
+//                    {
+//                        callerWindowObj.nftsonbankAuto(kstr)
+                    
+//    window.close()
+//                    }
+//                    else if (type.substring(0, 11) == "nftsacctype")
+//                    {
+//                        callerWindowObj.nftsacctypedis(kstr)
+                    
+//    window.close()
+//                    }
+//                    else if (type.substring(0, 14) == "Matnftsacctype")
+//                    {
+//                        callerWindowObj.nftsacctypedisMat(kstr)
+                    
+//    window.close()
+//                    }
+//                    else if (type.substring(0, 15) == "Autonftsacctype")
+//                    {
+//                        callerWindowObj.nftsacctypedisAuto(kstr)
+                    
+//    window.close()
+//                    }
+//                    else if (type.substring(0, 12) == "nftsonbranch")
+//                    {
+//                        callerWindowObj.nftsonbranch(kstr)
+                    
+//    window.close()
+//                    }
+//                    else if (type.substring(0, 15) == "Matnftsonbranch")
+//                    {
+//                        callerWindowObj.nftsonbranchMat(kstr)
+                    
+//    window.close()
+//                    }
+//                    else if (type.substring(0, 16) == "Autonftsonbranch")
+//                    {
+//                        callerWindowObj.nftsonbranchAuto(kstr)
+                    
+//    window.close()
+//                    }
+//                    else if (type.substring(0, 7) == "issonbr")
+//                    {
+//                        callerWindowObj.issuedonbr(kstr)
+                    
+//    window.close()
+//                    }
+//                    else if (type.substring(0, 10) == "issonothbr")
+//                    {
+//                        callerWindowObj.issuedonothbr(kstr)
+                    
+//    window.close()
+//                    }
+//                    //-----pr==========================================
+//                    else if (type == "Currency")
+//                    {
+//                        callerWindowObj.Currencyid(kstr)
+                    
+//    window.close()
+//                    }
+//                    else if (type == "Tellerbranch")
+//                    {
+//                        window.close()
+                    
+//            callerWindowObj.Branchcode(kstr)
+                    
+//        }
+//                    else if (type.substring(0, 11) == "Telleraccno")
+//                    {
+//                        window.close()
+                    
+//            callerWindowObj.accountid(kstr)
+                    
+
+//        }
+//                    else if (type.substring(0, 14) == "PigTelleraggno")
+//                    {
+//                        window.close()
+                    
+//            callerWindowObj.Pigmyagentcode(kstr)
+                    
+//        }
+//                    else if (type.substring(0, 14) == "PigTelleraccno")
+//                    {
+//                        window.close()
+                    
+//            callerWindowObj.Pigmyaccno(kstr)
+                    
+//        }
+//                    else if (type.substring(0, 9) == "DispAccNo")
+//                    {
+
+//                        callerWindowObj.accountid(kstr)
+//                                window.close()
+                    
+
+//}
+//                    else if (type == "BLevel")
+//                    {
+//                        window.attachEvent(window.opener.Levelid(kstr))
+                    
+//    window.close()
+//                    }
+//                    else if (type == "Curr")
+//                    {
+//                        window.close()
+//                        callerWindowObj.currency(kstr)
+                    
+
+//}
+//                    else if (type == "FxCurr")
+//                    {
+//                        callerWindowObj.Fxcurrency(kstr)
+                    
+//    window.close()
+//                    }
+//                    else if (type == "Module")
+//                    {
+//                        window.attachEvent(window.opener.Moduleid(kstr))
+                    
+//    window.close()
+//                    }
+//                    else if (type.substring(0, 6) == "Glcode")
+//                    {
+//                        window.attachEvent(window.opener.Glcodeid(kstr))
+                    
+//    window.close()
+//                    }
+//                    else if (type.substring(0, 5) == "Accno")
+//                    {
+//                        window.attachEvent(window.opener.Accnoid(kstr))
+                    
+//    window.close()
+//                    }
+
+//                    else if (type.substring(0, 7) == "TransNo")
+//                    {
+//                        window.attachEvent(window.opener.TransNoid(kstr))
+                    
+//    window.close()
+//                    }
+//                    else if (type.substring(0, 6) == "CustID")
+//                    {
+//                        window.attachEvent(window.opener.Custid(kstr))
+                    
+//    window.close()
+//                    }
+
+//                    else if (type.substring(0, 11) == "Cashiertype")
+//                    {
+//                        window.attachEvent(window.opener.Cashiertype(kstr))
+                    
+//    window.close()
+//                    }
+//                    else if (type.substring(0, 9) == "Cashierid")
+//                    {
+//                        window.attachEvent(window.opener.Cashierid(kstr))
+                    
+//    window.close()
+//                    }
+//                    else if (type.substring(0, 10) == "Cashiermgt")
+//                    {
+//                        window.attachEvent(window.opener.CashierMgtid(kstr))
+                    
+//    window.close()
+//                    }
+//                    else if (type.substring(0, 11) == "CutsoiledNo")
+//                    {
+//                        window.attachEvent(window.opener.CutSoiledid(kstr))
+                    
+//    window.close()
+//                    }
+//                    else if (type.substring(0, 9) == "Allotment")
+//                    {
+//                        window.attachEvent(window.opener.Allotmentid(kstr))
+                    
+//    window.close()
+//                    }
+//                    else if (type.substring(0, 7) == "Cashier")
+//                    {
+//                        window.attachEvent(window.opener.Cashiercd(kstr))
+                    
+//    window.close()
+//                    }
+//                    else if (type.substring(0, 8) == "Bankcode")
+//                    {
+//                        window.attachEvent(window.opener.Bankid(kstr))
+                    
+//    window.close()
+//                    }
+//                    else if (type.substring(0, 6) == "CashID")
+//                    {
+//                        window.attachEvent(window.opener.Cashierid(kstr))
+                    
+//    window.close()
+//                    }
+//                    else if (type.substring(0, 7) == "Cashacc")
+//                    {
+//                        window.attachEvent(window.opener.Cashieracc(kstr))
+                    
+//    window.close()
+//                    }
+
+//                    else if (type.substring(0, 14) == "AllotedCashier")
+//                    {
+//                        window.attachEvent(window.opener.AllotedCashierid(kstr))
+                    
+//    window.close()
+//                    }
+//                    else if (type.substring(0, 16) == "Cashrefundaccept")
+//                    {
+//                        window.attachEvent(window.opener.Cashiercodeid(kstr))
+                    
+//    window.close()
+//                    }
+//                    else if (type.substring(0, 12) == "Cashrefundno")
+//                    {
+//                        window.attachEvent(window.opener.Cashrefundid(kstr))
+                    
+//    window.close()
+//                    }
+//                    else if (type.substring(0, 12) == "Tellermodule")
+//                    {
+//                        window.close()
+                    
+//            callerWindowObj.modulecode(kstr)
+                    
+
+//        }
+//                    else if (type.substring(0, 12) == "Tellerglcode")
+//                    {
+//                        callerWindowObj.Glcodeid(kstr)
+                    
+//        window.close()
+                    
+//    }
+//                    else if (type.substring(0, 13) == "Cashcounterno")
+//                    {
+//                        window.attachEvent(window.opener.Cashcounterid(kstr))
+                    
+//    window.close()
+//                    }
+//                    // Suspence Start
+
+//                    else if (type.substring(0, 12) == "Categorycode")
+//                    {
+//                        callerWindowObj.Categoryassign(kstr)
+//                        //window.attachEvent(window.opener.Categoryassign(kstr))
+//    window.close()
+//                    }
+
+//                    // Suspence end
+//                    ///-----------------for clearing---------------------------------------------------
+//                    else if (type.substring(0, 9) == "CLGModule")
+//                    {
+//                        callerWindowObj.CLGModuleCode(kstr)
+                    
+//    window.close()
+//                    }
+//                    //for CLgGlCode
+//                    else if (type.substring(0, 9) == "CLGGlcode")
+//                    {
+//                        callerWindowObj.CLGGlcodeid(kstr)
+                    
+//        window.close()
+                    
+//    }
+//                    else if (type.substring(0, 8) == "CLGAccno")
+//                    {
+//                        callerWindowObj.CLGAccountId(kstr)
+                
+//        window.close()
+                
+//    }
+//                    else if (type.substring(0, 11) == "retCLGAccno")
+//                    {
+//                        callerWindowObj.CLGAccountId(kstr)
+                    
+//        window.close()
+                    
+//    }
+
+//                    //for CLGbankcode
+
+//                    else if (type.substring(0, 7) == "CLGBank")
+//                    {
+//                        callerWindowObj.CLGBankCode(kstr)
+                    
+//        window.close()
+                    
+//    }
+
+//                    //for CLGBranches
+
+//                    else if (type.substring(0, 9) == "CLGBranch")
+//                    {
+//                        callerWindowObj.CLGBranchCode(kstr)
+                    
+//        window.close()
+                    
+//    }
+//                    // for reasoncodes
+
+//                    else if (type.substring(0, 9) == "CLGReason")
+//                    {
+//                        callerWindowObj.CLGReasonCode(kstr)
+                    
+//        window.close()
+                    
+//    }
+//                    ////---------------------------------------------------------------------------------
+//                    //-----ServiedId
+//                    else if (type.substring(0, 7) == "Service")
+//                    {
+//                        callerWindowObj.ServiceCode(kstr)
+                    
+//      window.close()
+//                    }
+//                    //----ServiceId Ends
+//                    //-----Link Module  
+//                    else if (type.substring(0, 9) == "LnkModule")
+//                    {
+//                        callerWindowObj.LnkModuleCode(kstr)
+                    
+//            window.close()
+                    
+//        }
+//                    else if (type.substring(0, 9) == "LnkGlcode")
+//                    {
+//                        callerWindowObj.lnkGlcodeid(kstr)
+                    
+//        window.close()
+                    
+//    }
+//                    else if (type.substring(0, 8) == "LnkAccno")
+//                    {
+//                        callerWindowObj.lnkAccountId(kstr)
+                    
+//        window.close()
+                    
+//    }
+//                    //-----Link Module Ends 
+//                    else if (type.substring(0, 6) == "Userid")
+//                    {
+//                        window.attachEvent(window.opener.UserCode(kstr))
+                    
+
+//    window.close()
+//                    }
+//                    ////-------------------------Voching start
+//                    else if (type.substring(0, 13) == "VochServiceid")
+//                    {
+//                        window.close()
+                    
+//    callerWindowObj.AssignServiceid(kstr);
+//                    }
+//                    else if (type.substring(0, 14) == "ChargeModuleid")
+//                    {
+
+
+//                        callerWindowObj.ChargeModule(kstr);
+//                        window.close()
+//                    }
+//                    else if (type.substring(0, 12) == "ChargeGlcode")
+//                    {
+
+//                        window.close()
+                    
+//    callerWindowObj.ChargeGlcodeid(kstr);
+//                    }
+//                    else if (type.substring(0, 13) == "ChargeAccCode")
+//                    {
+
+//                        window.close()
+                    
+//    callerWindowObj.ChargeAccid(kstr);
+//                    }
+//                    else if (type.substring(0, 13) == "catcode")
+//                    {
+//                        window.close()
+                    
+//    callerWindowObj.CatCodeRtn(kstr);
+//                    }
+
+//                    else if (type.substring(0, 13) == "remcode")
+//                    {
+//                        window.close()
+                    
+//    callerWindowObj.RemCodeRtn(kstr);
+//                    }
+
+//                    else if (type.substring(0, 11) == "fxratecodes")
+//                    {
+//                        callerWindowObj.fxRateTypeCodesRtn(kstr)
+                    
+//      window.close()
+                    
+//}
+//                    else if ((type.substring(0, 7) == "BatchNo") || (type.substring(0, 10) == "DelBatchNo") || (type.substring(0, 10) == "RefBatchNo"))
+//                    {
+//                        callerWindowObj.modulecode(kstr)
+                    
+//            window.close()
+                    
+//        }
+//                    else if ((type.substring(0, 8) == "BatchDel") || (type.substring(0, 16) == "NEFTRTGSBatchDel"))
+//                    {
+//                        callerWindowObj.BatchNoRtn(kstr)
+                    
+//            window.close()
+                    
+//        }
+//                    //code added by jyothsna
+//                    else if (type.substring(0, 8) == "BatchRep")
+//                    {
+//                        callerWindowObj.BatchNoRtn(kstr)
+                    
+//            window.close()
+                    
+//        }
+//                    //	end	
+//                    else if (type.substring(0, 8) == "BatchVer")
+//                    {
+//                        callerWindowObj.modulecode(kstr)
+                    
+//            window.close()
+                    
+//        }
+//                    else if (type.substring(0, 16) == "DepRenCloseAccno")
+//                    {
+//                        callerWindowObj.accountid(kstr)
+                    
+//            window.close()
+                    
+//        }
+//                    ///for contra moduleid .descfor contra vouching form
+
+//                    else if (type.substring(0, 14) == "ContraModuleid")
+//                    {
+//                        callerWindowObj.Moduleidstr(kstr)
+                    
+//            window.close()
+                    
+//        }
+//                    ///for contra glcode,desc for general contra vouching form
+
+//                    else if (type.substring(0, 12) == "ContraGlcode")
+//                    {
+//                        callerWindowObj.glcodestr(kstr)
+                    
+//            window.close()
+                    
+//        }
+
+//                    ///for contra accno,name for contra vouching form
+
+//                    else if (type.substring(0, 13) == "ContraAccCode")
+//                    {
+//                        callerWindowObj.Accnostr(kstr)
+                    
+//    window.close()
+//                    }
+//                    else if (type.substring(0, 10) == "GETSCHOOLS")
+//                    {
+//                        callerWindowObj.schoolsId(kstr)
+                    
+//    window.close()
+//                    }
+
+//                    else if (type.substring(0, 11) == "GETSTUDENTS")
+//                    {
+//                        callerWindowObj.studentsId(kstr)
+                    
+//    window.close()
+//                    }
+//                    else if (type.substring(0, 11) == "GETBRANCHES")
+//                    {
+//                        callerWindowObj.branchId(kstr)
+                    
+//    window.close()
+//                    }
+//                    ////---------------------------Voching end 
+
+//                }
+//            }
+        }
+
+        public void GetList()
+        {
+            //dim strsql10, strDEPCERTIFICATE as string
+            //strNftsYn = "N"
+            //dim rsNFTS, objNFTS
+            //rsNFTS = server.CreateObject("adodb.recordset")
+            //objNFTS = server.CreateObject("ReportPurposeOnly.Reportonly")
+            //strsql10 = "SELECT DEPCERTIFICATE FROM GENBANKPARM"
+            //rsNFTS = objNFTS.SingleSelectStat(strsql10)
+            //if objNFTS.ConnError = "Connected" then
+
+            //    if not rsNFTS.bof and not rsNFTS.eof then
+
+            //        strDEPCERTIFICATE = rsNFTS(0).value
+
+            //    end if
+            //end if
+            // strType = Request.QueryString("st")
+            // userid = session("userid")
+            // appldate = session("applicationdate")
+            // brchCd = Request.QueryString("brchCd")
+            // atype = Request.QueryString("atype")
+            // Modid = Request.QueryString("Modid")
+            // status = "Y"
+            // on error resume next
+            // hidsearch = request.form("hidsearch")
+
+
+
+            //dim obj, rs, r, strCond
+            //dim strsql
+            //dim objfetch
+
+            //  rs = server.CreateObject("adodb.recordset")
+            //  rs1 = server.CreateObject("adodb.recordset")
+            //  obj = server.CreateObject("queryrecordsets.fetchrecordsets")
+            //  objbr = server.CreateObject("GeneralTranQueries.TransactionQueries")
+            //objfetch = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+
+            //if strType = "Branch" or strType = "Branch1" or strType = "TrBranch"  or strType = "MatTrBranch" or strType = "AutoTrBranch" or strType = "MatBranch1" or strType = "AutoBranch1" then
+            //    rs = obj.singlerecordset("GENBANKBRANCHMST", "Branchcode,narration")
+
+            //elseif strType = "BLevel" then
+            //    rs = obj.singlerecordset("GENBANKLEVELMST", "code,narration")
+
+
+            //elseif strType = "Bruser" then
+            //    rs = objbr.BranchCodes(cstr(userid))
+
+
+            //elseif left(strType,6)= "Userid" then
+            //   atype = mid(strType, 7, len(strType))
+            //   rs = obj.singlerecordset("genusermst", "userid,name", "branchcode='" & atype & "'")
+
+            //elseif strType = "Currency" then
+            //    rs = obj.singlerecordset("GENCURRENCYTYPEMST", "currencycode,narration")
+            //elseif strType = "Curr"  then
+            //    rs = obj.singlerecordset("GENCURRENCYTYPEMST", "currencycode,narration,precision")
+            //elseif left(strType,5)= "Curr1" OR left(strType,5)= "Curr2" OR left(strType,5)= "Curr3" OR left(strType,5)= "Curr4"  then
+            //   k = split(strType, "|")
+            //   rs = obj.singlerecordset("GENCURRENCYTYPEMST", "currencycode,narration,precision", cstr(k(1)))
+            //elseif strType = "Module" or strType = "Module1" or strType = "Module2" or strType = "Module3" or strType = "Module4" or strType = "Module5" or strType = "Module6" then
+            //    rs = obj.singlerecordset("genmoduletypesmst", "moduleid,Narration", "implementedyn='Y'")
+            //elseif left(strType,14)= "TellermoduleID" or left(strType,17)= "MatTellermoduleID" or left(strType,18)= "AutoTellermoduleID" then
+            //dim strWhcon
+            //    obj = server.CreateObject("GeneralTranQueries.TransactionQueries")
+
+
+            //    k = split(strType, "|")
+
+
+            //    if cstr(k(2)) = "1" then
+
+
+            //        'rs=obj.ModuleID(cstr(k(1)))
+
+            //        strWhcon = " gmt.MODULEID in ('SB','CA','LOAN','MISC','CC','INV','PL','REM')"
+
+            //        rs = obj.ModuleID(cstr(k(1)), "Y", "", "", strWhcon)
+
+
+            //    elseif cstr(k(2))= "2" then
+            //        strWhcon = " MODULEID in ('SB','CA','DEP') "
+
+            //        rs = obj.ModuleID(cstr(k(1)), "N", "", "", strWhcon)
+
+            //    end if
+
+
+
+            //elseif left(strType, 5) = "Accno" then
+            //    dim objTrn
+            //    objTrn = Server.CreateObject("GeneralTranQueries.TransactionQueries")
+            //    rs = objTrn.AccountNumbers(cstr(brchCd), cstr(Modid), cstr(atype))
+
+            //    objTrn = nothing
+
+
+            //elseif left(strType,6)= "CustID" then
+            //    stname = left(strType, 4)
+            //    atype = mid(strType, 7)
+            //    rs = obj.singlerecordset("GENCUSTINFOMST", "customerid,custname", "")
+
+
+            //elseif left(strType,7)= "TransNo" then
+            //    stname = left(strType, 5)
+            //    atype = mid(strType, 8)
+            //    rs = obj.singlerecordset("translog", "tranno,amount", "glcode='" & atype & "'", "tranno")
+
+
+            //elseif left(strtype,8)= "cashtype" then
+            //    cashType = split(strtype, "|")
+            //    rs = obj.singlerecordset("CASHCASHIERTYPEMST", "cashiertypeid,narration", "STATUS is null and (currencycode='" & cashType(2) & "' and branchcode='" & cashType(1) & "')")
+
+
+            //elseif left(strType,11)= "Cashiertype" then
+            //    stname = left(strType, 11)
+
+            //    k = split(strType, "*")
+
+            //    rs = obj.singlerecordset("CASHCASHIERTYPEMST", "cashiertypeid,narration", "BRANCHCODE='" & k(1) & "'", "cashiertypeid")
+
+
+            //elseif left(strType,10)= "Cashiercou" then
+            //    k = split(strType, "*")
+
+            //    stname = strType
+
+            //    strcond = "U.USERID NOT IN (SELECT CASHIERID FROM CASHCOUNTERMST where branchcode='" & k(1) & "' and currencycode='" & k(2) & "')"
+
+            //    strfld = "U.USERID,U.NAME"
+
+            //    strtab = "GENUSERMST U"
+
+
+            //    rs = obj.singlerecordset(cstr(strtab), cstr(strfld), cstr(strcond))
+            //elseif left(strType,9)= "ModGlcode" then
+            //    rs = obj.singlerecordset("GenGlMastMst", _
+
+            //                        "distinct glcode,gldescription", "moduleid='DEP'  and " & _
+
+            //                        "glcode in(select glcode from DEPTYPEMST WHERE STATUS='R') and glcategory='A'  order by gldescription")
+
+
+            //elseif left(strType,9)= "Cashierid" then
+            //    stname = strType
+
+            //    k = split(strType, "*")
+
+            //    rs = obj.singlerecordset("cashcashierposmst cash,genusermst gen", "cash.cashierid,gen.name", "cash.cashierid=gen.userid and cash.cashierid <> '" & cstr(userid) & "' ")
+
+
+            //elseif left(strType,6)= "CashID" then
+            //    k = split(strType, "|")
+
+            //    rs = obj.singlerecordset("cashcountermst cash,genusermst gen", "distinct(cash.cashierid),gen.name", "cash.cashierid=gen.userid and upper(trim(cash.cashierid)) <> '" & ucase(trim(cstr(userid))) & "' and gen.branchcode='" & k(1) & "'")
+
+
+            //elseif left(strType,14)= "AllotedCashier" then
+            //    stname = strType
+
+            //    cash = split(stname, "*")
+            //    rs = obj.singlerecordset("CASHALLOTMENTSTRN CASH,GENUSERMST GEN", "DISTINCT(CASH.CASHIERID),GEN.NAME", "CASH.CASHIERID=GEN.USERID AND CASH.BRANCHCODE='" & CASH(1) & "' AND CASH.CURRENCYCODE='" & CASH(2) & "'", "CASH.CASHIERID")
+
+
+            //elseif left(strType,9)= "Allotment" then
+
+            //    k = split(strType, "*")
+
+            //    rs = obj.singlerecordset("cashallotmentstrn", "Allotmentno", "cashierid='" & k(1) & "' and counterno = '" & k(2) & "' and status='P'", "allotmentno")
+
+
+            //elseif strtype = "BankCodes" or strtype = "MatBankCodes" or strtype = "AutoBankCodes" then
+            //    rs = obj.singlerecordset("GENOTHERBANKMST", "BANKCODE,BANKNAME", "STATUS='R'")
+
+            //elseif left(strtype,10)= "Cashiermgt" then
+
+            //    k = split(strtype, "*")
+
+
+            //    rs = obj.singlerecordset("cashcountermst cash,genusermst gen", "distinct(cash.cashierid),gen.name", "cash.branchcode='" & k(1) & "' and cash.currencycode='" & k(2) & "' and cash.cashierid=gen.userid and cash.cashierid not in ('" & ucase(userid) & "')")
+
+
+            //elseif left(strtype,16)= "Cashrefundaccept" then
+
+            //    k = split(strtype, "*")
+
+            //    rs = obj.singlerecordset("cashrefundstrn cash,genusermst gen", "distinct(cash.REFUNDEDUSERID),gen.name", "cash.branchcode='" & k(1) & "' and cash.currencycode='" & k(2) & "' and cash.REFUNDEDUSERID=gen.userid  and cash.status='P' and cash.USERID <> '" & userid & "'")
+
+
+            //elseif left(strtype,7)= "Cashacc" then
+
+            //    k = split(strtype, "*")
+
+            //    rs = obj.singlerecordset("CASHTRANSBTCASHIERSTRN cash,genusermst gen", "distinct(cash.fromcashierid),gen.name", "cash.branchcode='" & k(1) & "' and cash.currencycode='" & k(2) & "' and cash.FROMcashierid=gen.userid and cash.status='P' and cash.tocashierid='" & cstr(userid) & "'", "cash.fromcashierid")
+
+
+            //elseif left(strtype,11)= "CutsoiledNo" then
+            //    k = split(strtype, "|")
+
+            //    rs = obj.singlerecordset("CASHCUTNSPOILNOTESMST", "CUTSOILTRANNO,customerid,RECEIVEDFROM", "UPPER(TRIM(branchcode))='" & UCASE(TRIM(k(1))) & "' and UPPER(TRIM(currencycode))='" & UCASE(TRIM(k(2))) & "'")
+
+            //elseif left(strtype,5)= "Group" then
+            //    k = split(strtype, "|")
+
+            //    rs = obj.singlerecordset("GENBANKUSERGROUPMST", "GROUPCODE,NARRATION", "STATUS='A'")
+            //elseif left(strtype,6)= "Groups" then
+            //    k = split(strtype, "|")
+
+            //    rs = obj.singlerecordset("GENBANKUSERGROUPMST", "GROUPCODE,NARRATION", "STATUS='A'")
+            //elseif left(strtype,10)= "DepDlAccno" then
+            //    k = split(strtype, "|")
+
+
+            //    'Code commented by Radhika on 24 Mar 2008
+
+            //    'Reason: We are not filling Link related fileds while closing a Dep A/C
+            //'	rs=obj.singlerecordset("GENTEMPTRANSLOG G","DISTINCT(G.LINKACCNO),G.LINKACCNAME","G.'branchcode = '" & ucase(trim(k(1))) & "' and " & _
+            //'	"upper(trim(G.LINKmoduleid))='DEP' AND G.CURRENCYCODE='" & ucase(trim(k(2))) & "' AND' " & _
+            //'	"G.LINKGLCODE='" & ucase(trim(k(3))) & "' AND G.SERVICEID='4' and " & _
+            //'	"G.SYSTEMGENERATEDYN='Y' AND G.BATCHNO  not in " & _
+            //'   "(SELECT DISTINCT(batchno) from v3.gentranslog)")
+
+
+            //    rs = obj.singlerecordset("GENTEMPTRANSLOG G", "DISTINCT(G.ACCNO),G.NAME", "G.branchcode='" & ucase(trim(k(1))) & "' and " & _
+
+            //    "upper(trim(G.moduleid))='DEP' AND G.CURRENCYCODE='" & ucase(trim(k(2))) & "' AND " & _
+
+            //    "G.GLCODE='" & ucase(trim(k(3))) & "' AND G.SERVICEID='4' and " & _
+
+            //    "G.SYSTEMGENERATEDYN='Y' AND G.BATCHNO  not in " & _
+            //    "(SELECT DISTINCT(batchno) from v3.gentranslog)")
+            //    'by swetha	
+            //elseif left(strtype,12)= "AcclistDepDl" then
+            //    k = split(strtype, "|")
+
+            //    rs = obj.singlerecordset("GENTEMPTRANSLOG G", "DISTINCT(G.ACCNO),G.NAME", "G.branchcode='" & ucase(trim(k(1))) & "' and " & _
+
+            //    "upper(trim(G.moduleid))='DEP' AND G.CURRENCYCODE='" & ucase(trim(k(2))) & "' AND " & _
+
+            //    "G.GLCODE='" & ucase(trim(k(3))) & "' AND TRANSTATUS<>'D' AND G.SERVICEID='4' and " & _
+
+            //    "G.SYSTEMGENERATEDYN='Y' AND G.BATCHNO  not in " & _
+            //    "(SELECT DISTINCT(batchno) from v3.gentranslog)")
+
+
+            //elseif left(strtype,4)= "User" then
+            //    k = split(strtype, "|")
+
+            //    rs = obj.singlerecordset("GENusermst", "userid,name", "STATUS='A'")
+            //elseif left(strtype,5)= "Query" then
+
+            //    if right(strtype, 1) = "N" then
+            //        rs = obj.singlerecordset("GENUSERMST", "Userid,Name")
+
+            //    else
+            //                rs = obj.singlerecordset("GENUSERMST", "Userid,Name", "status='P'")
+
+            //    end if
+            //elseif strType = "Groupid" then
+            //    rs = obj.singlerecordset("GENBANKUSERGROUPMST", "Groupcode,narration", "status='A'")
+            //elseif strType = "Remtype" or strType = "MatRemtype" then
+            //    rs = obj.singlerecordset("REMTYPEMST", "REMTYPE", "")
+            //elseif left(strType,6)= "Userid" then
+            //   atype = mid(strType, 7, len(strType))
+            //   rs = obj.singlerecordset("genusermst", "userid,name", "branchcode='" & atype & "' and status='A'")
+            //elseif strType = "AppGroupid" then
+            //    rs = obj.singlerecordset("GENBANKUSERGROUPMST", "Groupcode,narration", "groupcode in(select distinct(Groupcode) from gengroupformsmst where status<>'A')")
+            //elseif left(strType,9)= "AppUserid" then
+            //   atype = mid(strType, 7, len(strType))
+            //   rs = obj.singlerecordset("genworkallotmentmst", "userid,username", "status<>'A'")
+            //elseif left(strtype,11)= "ALLCASHIERS" then
+            //    k = split(strType, "|")
+
+            //    rs = obj.singlerecordset("cashcountermst cash,genusermst gen", "distinct(cash.cashierid), gen.name, cash.counterno ", " cash.branchcode='" & k(1) & "' and cash.currencycode='" & k(2) & "' and cash.cashierid=gen.userid", " gen.name")
+            //elseif left(strtype,8)= "DepAccno" then
+            //    k = split(strType, "|")
+
+            //    rs = obj.singlerecordset("DEPMST", "ACCNO,NAME", "branchcode='" & k(1) & "' and currencycode='" & k(2) & "' and GLCODE='" & k(3) & "'")
+
+            //elseif left(strtype,8)= "GetAccno" then
+            //    k = split(strType, "|")
+
+            //    rs = obj.singlerecordset("DEPMST m ,DEPINTPAYCASHDTLS d ", "m.ACCNO,m.NAME", "d.branchcode='" & k(1) & "' and d.GLCODE='" & k(2) & "' and m.accno = d.accno and m.glcode = d.glcode and m.branchcode = d.branchcode and d.status = 'R' and d.PAIDDATE IS NULL AND d.PAIDBATCHNO IS NULL")
+
+
+            //elseif left(strtype,11)= "ModDepAccno" then
+            //    k = split(strType, "|")
+
+            //    rs = obj.singlerecordset("DEPMST", "ACCNO,NAME", "branchcode='" & k(1) & "' and currencycode='" & k(2) & "' and GLCODE='" & k(3) & "' and STATUS='R' AND TRANSTATUS='P'")
+            //elseif left(strtype,17)= "ChgMatInsDepAccno" then
+            //    k = split(strType, "|")
+
+            //    rs = obj.singlerecordset("DEPMST", "ACCNO,NAME", "branchcode='" & k(1) & "' and currencycode='" & k(2) & "' and GLCODE='" & k(3) & "' and STATUS='R' AND TRANSTATUS='A'")
+
+
+            //    if not hidsearch = "" then
+            //    searchby = split(hidsearch, "|")
+
+            //            if searchby(0) = "name" then
+
+            //            strsql = "SELECT ACCNO,Name FROM DEPMST WHERE " & _
+
+            //            " UPPER(trim(branchcode))='" & k(1) & "' and currencycode='" & k(2) & "' AND UPPER(trim(glcode))='" & k(3) & "' AND " & _
+
+            //            " UPPER(trim(status)) IN ('R') AND transtatus IN ('A') and name like '%" & Ucase(searchby(1)) & "%' order by	to_number(accno)"
+
+
+            //            rs = objfetch.SingleSelectStat(strsql)
+
+
+            //            else if searchby(0) = "num" then
+
+            //                strsql = "SELECT ACCNO,Name FROM DEPMST WHERE " & _
+
+            //            " UPPER(trim(branchcode))='" & k(1) & "' and currencycode='" & k(2) & "' AND UPPER(trim(glcode))='" & k(3) & "' AND " & _
+
+            //            " UPPER(trim(status)) IN ('R') AND transtatus IN ('A') and accno like '" & Ucase(searchby(1)) & "%' order by to_number(accno)"
+
+
+            //            rs = objfetch.SingleSelectStat(strsql)
+
+
+            //            end if
+
+
+            //    end if
+            //elseif left(strtype, 7) = "OtherBr" or left(strtype,10)= "MatOtherBr" or left(strtype,11)= "AutoOtherBr" then
+            //    k = split(strType, "|")
+
+            //    rs = obj.singlerecordset("GENOTHERBRANCHMST", "BRANCHCODE,BRANCHNAME", "BANKCODE='" & k(1) & "'")
+
+            //elseif strType = "Tellerbranch" or strType = "TellerVobranch" or strType = "MatTellerVobranch" or strType = "AutoTellerVobranch" then
+            //    obj = server.CreateObject("GeneralTranQueries.TransactionQueries")
+
+
+            //    rs = obj.BranchCodes(cstr(session("userid")))
+            //elseif left(strType,12)= "Tellermodule" or left(strType,8)= "Trmodule" then
+            //    dim strWhcon
+            //    obj = server.CreateObject("GeneralTranQueries.TransactionQueries")
+
+
+            //    k = split(strType, "|")
+
+            //    strWhcon = " gmt.MODULEID in ('SB','CA','LOAN','MISC','CC','INV','PL','REM')"
+
+            //    if left(strType, 8) = "Trmodule" then
+            //        rs = obj.ModuleID(cstr(k(1)), "Y", "", "", strWhcon)
+
+            //    else
+            //                rs = obj.ModuleID(cstr(k(1)), "N", "N")
+
+            //    end if
+            //elseif left(strType, 9) = "Intmodule" or left(strType,9)= "Remmodule" or left(strType,12)= "MatIntmodule" or left(strType,13)= "AutoIntmodule" then
+
+            //    obj = server.CreateObject("GeneralTranQueries.TransactionQueries")
+
+
+            //    k = split(strType, "|")
+
+
+            //    rs = obj.ModuleID(cstr(k(1)), "N", "N")
+
+
+            //elseif left(strType,11)= "Telleraccno"  or left(strType,12)= "Accruedaccno" or left(strType,12)= "Pendingaccno" or left(strType,10)= "Debitaccno" or left(strType,11)= "Creditaccno" or left(strType,14)= "MatTelleraccno" or left(strType,15)= "AutoTelleraccno" or left(strType,12)= "Pendintaccno" then
+            //    k = split(strType, "|")
+
+            //    obj = server.CreateObject("GeneralTranQueries.TransactionQueries")
+
+            //    rs = obj.AccountNumbers(cstr(k(1)), cstr(k(2)), cstr(k(3)), cstr(k(4)))
+
+
+            //    if obj.connerror<>"" then
+            //        mystr = "Norecords"
+
+            //        Errstr = obj.ConnError
+
+            //    end if
+
+
+            //elseif left(strType, 17) = "chgMatTelleraccno" or left(strType,18)= "chgAutoTelleraccno" then
+            //    k = split(strType, "|")
+
+            //    rs = obj.singlerecordset(k(2) & "MST", "ACCNO,NAME", "branchcode='" & k(1) & "' and currencycode='" & k(4) & "' and GLCODE='" & k(3) & "' and STATUS='R' AND TRANSTATUS='A'")
+
+
+            //    if not hidsearch = "" then
+            //    searchby = split(hidsearch, "|")
+
+            //            if searchby(0) = "name" then
+
+            //            strsql = "SELECT ACCNO,Name FROM " & k(2) & "MST WHERE " & _
+
+            //            " UPPER(trim(branchcode))='" & k(1) & "' and currencycode='" & k(4) & "' AND UPPER(trim(glcode))='" & k(3) & "' AND " & _
+
+            //            " UPPER(trim(status)) IN ('R') AND transtatus IN ('A') and name like '%" & Ucase(searchby(1)) & "%' order by to_number(accno)"
+
+
+            //            rs = objfetch.SingleSelectStat(strsql)
+
+
+            //            else if searchby(0) = "num" then
+
+            //                strsql = "SELECT ACCNO,Name FROM " & k(2) & "MST WHERE " & _
+
+            //            " UPPER(trim(branchcode))='" & k(1) & "' and currencycode='" & k(4) & "' AND UPPER(trim(glcode))='" & k(3) & "' AND " & _
+
+            //            " UPPER(trim(status)) IN ('R') AND transtatus IN ('A') and accno like '" & Ucase(searchby(1)) & "%' order by to_number(accno)"
+
+
+            //            rs = objfetch.SingleSelectStat(strsql)
+
+
+            //            end if
+
+
+            //    end if
+
+
+            //elseif left(strType, 7) = "Traccno" or left(strType,10)= "MatTraccno" or left(strType,11)= "AutoTraccno" then
+            //    k = split(strtype, "|")
+            //    if cstr(k(5)) = "1" then
+            //        obj = server.CreateObject("GeneralTranQueries.TransactionQueries")
+
+            //        rs = obj.AccountNumbers(cstr(k(1)), cstr(k(2)), cstr(k(3)), cstr(k(4)), "R,P OR A")
+
+            //    else
+            //                rs = obj.singlerecordset("GENCATEGORYMST", "CATEGORYCODE,NARRATION", "categorycode<>'99'")
+            //    end if
+            //elseif  left(strType, 8) = "STraccno"then
+            //    k = split(strtype, "|")
+
+
+            //    obj = server.CreateObject("GeneralTranQueries.TransactionQueries")
+
+            //    rs = obj.AccountNumbers(cstr(k(1)), cstr(k(2)), cstr(k(3)), cstr(k(4)))
+
+            //elseif left(strType,12)= "Tellerglcode" or left(strType,9)= "RemGlcode" or _
+            //left(strType, 8) = "Trglcode" or left(strType,15)= "MatTellerglcode" or left(strType,16)= "AutoTellerglcode" or left(strType,12)= "MatRemGlcode" or left(strType,11)= "MatTrglcode" or left(strType,12)= "AutoTrglcode" or left(strType,13)= "AutoRemGlcode" or left(strType,16)= "TrNEFTRTGSglcode" then
+
+            //    k = split(strType, "|")
+
+
+            //    'Code altered by Radhika on 25 Mar 2008
+
+            //    if (ucase(cstr(k(2))) = "SCR" and left(strType,8)= "Trglcode") or(ucase(cstr(k(2))) = "SCR" and left(strType, 11) = "MatTrglcode") then
+
+            //        rs = obj.singlerecordset("genglsheetmst", "glcode,Narration", _
+
+            //        "moduleid='SCR' and trim(branchcode)='" & cstr(k(1)) & "'" & _
+
+            //        " and status='R' and glcode in (select glcode from GENGLMASTMST" & _
+
+            //        " where moduleid='SCR' and GLCATEGORY='A' and NORMALBALANCE='CR')" & _
+
+            //        " order by Narration")
+
+            //    else if left(strType, 16) = "TrNEFTRTGSglcode" THEN
+
+            //        strsql = "SELECT glcode,(SELECT gldescription FROM genglmastmst WHERE moduleid = p.moduleid AND glcode = p.glcode AND ROWNUM = 1) gldesc FROM NEFTRTGSTYPEPMT p WHERE moduleid = '" & cstr(k(2)) & "' AND  SUBSTR(trantype,0,4) ='" & cstr(k(3)) & "' AND SUBSTR(TRANTYPE,5,2) = 'OW'"
+
+
+            //rs = objfetch.SingleSelectStat(strsql)
+
+
+            //    else
+            //                obj = server.CreateObject("GeneralTranQueries.TransactionQueries")
+
+            //        rs = obj.GLCodes(cstr(k(1)), cstr(k(2)))
+
+            //    end if
+
+            //elseif left(strType, 11) = "divTrglcode" then
+
+            //        k = split(strType, "|")
+
+
+            //        if (ucase(cstr(k(2))) = "SB") or(ucase(cstr(k(2))) = "CA") then
+
+            //            rs = obj.singlerecordset("GenGlMastMst", "glcode,GLDESCRIPTION", "moduleid='" & k(2) & "' AND glcode NOT IN (SELECT overdueglcode FROM " & k(2) & "typemst WHERE overdueglcode IS NOT NULL) AND glcategory='A'")
+
+
+            //        else
+            //                obj = server.CreateObject("GeneralTranQueries.TransactionQueries")
+
+            //            rs = obj.GLCodes(cstr(k(1)), cstr(k(2)))
+
+            //        end if
+
+
+            //'----------------------------- Deposits
+            //elseif left(strType,9)= "GlcodeIns" then
+            //    rs = obj.singlerecordset("GenGlMastMst", _
+
+            //                        "distinct glcode,gldescription", "moduleid='DEP'  and " & _
+
+            //                        "glcode not in(select glcode from DEPTYPEMST) and glcategory='A'  order by gldescription")
+
+
+
+            //elseif left(strType,6)= "Glcode" then
+            //    rs = obj.singlerecordset("genbanklevelmst", "branchtype", "hierarchy='1'")
+
+            //     if rs.RecordCount > 0 then
+            //            dim brType
+            //            brType = rs(0).value
+
+            //        rs = obj.singlerecordset("genbankbranchmst", "branchcode", "upper(trim(branchtype))='" & ucase(trim(brType)) & "'")
+
+            //        if rs.RecordCount > 0 then
+            //            dim brCode
+            //            brCode = rs(0).value
+
+            //            rs = obj.singlerecordset("genglsheetmst", "glcode,NARRATION", "upper(trim(branchcode))='" & ucase(trim(brCode)) & "' and upper(trim(moduleid))='DEP'")
+
+            //        end if
+
+            //      end if
+            //elseif left(strType, 5) = "DepGl" then
+            //    k = split(strType, "|")
+
+            //    rs = obj.singlerecordset("GenGlsheetmst", _
+
+            //                        "distinct(glcode),narration", "upper(trim(branchcode))='" & k(1) & "' and moduleid='" & k(2) & "'")
+            //elseif left(strType,8)= "DepIntTr" then
+            //    k = split(strType, "|")
+
+            //    rs = obj.singlerecordset("DEPTYPEMST", _
+
+            //                        "distinct(glcode),narration", "INTPAYPERIODICALLYYN = 'Y' AND status='R'")
+
+            //elseif left(strType,10)= "Dep2Glcode" then
+            //    k = split(strType, "|")
+
+            //    rs = obj.singlerecordset("GenGlsheetmst", _
+
+            //                        "distinct(glcode),narration", "upper(trim(branchcode))='" & k(1) & "' and moduleid='" & k(2) & "'")
+
+            //elseif left(strType,17)= "IntCompDep2Glcode" then
+            //    k = split(strType, "|")
+
+            //    strsql = "SELECT DISTINCT(b.glcode),b.narration,a.INTCOMPOUNDYN FROM deptypemst a ,GenGlsheetmst b WHERE " & _
+
+            //    " UPPER(trim(b.branchcode))='" & k(1) & "' AND b.moduleid='" & k(2) & "' AND a.glcode = b.glcode and b.glcode != 104270"
+
+
+            //    rs = objfetch.SingleSelectStat(strsql)
+
+
+
+            //elseif left(strType,9)= "DepCertGl" then
+            //    k = split(strType, "|")
+
+
+            //    rs = obj.singlerecordset("GenGlsheetmst", _
+
+            //    "distinct(glcode),narration", "upper(trim(branchcode))='" & k(1) & "' and moduleid='" & k(2) & "' and glcode in(select glcode from deptypemst where INSTSYN='N')")
+            //elseif left(strType,7)= "DCAccno" then
+            //    k = split(strType, "|")
+            //   dim str = "branchcode='" & k(1) & "' and currencycode='" & k(2) & "' and glcode = '" & k(3) & "' and applicationdate='" & k(4) & "' and transtatus='A' order by to_number(accno)"
+            //    'rs=obj.singlerecordset(modi & "mst","accno,name",str)
+            //    rs = obj.singlerecordset("depmst", "accno,name", str)
+
+
+            //elseif left(strType,2)= "Gl" then
+            //   ' swetha  rs=obj.singlerecordset("genbanklevelmst","branchtype","hierarchy='1'")
+
+            //        'if rs.RecordCount>0 then
+
+            //            'dim brType
+
+            //           ' brType=rs(0).value
+
+            //        'rs=obj.singlerecordset("genbankbranchmst","branchcode","upper(trim(branchtype))='" & ucase(trim(brType)) & "'")
+
+            //            'if rs.RecordCount>0 then
+
+
+            //            dim brCode
+
+            //            brCode = mid(strType, 4)
+
+            //            'loan on deposityn condition is removed said by damodar sir
+
+            //            if strDEPCERTIFICATE = "SALUR" then
+            //            rs = obj.singlerecordset("genglsheetmst", "glcode,NARRATION", "upper(trim(branchcode))='" & ucase(trim(brCode)) & "' and upper(trim(moduleid))='DEP' and glcode in(select glcode from deptypemst where  depsubnature   IN ('FST','MIS','FCD') and  (instsyn= 'N' or instsyn is null) and OVERDUEGLCODE is not null and status='R')")
+
+            //            else
+
+            //                rs = obj.singlerecordset("genglsheetmst", "glcode,NARRATION", "upper(trim(branchcode))='" & ucase(trim(brCode)) & "' and upper(trim(moduleid))='DEP' and glcode in(select glcode from deptypemst where (instsyn= 'N' or instsyn is null) and OVERDUEGLCODE is not null and status='R')")
+
+            //            end if
+            //elseif left(strType, 9) = "autorengl" then
+            //   ' swetha  rs=obj.singlerecordset("genbanklevelmst","branchtype","hierarchy='1'")
+
+            //        'if rs.RecordCount>0 then
+
+            //            'dim brType
+
+            //           ' brType=rs(0).value
+
+            //        'rs=obj.singlerecordset("genbankbranchmst","branchcode","upper(trim(branchtype))='" & ucase(trim(brType)) & "'")
+
+            //            'if rs.RecordCount>0 then
+
+
+            //            dim brCode
+
+            //            brCode = mid(strType, 11)
+
+            //            rs = obj.singlerecordset("genglsheetmst", "glcode,NARRATION", "upper(trim(branchcode))='" & ucase(trim(brCode)) & "' and upper(trim(moduleid))='DEP' and glcode in(select glcode from deptypemst where (instsyn= 'N' or instsyn is null) and AUTORENEWALYN='Y' and status='R')")
+
+            //elseif left(strType,15)= "matinsautorengl" then
+
+            //            dim brCode
+            //            brCode = mid(strType, 11)
+
+            //            rs = obj.singlerecordset("genglsheetmst", "glcode,NARRATION", "upper(trim(branchcode))='" & ucase(trim(brCode)) & "' and upper(trim(moduleid))='DEP' and glcode in(select glcode from deptypemst where status='R')")
+
+
+            //elseif left(strType,11)= "DepClsAccno" then
+            //    k = split(strType, "|")
+
+            //    rs = obj.singlerecordset("DEPMST D", "D.ACCNO,D.NAME", "D.branchcode='" & k(1) & "' and " & _
+            //"D.currencycode='" & k(2) & "' and D.GLCODE='" & k(3) & "' and " & _
+            //"D.STATUS='R' AND D.TRANSTATUS='A' AND D.ACCNO NOT IN(SELECT LINKACCNO FROM GENTEMPTRANSLOG G " & _
+            //"WHERE G.LINKMODULEID='DEP' AND G.SERVICEID='4' AND G.SYSTEMGENERATEDYN='Y')")
+
+            //elseif left(strType,15)= "DepRenewalAccno" then
+
+            //    k = split(strType, "|")
+
+            //    vAppdate = session("applicationdate")
+
+            //    rs = obj.singlerecordset("DEPMST D", "D.ACCNO,D.NAME", "D.branchcode='" & k(1) & "' and " & _
+
+            //    "D.currencycode='" & k(2) & "' and D.GLCODE='" & k(3) & "' and " & _
+
+            //    " TO_DATE(to_char(maturitydate,'DD-MON-YYYY'),'DD-MON-YYYY')<='" & _
+            //     vAppdate & "' and D.STATUS='R' AND D.TRANSTATUS='A' or D.TRANSTATUS='D'  AND " & _
+            //    " D.ACCNO NOT IN(SELECT LINKACCNO FROM GENTEMPTRANSLOG G " & _
+
+            //    "WHERE G.LINKMODULEID='DEP' AND G.SERVICEID='4' AND G.SYSTEMGENERATEDYN='Y')")
+
+            //elseif left(strType,10)= "DpClsAccno" then
+            //    k = split(strType, "|")
+
+            //    dim appdate
+
+            //    appdate = session("ApplicationDate")
+
+
+            //    strCond = "branchcode='" & k(1) & "' and STATUS='R'and currencycode='" & k(2) & "' and GLCODE='" & k(3) & "' and MATURITYDATE>to_date('" & appdate & "') and ACCNO NOT IN (SELECT LINKACCNO FROM GENTEMPTRANSLOG G WHERE G.LINKMODULEID='DEP' AND G.SERVICEID='4' AND G.SYSTEMGENERATEDYN='Y')"
+
+
+            //    rs = obj.singlerecordset("DEPMST", "ACCNO,NAME", cstr(strCond))
+
+
+
+            //elseif left(strType,12)= "CustCategory" then
+            //    rs = obj.singlerecordset("GENCATEGORYMST", "Categorycode,narration", "categorycode=categorycode order by NARRATION")
+            //elseif left(strType,8)= "DbGlcode" then
+            //    k = split(strType, "|")
+
+            //    rs = obj.singlerecordset("GenGlMastMst ", _
+
+            //                        "distinct(glcode),gldescription", "(glacctype=3 or glacctype=4) " & _
+
+            //                        " and glcategory='A' AND MODULEID='" & K(1) & "' order by gldescription")
+            //elseif left(strType,8)= "CrGlcode" then
+            //    k = split(strType, "|")
+
+            //    rs = obj.singlerecordset("GenGlMastMst ", _
+
+            //                        "distinct(glcode),gldescription", "(glacctype=3 or glacctype=4) " & _
+
+            //                        " and glcategory='A'  AND MODULEID='" & K(1) & "' order by gldescription")
+            //elseif left(strType,10)= "AIntGlcode" or left(strType,10)= "PIntGlcode" then
+            //    k = split(strType, "|")
+            //    rs = obj.singlerecordset("GenGlMastMst ", _
+
+            //                        "distinct(glcode),gldescription", "upper(moduleid)='" & k(1) & "'" & _
+
+            //                        "  and glcategory='A'  order by gldescription")
+            //elseif left(strType,9)= "PendingGl" then
+            //    k = split(strType, "|")
+            //    rs = obj.singlerecordset("GenGlMastMst ", _
+
+            //                        "distinct(glcode),gldescription", "upper(moduleid)='" & k(1) & "'" & _
+
+            //                        "  and glcategory='A'  order by gldescription")
+            //elseif left(strType,8)= "ODGlcode" then
+            //   k = split(strType, "|")
+            //   rs = obj.singlerecordset("GenGlSheetMst ", _
+
+            //                        "distinct(glcode),narration", "upper(moduleid)='" & k(1) & "'")
+            //elseif left(strType,10)= "RDepGlcode" then
+            //   'obj=server.CreateObject("GeneralTranQueries.TransactionQueries")
+
+            //    k = split(strType, "|")
+
+            //    'rs=obj.GLCodes(cstr(k(1)),cstr(k(2)))
+
+
+            //   strCond = " upper(moduleid)= 'DEP' and branchcode='" & k(1) & "' and glcode in(select glcode from deptypemst where (instsyn= 'N' OR instsyn is null) AND (unitsyn= 'N' OR unitsyn is null) and status='R')"
+
+
+            //   rs = obj.singlerecordset("GENGLSHEETMST", "distinct(glcode),narration", cstr(strCond))
+
+
+            //elseif left(strType,9)= "depGlcode" then
+            //    k = split(strType, "|")
+
+
+            //    strsql = "SELECT a.GLCODE, a.NARRATION,b.DEPSUBNATURE FROM GENGLSHEETMST a , deptypemst b WHERE a.moduleid = '" & k(2) & "' AND a.branchcode = '" & k(1) & "' AND a.STATUS = 'R' AND a.glcode =  b.GLCODE"
+
+
+            //    rs = objfetch.SingleSelectStat(strsql)
+
+
+            //elseif left(strType,13)= "DepUnitGlcode" then
+            //   'obj=server.CreateObject("GeneralTranQueries.TransactionQueries")
+
+            //    k = split(strType, "|")
+
+            //    'rs=obj.GLCodes(cstr(k(1)),cstr(k(2)))
+
+
+            //   strCond = " upper(moduleid)= 'DEP' and branchcode='" & k(1) & "' and glcode in(select glcode from deptypemst where (intpayperiodicallyyn ='N' and (instsyn= 'N' OR instsyn is null) AND unitsyn='Y') and status='R')"
+
+
+            //   rs = obj.singlerecordset("GENGLSHEETMST", "distinct(glcode),narration", cstr(strCond))
+            //elseif left(strType,11)= "RDDepGlcode" then
+            //   'obj=server.CreateObject("GeneralTranQueries.TransactionQueries")
+
+            //    k = split(strType, "|")
+
+            //    'rs=obj.GLCodes(cstr(k(1)),cstr(k(2)))
+
+
+            //   strCond = " upper(moduleid)= 'DEP' and branchcode='" & k(1) & "' and glcode in(select glcode from deptypemst where instsyn= 'Y' and status='R')"
+            //   rs = obj.singlerecordset("GENGLSHEETMST", "distinct(glcode),narration", cstr(strCond))
+
+            //elseif strType = "ToBranch" then
+            //    rs = obj.singlerecordset("GENBANKBRANCHMST", "Branchcode,narration")
+            //elseif strType = "Service" then
+            //    rs = obj.singlerecordset("DEPMST", "ACCNO,NAME")
+            //elseif strType = "ServiceId" then
+            //    dim ser,whcond
+            //    whcond = "Code in('1','2')"
+
+
+            //     rs = obj.singlerecordset("GENSERVICETYPESPMT", "CODE,NARRATION", cstr(whcond), "CODE")
+            //     elseif strType = "tdsServiceId" then
+            //    dim ser,whcond
+            //    whcond = "Code in('1')"
+
+
+            //     rs = obj.singlerecordset("GENSERVICETYPESPMT", "CODE,NARRATION", cstr(whcond), "CODE")
+
+
+            //elseif left(strType,12)= "lienMatAccno" then
+            //    k = split(strType, "|")
+            //    vAppdate = session("applicationdate")
+
+            //    if k(5) = "Y" then
+            //    strWhr = "upper(branchcode)='" & trim(k(1)) & "' and upper(currencycode)='" & _
+            //    cstr(ucase(trim(k(4)))) & "' and upper(glcode)='" & cstr(ucase(trim(k(3)))) & _
+            //    "' and maturitydate<'" & _
+            //    vAppdate & "' and upper(status)='R' and transtatus='A' AND ((UPPER(MATDETAILSYN)='N') OR (UPPER(MATDETAILSYN)) IS NULL) AND (UPPER(LIENSTATUS)='Y' )"
+
+            //    else
+            //                strWhr = "upper(branchcode)='" & trim(k(1)) & "' and upper(currencycode)='" & _
+            //    cstr(ucase(trim(k(4)))) & "' and upper(glcode)='" & cstr(ucase(trim(k(3)))) & _
+            //    "' and maturitydate<'" & _
+            //    vAppdate & "' and upper(status)='R' and transtatus='A' and ((upper(MATDETAILSYN)='N') or (upper(MATDETAILSYN)) is null) and (upper(LIENSTATUS)='N' or upper(LIENSTATUS) is null) "
+            //    end if
+
+            //    rs = obj.singlerecordset("DEPMST", "accno,name", cstr(strWhr))
+
+
+            //elseif left(strType,15)= "AutoRenMatAccno" then '' auto renewal
+            //k = split(strType, "|")
+            //vAppdate = session("applicationdate")
+            //strsql = "SELECT a.accno,a.name FROM DEPMST a,DEPTYPEMST b WHERE a.ONMATURITY = 'AR' and a.BRANCHCODE='" & trim(k(1)) & "' AND a.CURRENCYCODE='" & cstr(ucase(trim(k(4)))) & "' AND UPPER(trim(a.GLCODE))='" & cstr(ucase(trim(k(3)))) & "' AND a.maturitydate<'" & k(6) & "' AND UPPER(a.status)='R' AND b.INSTSYN = 'N'  AND a.GLCODE=b.glcode AND (UPPER(a.LIENSTATUS)='N' OR UPPER(a.LIENSTATUS) IS NULL) AND a.glcode != 104270"
+
+            //rs = objfetch.SingleSelectStat(strsql)
+
+            //elseif left(strType,10)= "TransAccno" then  '' transfer account
+            //k = split(strType, "|")
+            //vAppdate = session("applicationdate")
+
+            //if k(5) = "Y" then
+            //strsql = "SELECT a.accno,a.name FROM DEPMST a,DEPTYPEMST b,DEPMATURITYINSTDTLS C WHERE a.ONMATURITY = 'TR' and c.MATURITYTYPE = 'TR' and a.BRANCHCODE='" & trim(k(1)) & "' AND a.CURRENCYCODE='" & cstr(ucase(trim(k(4)))) & "' AND UPPER(trim(a.GLCODE))='" & cstr(ucase(trim(k(3)))) & "' AND a.maturitydate<'" & k(6) & "' AND UPPER(a.status)='R' AND b.INSTSYN = 'N'  AND a.GLCODE=b.glcode AND (UPPER(a.LIENSTATUS)='Y') AND a.glcode != 104270 AND a.accno = c.accno AND a.glcode = c.glcode AND a.branchcode = c.branchcode AND a.currencycode = c.currencycode"
+            //else
+            //                strsql = "SELECT a.accno,a.name FROM DEPMST a,DEPTYPEMST b,DEPMATURITYINSTDTLS C WHERE a.ONMATURITY = 'TR' and c.MATURITYTYPE = 'TR' and a.BRANCHCODE='" & trim(k(1)) & "' AND a.CURRENCYCODE='" & cstr(ucase(trim(k(4)))) & "' AND UPPER(trim(a.GLCODE))='" & cstr(ucase(trim(k(3)))) & "' AND a.maturitydate<'" & k(6) & "' AND UPPER(a.status)='R' AND b.INSTSYN = 'N'  AND a.GLCODE=b.glcode AND (UPPER(a.LIENSTATUS)='N' OR UPPER(a.LIENSTATUS) IS NULL) AND a.glcode != 104270 AND a.accno = c.accno AND a.glcode = c.glcode AND a.branchcode = c.branchcode AND a.currencycode = c.currencycode"
+            //end if
+
+            //rs = objfetch.SingleSelectStat(strsql)
+
+            //elseif left(strType,8)= "MatAccno" then
+            //    k = split(strType, "|")
+            //    vAppdate = session("applicationdate")
+
+
+            //    strWhr = "upper(branchcode)='" & trim(k(1)) & "' and upper(currencycode)='" & _
+            //    cstr(ucase(trim(k(4)))) & "' and upper(glcode)='" & cstr(ucase(trim(k(3)))) & _
+            //    "' and maturitydate<'" & _
+            //    vAppdate & "' and upper(status)='R' and transtatus='A' and ((upper(MATDETAILSYN)='N') or (upper(MATDETAILSYN)) is null) and (upper(LIENSTATUS)='N' or upper(LIENSTATUS) is null) "
+
+            //    rs = obj.singlerecordset("DEPMST", "accno,name", cstr(strWhr))
+
+
+
+            //elseif left(strType,8)= "DpGlcode" then
+            //    k = split(strType, "|")
+
+
+            //    strCond = " upper(moduleid)= 'DEP' and glcode in(select glcode from deptypemst where intpayperiodicallyyn ='N' and instsyn= 'N' and status='R')"
+
+            //   rs = obj.singlerecordset("GenGlMastMst", "glcode,GLDESCRIPTION", cstr(strCond))
+
+
+            //end if
+        }
+
+        public void GetListFunction()
+        {
+//            function displaydiv()
+//            {
+//                var type = "<%= strType%>"
+
+
+
+//        if ((type.substring(0, 17) == "ChgMatInsDepAccno") || (type.substring(0, 17) == "chgMatTelleraccno") || (type.substring(0, 18) == "chgAutoTelleraccno"))
+//                {
+//                    try
+//                    {
+//                        var options = document.getElementById('cmbList').options
+        
+
+//                var count = options.length;
+//                        //alert(count)
+//                        if (count == "1")
+//                        {
+//                            List();
+//                        }
+//                    }
+//                    catch (err)
+//                    { }
+//                    document.getElementById("divsearch").style.display = "block"
+
+//            document.frmList.txtsearch.focus();
+//                }
+//                var hidstr = "<%=hidsearch%>"
+//     var searchstr
+//     if (hidstr != "")
+//                {
+//                    var searchstr = hidstr.split("|")
+//     document.getElementById("cmb_search").value = searchstr[0]
+//     window.document.frmList.txtsearch.value = searchstr[1]
+//     }
+//            }
+
+//            function funcsearch()
+//            {
+//                var strdata = "<%= strType%>"
+        
+//        if (window.document.frmList.cmbsearch.selectedIndex < 0)
+//                {
+//                    //alert("Plaese select name or number");
+//                    return
+
+//        }
+//                else if (window.document.frmList.txtsearch.value == "")
+//                {
+//                    //alert("plaese enter type for search");
+//                    return
+        
+//        }
+//                else
+//                {
+//                    window.document.frmList.hidsearch.value = window.document.frmList.cmbsearch.options[window.document.frmList.cmbsearch.selectedIndex].value
+//                    + "|" + window.document.frmList.txtsearch.value
+        
+
+//        window.document.frmList.action = "List.aspx?st=" + strdata
+        
+//        window.document.frmList.method = "post"
+        
+//        window.document.frmList.submit();
+//                }
+//            }
+
+//            function cleartext()
+//            {
+//                document.frmList.txtsearch.value = "";
+//            }
+
+//            function List()
+//            {
+//                var str, ints, intk, intp
+//             var callerWindowObj = dialogArguments;
+//                if (window.document.frmList.cmbList.selectedIndex < 0)
+//                {
+//                    alert("Select Any Code")
+//                }
+//                else
+//                {
+//                    str = window.document.frmList.cmbList.options[window.document.frmList.cmbList.selectedIndex].text
+                
+//    type = "<%=strType%>"
+//                	//alert(type)
+//if (type == "Bruser")
+//                    {
+//                        callerWindowObj.Bruser(str);
+//                        window.close()
+//}
+//                    else if (type.substring(0, 12) == "CustCategory")
+//                    {
+//                        callerWindowObj.CustCategoryId(str)
+                    
+//        window.close()
+                    
+//    }
+
+//                    else if (type == "Currency")
+//                    {
+//                        callerWindowObj.Currencyid(str);
+//                        window.close()
+//                    }
+//                    else if (type == "BLevel")
+//                    {
+//                        callerWindowObj.Levelid(str);
+//                        window.close()
+//                }
+//                    else if (type == "Curr")
+//                    {
+//                        callerWindowObj.Currid(str);
+//                        window.close()
+//                    }
+//                    else if (type.substring(0, 5) == "Curr1")
+//                    {
+//                        callerWindowObj.Currid1(str);
+//                        window.close()
+//                    }
+//                    else if (type.substring(0, 10) == "DepDlAccno" || type.substring(0, 12) == "AcclistDepDl")
+//                    {
+//                        callerWindowObj.DepositDelAccno(str);
+//                        window.close()
+//                    }
+//                    else if (type.substring(0, 9) == "PendingGl")
+//                    {
+//                        callerWindowObj.PendingGlid(str);
+//                        window.close()
+//                    }
+//                    else if (type.substring(0, 7) == "Traccno" || type.substring(0, 8) == "STraccno")
+//                    {
+//                        callerWindowObj.Traccid(str);
+//                        window.close()
+//                    }
+//                    else if (type.substring(0, 10) == "MatTraccno")
+//                    {
+//                        callerWindowObj.TraccidMat(str);
+//                        window.close()
+//                    }
+//                    else if (type.substring(0, 11) == "AutoTraccno")
+//                    {
+//                        callerWindowObj.TraccidAuto(str);
+//                        window.close()
+//                    }
+//                    else if (type.substring(0, 8) == "TrBranch")
+//                    {
+//                        callerWindowObj.TrCodeid(str);
+//                        window.close()
+//                    }
+//                    else if (type.substring(0, 11) == "MatTrBranch")
+//                    {
+//                        callerWindowObj.TrCodeidMat(str);
+//                        window.close()
+//                    }
+//                    else if (type.substring(0, 12) == "AutoTrBranch")
+//                    {
+//                        callerWindowObj.TrCodeidAuto(str);
+//                        window.close()
+//                    }
+//                    else if (type.substring(0, 5) == "Curr2")
+//                    {
+//                        callerWindowObj.Currid2(str);
+//                        window.close()
+//                    }
+//                    else if (type.substring(0, 5) == "Curr3")
+//                    {
+//                        callerWindowObj.Currid3(str);
+//                        window.close()
+//                    }
+//                    else if ((type.substring(0, 8) == "Trglcode") || (type.substring(0, 11) == "divTrglcode") || (type.substring(0, 16) == "TrNEFTRTGSglcode"))
+//                    {
+//                        callerWindowObj.TrGlid(str);
+//                        window.close()
+//                    }
+//                    else if (type.substring(0, 11) == "MatTrglcode")
+//                    {
+//                        callerWindowObj.TrGlidMat(str);
+//                        window.close()
+//                    }
+//                    else if (type.substring(0, 12) == "AutoTrglcode")
+//                    {
+//                        callerWindowObj.TrGlidAuto(str);
+//                        window.close()
+//                    }
+//                    else if (type.substring(0, 5) == "Curr4")
+//                    {
+//                        callerWindowObj.Currid4(str);
+//                        window.close()
+//                    }
+//                    else if (type == "Module")
+//                    {
+//                        callerWindowObj.Moduleid(str);
+//                        window.close()
+//                    }
+//                    else if (type.substring(0, 14) == "TellermoduleID")
+//                    {
+//                        window.close()
+                    
+//    callerWindowObj.modulecode(str)
+//                    }
+
+//                    else if (type.substring(0, 17) == "MatTellermoduleID")
+//                    {
+//                        window.close()
+                    
+//    callerWindowObj.modulecodeMat(str)
+//                    }
+//                    else if (type.substring(0, 18) == "AutoTellermoduleID")
+//                    {
+//                        window.close()
+                    
+//    callerWindowObj.modulecodeAuto(str)
+//                    }
+//                    else if (type == "BankCodes")
+//                    {
+//                        callerWindowObj.BankCodeid(str);
+//                        window.close()
+//                    }
+//                    else if (type == "MatBankCodes")
+//                    {
+//                        callerWindowObj.BankCodeidMat(str);
+//                        window.close()
+//                    }
+//                    else if (type == "AutoBankCodes")
+//                    {
+//                        callerWindowObj.BankCodeidAuto(str);
+//                        window.close()
+//                    }
+//                    else if (type == "Module1")
+//                    {
+//                        callerWindowObj.DbModuleid(str);
+//                        window.close()
+//                    }
+//                    else if (type == "Module2")
+//                    {
+//                        callerWindowObj.CrModuleid(str);
+//                        window.close()
+//                    }
+//                    else if (type == "Module3")
+//                    {
+//                        callerWindowObj.AccModuleid(str);
+//                        window.close()
+//                    }
+//                    else if (type == "Module6")
+//                    {
+//                        callerWindowObj.PenIntid(str);
+//                        window.close()
+//                    }
+//                    else if (type == "Module5")
+//                    {
+
+//                        callerWindowObj.PendModuleid(str);
+//                        window.close()
+//                    }
+//                    else if (type == "Module4")
+//                    {
+//                        callerWindowObj.OverModuleid(str);
+//                        window.close()
+//                    }
+//                    else if (type.substring(0, 6) == "Glcode")
+//                    {
+//                        callerWindowObj.Glcodeid(str);
+//                        //window.attachEvent(window.opener.Glcodeid(str))
+//                        window.close()
+//                    }
+//                    else if (type.substring(0, 5) == "DepGl")
+//                    {
+//                        callerWindowObj.Glcodeid(str);
+//                        //window.attachEvent(window.opener.Glcodeid(str))
+//                        window.close()
+//                    }
+//                    else if (type.substring(0, 8) == "DepIntTr")
+//                    {
+//                        callerWindowObj.Glcodeid(str);
+//                        //window.attachEvent(window.opener.Glcodeid(str))
+//                        window.close()
+//                    }
+//                    else if ((type.substring(0, 10) == "Dep2Glcode") || (type.substring(0, 17) == "IntCompDep2Glcode"))
+//                    {
+//                        callerWindowObj.DepGlcodeid(str);
+//                        //window.attachEvent(window.opener.Glcodeid(str))
+//                        window.close()
+//                    }
+//                    else if (type.substring(0, 9) == "DepCertGl")
+//                    {
+//                        callerWindowObj.Glcodeid(str);
+//                        //window.attachEvent(window.opener.Glcodeid(str))
+//                        window.close()
+//                    }
+//                    else if (type.substring(0, 7) == "DCAccno")
+//                    {
+//                        callerWindowObj.AccnoIC(str);
+//                        //window.attachEvent(window.opener.Glcodeid(str))
+//                        window.close()
+//                    }
+//                    else if (type.substring(0, 2) == "Gl")
+//                    {
+//                        callerWindowObj.Glcodeid(str);
+//                        //window.attachEvent(window.opener.Glcodeid(str))
+//                        window.close()
+//                    }
+//                    else if (type.substring(0, 9) == "autorengl")
+//                    {
+//                        callerWindowObj.Glcodeid(str);
+//                        window.close()
+//                    }
+//                    else if (type.substring(0, 15) == "matinsautorengl")
+//                    {
+//                        callerWindowObj.Glcodeid(str);
+//                        window.close()
+//                    }
+
+
+//                    else if (type.substring(0, 9) == "GlcodeIns" || type.substring(0, 9) == "ModGlcode")
+//                    {
+//                        callerWindowObj.Glcodeid(str);
+//                        //window.attachEvent(window.opener.Glcodeid(str))
+//                        window.close()
+//                    }
+//                    else if (type.substring(0, 8) == "Trmodule")
+//                    {
+//                        callerWindowObj.Trmodid(str);
+//                        window.close()
+//                    }
+
+//                    else if (type.substring(0, 5) == "Accno")
+//                    {
+//                        callerWindowObj.Accnoid(str);
+//                        //window.attachEvent(window.opener.Accnoid(str))
+//                        window.close()
+//                    }
+
+//                    else if (type.substring(0, 7) == "TransNo")
+//                    {
+//                        callerWindowObj.TransNoid(str);
+//                        //window.attachEvent(window.opener.TransNoid(str))
+//                        window.close()
+//                    }
+//                    else if (type.substring(0, 6) == "CustID")
+//                    {
+//                        callerWindowObj.Custid(str);
+//                        window.close()
+//                    }
+//                    else if (type.substring(0, 7) == "OtherBr")
+//                    {
+//                        callerWindowObj.OtherBrid(str);
+//                        window.close()
+//                    }
+//                    else if (type.substring(0, 10) == "MatOtherBr")
+//                    {
+//                        callerWindowObj.OtherBridMat(str);
+//                        window.close()
+//                    }
+//                    else if (type.substring(0, 11) == "AutoOtherBr")
+//                    {
+//                        callerWindowObj.OtherBridAuto(str);
+//                        window.close()
+//                    }
+//                    else if (type.substring(0, 11) == "Cashiertype")
+//                    {
+//                        callerWindowObj.Cashiertype(str);
+//                        //window.attachEvent(window.opener.Cashiertype(str))
+//                        window.close()
+//                    }
+//                    else if (type.substring(0, 9) == "Cashierid")
+//                    {
+//                        callerWindowObj.Cashierid(str);
+//                        //window.attachEvent(window.opener.Cashierid(str))
+//                        window.close()
+//                    }
+//                    else if (type.substring(0, 10) == "Cashiermgt")
+//                    {
+//                        callerWindowObj.CashierMgtid(str);
+//                        //window.attachEvent(window.opener.CashierMgtid(str))
+//                        window.close()
+//                    }
+//                    else if (type.substring(0, 11) == "CutsoiledNo")
+//                    {
+//                        callerWindowObj.CutSoiledid(str);
+//                        window.close()
+//                    }
+//                    else if (type.substring(0, 9) == "Allotment")
+//                    {
+//                        callerWindowObj.Allotmentid(str);
+//                        window.close()
+//                    }
+//                    else if (type.substring(0, 10) == "Cashiercou")
+//                    {
+//                        callerWindowObj.Cashiercd(str);
+//                        window.close()
+//                    }
+//                    else if (type.substring(0, 8) == "Bankcode")
+//                    {
+//                        callerWindowObj.Bankid(str);
+//                        window.close()
+//                    }
+//                    else if (type.substring(0, 6) == "CashID")
+//                    {
+//                        callerWindowObj.Cashierid(str);
+//                        window.close()
+//                    }
+//                    else if (type.substring(0, 8) == "Remtype")
+//                    {
+//                        callerWindowObj.Remtypeid(str);
+//                        window.close()
+//                    }
+//                    else if (type.substring(0, 10) == "MatRemtype")
+//                    {
+//                        callerWindowObj.RemtypeidMat(str);
+//                        window.close()
+//                    }
+//                    else if (type.substring(0, 7) == "Cashacc")
+//                    {
+//                        callerWindowObj.Cashieracc(str);
+//                        //window.attachEvent(window.opener.Cashieracc(str))
+//                        window.close()
+//                    }
+//                    else if ((type.substring(0, 9) == "AppUserid") || (type.substring(0, 10) == "AppGroupid"))
+//                    {
+//                        callerWindowObj.UserCode(str);
+//                        //window.attachEvent(window.opener.UserCode(str))
+//                        window.close()
+//                    }
+//                    else if (type == "User")
+//                    {
+//                        //window.attachEvent(window.opener.DisplayGroup(str))
+//                        callerWindowObj.DisplayGroup(str);
+//                        window.close()
+//                    }
+
+//                    else if (type == "Groups")
+//                    {
+//                        callerWindowObj.DisplayGroups(str);
+//                        window.close()
+//                    }
+
+//                    else if (type == "Group")
+//                    {
+//                        callerWindowObj.DisplayGroup(str);
+//                        window.close()
+//                    }
+//                    else if (type.substring(0, 5) == "Query")
+//                    {
+//                        callerWindowObj.DisplayQuery(str);
+//                        window.close()
+//                    }
+//                    else if (type.substring(0, 9) == "Intmodule")
+//                    {
+//                        callerWindowObj.Intmodidassign(str);
+//                        window.close()
+//                    }
+//                    else if (type.substring(0, 12) == "MatIntmodule")
+//                    {
+//                        callerWindowObj.IntmodidassignMat(str);
+//                        window.close()
+//                    }
+//                    else if (type.substring(0, 13) == "AutoIntmodule")
+//                    {
+//                        callerWindowObj.IntmodidassignAuto(str);
+//                        window.close()
+//                    }
+//                    else if (type.substring(0, 9) == "Remmodule")
+//                    {
+//                        callerWindowObj.Remmodidassign(str);
+//                        window.close()
+//                    }
+//                    else if (type.substring(0, 14) == "AllotedCashier")
+//                    {
+//                        callerWindowObj.AllotedCashierid(str);
+//                        window.close()
+//                    }
+//                    else if (type.substring(0, 8) == "cashtype")
+//                    {
+//                        callerWindowObj.cashtype(str);
+//                        window.close()
+//                    }
+//                    else if (type.substring(0, 16) == "Cashrefundaccept")
+//                    {
+//                        callerWindowObj.Cashiercodeid(str);
+//                        window.close()
+//                    }
+//                    else if (type.substring(0, 12) == "Cashrefundno")
+//                    {
+//                        //window.attachEvent(window.opener.Cashrefundid(str))
+//                        callerWindowObj.Cashrefundid(str);
+//                        window.close()
+//                    }
+//                    else if (type.substring(0, 13) == "Cashcounterno")
+//                    {
+//                        //window.attachEvent(window.opener.Cashcounterid(str))
+//                        callerWindowObj.Cashcounterid(str);
+//                        window.close()
+//                    }
+//                    else if (type.substring(0, 6) == "Userid")
+//                    {
+//                        //window.attachEvent(window.opener.UserCode(str))
+//                        callerWindowObj.UserCode(str);
+//                        window.close()
+//                    }
+//                    else if (type.substring(0, 11) == "ALLCASHIERS")
+//                    {
+
+//                        //window.attachEvent(window.opener.Cashiercd(str))
+//                        callerWindowObj.Cashiercd(str);
+//                        window.close()
+//                    }
+//                    //---------------
+
+//                    else if (type.substring(0, 12) == "Tellermodule")
+//                    {
+//                        //window.attachEvent(window.opener.modulecode(str))
+//                        callerWindowObj.modulecode(str);
+//                        window.close()
+                    
+//        }
+//                    else if (type.substring(0, 12) == "Tellerglcode")
+//                    {
+//                        callerWindowObj.Glcodeid(str);
+//                        window.close()
+//                            }
+
+//                    else if (type.substring(0, 15) == "MatTellerglcode")
+//                    {
+//                        callerWindowObj.GlcodeidMat(str);
+//                        window.close()
+//                            }
+//                    else if (type.substring(0, 16) == "AutoTellerglcode")
+//                    {
+//                        callerWindowObj.GlcodeidAuto(str);
+//                        window.close()
+//                            }
+
+//                    else if (type.substring(0, 9) == "RemGlcode")
+//                    {
+//                        callerWindowObj.RemGlcodeid(str);
+//                        window.close()
+//                           }
+//                    else if (type.substring(0, 12) == "MatRemGlcode")
+//                    {
+//                        callerWindowObj.RemGlcodeidMat(str);
+//                        window.close()
+//                            }
+//                    else if (type.substring(0, 13) == "AutoRemGlcode")
+//                    {
+//                        callerWindowObj.RemGlcodeidAuto(str);
+//                        window.close()
+//                            }
+//                    else if (type.substring(0, 8) == "DepAccno" || type.substring(0, 11) == "ModDepAccno" || type.substring(0, 17) == "ChgMatInsDepAccno")
+//                    {
+//                        callerWindowObj.Accnoid(str);
+//                        window.close()
+//                            }
+//                    else if (type.substring(0, 11) == "DepClsAccno" || type.substring(0, 15) == "DepRenewalAccno")
+//                    {
+//                        callerWindowObj.DepClsAccnoId(str)
+                    
+//        window.close()
+                    
+//    }
+//                    else if (type.substring(0, 8) == "GetAccno")
+//                    {
+//                        callerWindowObj.DisplayAccno(str)
+                
+//        window.close()
+                
+
+//    }
+//                    else if (type.substring(0, 10) == "DpClsAccno")
+//                    {
+//                        callerWindowObj.DepClsAccnoId(str)
+                
+//        window.close()
+                
+//    }
+//                    else if (type == "Tellerbranch" || type == "Branch")
+//                    {
+//                        callerWindowObj.Branchcode(str);
+//                        window.close()
+                    
+//        }
+//                    else if (type == "TellerVobranch" || type == "Branch")
+//                    {
+//                        callerWindowObj.VoBranchcode(str);
+//                        window.close()
+                    
+//        }
+//                    else if (type == "MatTellerVobranch")
+//                    {
+//                        callerWindowObj.VoBranchcodeMat(str);
+//                        window.close()
+                    
+//        }
+//                    else if (type == "AutoTellerVobranch")
+//                    {
+//                        callerWindowObj.VoBranchcodeAuto(str);
+//                        window.close()
+                    
+//        }
+//                    else if (type.substring(0, 11) == "Telleraccno")
+//                    {
+//                        callerWindowObj.accountid(str);
+//                        window.close()
+                    
+//        }
+//                    else if ((type.substring(0, 14) == "MatTelleraccno") || (type.substring(0, 17) == "chgMatTelleraccno"))
+//                    {
+//                        callerWindowObj.accountidMat(str);
+//                        window.close()
+                    
+//        }
+//                    else if ((type.substring(0, 15) == "AutoTelleraccno") || (type.substring(0, 18) == "chgAutoTelleraccno"))
+//                    {
+//                        callerWindowObj.accountidAuto(str);
+//                        window.close()
+                    
+//        }
+//                    else if (type.substring(0, 12) == "Accruedaccno")
+//                    {
+//                        callerWindowObj.Accraccnoid(str);
+//                        window.close()
+                    
+//        }
+//                    else if (type.substring(0, 12) == "Pendintaccno")
+//                    {
+//                        callerWindowObj.Pendaccnoid(str);
+//                        window.close()
+                    
+//        }
+//                    else if (type.substring(0, 12) == "Pendingaccno")
+//                    {
+//                        callerWindowObj.Pendingaccnoid(str);
+//                        window.close()
+                    
+//        }
+//                    //---------------------------------------------------------
+//                    else if (type.substring(0, 8) == "DbGlcode")
+//                    {
+//                        callerWindowObj.DbtGlcodeid(str);
+//                        window.close()
+//                            }
+//                    else if (type.substring(0, 8) == "CrGlcode")
+//                    {
+//                        //window.attachEvent(window.opener.CrGlcodeid(str))
+//                        callerWindowObj.CrGlcodeid(str);
+//                        window.close()
+//                            }
+//                    else if (type.substring(0, 10) == "AIntGlcode")
+//                    {
+//                        callerWindowObj.AccrGlcodeid(str);
+//                        window.close()
+//                            }
+//                    else if (type.substring(0, 10) == "PIntGlcode")
+//                    {
+//                        callerWindowObj.PendGlcodeid(str);
+//                        window.close()
+//                            }
+//                    else if (type.substring(0, 8) == "ODGlcode")
+//                    {
+//                        //window.attachEvent(window.opener.ODGlcodeid(str))
+//                        callerWindowObj.ODGlcodeid(str);
+//                        window.close()
+//                            }
+
+//                    else if (type.substring(0, 13) == "DepUnitGlcode")
+//                    {
+//                        callerWindowObj.DepGlcodeid(str);
+//                        window.close()
+//                    }
+//                    else if ((type.substring(0, 10) == "RDepGlcode") || (type.substring(0, 9) == "depGlcode"))
+//                    {
+
+//                        callerWindowObj.DepGlcodeid(str);
+//                        window.close()
+//                    }
+//                    else if (type.substring(0, 11) == "RDDepGlcode")
+//                    {
+//                        callerWindowObj.DepGlcodeid(str);
+//                        window.close()
+//                    }
+//                    else if (type.substring(0, 8) == "DpGlcode")
+//                    {
+//                        callerWindowObj.DepGlcodeid(str);
+//                        window.close()
+//                    }
+//                    else if (type == "ToBranch")
+//                    {
+//                        callerWindowObj.ToBranchid(str);
+//                        window.close()
+//                    }
+//                    else if (type == "IntGLcode")
+//                    {
+//                        callerWindowObj.IntGlCodeid(str);
+//                        window.close()
+//                    }
+
+//                    else if (type == "Service")
+//                    {
+//                        callerWindowObj.ServiceCode(str);
+//                        window.close()
+//                    }
+//                    else if (type == "ServiceId")
+//                    {
+//                        callerWindowObj.CrServiceId(str);
+//                        window.close()
+//                    }
+
+//                    else if (type == "tdsServiceId")
+//                    {
+//                        callerWindowObj.CrServiceId(str);
+//                        window.close()
+//                    }
+//                    else if (type == "Branch1")
+//                    {
+//                        callerWindowObj.BranchRemid(str);
+//                        window.close()
+//                    }
+//                    else if (type == "MatBranch1")
+//                    {
+//                        callerWindowObj.BranchRemidMat(str);
+//                        window.close()
+//                    }
+//                    else if (type == "AutoBranch1")
+//                    {
+//                        callerWindowObj.BranchRemidAuto(str);
+//                        window.close()
+//                    }
+
+//                    else if ((type.substring(0, 8) == "MatAccno") || (type.substring(0, 12) == "lienMatAccno") || (type.substring(0, 15) == "AutoRenMatAccno") || (type.substring(0, 10) == "TransAccno"))
+//                    {
+//                        callerWindowObj.MatAccNo(str);
+//                        window.close()
+//                    }
+//                    //-----ServiedId
+//                    else if (type.substring(0, 7) == "Service")
+//                    {
+//                        window.attachEvent(window.opener.ServiceCode(str))
+                    
+//    window.close()
+//                    }
+//                    //----ServiceId Ends
+//                    else if (type.substring(0, 10) == "Debitaccno")
+//                    {
+//                        callerWindowObj.Debitaccnoid(str);
+//                        window.close()
+//                    }
+//                    else if (type.substring(0, 11) == "Creditaccno")
+//                    {
+//                        callerWindowObj.Creditaccnoid(str);
+//                        window.close()
+//                    }
+
+
+//                }
+//            }
         }
     }
 }

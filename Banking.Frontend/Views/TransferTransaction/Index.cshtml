@@ -1,0 +1,453 @@
+﻿@model Banking.Models.TransferTransactionModel
+@{
+    Layout = "_Layout";
+}
+
+<script asp-append-version="true" src="~/js/app/transaction.js"></script>
+
+<div class="card h-100">
+    <div class="card-header">
+        <h3 class="mb-0 section-title">Transfers</h3>
+    </div>
+    <div class="card-body">
+        <!--Radio / Check Box Selections Details-->
+        <div class="d-flex flex-wrap bg-body-tertiary p-2 mb-3 border rounded">
+            <div class="me-3 fw-bold">
+                <div class="form-check form-check-inline">
+                    <input asp-for="TransactionMode" class="form-check-input module-checkbox" type="radio" value="Debit">
+                    <label asp-for="TransactionMode" class="form-check-label">Debit</label>
+                </div>
+                <div class="form-check form-check-inline">
+                    <input asp-for="TransactionMode" class="form-check-input module-checkbox" type="radio" value="Credit">
+                    <label asp-for="TransactionMode" class="form-check-label">Credit</label>
+                </div>
+            </div>
+            <div class="ms-auto">
+                <div class="form-check form-check-inline">
+                    <input asp-for="CheckABB" class="form-check-input module-checkbox" type="checkbox">
+                    <label asp-for="CheckABB" class="form-check-label">ABB</label>
+                </div>
+                <div class="form-check form-check-inline">
+                    <input asp-for="CheckCheque" class="form-check-input module-checkbox" type="checkbox">
+                    <label asp-for="CheckCheque" class="form-check-label">Cheque</label>
+                </div>
+                <div class="form-check form-check-inline">
+                    <input asp-for="CheckLinkModule" class="form-check-input module-checkbox" type="checkbox">
+                    <label asp-for="CheckLinkModule" class="form-check-label">Link Module</label>
+                </div>
+                <div class="form-check form-check-inline">
+                    <input asp-for="CheckTransDetails" class="form-check-input module-checkbox" type="checkbox">
+                    <label asp-for="CheckTransDetails" class="form-check-label">Trans Dts</label>
+                </div>
+                <div class="form-check form-check-inline">
+                    <input asp-for="CheckDenoms" class="form-check-input module-checkbox" type="checkbox">
+                    <label asp-for="CheckDenoms" class="form-check-label">Denoms</label>
+                </div>
+                <div class="form-check form-check-inline">
+                    <input asp-for="CheckRateDetails" class="form-check-input module-checkbox" type="checkbox">
+                    <label asp-for="CheckRateDetails" class="form-check-label">Rate Dtls</label>
+                </div>
+                <div class="form-check form-check-inline">
+                    <input asp-for="CheckDenomsTally" class="form-check-input module-checkbox" type="checkbox">
+                    <label asp-for="CheckDenomsTally" class="form-check-label">Denom Tally</label>
+                </div>
+            </div>
+        </div>
+        <!--Search Selections-->
+        <div class="row">
+            <div class="col">
+                <div class="row align-items-end g-3">
+                    <div class="col-lg-5 col-xl-3">
+                        <label asp-for="Branch" class="form-label">Branch Code</label>
+                        <select asp-for="Branch" asp-items="@Model.BranchList" class="form-select"></select>
+                    </div>
+                    <div class="col-lg-7 col-xl-4">
+                        <label asp-for="AccountNumber" class="form-label">Account Number<span class="text-danger">*</span></label>
+                        <div class="input-group">
+                            <input asp-for="AccountNumber" type="text" class="form-control" value="101-102020-0000123" maxlength="16">
+                            <button class="btn btn-primary" type="button" id="accountNumberSearch">Search</button>
+                        </div>
+                    </div>
+                    <div class="col-lg-6 col-xl-5">
+                        <input asp-for="CustomerName" type="text" class="form-control" readonly>
+                    </div>
+                    <div class="col-md-6 col-lg-6 col-xl-3">
+                        <label class="form-label">Service Id</label>
+                        <select class="form-select" readonly>
+                            <option selected="">Transaction - 1</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6 col-lg-4 col-xl-3">
+                        <label class="form-label">Module ID</label>
+                        <select class="form-select" id="serviceSelect">
+                            <option value="saving">Saving Bank - SB</option>
+                            <option value="loan">Loans</option>
+                            <option value="rem">Remittence - REM</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6 col-lg-4 col-xl-3">
+                        <label class="form-label">Acc. Type</label>
+                        <input type="text" class="form-control" value="Savings Account - 102020" readonly>
+                    </div>
+                    <div class="col-md-6 col-lg-4 col-xl-3">
+                        <label class="form-label">Eff.Date</label>
+                        <input type="date" class="form-control">
+                    </div>
+                    <div class="col-md-6 col-lg-4 col-xl-3">
+                        <label class="form-label">Amount <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control text-end" id="Risk-Category" value="0.00">
+                    </div>
+                    <div class="col-md-6 col-lg-4 col-xl-3">
+                        <button type="button" class="btn btn-primary mb-2 mb-sm-0" data-bs-toggle="modal"
+                                data-bs-target="#TDSBackdrop">
+                            TDS
+                        </button>
+                        <button type="button" class="btn btn-primary mb-2 mb-sm-0" data-bs-toggle="modal"
+                                data-bs-target="#AccDetBackdrop">
+                            AccDet
+                        </button>
+                    </div>
+                    <div class="col-lg-4 col-xl-6">
+                        <label class="form-label">Narration</label>
+                        <input type="text" class="form-control" value="Towards transfer to sb565">
+                    </div>
+                </div>
+            </div>
+            <div class="phot-sign">
+                <div class="border rounded">
+                    <div class="photo">
+                        <img src="img/placeholder-img.jpg" class="img-fluid rounded-top" />
+                    </div>
+                    <div class="sign border-top">
+                        <img src="img/placeholder-sign.jpg" class="img-fluid rounded-bottom" />
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!--Search Selections Details-->
+        <div class="card service-box mt-3" id="saving">
+            <div class="card-body">
+                <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3  row-cols-lg-4 row-cols-xl-5 g-3">
+                    <div class="col">
+                        <label class="form-label">Clear Bal</label>
+                        <div>9173.09</div>
+                    </div>
+                    <div class="col">
+                        <label class="form-label">Unclear Bal</label>
+                        <div>9173.09</div>
+                    </div>
+                    <div class="col">
+                        <label class="form-label">Acc Bal</label>
+                        <div>9173.09</div>
+                    </div>
+                    <div class="col">
+                        <label class="form-label">Oper. Instr</label>
+                        <div>Self</div>
+                    </div>
+                    <div class="col">
+                        <label class="form-label">Oper. by</label>
+                        <div>Manthena Muralikrishna</div>
+                    </div>
+                    <div class="col">
+                        <label class="form-label">Pend Bal.</label>
+                        <div>0.00</div>
+                    </div>
+                    <div class="col">
+                        <label class="form-label">Customer Id</label>
+                        <div>1010003770</div>
+                    </div>
+                    <div class="col">
+                        <label class="form-label">Limit Amt.</label>
+                        <div></div>
+                    </div>
+                    <div class="col">
+                        <label class="form-label">TotCashDr</label>
+                        <div>165000.00</div>
+                    </div>
+                    <div class="col">
+                        <label class="form-label">TotCashCr</label>
+                        <div>850000.00</div>
+                    </div>
+                    <div class="col">
+                        <label class="form-label">LmtExpDt</label>
+                        <div></div>
+                    </div>
+                    <div class="col">
+                        <label class="form-label">GSTIN</label>
+                        <div></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!--Loans Selections Details-->
+        <div class="service-box d-none mt-3" id="loan">
+            <div class="card">
+                <div class="card-body">
+                    <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3  row-cols-lg-4 row-cols-xl-5 g-3">
+                        <div class="col">
+                            <label class="form-label">Sanction Amt.</label>
+                            <div>68000.00</div>
+                        </div>
+                        <div class="col">
+                            <label class="form-label">Acc Bal</label>
+                            <div>-79982.09</div>
+                        </div>
+                        <div class="col">
+                            <label class="form-label">Disbursed Amt</label>
+                            <div>68000.00</div>
+                        </div>
+                        <div class="col">
+                            <label class="form-label">Clear Bal</label>
+                            <div>9173.09</div>
+                        </div>
+                        <div class="col">
+                            <label class="form-label">Unclear Bal</label>
+                            <div>0.00</div>
+                        </div>
+                        <div class="col">
+                            <label class="form-label">Available</label>
+                            <div>0.00</div>
+                        </div>
+                        <div class="col">
+                            <label class="form-label">Oper. by</label>
+                            <div>Manthena Muralikrishna</div>
+                        </div>
+                        <div class="col">
+                            <label class="form-label">Pend Bal.</label>
+                            <div>0.00</div>
+                        </div>
+                        <div class="col">
+                            <label class="form-label">Customer Id</label>
+                            <div>1010003770</div>
+                        </div>
+                        <div class="col">
+                            <label class="form-label">Pend Int Amt.</label>
+                            <div></div>
+                        </div>
+                        <div class="col">
+                            <label class="form-label">Inst Amt</label>
+                            <div>5962.00</div>
+                        </div>
+                        <div class="col">
+                            <label class="form-label">NoOfPndlns</label>
+                            <div>13</div>
+                        </div>
+                        <div class="col">
+                            <label class="form-label">NPA Int Amt</label>
+                            <div></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="card mt-3">
+                <div class="card-body">
+                    <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3  row-cols-lg-4 row-cols-xl-5 g-3">
+                        <div class="col">
+                            <label class="form-label">Int Pending</label>
+                            <input type="text" class="form-control">
+                        </div>
+                        <div class="col">
+                            <label class="form-label">Int Amt</label>
+                            <input type="text" class="form-control">
+                        </div>
+                        <div class="col">
+                            <label class="form-label">Chrg Pending</label>
+                            <input type="text" class="form-control">
+                        </div>
+                        <div class="col">
+                            <label class="form-label">Chrg Amt</label>
+                            <input type="text" class="form-control">
+                        </div>
+                        <div class="col">
+                            <label class="form-label">Insur Pending</label>
+                            <input type="text" class="form-control">
+                        </div>
+                        <div class="col">
+                            <label class="form-label">Insur Amt</label>
+                            <input type="text" class="form-control">
+                        </div>
+                        <div class="col">
+                            <label class="form-label">NPA Pending</label>
+                            <input type="text" class="form-control">
+                        </div>
+                        <div class="col">
+                            <label class="form-label">NPA Amt</label>
+                            <input type="text" class="form-control">
+                        </div>
+                        <div class="col">
+                            <label class="form-label">PrincPending</label>
+                            <input type="text" class="form-control">
+                        </div>
+                        <div class="col">
+                            <label class="form-label">PrincAmt</label>
+                            <input type="text" class="form-control">
+                        </div>
+                        <div class="col">
+                            <label class="form-label">Reserve</label>
+                            <input type="text" class="form-control">
+                        </div>
+                        <div class="col">
+                            <label class="form-label">Exc Amt</label>
+                            <input type="text" class="form-control">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!--Remittence Selections Details-->
+        <div class="card service-box d-none mt-3" id="rem">
+            <div class="card-body">
+                <div class="row align-items-end g-3">
+                    <div class="col-sm-6 col-lg-3 col-xl-2">
+                        <label class="form-label">Issued on Bank</label>
+                        <select class="form-select">
+                            <option selected="">101 - The Maharaja Coop</option>
+                        </select>
+                    </div>
+                    <div class="col-sm-6 col-lg-3 col-xl-2">
+                        <label for="Cust-Type" class="form-label">Issued on Branch</label>
+                        <select class="form-select">
+                            <option selected="">101 - Dwarakanagar</option>
+                        </select>
+                    </div>
+                    <div class="col-sm-6 col-md-4 col-lg-3 col-xl-2">
+                        <label class="form-label">Favouring.</label>
+                        <input type="text" class="form-control">
+                    </div>
+                    <div class="col-sm-6 col-md-4 col-lg-3 col-xl-2">
+                        <label class="form-label">Comm.</label>
+                        <input type="text" class="form-control">
+                    </div>
+                    <div class="col-sm-6 col-md-4 col-lg-3 col-xl-2">
+                        <label class="form-label">Rec. Nam</label>
+                        <select class="form-select">
+                            <option selected="">Select</option>
+                        </select>
+                    </div>
+                    <div class="col-sm-6 col-md-4 col-lg-3 col-xl-2">
+                        <label class="form-label">GST</label>
+                        <input type="text" class="form-control">
+                    </div>
+                    <div class="col-sm-6 col-md-4 col-lg-3 col-xl-2">
+                        <label class="form-label">CESS</label>
+                        <input type="text" class="form-control">
+                    </div>
+                    <div class="col-sm-6 col-md-4 col-lg-3 col-xl-2">
+                        <label class="form-label">Pan No</label>
+                        <input type="text" class="form-control">
+                    </div>
+                    <div class="col-sm-6 col-md-4 col-lg-3 col-xl-2">
+                        <label class="form-label">Mobile</label>
+                        <input type="text" class="form-control">
+                    </div>
+                    <div class="col-sm-6 col-md-8 col-lg-3 col-xl-2">
+                        <label class="form-label">Address1</label>
+                        <input type="text" class="form-control">
+                    </div>
+                    <div class="col-sm-6 col-lg-3 col-xl-2">
+                        <label class="form-label">Addr.2</label>
+                        <input type="text" class="form-control">
+                    </div>
+                    <div class="col-sm-6 col-lg-3 col-xl-2">
+                        <label class="form-label">Addr.3</label>
+                        <input type="text" class="form-control">
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!--Cheque Details-->
+        <div id="cheque" class="card d-none mt-3">
+            <div class="card-body">
+                <p class="card-title fw-bold">
+                    <h5>Cheque Details</h5>
+                    <div class="row g-3">
+                        <div class="col-sm-6 col-md-3">
+                            <label class="form-label">Check</label>
+                            <select class="form-select" readonly="">
+                                <option selected="">Select</option>
+                            </select>
+                        </div>
+                        <div class="col-sm-6 col-md-3">
+                            <label class="form-label">Chq. No</label>
+                            <input type="text" class="form-control">
+                        </div>
+                        <div class="col-sm-6 col-md-3">
+                            <label class="form-label">Chq. Dt</label>
+                            <input type="date" class="form-control">
+                        </div>
+                        <div class="col-sm-6 col-md-3">
+                            <label class="form-label">Chq. Fvg</label>
+                            <input type="text" class="form-control">
+                        </div>
+                    </div>
+            </div>
+        </div>
+        <div class="pt-3 text-center">
+            <a href="#" target="_self" class="btn btn-primary mb-2">Ok</a>
+            <a href="#" target="_self" class="btn btn-primary mb-2">Clear</a>
+        </div>
+        <!--Batch Details-->
+        <div class="card mt-2">
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-bordered">
+                        <thead>
+                            <tr>
+                                <th>Batch No</th>
+                                <th>Tran No</th>
+                                <th>GL Code</th>
+                                <th>GL Description</th>
+                                <th>Acc No</th>
+                                <th>Name</th>
+                                <th>Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="row align-items-end justify-content-md-center g-3">
+                    <div class="col-sm-6 col-md-3 col-lg-2">
+                        <label class="form-label">Dr. Transactions</label>
+                        <input type="text" class="form-control text-danger text-end" value="0.00" readonly>
+                    </div>
+                    <div class="col-sm-6 col-md-3 col-lg-2">
+                        <label class="form-label">Cr. Transactions</label>
+                        <input type="text" class="form-control text-end" value="0.00" readonly>
+                    </div>
+                    <div class="col-md-3 col-lg-4">
+                        <label class="form-label">Total</label>
+                        <div class="d-flex align-items-center">
+                            <div class="flex-grow-1 me-1">
+                                <input type="text" class="form-control text-end" value="0.00" readonly>
+                            </div>
+                            <div class="flex-grow-1 ms-1">
+                                <input type="text" class="form-control text-end" value="0.00" readonly>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-6 col-md-3 col-lg-2">
+                        <label class="form-label">Difference</label>
+                        <input type="text" class="form-control text-end" value="0.00" readonly>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="text-center pt-4">
+            <a href="#" target="_self" class="btn btn-primary mb-2">Post</a>
+            <a href="#" target="_self" class="btn btn-primary mb-2">Modify</a>
+            <a href="#" target="_self" class="btn btn-primary mb-2">Delete</a>
+            <a href="#" target="_self" class="btn btn-primary mb-2">Cancel</a>
+            <a href="#" target="_self" class="btn btn-primary mb-2">Exit</a>
+        </div>
+    </div>
+</div>

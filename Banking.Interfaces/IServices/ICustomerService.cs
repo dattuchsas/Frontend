@@ -9,5 +9,6 @@ namespace Banking.Interfaces
         Task<CustomerModel> NewCustomer(ISession session, string custId = "");
         Task<string> SaveCustomer(ISession session, CustomerModel customerModel, List<KYC> kycDocuments, string status);
         Task<string> GetCustomerListByName(string name);
+        Task<string> GetMemberNameById(string memberId);
     }
 }

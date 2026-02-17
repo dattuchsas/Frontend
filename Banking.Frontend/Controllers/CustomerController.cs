@@ -1,22 +1,13 @@
-﻿using Banking.Interfaces;
-using Banking.Models;
-using Banking.Services;
+﻿using Banking.Models;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Banking.Frontend.Controllers
 {
     public class CustomerController : BaseController
     {
-        private readonly ILogger<LoginController> _logger;
-        private ICustomerService _customerService;
-
-        private ISession session => HttpContext.Session;
-
-        public CustomerController(ILogger<LoginController> logger, IConfiguration configuration,
-            IHttpContextAccessor httpContextAccessor) : base(configuration, httpContextAccessor)
+        public CustomerController(IConfiguration configuration, IHttpContextAccessor httpContextAccessor) 
+            : base(configuration, httpContextAccessor)
         {
-            _logger = logger;
-            _customerService = new CustomerService(_options);
         }
 
         public async Task<IActionResult> Index(string custId = "")
@@ -44,6 +35,11 @@ namespace Banking.Frontend.Controllers
         public async Task<string> GetCustomerListByName(string customerName)
         {
             return await _customerService.GetCustomerListByName(customerName);
+        }
+
+        public async Task<string> GetMemberNameById(string memberId)
+        {
+            return await _customerService.GetMemberNameById(memberId);
         }
     }
 }

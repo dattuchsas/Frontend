@@ -1,19 +1,11 @@
 is_global = true
 build_property.TargetFramework = net8.0
-build_property.TargetFramework = net8.0
-build_property.TargetPlatformMinVersion = 
 build_property.TargetPlatformMinVersion = 
 build_property.UsingMicrosoftNETSdkWeb = true
-build_property.UsingMicrosoftNETSdkWeb = true
-build_property.ProjectTypeGuids = 
 build_property.ProjectTypeGuids = 
 build_property.InvariantGlobalization = 
-build_property.InvariantGlobalization = 
-build_property.PlatformNeutralAssembly = 
 build_property.PlatformNeutralAssembly = 
 build_property.EnforceExtendedAnalyzerRules = 
-build_property.EnforceExtendedAnalyzerRules = 
-build_property._SupportedPlatformList = Linux,macOS,Windows
 build_property._SupportedPlatformList = Linux,macOS,Windows
 build_property.RootNamespace = Banking.Frontend
 build_property.RootNamespace = Banking.Frontend
@@ -32,6 +24,10 @@ build_property.EnableCodeStyleSeverity =
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQ3VzdG9tZXJcSW5kZXguY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
+[K:/Banking/Github/Banking.Frontend/Frontend/Banking.Frontend/Views/Customer/NewCustomer.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQ3VzdG9tZXJcTmV3Q3VzdG9tZXIuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
 [K:/Banking/Github/Banking.Frontend/Frontend/Banking.Frontend/Views/Dashboard/Index.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRGFzaGJvYXJkXEluZGV4LmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
@@ -40,8 +36,12 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcTG9naW5cSW5kZXguY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[K:/Banking/Github/Banking.Frontend/Frontend/Banking.Frontend/Views/Login/IndexOld.cshtml]
-build_metadata.AdditionalFiles.TargetPath = Vmlld3NcTG9naW5cSW5kZXhPbGQuY3NodG1s
+[K:/Banking/Github/Banking.Frontend/Frontend/Banking.Frontend/Views/Popups/SearchTerroristList.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcUG9wdXBzXFNlYXJjaFRlcnJvcmlzdExpc3QuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[K:/Banking/Github/Banking.Frontend/Frontend/Banking.Frontend/Views/Shared/Components/Menu/Default.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2hhcmVkXENvbXBvbmVudHNcTWVudVxEZWZhdWx0LmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
 [K:/Banking/Github/Banking.Frontend/Frontend/Banking.Frontend/Views/Shared/Error.cshtml]
@@ -67,7 +67,3 @@ build_metadata.AdditionalFiles.CssScope = b-z70whob1iw
 [K:/Banking/Github/Banking.Frontend/Frontend/Banking.Frontend/Views/Shared/_LoginLayout.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2hhcmVkXF9Mb2dpbkxheW91dC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = b-r2duws8qvw
-
-[K:/Banking/Github/Banking.Frontend/Frontend/Banking.Frontend/Views/Shared/_ModuleLayout.cshtml]
-build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2hhcmVkXF9Nb2R1bGVMYXlvdXQuY3NodG1s
-build_metadata.AdditionalFiles.CssScope = b-zyuilvwvch
