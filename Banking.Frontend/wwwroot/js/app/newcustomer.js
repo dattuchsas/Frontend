@@ -107,13 +107,26 @@ $(document).ready(function () {
   });
 
   $("#MembershipNumber").on('blur', function () {
+    debugger;
     if ($("#MemberId").is(':checked') == true && $(this).val() == "") {
       bankingAlert("Please enter the Member Id.");
       return;
     }
-    else {
-        // window.document.all['iBatch'].src = "Customerfly.aspx?st=" + $(this).val() + "|Member";
-    }
+    var st = $("#MembershipNumber").val() + "|Member";
+    $.ajax({
+      url: '/Customer/GetMemberNameById?memberId=' + encodeURIComponent(st),
+      type: 'GET',
+      success: function (response) {
+        debugger;
+        var result = response.split('|');
+        if (result[1] != "")
+          bankingAlert("Member Name: " + result[1]);
+        //$("#MembershipNumber").val();
+      },
+      error: function (err) {
+        console.log(err);
+      }
+    });
   });
 
   $("#Age").on('blur', function () {
@@ -228,8 +241,41 @@ function DisplayDate() {
 }
 
 function IsMinor() {
-  st = $("#Personal_DOB").val() + "|" + "txtDob";
-  // window.document.all['iBatch'].src = '<%="http://" & session("moduledir")& "/GEN/"%>' + "datecheck.aspx?strVal=" + st
+  var st = $("#Personal_DOB").val() + "|" + "txtDob";
+
+  $.ajax({
+    url: '/GetDetails/GetDateDifference?searchString=' + encodeURIComponent(st),
+    type: 'GET',
+    success: function (response) {
+      debugger;
+      var result = response.Split('~');
+        if (eval(result[0]) >= 0) {
+          bankingAlert("DOB should Be Less Than Application Date..")
+          $("#").val();
+          $('#Personal_Minor').prop('checked', false);
+          return;
+      }
+      if ($('#Personal_Minor').is('checked') == true) {
+          if ((eval(result[1]) / 365) > 18) {
+            $('#Personal_Minor').prop('checked', false);
+            return;
+          }
+        }
+        else {
+          if ((eval(result[1]) / 365) > 18) {
+            $('#Personal_Minor').prop('checked', false);
+            return;
+          }
+          else {
+            $('#Personal_Minor').prop('checked', false);
+            return;
+          }
+        }
+    },
+    error: function (err) {
+      console.log(err);
+    }
+  });
 }
 
 function IsSenior() {
@@ -242,12 +288,12 @@ function IsSenior() {
 }
 
 function DisplayDOBDate() {
-  var dtval = $("#Personal_DOB").val()
+  var dtval = $("#Personal_DOB").val();
   if (dtval == "") { return false; }
   var appdate = $("#ApplicationDate").val();
   if (eval(dtval.length) != 11) {
     formatDate($("#Personal_DOB").val(), appdate);
-    dtval = $("#Personal_DOB").val()
+    dtval = $("#Personal_DOB").val();
     if (dtval == "") {
       $("#Age").val('');
       $("#Personal_Minor").val('checked');
@@ -256,7 +302,7 @@ function DisplayDOBDate() {
   }
   var yrval1 = dtval.substring(7);
   var yrval2 = appdate.substring(7);
-  var yr = yrval2 - yrval1
+  var yr = yrval2 - yrval1;
   if (yr > 0) {
     $("#Personal_DOB").val(yr);
     IsMinor();
@@ -362,32 +408,22 @@ function GetType() {
   window.showModalDialog('<%="http://" & session("moduledir")& "/GEN/"%>' + "ListCustomer.aspx" + "?" + "st=" + st, window, "status:no;dialogwidth:350px;dialogheight:170px; dialogleft:200px; dialogtop:260px")
 }
 
+function GetMemberName() {
+  debugger;
+}
 
+function Onsearch() {
+  var stname1 = window.document.frmNewCustomer.txtName.value;
+  if (stname1 == "") {
+    alert("Please enter the name");
+    window.document.frmNewCustomer.txtName.focus();
+    return;
+  }
+  else {
+    window.open('<%="http://" & session("moduledir")& "/customer/"%>' + "frmSearchTerroristList.aspx?txtCustName=" + stname1, "terrorist", "width=500%,height=600%,left=150,top=120");
+  }
+}
 
-//function GetDateDif(str, str1, str2) {
-//  if (eval(str) >= 0) {
-//    bankingAlert("DOB should Be Less Than Application Date..")
-//    window.document.frmNewCustomer.txtDob.value = ""
-//    window.document.frmNewCustomer.chkMinor.checked = false
-//    return
-//  }
-//  if (window.document.frmNewCustomer.chkMinor.checked == true) {
-//    if ((eval(str2) / 365) > 18) {
-//      window.document.frmNewCustomer.chkMinor.checked = false
-//      return
-//    }
-//  }
-//  else {
-//    if ((eval(str2) / 365) > 18) {
-//      window.document.frmNewCustomer.chkMinor.checked = false
-//      return
-//    }
-//    else {
-//      window.document.frmNewCustomer.chkMinor.checked = true
-//      return
-//    }
-//  }
-//}
 
 //function dispOccCode(str) {
 //  if (str != "No Data Found..") {

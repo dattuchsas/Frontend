@@ -33,6 +33,11 @@ namespace Banking.Framework
         {
             return DateTime.ParseExact(ToString(str), "dd-MMM-yyyy", CultureInfo.InvariantCulture);
         }
+
+        public static int ToInt(this object? str)
+        {
+            return Convert.ToInt32(str);
+        }
     }
 
     public static class BankingExtensions

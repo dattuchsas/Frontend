@@ -1,19 +1,13 @@
-﻿using Banking.Interfaces;
-using Banking.Services;
+﻿using Banking.Framework;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Banking.Frontend.Controllers
 {
     public class GetDetailsController : BaseController
     {
-        private readonly ILogger<LoginController> _logger;
-        private IGetDetailsService _getDetailsService;
-
-        public GetDetailsController(ILogger<LoginController> logger, IConfiguration configuration,
-            IHttpContextAccessor httpContextAccessor) : base(configuration, httpContextAccessor)
+        public GetDetailsController(IConfiguration configuration, IHttpContextAccessor httpContextAccessor) 
+            : base(configuration, httpContextAccessor)
         {
-            _logger = logger;
-            _getDetailsService = new GetDetailsService(_options);
         }
 
         [HttpGet]
@@ -51,9 +45,33 @@ namespace Banking.Frontend.Controllers
         {
             string search = searchString.Split("|")[1];
 
-            var result = await _getDetailsService.SearchCustomer(search);
+            var result = await _getDetailsService.PANDefuctInfo(search);
 
             return Content(result, "text/plain");
+        }
+
+        public string GetDateDifference(string searchString)
+        {
+            string[] str = searchString.Split('|');
+
+            if (str.Length - 1 > 0)
+            {
+                if (str[0] == "txtChkDate")
+                {
+                    int diff = BankingExtensions.DateDifference("d", str[2], str[1]);
+                    // dateDifferenceModel.Str1 = str[0];
+                    return string.Concat(diff, "~");
+                }
+                else
+                {
+                    int diff = BankingExtensions.DateDifference("d", session.GetString(SessionConstants.ApplicationDate), str[0]);
+                    int diff1 = BankingExtensions.DateDifference("y", str[0], session.GetString(SessionConstants.ApplicationDate));
+                    // dateDifferenceModel.Str1 = str[1];
+                    return string.Concat(diff, "~", diff1);
+                }
+            }
+
+            return string.Empty;
         }
     }
 }

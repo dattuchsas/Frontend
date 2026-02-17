@@ -1,34 +1,72 @@
 ﻿using Banking.Framework;
-using Banking.Interfaces;
 using Banking.Models;
-using Banking.Services;
 using Microsoft.AspNetCore.Mvc;
 using System.Data;
+using System.Reflection;
 
 namespace Banking.Frontend.Controllers
 {
     public class DashboardController : BaseController
     {
-        private readonly ILogger<DashboardController> _logger;
-        private IDashboardService _dashboardService;
-
-        private ISession session => HttpContext.Session;
-
-        public DashboardController(ILogger<DashboardController> logger, IConfiguration configuration,
-            IHttpContextAccessor httpContextAccessor) : base(configuration, httpContextAccessor)
+        public DashboardController(IConfiguration configuration, IHttpContextAccessor httpContextAccessor) 
+            : base(configuration, httpContextAccessor)
         {
-            _dashboardService = new DashboardService(_options);
-            _logger = logger;
         }
 
-        public IActionResult Index()
+        public async Task<IActionResult> Index(string moduleId = "")
+        {
+            DataTable recmod = null!;
+            string vmod = string.Empty, strQuery, appDate;
+
+            string[] vmodx = moduleId.Split("~", StringSplitOptions.RemoveEmptyEntries);
+
+            if ((vmodx.Length - 1) > 0)
+            {
+                vmod = vmodx[0];
+                session.SetString(SessionConstants.SelectedModule, vmod);
+                session.SetString("moddir", vmodx[1]);
+            }
+
+            string usrid = session.GetString(SessionConstants.UserId) ?? string.Empty;
+            string serverId = session.GetString(SessionConstants.ServerId) ?? string.Empty;
+
+            serverId = serverId.Equals("120.0.0.1") || serverId.Equals("::1") ? "localhost" : serverId;
+
+            DataTable recdtls = await _dashboardService.ProcessSingleRecordRequest(TableNames.ServerVirtualDirDtls,
+                                "machinename,virtualdir", "upper(trim(machinename))='" + serverId + "'");
+
+            string strHOTrALWBrCode = await _dashboardService.GetHOTRALWBrCode();
+
+            if (vmod.Equals("PAYROLL"))
+            {
+                strQuery = "SELECT USERID FROM GENUSERMST WHERE BRANCHCODE = '" + strHOTrALWBrCode + "' AND GROUPID = 'ADMIN' AND USERID = '" + usrid + "'";
+
+                DataTable rsAuto = await _dashboardService.GetUserId(strQuery);
+
+                if (rsAuto.Rows.Count == 0)
+                {
+                    var d = recdtls.Rows[0].ItemArray[0];
+                    var d1 = recdtls.Rows[0].ItemArray[1];
+
+                    // Response.Redirect("http://" + d + "/" + d1 + "/modulescr.aspx?record10=" + "Not Allowed To Open This Payroll Module Contact Head Office");
+                }
+
+                BankingExtensions.ReleaseMemory(rsAuto);
+            }
+
+            session.SetString(SessionConstants.SelectedModule, vmod.Trim());
+
+            return View();
+        }
+
+        public IActionResult UserModules()
         {
             string appdate = "";
             var model = new DashboardModel();
 
             var queryString = HttpContext.Session.GetString(SessionConstants.QueryString);
 
-            if (string.IsNullOrWhiteSpace(queryString) || queryString.Equals("record=$"))
+            if (string.IsNullOrWhiteSpace(queryString) || queryString.Equals("modules=$"))
             {
                 model.AssignedModules = [];
                 model.ErrorMessage = "No modules assigned. Please contact administrator.";
@@ -66,7 +104,7 @@ namespace Banking.Frontend.Controllers
 
                     if (moduleShortName[1].Equals("F"))
                     {
-                        string form = moduleShortName[0] + "~" + (BankingExtensions.GetModuleRoute.ContainsKey(moduleShortName[0]) ? 
+                        string form = moduleShortName[0] + "~" + (BankingExtensions.GetModuleRoute.ContainsKey(moduleShortName[0]) ?
                             BankingExtensions.GetModuleRoute[moduleShortName[0]] : string.Empty);
 
                         strMod = string.Concat(strMod, moduleShortName[0], "|");
@@ -101,8 +139,10 @@ namespace Banking.Frontend.Controllers
             string usrid = session.GetString(SessionConstants.UserId) ?? string.Empty;
             string serverId = session.GetString(SessionConstants.ServerId) ?? string.Empty;
 
+            serverId = serverId.Equals("120.0.0.1") || serverId.Equals("::1") ? "localhost" : serverId;
+
             DataTable recdtls = await _dashboardService.ProcessSingleRecordRequest(TableNames.ServerVirtualDirDtls,
-                "machinename,virtualdir", "upper(trim(machinename))='" + serverId.ToUpper() + "'");
+                "machinename,virtualdir", "upper(trim(machinename))='" + serverId + "'");
 
             if (recdtls.Rows.Count > 0)
             {
@@ -131,6 +171,7 @@ namespace Banking.Frontend.Controllers
                 {
                     var d = recdtls.Rows[0].ItemArray[0];
                     var d1 = recdtls.Rows[0].ItemArray[1];
+
                     // Response.Redirect("http://" + d + "/" + d1 + "/modulescr.aspx?record10=" + "Not Allowed To Open This Payroll Module Contact Head Office");
                 }
 
@@ -141,10 +182,10 @@ namespace Banking.Frontend.Controllers
             // session("servername") = Request.ServerVariables("SERVER_NAME")
 
             string valStr = ",";
+            valStr = valStr.Substring(1);
 
             appDate = Convert.ToDateTime(session.GetString(SessionConstants.ApplicationDate)).ToShortDateString();
 
-            valStr = valStr.Substring(1);
             string brcode = session.GetString(SessionConstants.BranchCode) ?? string.Empty;
 
             DataTable recdaybeg = null!;

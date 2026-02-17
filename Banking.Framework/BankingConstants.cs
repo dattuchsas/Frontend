@@ -7,12 +7,21 @@
         public const string Customer = "Customer";
         public const string User = "User";
         public const string GetDetails = "GetDetails";
+        public const string TransferTransaction = "TransferTransaction";
     }
 
     public class ActionNames
     {
         public const string Index = "Index";
+        public const string UserModules = "UserModules";
+        public const string SelectedModule = "SelectedModule";
         public const string New = "New";
+    }
+
+    public class TransactionModes
+    {
+        public const string Debit = "Debit";
+        public const string Credit = "Credit";
     }
 
     public class SessionConstants

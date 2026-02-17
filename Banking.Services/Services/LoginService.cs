@@ -915,8 +915,8 @@ namespace Banking.Services
                                         return new RedirectModel()
                                         {
                                             ControllerName = ControllerNames.Dashboard,
-                                            ActionName = ActionNames.Index,
-                                            keyValuePairs = new Dictionary<string, string> { { "record", stx } }
+                                            ActionName = ActionNames.UserModules,
+                                            keyValuePairs = new Dictionary<string, string> { { "modules", stx } }
                                         };
                                         // return commDict.AddAndReturn(BankingConstants.Screen_Dashboard, stx);
                                     }
@@ -1035,8 +1035,8 @@ namespace Banking.Services
                         return new RedirectModel()
                         {
                             ControllerName = ControllerNames.Dashboard,
-                            ActionName = ActionNames.Index,
-                            keyValuePairs = new Dictionary<string, string> { { "record", stx } }
+                            ActionName = ActionNames.UserModules,
+                            keyValuePairs = new Dictionary<string, string> { { "modules", stx } }
                         };
                     }
                 }

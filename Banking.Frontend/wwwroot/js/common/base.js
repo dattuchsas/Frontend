@@ -2,7 +2,6 @@
 /************* Basic Fields Validations *************/
 
 function ValidateEmail(emailField) {
-  debugger;
   if (emailField.value != "") {
     var reg = /^([A-Za-z0-9_\-\.])+\@([A-Za-z0-9_\-\.])+\.([A-Za-z]{2,4})$/;
     if (reg.test(emailField) == false) {
@@ -16,7 +15,6 @@ function ValidateEmail(emailField) {
 }
 
 function ValidateGSTIN(gstField) {
-  debugger;
   if (gstField != "") {
     if (eval(gstField.length) != 15) {
       bankingAlert("Enter Valid GST IN");
@@ -27,7 +25,6 @@ function ValidateGSTIN(gstField) {
 }
 
 function ValidateCKYCID(ckycField) {
-  debugger;
   if (ckycField != "") {
     if (eval(ckycField.length) != 14) {
       bankingAlert("Enter Valid CKYCID");
@@ -38,7 +35,6 @@ function ValidateCKYCID(ckycField) {
 }
 
 function ValidateAadhaar(aadhaarNumber, branchCode) {
-  debugger;
   if (aadhaarNumber == "") {
     bankingAlert("Enter Valid Aadhaar Id");
     if (eval(aadhaarNumber.length) != 12) {
@@ -104,30 +100,13 @@ function ValidatePANNumber(panNumber, branchCode) {
 }
 
 
-/************* Ajax Calls *************/
-
-function AjaxGetPromise(url) {
-  return new Promise((resolve, reject) => {
-    $.ajax({
-      url: url,
-      type: 'GET',
-      success: resolve,
-      error: reject
-    });
-  });
-}
-
-async function FetchData(url) {
-  try {
-    const response = await AjaxGetPromise(url);
-    console.log(response); // now response has the data
-  } catch (err) {
-    console.error(err);
-  }
-}
-
-
 /************* Others *************/
+
+function CalculateAgeByDOB() {
+}
+
+function CalculateDOBByAge() {
+}
 
 function DateCheck(obj) {
   var dt, arrDt;
@@ -362,19 +341,18 @@ function changeMonth(str) {
 }
 
 function bankingAlert(response) {
-  debugger;
   $("#mandatoryFieldsAlert").text(response);
   $("#mandatoryFieldsAlert").removeClass('d-none');
 }
 
 function bankingModal(response) {
-  debugger;
   $("#errorMessage").text(response);
   $("#errorModal").modal('show');
 }
 
 
 /******************* Idle Timeout Logic ******************/
+
 function resetIdleTimer() {
   idleSeconds = 0;
   $('#idleModal').modal('hide');
@@ -420,4 +398,27 @@ function keepAlive() {
 function logoutUser() {
   window.location.href = '/Login/Logout';
   window.close();
+}
+
+
+/************* Ajax Calls *************/
+
+function AjaxGetPromise(url) {
+  return new Promise((resolve, reject) => {
+    $.ajax({
+      url: url,
+      type: 'GET',
+      success: resolve,
+      error: reject
+    });
+  });
+}
+
+async function FetchData(url) {
+  try {
+    const response = await AjaxGetPromise(url);
+    console.log(response); // now response has the data
+  } catch (err) {
+    console.error(err);
+  }
 }

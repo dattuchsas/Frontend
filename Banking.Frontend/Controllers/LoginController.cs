@@ -1,7 +1,5 @@
 ﻿using Banking.Framework;
-using Banking.Interfaces;
 using Banking.Models;
-using Banking.Services;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Mvc;
@@ -11,14 +9,9 @@ namespace Banking.Frontend.Controllers
 {
     public class LoginController : BaseController
     {
-        private readonly ILogger<LoginController> _logger;
-        private ILoginService _loginService;
-
-        public LoginController(ILogger<LoginController> logger, IConfiguration configuration, 
-            IHttpContextAccessor httpContextAccessor) : base(configuration, httpContextAccessor)
+        public LoginController(IConfiguration configuration, IHttpContextAccessor httpContextAccessor) 
+            : base(configuration, httpContextAccessor)
         {
-            _logger = logger;
-            _loginService = new LoginService(_options);
         }
 
         /// <summary>
@@ -28,7 +21,6 @@ namespace Banking.Frontend.Controllers
         public ActionResult Index()
         {
             var loginModel = new LoginModel();
-            _logger.LogInformation("Login Page");
             ViewData["Title"] = "Login Page";
             return View(loginModel);
         }

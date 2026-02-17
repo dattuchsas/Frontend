@@ -53,6 +53,17 @@ namespace Banking.Services
             return customerModel;
         }
 
+        public async Task<string> GetMemberNameById(string memberId)
+        {
+            DataTable rsMem = await _databaseFactory.SingleRecordSet("sharesmst", "NAME", "ACCNO='" + memberId.Split("|")[0] +
+                "' AND glcode='101010' AND status='R' ");
+
+            if (rsMem.Rows.Count > 0)
+                return "MemberName" + "|" + rsMem.Rows[0].ItemArray[0];
+            else
+                return "MemberName|Norecords";
+        }
+
         private async Task<CustomerModel> GetDetails(string custid, CustomerModel customerModel)
         {
             string mainstr = string.Empty, memberId = string.Empty;
@@ -64,148 +75,135 @@ namespace Banking.Services
 
             DataTable rs = null!;
 
-            if (arr[1] == "Member")
+            if (custid.Length > 0)
             {
-                DataTable rsMem = await _databaseFactory.SingleRecordSet("sharesmst", "NAME", "ACCNO='" + custid.Split("|")[0] +
-                    "' AND glcode='101010' AND status='R' ");
+                string[] k = custid.Split("|");
 
-                if (rsMem.Rows.Count > 0)
-                    mainstr = "MemberName" + "|" + rsMem.Rows[0].ItemArray[0];
-                else
-                    mainstr = "MemberName|Norecords";
-            }
-            else
-            {
-                if (custid.Length > 0)
+                if (k.Length - 1 > 0)
                 {
-                    string[] k = custid.Split("|");
+                    string listfields = "name,panno,customertype,custmembershipno,to_char(custdob,'dd-Mon-yyyy'),custemail,custfax,custmobile,custminoryn," +
+                        "custmaritalstatus,custsex,custoccupation,custqualification,custmonthlyincome,phone1,phone2,phone3,mailaddress1,mailaddress2," +
+                        "mailaddress3,mailaddress4,mailaddress5,pmtaddress1,pmtaddress2,pmtaddress3,pmtaddress4,pmtaddress5,offaddress1,offaddress2," +
+                        "offaddress3,offaddress4,offaddress5,fathername,riskcategory,AADHARUID,SALUTATIONID, RELATIONID, RELIGIONID, KYCID,GSTIN, CKYCID," +
+                        "smsyn,mobaccessyn,PAN206AAYN, PAN206ABYN";
 
-                    if (k.Length - 1 > 0)
+                    rs = await _databaseFactory.SingleRecordSet("Gencustinfomst", listfields, "customerid='" + k[0] + "' " + k[2] + "");
+
+                    if (rs.Rows.Count > 0)
                     {
-                        string listfields = "name,panno,customertype,custmembershipno,to_char(custdob,'dd-Mon-yyyy'),custemail,custfax,custmobile,custminoryn," +
-                            "custmaritalstatus,custsex,custoccupation,custqualification,custmonthlyincome,phone1,phone2,phone3,mailaddress1,mailaddress2," +
-                            "mailaddress3,mailaddress4,mailaddress5,pmtaddress1,pmtaddress2,pmtaddress3,pmtaddress4,pmtaddress5,offaddress1,offaddress2," +
-                            "offaddress3,offaddress4,offaddress5,fathername,riskcategory,AADHARUID,SALUTATIONID, RELATIONID, RELIGIONID, KYCID,GSTIN, CKYCID," +
-                            "smsyn,mobaccessyn,PAN206AAYN, PAN206ABYN";
+                        customerModel.Salutation = Conversions.ToString(rs.Rows[0].ItemArray[35]);
+                        customerModel.CustomerName = Conversions.ToString(rs.Rows[0].ItemArray[0]);
+                        customerModel.CustomerType = Conversions.ToString(rs.Rows[0].ItemArray[2]);
+                        customerModel.MemberId = string.IsNullOrWhiteSpace(Conversions.ToString(rs.Rows[0].ItemArray[3])) ? false : true;
+                        customerModel.MembershipNumber = Conversions.ToString(rs.Rows[0].ItemArray[3]);
+                        customerModel.RiskCategory = Conversions.ToString(rs.Rows[0].ItemArray[33]);
+                        customerModel.SMS_YesNo = Conversions.ToString(rs.Rows[0].ItemArray[41]).Equals("Y") ? true : false;
+                        customerModel.MobileAccess_YesNo = Conversions.ToString(rs.Rows[0].ItemArray[42]).Equals("Y") ? true : false;
 
-                        rs = await _databaseFactory.SingleRecordSet("Gencustinfomst", listfields, "customerid='" + k[0] + "' " + k[2] + "");
+                        customerModel.Personal_Relation = Conversions.ToString(rs.Rows[0].ItemArray[36]);
+                        customerModel.Personal_RelationName = Conversions.ToString(rs.Rows[0].ItemArray[32]);
+                        customerModel.Personal_MaritalStatus = Conversions.ToString(rs.Rows[0].ItemArray[9]);
+                        customerModel.Personal_Gender = Conversions.ToString(rs.Rows[0].ItemArray[10]);
+                        customerModel.Personal_DOB = Conversions.ToDateTime(rs.Rows[0].ItemArray[4]);
+                        customerModel.Personal_Minor = Conversions.ToString(rs.Rows[0].ItemArray[8]).Equals("Y") ? true : false;
+                        customerModel.Personal_Religion = Conversions.ToString(rs.Rows[0].ItemArray[37]);
+                        customerModel.Personal_Mobile = Conversions.ToString(rs.Rows[0].ItemArray[7]);
+                        customerModel.Personal_PANNo = Conversions.ToString(rs.Rows[0].ItemArray[1]);
+                        customerModel.Personal_PANAAYN = Conversions.ToString(rs.Rows[0].ItemArray[43]).Equals("Y") ? true : false;
+                        customerModel.Personal_PANABYN = Conversions.ToString(rs.Rows[0].ItemArray[44]).Equals("Y") ? true : false;
+                        customerModel.Personal_Email = Conversions.ToString(rs.Rows[0].ItemArray[5]);
+                        customerModel.Personal_Aadhaar = Conversions.ToString(rs.Rows[0].ItemArray[34]);
+                        customerModel.Personal_CKYCID = Conversions.ToString(rs.Rows[0].ItemArray[40]);
+                        customerModel.Personal_GSTIN = Conversions.ToString(rs.Rows[0].ItemArray[39]);
 
-                        if (rs.Rows.Count > 0)
+                        customerModel.Mailing_FlatNo = Conversions.ToString(rs.Rows[0].ItemArray[17]);
+                        customerModel.Mailing_Building = Conversions.ToString(rs.Rows[0].ItemArray[18]);
+                        customerModel.Mailing_Area = Conversions.ToString(rs.Rows[0].ItemArray[19]);
+                        customerModel.Mailing_City = Conversions.ToString(rs.Rows[0].ItemArray[20]);
+                        customerModel.Mailing_Pincode = Conversions.ToString(rs.Rows[0].ItemArray[21]);
+                        customerModel.Mailing_Phone = Conversions.ToString(rs.Rows[0].ItemArray[14]);
+
+                        customerModel.Permanent_FlatNo = Conversions.ToString(rs.Rows[0].ItemArray[22]);
+                        customerModel.Permanent_Building = Conversions.ToString(rs.Rows[0].ItemArray[23]);
+                        customerModel.Permanent_Area = Conversions.ToString(rs.Rows[0].ItemArray[24]);
+                        customerModel.Permanent_City = Conversions.ToString(rs.Rows[0].ItemArray[25]);
+                        customerModel.Permanent_Pincode = Conversions.ToString(rs.Rows[0].ItemArray[26]);
+                        customerModel.Permanent_Phone = Conversions.ToString(rs.Rows[0].ItemArray[15]);
+
+                        customerModel.Office_Company = Conversions.ToString(rs.Rows[0].ItemArray[27]);
+                        customerModel.Office_Building = Conversions.ToString(rs.Rows[0].ItemArray[28]);
+                        customerModel.Office_Area = Conversions.ToString(rs.Rows[0].ItemArray[29]);
+                        customerModel.Office_City = Conversions.ToString(rs.Rows[0].ItemArray[30]);
+                        customerModel.Office_Pincode = Conversions.ToString(rs.Rows[0].ItemArray[31]);
+                        customerModel.Office_Phone = Conversions.ToString(rs.Rows[0].ItemArray[16]);
+
+                        // Process KYC List
+                        customerModel.KYCType = Conversions.ToString(rs.Rows[0].ItemArray[38]);
+                        string strsql1 = "SELECT d.KYCID,m.DESCRIPTION,d.DESCRIPTION FROM GENCUSTKYCDTLS d, GENKYCMST m WHERE d.KYCID = m.CODE AND d.CUSTOMERID= '" +
+                            k[0] + "' order by d.KYCID";
+                        DataTable rskycdtls = await _databaseFactory.ProcessQueryAsync(strsql1);
+
+                        customerModel.KYCDetails = new List<KYC>();
+
+                        foreach (DataRow row in rskycdtls.Rows)
                         {
-                            customerModel.Salutation = Conversions.ToString(rs.Rows[0].ItemArray[35]);
-                            customerModel.CustomerName = Conversions.ToString(rs.Rows[0].ItemArray[0]);
-                            customerModel.CustomerType = Conversions.ToString(rs.Rows[0].ItemArray[2]);
-                            customerModel.MemberId = string.IsNullOrWhiteSpace(Conversions.ToString(rs.Rows[0].ItemArray[3])) ? false : true;
-                            customerModel.MembershipNumber = Conversions.ToString(rs.Rows[0].ItemArray[3]);
-                            customerModel.RiskCategory = Conversions.ToString(rs.Rows[0].ItemArray[33]);
-                            customerModel.SMS_YesNo = Conversions.ToString(rs.Rows[0].ItemArray[41]).Equals("Y") ? true : false;
-                            customerModel.MobileAccess_YesNo = Conversions.ToString(rs.Rows[0].ItemArray[42]).Equals("Y") ? true : false;
-
-                            customerModel.Personal_Relation = Conversions.ToString(rs.Rows[0].ItemArray[36]);
-                            customerModel.Personal_RelationName = Conversions.ToString(rs.Rows[0].ItemArray[32]);
-                            customerModel.Personal_MaritalStatus = Conversions.ToString(rs.Rows[0].ItemArray[9]);
-                            customerModel.Personal_Gender = Conversions.ToString(rs.Rows[0].ItemArray[10]);
-                            customerModel.Personal_DOB = Conversions.ToDateTime(rs.Rows[0].ItemArray[4]);
-                            customerModel.Personal_Minor = Conversions.ToString(rs.Rows[0].ItemArray[8]).Equals("Y") ? true : false;
-                            customerModel.Personal_Religion = Conversions.ToString(rs.Rows[0].ItemArray[37]);
-                            customerModel.Personal_Mobile = Conversions.ToString(rs.Rows[0].ItemArray[7]);
-                            customerModel.Personal_PANNo = Conversions.ToString(rs.Rows[0].ItemArray[1]);
-                            customerModel.Personal_PANAAYN = Conversions.ToString(rs.Rows[0].ItemArray[43]).Equals("Y") ? true : false;
-                            customerModel.Personal_PANABYN = Conversions.ToString(rs.Rows[0].ItemArray[44]).Equals("Y") ? true : false;
-                            customerModel.Personal_Email = Conversions.ToString(rs.Rows[0].ItemArray[5]);
-                            customerModel.Personal_Aadhaar = Conversions.ToString(rs.Rows[0].ItemArray[34]);
-                            customerModel.Personal_CKYCID = Conversions.ToString(rs.Rows[0].ItemArray[40]);
-                            customerModel.Personal_GSTIN = Conversions.ToString(rs.Rows[0].ItemArray[39]);
-
-                            customerModel.Mailing_FlatNo = Conversions.ToString(rs.Rows[0].ItemArray[17]);
-                            customerModel.Mailing_Building = Conversions.ToString(rs.Rows[0].ItemArray[18]);
-                            customerModel.Mailing_Area = Conversions.ToString(rs.Rows[0].ItemArray[19]);
-                            customerModel.Mailing_City = Conversions.ToString(rs.Rows[0].ItemArray[20]);
-                            customerModel.Mailing_Pincode = Conversions.ToString(rs.Rows[0].ItemArray[21]);
-                            customerModel.Mailing_Phone = Conversions.ToString(rs.Rows[0].ItemArray[14]);
-
-                            customerModel.Permanent_FlatNo = Conversions.ToString(rs.Rows[0].ItemArray[22]);
-                            customerModel.Permanent_Building = Conversions.ToString(rs.Rows[0].ItemArray[23]);
-                            customerModel.Permanent_Area = Conversions.ToString(rs.Rows[0].ItemArray[24]);
-                            customerModel.Permanent_City = Conversions.ToString(rs.Rows[0].ItemArray[25]);
-                            customerModel.Permanent_Pincode = Conversions.ToString(rs.Rows[0].ItemArray[26]);
-                            customerModel.Permanent_Phone = Conversions.ToString(rs.Rows[0].ItemArray[15]);
-
-                            customerModel.Office_Company = Conversions.ToString(rs.Rows[0].ItemArray[27]);
-                            customerModel.Office_Building = Conversions.ToString(rs.Rows[0].ItemArray[28]);
-                            customerModel.Office_Area = Conversions.ToString(rs.Rows[0].ItemArray[29]);
-                            customerModel.Office_City = Conversions.ToString(rs.Rows[0].ItemArray[30]);
-                            customerModel.Office_Pincode = Conversions.ToString(rs.Rows[0].ItemArray[31]);
-                            customerModel.Office_Phone = Conversions.ToString(rs.Rows[0].ItemArray[16]);
-
-                            // Process KYC List
-                            customerModel.KYCType = Conversions.ToString(rs.Rows[0].ItemArray[38]);
-                            string strsql1 = "SELECT d.KYCID,m.DESCRIPTION,d.DESCRIPTION FROM GENCUSTKYCDTLS d, GENKYCMST m WHERE d.KYCID = m.CODE AND d.CUSTOMERID= '" +
-                                k[0] + "' order by d.KYCID";
-                            DataTable rskycdtls = await _databaseFactory.ProcessQueryAsync(strsql1);
-
-                            customerModel.KYCDetails = new List<KYC>();
-
-                            foreach (DataRow row in rskycdtls.Rows)
+                            KYC kyc = new KYC
                             {
-                                KYC kyc = new KYC
-                                {
-                                    KYCId = Conversions.ToString(row.ItemArray[0]),
-                                    KYCDescription = Conversions.ToString(row.ItemArray[1]),
-                                    KYCNo = Conversions.ToString(row.ItemArray[2])
-                                };
-                                customerModel.KYCDetails.Add(kyc);
-                            }
-
-                            // Relation Details
-                            DataTable rs1 = await _databaseFactory.SingleRecordSet("gencustfamilydtls", "name,to_char(dob,'dd-Mon-yyyy'),relation", "customerid='" + k[0] + "'");
-
-                            customerModel.RelationDetails = new List<Relation>();
-
-                            foreach (DataRow row in rs1.Rows)
-                            {
-                                Relation relation = new Relation
-                                {
-                                    Name = Conversions.ToString(row.ItemArray[0]),
-                                    DOB = Conversions.ToDateTime(row.ItemArray[1]),
-                                    RelationType = Conversions.ToString(row.ItemArray[2])
-                                };
-                                customerModel.RelationDetails.Add(relation);
-                            }
-
-                            customerModel.Occupation_Id = Conversions.ToString(rs.Rows[0].ItemArray[11]);
-                            customerModel.Occupation_Income = Conversions.ToString(rs.Rows[0].ItemArray[13]);
-                            customerModel.Occupation_Educataion = Conversions.ToString(rs.Rows[0].ItemArray[12]);
-
-
-                            //string code = Conversions.ToString(rs.Rows[0].ItemArray[2]);
-                            //rs1 = await _databaseFactory.SingleRecordSet("gencategorymst", "narration", "categorycode=" + code);
-
-                            //DataTable rsMem = await _databaseFactory.SingleRecordSet("sharesmst", "NAME", "ACCNO='" + customerModel.MemberId +
-                            //"' AND glcode='101010' AND status='R'");
+                                KYCId = Conversions.ToString(row.ItemArray[0]),
+                                KYCDescription = Conversions.ToString(row.ItemArray[1]),
+                                KYCNo = Conversions.ToString(row.ItemArray[2])
+                            };
+                            customerModel.KYCDetails.Add(kyc);
                         }
-                        else
+
+                        // Relation Details
+                        DataTable rs1 = await _databaseFactory.SingleRecordSet("gencustfamilydtls", "name,to_char(dob,'dd-Mon-yyyy'),relation", "customerid='" + k[0] + "'");
+
+                        customerModel.RelationDetails = new List<Relation>();
+
+                        foreach (DataRow row in rs1.Rows)
                         {
-                            mainstr = "Invalid Customer Id..";
+                            Relation relation = new Relation
+                            {
+                                Name = Conversions.ToString(row.ItemArray[0]),
+                                DOB = Conversions.ToDateTime(row.ItemArray[1]),
+                                RelationType = Conversions.ToString(row.ItemArray[2])
+                            };
+                            customerModel.RelationDetails.Add(relation);
                         }
+
+                        customerModel.Occupation_Id = Conversions.ToString(rs.Rows[0].ItemArray[11]);
+                        customerModel.Occupation_Income = Conversions.ToString(rs.Rows[0].ItemArray[13]);
+                        customerModel.Occupation_Educataion = Conversions.ToString(rs.Rows[0].ItemArray[12]);
+
+
+                        //string code = Conversions.ToString(rs.Rows[0].ItemArray[2]);
+                        //rs1 = await _databaseFactory.SingleRecordSet("gencategorymst", "narration", "categorycode=" + code);
+
+                        //DataTable rsMem = await _databaseFactory.SingleRecordSet("sharesmst", "NAME", "ACCNO='" + customerModel.MemberId +
+                        //"' AND glcode='101010' AND status='R'");
                     }
                     else
                     {
-                        rs = await _databaseFactory.SingleRecordSet("gencustinfomst", "name,panno,mailaddress1,mailaddress2,mailaddress3,mailaddress4," +
-                            "mailaddress5,custemail,phone1,phone2,phone3,custmobile,custfax,to_char(custdob,'dd-Mon-yyyy'),custminoryn,customertype,globalyn,riskcategory",
-                            "customerid='" + custid + "'");
-
-                        if (rs.Rows.Count > 0)
-                        {
-                            //string code = Conversions.ToString(rs.Rows[0].ItemArray[15]);
-
-                            //DataTable rs1 = await _databaseFactory.SingleRecordSet("gencategorymst", "narration", "categorycode=" + code);
-
-                            //DataTable rsMem = await _databaseFactory.SingleRecordSet("SHAREHOLDERINFOMST", "NAME", "CUSTOMERID='" + memberId + "'");
-                        }
-                        else
-                            mainstr = "Invalid Customer Id..";
+                        throw new Exception("Invalid Customer Id..");
                     }
+                }
+                else
+                {
+                    rs = await _databaseFactory.SingleRecordSet("gencustinfomst", "name,panno,mailaddress1,mailaddress2,mailaddress3,mailaddress4," +
+                        "mailaddress5,custemail,phone1,phone2,phone3,custmobile,custfax,to_char(custdob,'dd-Mon-yyyy'),custminoryn,customertype,globalyn,riskcategory",
+                        "customerid='" + custid + "'");
+
+                    if (rs.Rows.Count > 0)
+                    {
+                        //string code = Conversions.ToString(rs.Rows[0].ItemArray[15]);
+
+                        //DataTable rs1 = await _databaseFactory.SingleRecordSet("gencategorymst", "narration", "categorycode=" + code);
+
+                        //DataTable rsMem = await _databaseFactory.SingleRecordSet("SHAREHOLDERINFOMST", "NAME", "CUSTOMERID='" + memberId + "'");
+                    }
+                    else
+                        throw new Exception("Invalid Customer Id..");
                 }
             }
 
