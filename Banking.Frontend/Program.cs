@@ -87,8 +87,7 @@ var app = builder.Build();
 // Define allowed IP addresses
 var allowedIps = new HashSet<IPAddress>
 {
-    IPAddress.Parse("203.0.113.10"),
-    IPAddress.Parse("198.51.100.25")
+    IPAddress.Parse("::1")
 };
 
 // Middleware to restrict access based on IP address
@@ -98,7 +97,7 @@ app.Use(async (context, next) =>
     if (!allowedIps.Contains(remoteIp!))
     {
         context.Response.StatusCode = StatusCodes.Status403Forbidden;
-        await context.Response.WriteAsync("Forbidden: Your IP is not allowed.");
+        await context.Response.WriteAsync($"Forbidden: Your IP is not allowed. Your IP is {remoteIp}");
         return;
     }
     await next();

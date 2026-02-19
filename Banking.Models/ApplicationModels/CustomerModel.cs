@@ -38,9 +38,7 @@ namespace Banking.Models
         public string? Personal_Gender { get; set; }
         public List<SelectListItem>? Personal_GenderList { get; set; }
 
-        [DataType(DataType.Date)]
-        [DisplayFormat(DataFormatString = "{0:dd-MMM-yyyy}", ApplyFormatInEditMode = true)]
-        public DateTime? Personal_DOB { get; set; }
+        public string? Personal_DOB { get; set; }
         public int? Age { get; set; }
         public bool Personal_Minor { get; set; }
         
@@ -92,9 +90,7 @@ namespace Banking.Models
         public string? Relation_Type { get; set; }
         public List<SelectListItem>? Relation_List { get; set; }
 
-        [DataType(DataType.Date)]
-        [DisplayFormat(DataFormatString = "{0:dd-MMM-yyyy}", ApplyFormatInEditMode = true)]
-        public DateTime? Relation_DOB { get; set; }
+        public string? Relation_DOB { get; set; }
         public List<Relation>? RelationDetails { get; set; }
 
         public string? Occupation_Id { get; set; }
@@ -116,9 +112,7 @@ namespace Banking.Models
     public class Relation
     {
         public string? Name { get; set; }
-        [DataType(DataType.Date)]
-        [DisplayFormat(DataFormatString = "{0:dd-MMM-yyyy}", ApplyFormatInEditMode = true)]
-        public DateTime? DOB { get; set; }
+        public string? DOB { get; set; }
         public string? RelationType { get; set; }
     }
 }

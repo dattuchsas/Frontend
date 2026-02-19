@@ -6,6 +6,8 @@
         public string? Branch { get; set; }
         public string? ApplicationDate { get; set; }
         public List<Menu>? MenuDetails { get; set; }
+        public string? ReferrerController { get; set; }
+        public string? ReferrerAction { get; set; }
     }
 
     public class Menu

@@ -52,6 +52,296 @@ var noOfDaysBDT = '<%=noOfDays%>'
 //narration
 
 
+
+
+//This function was written to send values to list form for Branch details display, and used to store already selected brach code and description for later use. 
+function Tellerbranch() {
+  brCode = window.document.frmTrans.txtbranchcode.value.toUpperCase()
+  brDesc = window.document.frmTrans.txtbranchdesc.value
+  window.document.frmTrans.chkCheque.checked = false
+  txtbranchcode_onkeyup()
+  st = "Tellerbranch"
+  // TODO
+  // window.showModalDialog("/GEN/TranList.aspx" + "?" + "st=" + st)
+}
+
+function txtbranchcode_onkeyup() {
+  // TODO
+  //ModuleClear()
+  //LnkModClear()
+  //ClgModClear()
+  window.document.frmTrans.txtbranchdesc.value = ""
+}
+
+
+
+
+function fxRateTypes() {
+  strpm = "FXRATETYPES"
+  // window.document.all['iMsg'].src = "/GEN/minBalChk.aspx?strparam=" + strpm
+}
+
+function modeChng(bdt) {
+  if (bdt.toUpperCase() == "TRUE")
+    return;
+  //ModuleClear();
+  //Remclear();
+  //funloanclear();
+  //Cls();
+  $("#Module").prop("disabled", false);
+}
+
+// This function is used to populate different service IDs and descriptions.
+function ServiceId() {
+  var DbCr
+  var modId
+
+  document.getElementById("divPhSign").style.display = 'none'
+  window.document.all['divPayeeDtls'].style.display = "none"
+
+  if (((vMode == "REC") || (vMode == "PAY")) && (window.document.frmTrans.Mfgpaydt.Rows > 1) && (mode != "MODIFY")) {
+
+    alert("Only one Cash Transaction allowed at a time." + "\n" +
+      "Post already entered data.")
+    return;
+  }
+
+  if (window.document.frmTrans.tranmode(0).checked == true) {
+    DbCr = "Dbt"
+  }
+  else if (window.document.frmTrans.tranmode(1).checked == true) {
+    DbCr = "Cdt"
+  }
+  else if (window.document.frmTrans.tranmode(2).checked == true) {
+    // Checking for clearingtype - selected or not 
+    if ((window.document.frmTrans.cmdcleartype.value == "Select") ||
+      (window.document.frmTrans.cmdcleartype.value == "")) {
+      alert("Select ClearingType")
+      return;
+    }
+    DbCr = "Clg"
+  }
+  modId = window.document.frmTrans.txtModId.value.toUpperCase()
+
+  st = "Service|" + DbCr + "|" + modId
+  // window.showModalDialog("/GEN/TranList.aspx" + "?" + "st=" + st)
+}
+
+// Making visible true or false based on service id selected.
+function ServiceCode(kstr) {
+  var strSer
+  strSer = kstr.split("-----")
+  window.document.frmTrans.txtServiceId.value = strSer[1]
+  window.document.frmTrans.txtServiceName.value = strSer[0]
+  ServiceIdDivs()
+}
+
+// This function was written to send parameters values to List form to get various modules and it displays modules only when Mfgpaydt(flexgrid) rows <2 or if the mode is MODIFY.
+function Tellermodule() {
+  var bdt = $("#Hidden_BDT").val();
+  var selectedModule = $("#SelectedModule").val();
+  var transMode = $("#TransactionMode").val();
+
+  if (bdt.toUpperCase() == "TRUE")
+    return;
+
+  if ((selectedModule == 'CLG') && (transMode == 'Clearing')) {
+    if ((window.document.frmTrans.cmdcleartype.value == "Select") || (window.document.frmTrans.cmdcleartype.value == "")) {
+      bankingAlert("Please select Clearing Type.")
+      window.document.frmTrans.cmdcleartype.focus()
+      return;
+    }
+  }
+
+  if (((vMode == "REC") || (vMode == "PAY")) && (window.document.frmTrans.Mfgpaydt.Rows > 1) && (mode != "MODIFY")) {
+    bankingAlert("Only one Cash Transaction allowed at a time." + "\n" + "Post already entered data.")
+    return;
+  }
+
+  if ((window.document.frmTrans.txtbranchcode.value == "") || (window.document.frmTrans.txtcurrencycode.value == "")) {
+    return;
+  }
+
+  if (eval(window.document.frmTrans.txtServiceId.value) == "2") {
+    stmod = "TellermoduleID";
+    stbr = window.document.frmTrans.txtbranchcode.value.toUpperCase()
+    var strServiceId = window.document.frmTrans.txtServiceId.value
+    kstr = stmod + "|" + stbr + "|" + strServiceId
+
+    if (window.document.frmTrans.tranmode[2].checked == false) {
+      window.document.frmTrans.chkCheque.checked = false
+    }
+    window.showModalDialog('<%="http://" & session("moduledir")& "/DEPOSITS/"%>' + "List.aspx" + "?" + "st=" + kstr)
+  }
+  else {
+    stmod = "Tellermodule";
+    stbr = window.document.frmTrans.txtbranchcode.value.toUpperCase()
+    kstr = stmod + "|" + stbr
+    if (window.document.frmTrans.tranmode[2].checked == false) {
+      window.document.frmTrans.chkCheque.checked = false
+    }
+    window.showModalDialog('<%="http://" & session("moduledir")& "/GEN/"%>' + "TranList.aspx" + "?" + "st=" + kstr)
+  }
+}
+
+
+
+
+
+function cashGlCode() {
+  var kstr = "";
+  if (window.document.frmTrans.txtbranchcode.value.length > 0) {
+    strpm = "CASHGL" + "~" + window.document.frmTrans.txtbranchcode.value
+    // window.document.all['iCommon'].src = '<%="http://" & session("moduledir")& "/GEN/"%>' + "minBalChk.aspx?strparam=" + strpm
+  }
+}
+
+function RecPayLmt() {
+  var kstr = "";
+  with (window.document.frmTrans) {
+    strpm = "RPLMT" + "~" + txtbranchcode.value + "~" +
+      txtcurrencycode.value + "~" +
+      strsessionflds[0]
+    // window.document.all['iGeneral'].src = '<%="http://" & session("moduledir")& "/GEN/"%>' + "minBalChk.aspx?strparam=" + strpm
+  }
+}
+
+
+function formClear() {
+  ModuleClear();//clear module and 
+  LnkModClear();
+  ClgModClear();
+  if (mode != "MODIFY") {
+    excpIntValues();
+  }
+  Remclear();
+  funloanclear();
+  Cls();
+  clearflds()
+  ClgClear()
+  hdnFldClear()
+  Depdivclear()
+  chkboxUnCheck()
+  grid()
+  UnlockControls()
+  CashMode()
+  forexClear()
+  UnLockContAdd()
+}
+
+
+
+
+
+function Cls() {
+  window.document.all['ChqDtl'].style.display = "none";
+  // window.document.all['divDisp'].style.display="none"
+  //  window.document.all['divTempTrans'].style.display="none"
+  window.document.all['divFxRate'].style.display = "none"
+  if (window.document.frmTrans.chkABB.checked == false) {
+    abbApplDt = ""
+  }
+
+  window.document.frmTrans.txtAmt.disabled = false
+
+}
+
+//for clearing all divs other than clgdiv if clearing option button is selected for clearing
+function clearflds() {
+
+  window.document.frmTrans.txtCLGModId.value = ""
+  window.document.frmTrans.txtCLGModDesc.value = ""
+  window.document.frmTrans.txtCLGGLcode.value = ""
+  window.document.frmTrans.txtCLGGLname.value = ""
+  window.document.frmTrans.txtAccNm.value = ""
+  window.document.frmTrans.txtCLGAccNo.value = ""
+  window.document.frmTrans.txtCLGReason.value = ""
+  window.document.frmTrans.txtCLGReasoncode.value = ""
+  window.document.frmTrans.txtCLGBankCode.value = ""
+  window.document.frmTrans.txtCLGBranch.value = ""
+  Cheque()
+  window.document.frmTrans.chkCheque.checked = true
+
+}
+
+///function is used for clear the fileds and called on Clear button click 	
+function ClgClear() {
+
+  window.document.all.divCrDr.style.display = "block"
+  window.document.frmTrans.chkCheque.disabled = false
+  window.document.frmTrans.chkCheque.checked = false
+  window.document.frmTrans.cmdcleartype.style.display = "none";
+  window.document.frmTrans.tranmode[0].disabled = false
+  window.document.frmTrans.tranmode[1].disabled = false
+  Cheque()
+  window.document.frmTrans.tranmode[0].checked = true
+  window.document.frmTrans.chkTransDet.disabled = false
+  window.document.frmTrans.chkLnkMod.disabled = false
+  lnkMod()
+  window.document.frmTrans.cmdModId.disabled = false
+  window.document.frmTrans.cmdGLCode.disabled = false
+  window.document.frmTrans.cmdAccno.disabled = false
+  window.document.all.divCLG.style.display = "none"
+}
+
+//----------------------------------------------------------------------------------	
+function hdnFldClear() {
+  window.document.frmTrans.hdnBatchNo.value = ""
+  window.document.frmTrans.hdnTranNo.value = ""
+  window.document.frmTrans.hdnTranNo2.value = ""
+  window.document.frmTrans.hdnTranNo3.value = ""
+  window.document.frmTrans.hdnTranNo4.value = ""
+  window.document.frmTrans.hiddate.value = ""
+  window.document.frmTrans.hidbatchno.value = ""
+  window.document.frmTrans.hidtrnno.value = ""
+
+}
+
+//function is used to clear deposits div fields
+function Depdivclear() {
+  window.document.frmTrans.txtDOpAmt.value = ""
+  window.document.frmTrans.txtDCurrAmt.value = ""
+  window.document.frmTrans.txtDMatAmt.value = ""
+  window.document.frmTrans.txtDCustId.value = ""
+  window.document.frmTrans.txtDOpDate.value = ""
+  window.document.frmTrans.txtDEffDt.value = ""
+  window.document.frmTrans.txtDMatDt.value = ""
+  window.document.frmTrans.txtDOpBy.value = ""
+  window.document.frmTrans.txtDROI.value = ""
+  window.document.frmTrans.txtDOpInstr.value = ""
+  window.document.frmTrans.txtDIntAcc.value = ""
+  window.document.frmTrans.txtDPaidupto.value = ""
+}
+
+
+//----------------------------------------------------------------------------------
+function UnlockControls() {
+
+  window.document.frmTrans.txtServiceId.readOnly = false
+  window.document.frmTrans.cmdServiceId.disabled = false
+
+  window.document.frmTrans.txtModId.readOnly = false
+  window.document.frmTrans.cmdModId.disabled = false
+
+  window.document.frmTrans.txtGLcode.readOnly = false
+  window.document.frmTrans.cmdGLCode.disabled = false
+
+  window.document.frmTrans.txtAccNo.readOnly = false
+  window.document.frmTrans.cmdAccno.disabled = false
+
+  window.document.frmTrans.txtAmt.disabled = false
+
+  window.document.frmTrans.dtpEffDate.Enabled = true
+
+
+  window.document.frmTrans.chkDispAccNo.disabled = false
+
+}
+
+
+
+
+
 function PopupShow(keycode, ctnBrCode, ctnModid, ctnGlcode, ctnAccNo, pagePath, fieldName, ctnfield, saveorshow) {
   var branchcode = ctnBrCode.value.toUpperCase();
   var moduledID = ctnModid.value;
@@ -3347,72 +3637,7 @@ function CLGReasonCode(kstr) {
   window.document.frmTrans.txtCLGReason.value = strnew[1]
 
 }
-//----------------------------------------------------------------------------------
-///function for displaying the div "DIVDrCr" tag if service id is '5'
-//i.e inward clearing
-function clgDivCrDr() {
-  var stralert
-  grid()
-  if (window.document.frmTrans.tranmode[2].checked == true) {
-    //deleting the rows if previous trnsactions are there which is other than inward clg
-    if ((window.document.frmTrans.Mfgpaydt.Rows > 1) && (mode != "MODIFY")) {
-      stralert = confirm("Are You Sure To Delete the transaction")
 
-      if (stralert == true) {
-        DelTran()
-        Cancel()
-      }
-    }
-
-    if (clgAbbimpyn == "Y") {
-      window.document.frmTrans.chkABB.checked = true
-      window.document.frmTrans.chkABB.disabled = true
-    }
-    else {
-      window.document.frmTrans.chkABB.checked = false
-      window.document.frmTrans.chkABB.disabled = false
-    }
-    window.document.all['divPhSign'].style.display = "none";
-    window.document.all['divPayeeDtls'].style.display = "block";
-    window.document.frmTrans.tranmode[2].checked = true
-    window.document.all.divCrDr.style.display = "none"
-    window.document.frmTrans.cmdcleartype.style.display = "block";
-    window.document.frmTrans.chkCheque.checked = true
-    window.document.frmTrans.chkCheque.disabled = true
-    window.document.frmTrans.tranmode[0].disabled = true
-    window.document.frmTrans.tranmode[1].disabled = true
-    window.document.frmTrans.chkLnkMod.disabled = true
-    window.document.frmTrans.chkLnkMod.checked = false
-    window.document.frmTrans.chkDispDtls.disabled = true
-
-    window.document.frmTrans.txtPayeeBank.value = ""
-    window.document.frmTrans.txtPayBnkDesc.value = ""
-    window.document.frmTrans.txtPayeeBranch.value = ""
-    window.document.frmTrans.txtPayBrDesc.value = ""
-    window.document.frmTrans.txtMICRCode.value = ""
-
-    Cheque()
-    strpm = "";
-    strpm = "CLGTypes" + "~" + window.document.frmTrans.txtbranchcode.value + "~" +
-      window.document.frmTrans.txtcurrencycode.value
-    // alert(strpm)
-    window.document.all['iGeneral'].src = '<%="http://" & session("moduledir")& "/GEN/"%>' + "minBalChk.aspx?strparam=" + strpm
-  }
-  else {
-    window.document.all.divCrDr.style.display = "block"
-    window.document.frmTrans.chkCheque.disabled = false
-    window.document.frmTrans.chkCheque.checked = false
-    window.document.frmTrans.cmdcleartype.style.display = "none";
-    window.document.frmTrans.tranmode[0].disabled = false
-    window.document.frmTrans.tranmode[1].disabled = false
-    window.document.frmTrans.tranmode[0].checked = true
-    Cheque()
-    window.document.frmTrans.cmdModId.disabled = false
-    window.document.frmTrans.cmdGLCode.disabled = false
-    window.document.frmTrans.cmdAccno.disabled = false
-    window.document.frmTrans.chkDispDtls.disabled = false
-  }
-}
 
 function cmdcleartype_OnChange() {
   var stralert
@@ -9986,16 +10211,7 @@ function dispGridRemove() {
     }
   }
 }
-//----------------------------------------------------------------------------------
-function modeChng() {
-  if (bdt.toUpperCase() == "TRUE")
-    return
-  ModuleClear();//clear module and 
-  Remclear();
-  funloanclear();
-  Cls();
-  window.document.frmTrans.cmdModId.disabled = false
-}
+
 //----------------------------------------------------------------------------------	
 
 //----------------------------------------------------------------------------------	
@@ -12549,14 +12765,6 @@ function remLimitValidation() {
   }
 }
 
-function onFoc() {
-  window.document.frmTrans.txtServiceId.focus()
-  if ("<%=session("module ")%>"== "CLG")
-  {
-    window.document.frmTrans.tranmode(2).checked = true
-    clgDivCrDr()
-  }
-}
 
 function getPendInt() {
   if ((window.document.frmTrans.txtModId.value == "LOAN") && (window.document.frmTrans.tranmode[1].checked == true)) {

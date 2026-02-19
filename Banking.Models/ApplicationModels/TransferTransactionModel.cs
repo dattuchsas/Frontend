@@ -85,6 +85,18 @@ namespace Banking.Models
         public string? Total { get; set; }
         public string? Difference { get; set; }
 
+
+        public string? CounterNo { get; set; }
+        public string? CashierId { get; set; }
+        public string? BranchCode { get; set; }
+        public string? BranchNarration { get; set; }
+        public string? CurrencyCode { get; set; }
+        public string? CurrencyNarration { get; set; }
+        public string? MachineId { get; set; }
+
+        public string? ABBUser { get; set; }
+
+
         #region Hidden Fields
 
         public string? Hidden_194NModId { get; set; }
@@ -117,6 +129,9 @@ namespace Banking.Models
         public string? Hidden_RemCanCommAmt { get; set; }
         public string? Hidden_RemCanGSTTax { get; set; }
         public string? Hidden_RemCanCESSTax { get; set; }
+        public string? Hidden_GST { get; set; }
+
+        public string? Hidden_SBCAAccClose { get; set; }
 
         #endregion
     }
