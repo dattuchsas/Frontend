@@ -49,8 +49,8 @@ namespace Banking.Services
             try 
             {
                 string sqlQuery = $"SELECT DISTINCT a.menutitle,a.narration,a.forms,a.gendir,a.mainmenu,a.menuorder,a.FORMSORDER FROM genmoduleidformsmst a WHERE " +
-                    "(a.formsid IN ( SELECT formsid FROM gengroupformsmst WHERE groupcode='" + groupCode + "' AND a.moduleid='" + moduleId + "' AND status='R') OR " +
-                    "a.formsid IN( SELECT formsid FROM genuseridformsmst WHERE  userid='" + userId + "' AND  a.moduleid='" + moduleId + "' AND status='R' AND " +
+                    "(a.formsid IN (SELECT formsid FROM gengroupformsmst WHERE groupcode='" + groupCode + "' AND a.moduleid='" + moduleId + "' AND status='R') OR " +
+                    "a.formsid IN (SELECT formsid FROM genuseridformsmst WHERE  userid='" + userId + "' AND  a.moduleid='" + moduleId + "' AND status='R' AND " +
                     "addoreliminate='A')) AND a.formsid NOT IN( SELECT formsid FROM genuseridformsmst WHERE moduleid='" + moduleId + "' AND status='R' AND " +
                     "addoreliminate='E' AND userid='" + userId + "') ORDER BY a.menuorder,a.FORMSORDER";
 

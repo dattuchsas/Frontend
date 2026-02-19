@@ -33,12 +33,10 @@ namespace Banking.Backend
             int oracleDataReader = 0;
             string strInsert = string.Empty;
             string InsertRecordRet = string.Empty;
-            string[] ArrTempValues;
             string StrTabName;
 
             try
             {
-                ArrTempValues = ArrValues;
                 StrTabName = TableName.Trim().ToUpper();
 
                 applicationDate = string.Format(string.IsNullOrWhiteSpace(ApplicationDate) ? DateTime.Now.ToString() : ApplicationDate, "dd-MMM-yyyy");
@@ -53,23 +51,23 @@ namespace Banking.Backend
                         BranchCode = string.IsNullOrWhiteSpace(BranchCode.Trim().ToUpper()) ? "" : BranchCode.Trim().ToUpper(),
                         UserId = string.IsNullOrWhiteSpace(UserCode.Trim().ToUpper()) ? "" : UserCode.Trim().ToUpper(),
                         MachineID = string.IsNullOrWhiteSpace(MachineID.Trim().ToUpper()) ? "" : MachineID.Trim().ToUpper(),
-                        ArrValues = ArrTempValues,
+                        ArrValues = ArrValues,
                         QueryType = OracleQueryType.Insert
                     };
 
-                    connError = await CheckDayBeginDayEndStatus(queryModel);
+                    //connError = await CheckDayBeginDayEndStatus(queryModel);
 
-                    if (connError != "CONTINUE")
-                        throw new Exception();
+                    //if (connError != "CONTINUE")
+                    //    throw new Exception();
                 }
 
                 connError = "Connected";
 
                 // Checking day begin status and day end status.
-                var loopTo = (long)ArrTempValues.Length - 1;
+                var loopTo = (long)ArrValues.Length - 1;
                 for (int i = 0; i <= loopTo; i++)
                 {
-                    strInsert = "insert into " + StrTabName.Trim() + dataLink + " (" + FldNames + ") " + " values (" + ArrTempValues[i] + ")";
+                    strInsert = "insert into " + StrTabName.Trim() + dataLink + " (" + FldNames + ") " + " values (" + ArrValues[i] + ")";
 
                     oracleDataReader = await ProcessNonQueryAsync(strInsert);
 
@@ -1147,29 +1145,36 @@ namespace Banking.Backend
                         arrChkVal = oracleQueryModel.ArrValues[0].Split(",");
 
                         // to trap the userid and machineid position in the values. intArrChk
-                        intArrChk = (arrChkVal.Length - 1) - (arrflds.Length - 1);
+                        intArrChk = (arrChkVal.Length - 1) - (arrflds!.Length - 1);
                         strquery = "select * from " + oracleQueryModel.TableName + dataLink + " where 1=2";
 
                         RsTemp = await ProcessQueryAsync(strquery);
 
-                        var loopTo = RsTemp.Rows.Count - 1;
                         foreach (DataRow item in RsTemp.Rows)
                         {
-                            //if (item.ItemArray[0].Trim().ToUpper() == "USERID" || RsTemp.GetName(i).Trim().ToUpper() == "APPROVEDBY"
-                            //    || RsTemp.GetName(i).Trim().ToUpper() == "VERIFIEDBY" || RsTemp.GetName(i).Trim().ToUpper() == "MACHINEID"
-                            //    || RsTemp.GetName(i).Trim().ToUpper() == "APPROVEDMACHINE" || RsTemp.GetName(i).Trim().ToUpper() == "VERIFIEDMACHINE")
-                            //{
-                            //    BlnUserMach = true;
-                            //}
-                            //else if (RsTemp.GetName(i).Trim().ToUpper() == "BRANCHCODE")
-                            //{
-                            //    blnbrCode = true;
-                            //}
-                        }
+                            // Loop through all columns in the current row
+                            for (int i = 0; i < RsTemp.Columns.Count; i++)
+                            {
+                                string columnName = RsTemp.Columns[i].ColumnName.Trim().ToUpper();
+                                string columnValue = Conversions.ToString(item[i]).Trim().ToUpper() ?? "";
 
-                        //for (int i = 0; i <= loopTo; i++)
-                        //{
-                        //}
+                                // Check the conditions for user/machine columns
+                                if (columnName == "USERID" || columnName == "APPROVEDBY" ||
+                                    columnName == "VERIFIEDBY" || columnName == "MACHINEID" ||
+                                    columnName == "APPROVEDMACHINE" || columnName == "VERIFIEDMACHINE")
+                                {
+                                    BlnUserMach = true;
+                                }
+                                // Check the condition for branch code column
+                                else if (columnName == "BRANCHCODE")
+                                {
+                                    blnbrCode = true;
+                                }
+
+                                // Optional: If you want to check values instead of column names, you can use `columnValue`
+                                // e.g., if (columnValue == "SOMEVALUE") { ... }
+                            }
+                        }
 
                         var loopTo1 = (long)arrflds.Length - 1;
                         for (int i = 0; i <= loopTo1; i++)
@@ -1237,22 +1242,22 @@ namespace Banking.Backend
                             return CheckDayBeginDayEndStatusRet;
                         }
 
-                        //// please do not change the below coding lines it gives branch code with out single quotes
-                        //var loopTo2 = RsTemp.FieldCount - 1;
-                        //for (int i = 0; i <= loopTo2; i++)
-                        //{
-                        //    if (RsTemp.GetName(i).Trim().ToUpper() == "BRANCHCODE")
-                        //    {
-                        //        oracleQueryModel.BranchCode = RsTemp.GetString(i).Trim().ToUpper();
-                        //        blnbrCode = true;
-                        //    }
-                        //    else if (RsTemp.GetName(i).Trim().ToUpper() == "USERID" || RsTemp.GetName(i).Trim().ToUpper() == "APPROVEDBY"
-                        //        || RsTemp.GetName(i).Trim().ToUpper() == "VERIFIEDBY" || RsTemp.GetName(i).Trim().ToUpper() == "MACHINEID"
-                        //        || RsTemp.GetName(i).Trim().ToUpper() == "APPROVEDMACHINE" || RsTemp.GetName(i).Trim().ToUpper() == "VERIFIEDMACHINE")
-                        //    {
-                        //        BlnUserMach = true;
-                        //    }
-                        //}
+                        // please do not change the below coding lines it gives branch code with out single quotes
+                        var loopTo2 = RsTemp.Columns.Count - 1;
+                        for (int i = 0; i <= loopTo2; i++)
+                        {
+                            if (RsTemp.Columns[i].ColumnName.Trim().ToUpper() == "BRANCHCODE")
+                            {
+                                oracleQueryModel.BranchCode = Conversions.ToString(RsTemp.Rows[i].ItemArray[i]);
+                                blnbrCode = true;
+                            }
+                            else if (RsTemp.Columns[i].ColumnName.Trim().ToUpper() == "USERID" || RsTemp.Columns[i].ColumnName.Trim().ToUpper() == "APPROVEDBY"
+                                || RsTemp.Columns[i].ColumnName.Trim().ToUpper() == "VERIFIEDBY" || RsTemp.Columns[i].ColumnName.Trim().ToUpper() == "MACHINEID"
+                                || RsTemp.Columns[i].ColumnName.Trim().ToUpper() == "APPROVEDMACHINE" || RsTemp.Columns[i].ColumnName.Trim().ToUpper() == "VERIFIEDMACHINE")
+                            {
+                                BlnUserMach = true;
+                            }
+                        }
 
                         if (BlnUserMach == true)
                         {

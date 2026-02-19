@@ -16,69 +16,68 @@
             <div class="card mb-3">
                 <div class="card-body">
                     <div class="row align-items-end g-3">
-                        <div class="col-lg-4 col-xxl-3">
+                        <div class="col-md-4 col-lg-4 col-xl-3">
                             <label asp-for="Branch" class="form-label">Branch Code</label>
                             <select asp-for="Branch" asp-items="@Model.BranchList" class="form-select"></select>
                         </div>
-                        <div class="col-lg-8 col-xxl-4">
+                        <div class="col-md-8 col-lg-8 col-xl-4">
                             <label class="form-label">Search Customer</label>
-                            <div class="d-flex align-items-center">
-                                <div class="me-2 flex-shrink-0">
-                                    <select class="form-select flex-grow-0 flex-basis" id="idSearch">
-                                        <option selected value="">Select</option>
-                                        <option value="PAN">PAN</option>
-                                        <option value="AADHAAR">Aadhaar</option>
-                                    </select>
-                                </div>
-                                <div class="flex-grow-1">
-                                    <input type="text" class="form-control" id="idSearchValue">
-                                </div>
-                                <div class="ms-2 flex-shrink-0">
-                                    <button class="btn btn-primary" id="searchById" type="button">Search</button>
-                                </div>
+                            <div class="input-group">
+                                <select class="form-select flex-grow-0 flex-basis" id="idSearch">
+                                    <option selected value="">Select</option>
+                                    <option value="PAN">PAN</option>
+                                    <option value="AADHAAR">Aadhaar</option>
+                                </select>
+                                <input type="text" class="form-control" id="idSearchValue">
+                                <button class="btn btn-primary" id="searchById" type="button">Search</button>
                             </div>
                         </div>
-                        <div class="col-lg-6 col-xl-6 col-xxl-5">
+                        <div class="col-md-12 col-lg-8 col-xl-5">
                             <label asp-for="Salutation" class="form-label">Name <span class="text-danger">*</span></label>
-                            <div class="d-flex align-items-center">
-                                <div class="me-2 flex-grow-1">
-                                    <div class="input-group">
-                                        <select asp-for="Salutation" asp-items="@Model.SalutationList" class="form-select flex-grow-0 flex-basis"></select>
-                                        <input asp-for="CustomerName" type="text" class="form-control">
-                                    </div>
-                                </div>
-                                <div class="flex-shrink-0">
-                                    <button type="button" class="btn btn-primary" id="searchByNameModal" data-bs-toggle="modal" data-bs-target="#nameSearchModal">
-                                        Search
-                                    </button>
-                                </div>
+                            <div class="input-group">
+                                <select asp-for="Salutation" asp-items="@Model.SalutationList" class="form-select flex-grow-0 flex-basis"></select>
+                                <input asp-for="CustomerName" type="text" class="form-control">
+                                <button type="button" class="btn btn-primary" id="searchByNameModal" data-bs-toggle="modal" data-bs-target="#nameSearchModal">
+                                    Search
+                                </button>
                             </div>
                         </div>
-                        <div class="col-md-5 col-lg-2">
+                        <div class="col-md-6 col-lg-4 col-xl-3">
                             <label asp-for="CustomerType" class="form-label">Cust. Type <span class="text-danger">*</span></label>
                             <select asp-for="CustomerType" asp-items="@Model.CustomerTypeList" class="form-select"></select>
                         </div>
-                        <div class="col-md-7 col-lg-4 col-xxl-3">
-                            <div class="d-flex align-items-center">
-                                <div class="form-check flex-shrink-0">
+                        <div class="col-md-6 col-lg-6 col-xl-4">
+                            <div class="d-flex align-items-end">
+                                <div class="form-check flex-shrink-0 mb-2">
                                     <input asp-for="MemberId" class="form-check-input" type="checkbox">
                                     <label asp-for="MemberId" class="form-check-label">
                                         Member ID
                                     </label>
                                 </div>
                                 <div class="ms-3 flex-grow-1">
+                                    <label class="form-label" id="memberNoLabel">Membership No.</label>
                                     <input asp-for="MembershipNumber" type="text" class="form-control">
-                                </div>
-                                <div class="ms-3 flex-grow-1">
-                                    <input asp-for="MembershipName" type="text" class="form-control">
                                 </div>
                             </div>
                         </div>
-                        <div class="col-md-7 col-lg-6 col-xl-4 col-xxl-3">
+                        <div class="col-md-12 col-lg-6 col-xl-5">
+                            <label asp-for="MembershipName" class="form-label" id="memberNameLabel">Membership Name</label>
+                            <input asp-for="MembershipName" type="text" class="form-control">
+                        </div>
+                        <div class="col-md-6 col-lg-3 col-xl-3">
+                            <label asp-for="Personal_DOB" class="form-label">DOB <span class="text-danger">*</span></label>
+                            <div class="input-group date" data-provide="datepicker">
+                                <input asp-for="Personal_DOB" type="text" class="form-control">
+                                <div class="input-group-addon input-group-text">
+                                    <img src="~/images/datepicker_icon.svg" width="24">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6 col-lg-3 col-xl-4">
                             <div class="d-flex align-items-end">
                                 <div class="flex-grow-1">
-                                    <label asp-for="Personal_DOB" class="form-label">DOB <span class="text-danger">*</span></label>
-                                    <input asp-for="Personal_DOB" asp-format="{0:dd-MMM-yyyy}" type="date" class="form-control">
+                                    <label asp-for="Age" class="form-label">Age</label>
+                                    <input asp-for="Age" type="text" class="form-control">
                                 </div>
                                 <div class="flex-shrink-0 ms-2">
                                     <div class="form-check mb-2">
@@ -90,7 +89,7 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="col-lg-6 col-xl-8 col-xxl-4">
+                        <div class="col-lg-6 col-xl-5">
                             <div class="d-flex align-items-center">
                                 <div class="me-2 flex-shrink-0">
                                     <label asp-for="Personal_Relation" class="form-label">Relation</label>
@@ -196,7 +195,7 @@
                         </div>
                         <div class="col-lg-4 col-xl-3 col-xxl-2">
                             <label asp-for="Personal_Email" class="form-label">Email ID</label>
-                            <input asp-for="Personal_Email" type="text" class="form-control">
+                            <input asp-for="Personal_Email" type="email" class="form-control">
                         </div>
                         <div class=" col-xl-12 col-xxl-6">
                             <div class="row g-3 align-items-end">
@@ -233,8 +232,13 @@
                             <input asp-for="Personal_CKYCID" type="text" class="form-control">
                         </div>
                         <div class="col-md-6 col-lg-3 col-xl-3 col-xxl-2">
-                            <label asp-for="Personal_CKYCEnrollDate" class="form-label">CKYC Enroll Date</label>
-                            <input asp-for="Personal_CKYCEnrollDate" type="date" class="form-control" placeholder="DD-MM-YYYY">
+                            <label asp-for="Personal_CKYCEnrollDate" class="form-label">CKYC Enroll Date <span class="text-danger">*</span></label>
+                            <div class="input-group date" data-provide="datepicker">
+                                <input asp-for="Personal_CKYCEnrollDate" type="text" class="form-control">
+                                <div class="input-group-addon input-group-text">
+                                    <img src="~/images/datepicker_icon.svg" width="24">
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -300,7 +304,6 @@
                                     <thead>
                                         <tr>
                                             <th scope="col">S.No</th>
-                                            <th scope="col">KYC ID</th>
                                             <th scope="col">Description</th>
                                             <th scope="col">KYC No</th>
                                         </tr>
@@ -308,10 +311,11 @@
                                     <tbody id="kycDetails">
                                         @if (Model.KYCDetails != null)
                                         {
+                                            int i = 1;
                                             foreach (var item in Model.KYCDetails)
                                             {
                                                 <tr>
-                                                    <td scope="row">@item.KYCId</td>
+                                                    <td scope="row">@(i++)</td>
                                                     <td>@item.KYCDescription</td>
                                                     <td>@item.KYCNo</td>
                                                 </tr>
@@ -327,11 +331,10 @@
         </div>
         <div class="text-center py-3">
             <button type="submit" class="btn btn-primary">Ok</button>
-            <button type="button" id="fromCancel" class="btn btn-primary">Cancel</button>
+            <a asp-controller="@Model.ReferrerController" asp-action="@Model.ReferrerAction" target="_self" class="btn btn-primary">Cancel</a>
         </div>
     </div>
     <input asp-for="ApplicationDate" type="hidden" class="form-control">
-    <input id="KYCList" type="hidden" class="form-control">
 </form>
 
 <div class="modal fade" id="nameSearchModal" tabindex="-1">

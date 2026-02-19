@@ -8,6 +8,7 @@ using System;
 using System.Data;
 using System.Diagnostics;
 using System.Diagnostics.Eventing.Reader;
+using System.IO;
 using System.Reflection.Metadata;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
@@ -119,7 +120,7 @@ namespace Banking.Services
             return strResult;
         }
 
-        // ServiceId
+        // SERVICEID
         public async Task<string> GetServiceList(string searchString)
         {
             string whereCond = string.Empty;
@@ -136,6 +137,85 @@ namespace Banking.Services
 
             return string.Join("|", dataTable.Rows.Cast<DataRow>().Select(row => $"{row.ItemArray[0]}~{row.ItemArray[1]}"));
         }
+
+        // GETMODCUSTPANDTLS
+        public async Task<string> GetModifiedCustomerPANDetails(string searchString)
+        {
+            string strResult = "";
+
+            string[] strArr = searchString.Split("|", StringSplitOptions.RemoveEmptyEntries);
+
+            string sqlQuery = "SELECT PANNO FROM GENCUSTINFOMST WHERE CUSTOMERID ='" + strArr[2] + "'";
+
+            DataTable dataTable = await _databaseFactory.ProcessQueryAsync(sqlQuery);
+
+            if (dataTable.Rows.Count > 0)
+            {
+                if (Convert.IsDBNull(dataTable.Rows[0].ItemArray[0]) == false)
+                {
+                    if (Conversions.ToString(dataTable.Rows[0].ItemArray[0]) == strArr[1])
+                        strResult = "0";
+                    else
+                    {
+                        sqlQuery = "SELECT CUSTOMERID,NAME FROM GENCUSTINFOMST WHERE PANNO='" + strArr[1] + "'";
+
+                        dataTable = await _databaseFactory.ProcessQueryAsync(sqlQuery);
+
+                        if (dataTable.Rows.Count > 0)
+                        {
+                            foreach (DataRow row in dataTable.Rows)
+                                strResult = strResult + Conversions.ToString(dataTable.Rows[0].ItemArray[0]) + "~" + 
+                                    Conversions.ToString(dataTable.Rows[0].ItemArray[1]) + "|";
+                            strResult = strResult.Substring(0, strResult.Length - 1);
+                        }
+                        else
+                            strResult = "0";
+                    }
+                }
+            }
+
+            return strResult;
+        }
+
+        // GETMODCUSTAADHARUIDTLS
+        public async Task<string> GetModifiedCustomerAadhaarDetails(string searchString)
+        {
+            string strResult = "";
+
+            string[] strArr = searchString.Split("|", StringSplitOptions.RemoveEmptyEntries);
+
+            string sqlQuery = "SELECT AADHARUID FROM GENCUSTINFOMST WHERE CUSTOMERID ='" + strArr[2] + "'";
+
+            DataTable dataTable = await _databaseFactory.ProcessQueryAsync(sqlQuery);
+
+            if (dataTable.Rows.Count > 0)
+            {
+                if (Convert.IsDBNull(dataTable.Rows[0].ItemArray[0]) == false)
+                {
+                    if (Conversions.ToString(dataTable.Rows[0].ItemArray[0]) == strArr[1])
+                        strResult = "0";
+                    else
+                    {
+                        sqlQuery = "SELECT CUSTOMERID,NAME FROM GENCUSTINFOMST WHERE AADHARUID='" + strArr[1] + "'";
+
+                        dataTable = await _databaseFactory.ProcessQueryAsync(sqlQuery);
+
+                        if (dataTable.Rows.Count > 0)
+                        {
+                            foreach (DataRow row in dataTable.Rows)
+                                strResult = strResult + Conversions.ToString(dataTable.Rows[0].ItemArray[0]) + "~" +
+                                    Conversions.ToString(dataTable.Rows[0].ItemArray[1]) + "|";
+                            strResult = strResult.Substring(0, strResult.Length - 1);
+                        }
+                        else
+                            strResult = "0";
+                    }
+                }
+            }
+
+            return strResult;
+        }
+
 
         public void GetDetails()
         {
@@ -12087,63 +12167,7 @@ namespace Banking.Services
 //strArr = split(strVal, "|")
 
 
-//if strArr(0) = "GETMODCUSTPANDTLS" then
-//    strResult = ""
 
-//    obj = server.CreateObject("ReportPurposeOnly.Reportonly")
-//''  sqlStr = "SELECT CUSTOMERID,NAME FROM GENCUSTINFOMST WHERE KYCID='" & strArr(2) & "' AND PANNO='" & strArr(1) & "' AND BRANCHCODE='" & strArr(3) & "'"
-
-//    sqlStr = "SELECT PANNO FROM GENCUSTINFOMST WHERE CUSTOMERID ='" & strArr(2) & "'"
-
-//    rs = obj.SingleSelectStat(sqlStr)
-
-
-//    if obj.ConnError = "Connected" then
-
-//        if not rs.BOF and not rs.EOF then
-
-//            if isdbnull(rs(0).value) = false then
-
-//                    if rs(0).value = strArr(1) then
-//                    strResult = "0"
-
-//                        else
-//                sqlStr = "SELECT CUSTOMERID,NAME FROM GENCUSTINFOMST WHERE PANNO='" & strArr(1) & "'"
-
-//                        rs1 = obj.SingleSelectStat(sqlStr)
-
-
-//                            if obj.ConnError = "Connected" then
-
-//                                    if not rs1.BOF and not rs1.EOF then
-
-
-//                                        do until rs1.EOF
-
-//                                            strResult = strResult & rs1(0).value & "~" & rs1(1).value & "|"
-
-//                                            rs1.movenext()
-
-//                                        loop
-//                                        strResult = mid(strResult, 1, strResult.length - 1)
-
-//                                    else
-//                strResult = "0"
-
-//                                    end if
-
-//                            end if
-
-//                    end if
-
-//            else
-//                            end if
-                
-//                        end if
-                
-//                    end if
-                
-//                    rs = nothing
 //                elseif strArr(0)= "loanopeningdate" then
 //                strResult = ""
 
@@ -12917,65 +12941,7 @@ namespace Banking.Services
 //        end if
 
 
-//elseif strArr(0) = "GETMODCUSTAADHARUIDTLS" then
-//    strResult = ""
 
-//    obj = server.CreateObject("ReportPurposeOnly.Reportonly")
-
-
-//    sqlStr = "SELECT AADHARUID FROM GENCUSTINFOMST WHERE CUSTOMERID ='" & strArr(2) & "'"
-
-//    rs = obj.SingleSelectStat(sqlStr)
-
-
-//    if obj.ConnError = "Connected" then
-
-//        if not rs.BOF and not rs.EOF then
-
-//        if isdbnull(rs(0).value) = false then
-
-//                if rs(0).value = strArr(1) then
-//                strResult = "0"
-
-//                    else
-//                sqlStr = "SELECT CUSTOMERID,NAME FROM GENCUSTINFOMST WHERE AADHARUID='" & strArr(1) & "'"
-
-//                    rs1 = obj.SingleSelectStat(sqlStr)
-
-
-//                        if obj.ConnError = "Connected" then
-
-//                                if not rs1.BOF and not rs1.EOF then
-
-
-//                                    do until rs1.EOF
-
-//                                        strResult = strResult & rs1(0).value & "~" & rs1(1).value & "|"
-
-//                                        rs1.movenext()
-
-//                                    loop
-//                                    strResult = mid(strResult, 1, strResult.length - 1)
-
-//                                else
-//                strResult = "0"
-
-//                                end if
-
-//                        end if
-
-//                    end if
-
-//                else
-
-//                            end if
-                
-
-//                        end if
-                
-//                    end if
-                
-//                    rs = nothing
 //                elseif strArr(0)= "Check194N" then
 //                dim strPAN206AAYN,strPAN206ABYN
 //                dim dblFrmAmt
@@ -15213,9 +15179,6 @@ namespace Banking.Services
             //    else if ((type == "CustIntProjByCust") || (type == "CustIntProjByPanno"))
             //        window.attachEvent(window.parent.popCustIntProjAcr(strResult))
 
-            //    else if (type == "GETMODCUSTPANDTLS")
-            //        window.attachEvent(window.parent.popPanDtls(strResult))
-
             //    else if (type == "ATMCARDTLS")
             //        window.attachEvent(window.parent.popGridDisplay(strResult))
 
@@ -15224,9 +15187,6 @@ namespace Banking.Services
 
             //    else if (type == "SFTREP")
             //        window.attachEvent(window.parent.popSftDtls(strResult))
-
-            //    else if (type == "GETMODCUSTAADHARUIDTLS")
-            //        window.attachEvent(window.parent.popAADHARUIDDtls(strResult))
 
             //    else if (type == "LCKRENTPAIDTLS")
             //        window.attachEvent(window.parent.popLCKRENTPAIDTLS(strResult))
@@ -15317,12 +15277,6 @@ namespace Banking.Services
 
             //     rs = obj.singlerecordset("GENCURRENCYTYPEMST", "currencycode,narration,precision")
 
-            //elseif strType = "Tellerbranch" then
-
-            //     obj = server.CreateObject("GeneralTranQueries.TransactionQueries")
-
-
-            //     rs = obj.BranchCodes(cstr(session("userid")))
 
 
             //elseif left(strType,12)= "Tellermodule" then
@@ -17729,11 +17683,7 @@ namespace Banking.Services
 
             //    rs = obj.singlerecordset("GENOTHERBRANCHMST", "BRANCHCODE,BRANCHNAME", "BANKCODE='" & k(1) & "'")
 
-            //elseif strType = "Tellerbranch" or strType = "TellerVobranch" or strType = "MatTellerVobranch" or strType = "AutoTellerVobranch" then
-            //    obj = server.CreateObject("GeneralTranQueries.TransactionQueries")
 
-
-            //    rs = obj.BranchCodes(cstr(session("userid")))
             //elseif left(strType,12)= "Tellermodule" or left(strType,8)= "Trmodule" then
             //    dim strWhcon
             //    obj = server.CreateObject("GeneralTranQueries.TransactionQueries")

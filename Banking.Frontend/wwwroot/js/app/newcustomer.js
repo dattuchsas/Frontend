@@ -1,6 +1,9 @@
 ﻿
 // Initialize the form when DOM is loaded
-$(document).ready(function () {
+$(function () {
+
+  $("#MembershipNumber, #memberNoLabel").hide();
+  $("#MembershipName, #memberNameLabel").hide();
 
   let documents = [];
 
@@ -25,7 +28,10 @@ $(document).ready(function () {
       return;
     }
 
+    let serialNumber = $("#kycDetails tr").length + 1;
+
     documents.push({
+      serialNo: serialNumber,
       id: id,
       file: file,
       description: description,
@@ -34,14 +40,18 @@ $(document).ready(function () {
 
     $("#kycDetails").append(`
         <tr>
-            <td scope="row">${id}</td>
+            <td scope="row">${serialNumber}</td>
             <td>${description}</td>
             <td>${kycNo}</td>
         </tr>
     `);
 
-    $("#HiddenField").val(documents);
+    $("#KYCType").val('');
+    $("#KYCNumber").val('');
+    $("#KYCFile").val('');
+  });
 
+  $("#KYCClear").on('click', function () {
     $("#KYCType").val('');
     $("#KYCNumber").val('');
     $("#KYCFile").val('');
@@ -108,6 +118,10 @@ $(document).ready(function () {
 
   $("#MembershipNumber").on('blur', function () {
     debugger;
+    if ($("#MemberId").is(':checked') == false) {
+      bankingAlert("Member Id should be checked.");
+      return;
+    }
     if ($("#MemberId").is(':checked') == true && $(this).val() == "") {
       bankingAlert("Please enter the Member Id.");
       return;
@@ -118,10 +132,9 @@ $(document).ready(function () {
       type: 'GET',
       success: function (response) {
         debugger;
-        var result = response.split('|');
+        var result = response.split("|");
         if (result[1] != "")
-          bankingAlert("Member Name: " + result[1]);
-        //$("#MembershipNumber").val();
+          $("#MembershipName").val(result[1]);
       },
       error: function (err) {
         console.log(err);
@@ -135,11 +148,11 @@ $(document).ready(function () {
     IsSenior();
   });
 
-  $("#MemberId").on('blur', function () {
+  $("#MemberId").on('change', function () {
     IsMemberField();
   });
 
-  $("#Personal_DOB").on('blur', function () {
+  $("#Personal_DOB").on('change', function () {
     DisplayDOBDate();
   });
 
@@ -232,6 +245,11 @@ $(document).ready(function () {
       }
     });
   });
+
+  $("#Personal_Aadhaar").on('blur', function () {
+    ValidateAadhaarId();
+  });
+
 });
 
 function DisplayDate() {
@@ -248,29 +266,29 @@ function IsMinor() {
     type: 'GET',
     success: function (response) {
       debugger;
-      var result = response.Split('~');
+      var result = response.split("~");
         if (eval(result[0]) >= 0) {
           bankingAlert("DOB should Be Less Than Application Date..")
-          $("#").val();
+          $("#Personal_DOB").val();
           $('#Personal_Minor').prop('checked', false);
           return;
       }
       if ($('#Personal_Minor').is('checked') == true) {
-          if ((eval(result[1]) / 365) > 18) {
-            $('#Personal_Minor').prop('checked', false);
-            return;
-          }
+        if ((eval(result[1]) / 365) > 18) {
+          $('#Personal_Minor').prop('checked', false);
+          return;
+        }
+      }
+      else {
+        if ((eval(result[1]) / 365) > 18) {
+          $('#Personal_Minor').prop('checked', false);
+          return;
         }
         else {
-          if ((eval(result[1]) / 365) > 18) {
-            $('#Personal_Minor').prop('checked', false);
-            return;
-          }
-          else {
-            $('#Personal_Minor').prop('checked', false);
-            return;
-          }
+          $('#Personal_Minor').prop('checked', true);
+          return;
         }
+      }
     },
     error: function (err) {
       console.log(err);
@@ -288,6 +306,7 @@ function IsSenior() {
 }
 
 function DisplayDOBDate() {
+  debugger;
   var dtval = $("#Personal_DOB").val();
   if (dtval == "") { return false; }
   var appdate = $("#ApplicationDate").val();
@@ -304,7 +323,7 @@ function DisplayDOBDate() {
   var yrval2 = appdate.substring(7);
   var yr = yrval2 - yrval1;
   if (yr > 0) {
-    $("#Personal_DOB").val(yr);
+    $("#Age").val(yr);
     IsMinor();
     IsSenior();
   }
@@ -394,271 +413,76 @@ function SearchCustomer() {
 function IsMemberField() {
   debugger;
   if ($("#MemberId").is(':checked') == true) {
+    $("#MembershipNumber, #memberNoLabel").show();
     $("#MembershipNumber").val('');
+    $("#MembershipName, #memberNameLabel").show();
+    $("#MembershipName").val('');
+  }
+  else {
+    $("#MembershipNumber, #memberNoLabel").hide();
+    $("#MembershipNumber").val('');
+    $("#MembershipName, #memberNameLabel").hide();
     $("#MembershipName").val('');
   }
 }
 
-function checkDiv() {
-  var prasad = "SAS Enterprises"
-}
-
-function GetType() {
-  st = "CustType|Cust"
-  window.showModalDialog('<%="http://" & session("moduledir")& "/GEN/"%>' + "ListCustomer.aspx" + "?" + "st=" + st, window, "status:no;dialogwidth:350px;dialogheight:170px; dialogleft:200px; dialogtop:260px")
-}
-
-function GetMemberName() {
-  debugger;
-}
-
-function Onsearch() {
-  var stname1 = window.document.frmNewCustomer.txtName.value;
-  if (stname1 == "") {
-    alert("Please enter the name");
-    window.document.frmNewCustomer.txtName.focus();
-    return;
+function ValidateAadhaarId() {
+  if (window.document.frmCustomer.opttransmod(1).checked == true) {
+    if (window.document.frmCustomer.txtCustid.value == "") {
+      bankingAlert("Enter Customer ID");
+      window.document.frmCustomer.txtCustid.focus();
+      return
+    }
   }
+  if (window.document.frmCustomer.txtadharid.value != "") {
+    if (eval(window.document.frmCustomer.txtadharid.value.length) != 12) {
+      bankingAlert("Enter Valid Aadhar ID");
+      window.document.frmCustomer.txtadharid.value = "";
+      window.document.frmCustomer.txtadharid.focus();
+    }
+
+    var st = "GETMODCUSTAADHARUIDTLS" + "|" + window.document.frmCustomer.txtadharid.value + "|" + window.document.frmCustomer.txtCustid.value
+    window.document.all['iGetDtls1'].src = "../GEN/getDtls1.aspx?st=" + st
+
+    popAADHARUIDDtls();
+  }
+}
+
+function popAADHARUIDDtls(str) {
+  if (str == "") { }
   else {
-    window.open('<%="http://" & session("moduledir")& "/customer/"%>' + "frmSearchTerroristList.aspx?txtCustName=" + stname1, "terrorist", "width=500%,height=600%,left=150,top=120");
+    if (str == "0") {
+    }
+    else {
+      var stVal = str.split("|")
+
+      var stCus = stVal[0].split("~")
+
+      bankingAlert("This AADHAR card have already Customerid :" + stCus[0] + " and Name :" + stCus[1])
+      window.document.frmCustomer.txtadharid.value = "";
+      window.document.frmCustomer.txtadharid.focus();
+    }
   }
 }
 
 
-//function dispOccCode(str) {
-//  if (str != "No Data Found..") {
-//    str = str.split("-----")
-//    window.document.frmNewCustomer.txtCustType.value = str[1]
-//    window.document.frmNewCustomer.txtCustTypedesc.value = str[0]
-//    if (window.document.frmNewCustomer.txtCustType.value == "1") {
-//      window.document.frmNewCustomer.chkMinor.disabled = false
-//    }
-//    else {
-//      window.document.frmNewCustomer.chkMinor.checked = false
-//      window.document.frmNewCustomer.chkMinor.disabled = true
-//    }
-//  }
+//function GetType() {
+//  st = "CustType|Cust"
+//  // window.showModalDialog('<%="http://" & session("moduledir")& "/GEN/"%>' + "ListCustomer.aspx" + "?" + "st=" + st)
 //}
 
-//function CheckResult() {
-//  window.document.frmNewCustomer.txtckycenrollDt.value = "<%=session("applicationdate")%>"
-//  window.document.frmNewCustomer.MfgKYC.Rows = 1
-//  var appdat = "<%=session("applicationdate")%>"
-
-//  var yr = appdat.substring(7) - 1
-
-//  window.document.frmNewCustomer.txtName.focus()
-
-//  var strresult = ""
-//  var strcon = "nothing"
-//  var record = ""
-//  record = "<%=record%>"
-
-//  strresult = "<%=strresult%>"
-//  custid = "<%=custid%>"
-
-//  if (custid.length > 0) {
-//    st = custid
-//    window.document.frmNewCustomer.txtName.disabled = true
-//    window.document.frmNewCustomer.slcrelation.disabled = true
-//    window.document.frmNewCustomer.txtfathername.disabled = true
-//    window.document.frmNewCustomer.cmdCustType.disabled = true
-//    window.document.frmNewCustomer.txtAddress1.disabled = true
-//    window.document.frmNewCustomer.txtAddress2.disabled = true
-//    window.document.frmNewCustomer.txtAddress3.disabled = true
-//    window.document.frmNewCustomer.txtAddress4.disabled = true
-//    window.document.frmNewCustomer.txtAddress5.disabled = true
-//    window.document.frmNewCustomer.txtMail.disabled = true
-//    window.document.frmNewCustomer.txtphone1.disabled = true
-//    window.document.frmNewCustomer.txtphone2.disabled = true
-//    window.document.frmNewCustomer.txtphone3.disabled = true
-//    window.document.frmNewCustomer.txtMobile.disabled = true
-//    window.document.frmNewCustomer.txtFax.disabled = true
-//    window.document.frmNewCustomer.txtPan.disabled = true
-//    window.document.frmNewCustomer.txtAdharID.disabled = true
-//    window.document.frmNewCustomer.chkMinor.disabled = true
-//    window.document.frmNewCustomer.chkGlobal.disabled = true
-//    window.document.frmNewCustomer.chkGlobal.checked = false
-//    window.document.frmNewCustomer.txtCustType.disabled = true
-//    window.document.frmNewCustomer.txtCustTypedesc.disabled = true
-//    window.document.frmNewCustomer.slctRiskcat.disabled = true
-//    window.document.frmNewCustomer.txtgstin.disabled = true
-//    window.document.frmNewCustomer.txtckycid.disabled = true
-//    window.document.frmNewCustomer.slckyctype.disabled = true
-//    window.document.frmNewCustomer.txtKYCNo.disabled = true
-
-//    st = "DTLS~" + st
-
-//    window.document.all['iBatch'].src = '<%="http://" & session("moduledir")& "/GEN/"%>' + "customerfly.aspx?st=" + st
-
-//    return
-//  }
-//  if (record.length > 0) {
-//    if (record.substring(0, 14) == "GENCUSTINFOMST") {
-//      return;
-//    }
-
-//    var str, str1
-//    var stmain = record.split("|")
-//    window.attachEvent(window.opener.NewCustDisplay(record.toUpperCase()))
-
-//    if (stmain[6] != "yes") {
-//      strcon = window.confirm("Do you want to enter more Customer details....")
-//      if (strcon == true) {
-//        window.open('<%="http://" & session("moduledir")& "/GEN/"%>' + "customer.aspx" + "?" + "record=" + record, "CustomerDetails", "width=800,height=600,left=0,top=0")
-//      }
-//    }
-//    window.close()
-//  }
+//function GetMemberName() {
+//  debugger;
 //}
 
-//function Display(str1) {
-//  var StrArrFld = new String()
-//  var StrArrFlds = new String()
-//  if (str1.length > 0) {
-//    if (str1 == "") {
-//      window.close()
-//      return
-//    }
-//    str2 = str1.split(">>")
-//    str = str2[0].split("|")
-//    StrArrFld = str2[1].split("|")
-//    if (str[0] == "MemberName") {
-//      if (str[1] == "NoMember") {
-//        bankingAlert("Invalid Member Id.")
-//        window.document.frmNewCustomer.txtMemId.value = ""
-//        return;
-//      }
-//      else {
-//        window.document.frmNewCustomer.txtMembName.value = str[1]
-//        window.document.frmNewCustomer.txtMembName.readOnly = true
-//        return;
-//      }
-//    }
-//    window.document.frmNewCustomer.txtName.value = str[15]
-//    window.document.frmNewCustomer.txtCustType.value = str[14]
-
-//    if (str[14].length > 0)
-//      if (StrArrFld != "") {
-//        // kyc details
-//        for (jcnt = 0; jcnt <= StrArrFld.length - 1; jcnt++) {
-//          StrArrFlds = StrArrFld[jcnt].split("*")
-//          window.document.frmNewCustomer.MfgKYC.Rows =
-//            window.document.frmNewCustomer.MfgKYC.Rows + 1
-//          window.document.frmNewCustomer.MfgKYC.TextMatrix(jcnt + 1, 0) = jcnt + 1 // s no
-//          window.document.frmNewCustomer.MfgKYC.TextMatrix(jcnt + 1, 1) = StrArrFlds[0]//kyc id 
-//          window.document.frmNewCustomer.MfgKYC.TextMatrix(jcnt + 1, 2) = StrArrFlds[1]// kyc description
-//          window.document.frmNewCustomer.MfgKYC.TextMatrix(jcnt + 1, 3) = StrArrFlds[2]// kyc no
-//        }
-//      }
-//    //	kyc details	
-
-//    window.document.frmNewCustomer.txtCustTypedesc.value = str[16]
-//    window.document.frmNewCustomer.txtPan.value = str[17]
-//    window.document.frmNewCustomer.txtAdharID.value = str[22]
-//    window.document.frmNewCustomer.txtAddress1.value = str[1]
-//    window.document.frmNewCustomer.txtAddress2.value = str[2]
-//    window.document.frmNewCustomer.txtAddress3.value = str[3]
-//    window.document.frmNewCustomer.txtAddress4.value = str[4]
-//    window.document.frmNewCustomer.txtAddress5.value = str[5]
-//    window.document.frmNewCustomer.txtMail.value = str[6]
-//    window.document.frmNewCustomer.txtphone1.value = str[7]
-//    window.document.frmNewCustomer.txtphone2.value = str[8]
-//    window.document.frmNewCustomer.txtphone3.value = str[9]
-//    window.document.frmNewCustomer.txtMobile.value = str[10]
-//    window.document.frmNewCustomer.txtFax.value = str[11]
-//    window.document.frmNewCustomer.txtDob.value = str[12]
-
-//    if (str[18] != "") {
-//      window.document.frmNewCustomer.slctRiskcat.value = str[18]
-//    }
-
-//    if (str[19] != "") {
-//      window.document.frmNewCustomer.txtMemId.value = str[19]
-//    }
-
-//    if (str[20] != "") {
-//      window.document.frmNewCustomer.txtfathername.value = str[20]
-//    }
-
-//    if (str[21] != "") {
-//      window.document.frmNewCustomer.slcrelation.value = str[21]
-//    }
-
-//    if (str[23] != "") {
-//      window.document.frmNewCustomer.slcreligion.value = str[23]
-//    }
-
-//    if (str[24] != "") {
-//      window.document.frmNewCustomer.slckyctype.value = str[24]
-//    }
-
-//    if (str[13] == "Y") {
-//      window.document.frmNewCustomer.chkMinor.checked = true
-//    }
-//    else {
-//      window.document.frmNewCustomer.chkMinor.checked = false
-//    }
-//    if (str[25] == "Y")
-//      window.document.frmNewCustomer.chkGlobal.checked = true
-//    else
-//      window.document.frmNewCustomer.chkGlobal.checked = false
-
-//    window.document.frmNewCustomer.txtgstin.value = str[26]
-//    window.document.frmNewCustomer.txtckycid.value = str[27]
-
-//    if (str[28] == "M") {
-//      window.document.frmNewCustomer.optGender(0).checked = true
-//    }
-//    else {
-//      window.document.frmNewCustomer.optGender(1).checked = true
-//    }
+//function Onsearch() {
+//  var stname1 = window.document.frmNewCustomer.txtName.value;
+//  if (stname1 == "") {
+//    alert("Please enter the name");
+//    window.document.frmNewCustomer.txtName.focus();
+//    return;
 //  }
-//}
-
-//function Checksymbols() {
-//  var indx
-//  var indy
-
-//  if (window.document.frmNewCustomer.txtMail.value != "") {
-//    indx = window.document.frmNewCustomer.txtMail.value.split("@")
-//    if (indx.length > 2) {
-//      bankingAlert("Enter valid mailid...!")
-//      window.document.frmNewCustomer.txtMail.focus()
-//      return
-//    }
-//    indy = window.document.frmNewCustomer.txtMail.value.split(".")
-//    if (indy.length > 3) {
-//      bankingAlert("Enter valid mailid...!")
-//      window.document.frmNewCustomer.txtMail.focus()
-//      return
-//    }
-//    indy = window.document.frmNewCustomer.txtMail.value.lastIndexOf(".")
-//    indx = window.document.frmNewCustomer.txtMail.value.length
-//    if (indy == indx - 1) {
-//      bankingAlert("Enter valid mailid...!")
-//      window.document.frmNewCustomer.txtMail.focus()
-//      return
-//    }
-//    indx = window.document.frmNewCustomer.txtMail.value.indexOf("@") // Take the index of "@"
-//    if ((indx == -1) || (indx == 0))  // if "@" is not found
-//    {
-//      bankingAlert("Enter valid mailid...!")
-//      window.document.frmNewCustomer.txtMail.focus()
-//      return
-//    }
-//    indy = window.document.frmNewCustomer.txtMail.value.indexOf(".") // Take the index of "."
-
-//    if ((indx == -1) || (indx == 0))  // if "." is not found
-//    {
-//      bankingAlert("Enter valid Mail Id...!")
-//      window.document.frmNewCustomer.txtMail.focus()
-//      return
-//    }
-//    if ((indy == indx + 1) || (indy < indx)) {
-//      bankingAlert("Enter valid Mail Id...!")
-//      window.document.frmNewCustomer.txtMail.focus()
-//      return
-//    }
+//  else {
+//    window.open('<%="http://" & session("moduledir")& "/customer/"%>' + "frmSearchTerroristList.aspx?txtCustName=" + stname1, "terrorist");
 //  }
 //}

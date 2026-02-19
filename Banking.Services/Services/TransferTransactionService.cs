@@ -49,7 +49,9 @@ namespace Banking.Services
         {
             string strcts, impYnDay, impYnWek, DayLmt, WekLmt, strDepCertificate, cmod, cgl, cacc, cgldes, caccnam, smod, sgl, sacc, sgldes, saccnm, csmod,
                 csgl, csacc, csgldes, csaccnm, strcgstmoddesc, strsgstmoddesc, strcessmoddesc, srpos, pBr, pBrCode, srgtp, srgst, ovrdrft, CshType, Rfldnms,
-                RwhrCond, RecYN, TPayYN, TRecYN, vUserid, vCounterNo, vCashierid, vPrec, vAppDate, cntrStatus, vTotAmt;
+                RwhrCond, RecYN, TPayYN, TRecYN, vPrec, cntrStatus, vTotAmt, vModDir;
+
+            //vUserid, vAppDate, vCounterNo, vCashierid, vBranchCode, vBrnarration, vCurCode, vCurnarration, vMachineId
 
             string sqlQuery = "SELECT CREDITMODULEID,CREDITGLCODE,CREDITACCNO FROM TDSEFILEPARM WHERE EFFECTIVEDATE = " +
                 "(SELECT MAX(EFFECTIVEDATE) FROM TDSEFILEPARM WHERE EFFECTIVEDATE <='" + session.GetString(SessionConstants.ApplicationDate) + "')";
@@ -385,27 +387,27 @@ namespace Banking.Services
             string stmodule = session.GetString("module");
 
             // if General module other than Forex
-            string exitdir = "/commonmodule.aspx";
-            vUserid = session.GetString(SessionConstants.UserId);
-            vCounterNo = session.GetString(SessionConstants.CounterNo);
+            // string exitdir = "/commonmodule.aspx";
+            model.UserId = session.GetString(SessionConstants.UserId);
+            model.CounterNo = session.GetString(SessionConstants.CounterNo);
 
             string[] strBDTMod = queryString.Split(".");
 
             if (strBDTMod[0] == "BDT")
-                vAppDate = string.Format("dd-MMM-yyyy", Convert.ToDateTime(session.GetString(SessionConstants.ApplicationDate)).AddDays(-1));
+                model.ApplicationDate = string.Format("dd-MMM-yyyy", Convert.ToDateTime(session.GetString(SessionConstants.ApplicationDate)).AddDays(-1));
             else
-                vAppDate = session.GetString(SessionConstants.ApplicationDate);
+                model.ApplicationDate = session.GetString(SessionConstants.ApplicationDate);
 
-            vCashierid = session.GetString("userid");
+            model.CashierId = session.GetString("userid");
             vPrec = session.GetString("precision");
 
-            string vBranchCode = session.GetString("branchcode");
-            string vCurCode = session.GetString("currencycode");
-            string vBrnarration = session.GetString("branchnarration");
-            string vCurnarration = session.GetString("currencynarration");
-            string vMachineId = session.GetString("machineid");
-            string vAbbUser = session.GetString("abbuser");
-            string vModDir = session.GetString("moddir");
+            model.BranchCode = session.GetString("branchcode");
+            model.CurrencyCode = session.GetString("currencycode");
+            model.BranchNarration = session.GetString("branchnarration");
+            model.CurrencyNarration = session.GetString("currencynarration");
+            model.MachineId = session.GetString("machineid");
+            model.ABBUser = session.GetString("abbuser");
+            vModDir = session.GetString("moddir");
 
             if (vModDir.ToUpper().Equals("CASH"))
             {
@@ -417,8 +419,8 @@ namespace Banking.Services
 
                 Rfldnms = "cashiertypeid,upper(counterstatus) cntStatus";
 
-                string CwhrCond = "upper(branchcode)='" + vBranchCode.Trim().ToUpper() + "' and upper(currencycode)='" +
-                    vCurCode.Trim().ToUpper() + "' and upper(cashierid)='" + vUserid.Trim().ToUpper() + "'";
+                string CwhrCond = "upper(branchcode)='" + model.BranchCode.Trim().ToUpper() + "' and upper(currencycode)='" +
+                    model.CurrencyCode.Trim().ToUpper() + "' and upper(cashierid)='" + model.UserId.Trim().ToUpper() + "'";
 
                 dataTable = await _databaseFactory.SingleRecordSet("CASHCOUNTERMST", Rfldnms, CwhrCond);
 
@@ -429,7 +431,7 @@ namespace Banking.Services
 
                     Rfldnms = "receiptsyn,tellerpaymentsyn,tellerreceiptsyn";
 
-                    RwhrCond = "upper(branchcode)='" + vBranchCode.Trim().ToUpper() + "' and upper(currencycode)='" + vCurCode.Trim().ToUpper() + 
+                    RwhrCond = "upper(branchcode)='" + model.BranchCode.Trim().ToUpper() + "' and upper(currencycode)='" + model.CurrencyCode.Trim().ToUpper() + 
                         "' and upper(cashiertypeid)='" + CshType.Trim().ToUpper() + "' and upper(status)='R'";
 
                     dataTable = await _databaseFactory.SingleRecordSet("CASHCASHIERTYPEMST", Rfldnms, RwhrCond);

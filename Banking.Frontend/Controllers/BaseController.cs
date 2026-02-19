@@ -64,15 +64,30 @@ namespace Banking.Frontend.Controllers
             var controllerName = Conversions.ToString(context.RouteData.Values["controller"]);
             var actionName = Conversions.ToString(context.RouteData.Values["action"]);
             LogInfo(controllerName, actionName);
+
+            if (context.Result is ViewResult viewResult && viewResult.Model is BaseModel model)
+            {
+                model.ReferrerController = session.GetString(SessionConstants.ReferrerController);
+                model.ReferrerAction = session.GetString(SessionConstants.ReferrerAction);
+            }
+
             base.OnActionExecuted(context);
         }
 
         private void GetReferrerUrl(ActionExecutingContext context)
         {
             string? referrerUrl = context.HttpContext.Request.Headers["Referer"].ToString();
-            if (!string.IsNullOrWhiteSpace(referrerUrl))
+
+            if (!string.IsNullOrEmpty(referrerUrl))
             {
-                session.SetString(SessionConstants.ReferrerUrl, referrerUrl);
+                Uri uri = new Uri(referrerUrl);
+
+                // Example: https://localhost:5001/Employee/Edit/10
+                var segments = uri.AbsolutePath
+                                  .Split('/', StringSplitOptions.RemoveEmptyEntries);
+
+                session.SetString(SessionConstants.ReferrerController, segments.Length == 1 ? segments[0] : "Dashboard");
+                session.SetString(SessionConstants.ReferrerAction, segments.Length == 2 ? segments[1] : "Index");
             }
         }
 

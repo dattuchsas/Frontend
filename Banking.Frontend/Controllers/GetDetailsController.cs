@@ -50,6 +50,22 @@ namespace Banking.Frontend.Controllers
             return Content(result, "text/plain");
         }
 
+        [HttpGet]
+        public async Task<IActionResult> GetModifiedCustomerPANDetails(string searchString)
+        {
+            string search = searchString.Split("|")[1];
+            var result = await _getDetailsService.GetModifiedCustomerPANDetails(search);
+            return Content(result, "text/plain");
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetModifiedCustomerAadhaarDetails(string searchString)
+        {
+            string search = searchString.Split("|")[1];
+            var result = await _getDetailsService.GetModifiedCustomerAadhaarDetails(search);
+            return Content(result, "text/plain");
+        }
+
         public string GetDateDifference(string searchString)
         {
             string[] str = searchString.Split('|');

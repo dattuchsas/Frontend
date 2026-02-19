@@ -33,7 +33,7 @@ namespace Banking.Services
         DateTime dtFrmDt = DateTime.MinValue;
         DateTime dtToDt = DateTime.MinValue;
 
-        DateTime strDtLicFeePend = DateTime.MinValue;
+        DateTime strDtLicFeePend;
         DateTime strDtAMCFeePend = DateTime.MinValue;
 
         DateTime currDate = DateTime.MinValue;
@@ -185,48 +185,45 @@ namespace Banking.Services
                     } // 'strliamc = "A"
                 }
 
-                // License pending fee - application date less than license fee pending cut off date
-                if (strDtLicFeePend.GetType() == typeof(DateTime))
-                {
-                    if (dtAppDt <= strDtLicFeePend)
-                    {
-                        dblDiffDays = BankingExtensions.DateDifference("d", dtAppDt, strDtLicFeePend);
+                //// License pending fee - application date less than license fee pending cut off date
+                //if (strDtLicFeePend.GetType() == typeof(DateTime))
+                //{
+                //    if (dtAppDt <= strDtLicFeePend)
+                //    {
+                //        dblDiffDays = BankingExtensions.DateDifference("d", dtAppDt, strDtLicFeePend);
 
-                        if (dblDiffDays <= 7d)   // ' before 7 days of cut off date
-                        {
-                            loginValidateRet = "Mes~Your License Fee Is Pending, Please Pay On" + " Before  " + string.Format("dd-MMM-yyyy", strDtLicFeePend, "dd-MMM-yyyy") + ". To Extending Services ";
-                        } // 'dblDiffDays <= 7
-                    }
+                //        if (dblDiffDays <= 7d)   // ' before 7 days of cut off date
+                //        {
+                //            loginValidateRet = "Mes~Your License Fee Is Pending, Please Pay On" + " Before  " + string.Format("dd-MMM-yyyy", strDtLicFeePend, "dd-MMM-yyyy") + ". To Extending Services ";
+                //        } // 'dblDiffDays <= 7
+                //    }
+                //    else if (dtAppDt > strDtLicFeePend) // '  when app date greater than cut off date
+                //    {
+                //        loginValidateRet = "NoP~License Fee Is Not Paid, Please Contact Raminfo Ltd. To Extend " + "Our Services";
+                //    }
+                //}
 
-                    else if (dtAppDt > strDtLicFeePend) // '  when app date greater than cut off date
-                    {
+                //// Start AMC pending fee - application date less than AMC fee pending cut off date
+                //if (strDtAMCFeePend.GetType() == typeof(DateTime))
+                //{
+                //    if (dtAppDt <= strDtAMCFeePend)
+                //    {
 
-                        loginValidateRet = "NoP~License Fee Is Not Paid, Please Contact Raminfo Ltd. To Extend " + "Our Services";
+                //        dblDiffDays = BankingExtensions.DateDifference("d", dtAppDt, strDtAMCFeePend);
 
-                    } // ' dtAppDt <= CDate(strDtlicfeepend)
-                }
+                //        if (dblDiffDays <= 7d)   // ' before 7 days of cut off date
+                //        {
+                //            loginValidateRet = "Mes~Your AMC Fee Is Pending, Please Pay On" + " Before  " + strDtAMCFeePend + ". To Extending Services ";
+                //        } // 'dblDiffDays <= 7
+                //    }
 
-                // Start AMC pending fee - application date less than AMC fee pending cut off date
-                if (strDtAMCFeePend.GetType() == typeof(DateTime))
-                {
-                    if (dtAppDt <= strDtAMCFeePend)
-                    {
+                //    else if (dtAppDt > strDtAMCFeePend) // '  when app date greater than cut off date
+                //    {
 
-                        dblDiffDays = BankingExtensions.DateDifference("d", dtAppDt, strDtAMCFeePend);
+                //        loginValidateRet = "NoP~AMC Fee Is Not Paid, Please Contact Raminfo Ltd. To Extend Our Services";
 
-                        if (dblDiffDays <= 7d)   // ' before 7 days of cut off date
-                        {
-                            loginValidateRet = "Mes~Your AMC Fee Is Pending, Please Pay On" + " Before  " + strDtAMCFeePend + ". To Extending Services ";
-                        } // 'dblDiffDays <= 7
-                    }
-
-                    else if (dtAppDt > strDtAMCFeePend) // '  when app date greater than cut off date
-                    {
-
-                        loginValidateRet = "NoP~AMC Fee Is Not Paid, Please Contact Raminfo Ltd. To Extend Our Services";
-
-                    } // ' dtAppDt <= CDate(strDtamcfeepend)
-                } // ' IsDate(strDtamcfeepend)
+                //    } // ' dtAppDt <= CDate(strDtamcfeepend)
+                //} // ' IsDate(strDtamcfeepend)
 
                 // System date > expiry date
                 currDate = DateTime.Now;

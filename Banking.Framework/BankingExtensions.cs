@@ -139,10 +139,12 @@ namespace Banking.Framework
 
         public static int DateDifference<T>(string type, T fromDate, T toDate)
         {
-            if (type.ToUpper().Equals('D'))
+            if (type.ToUpper().Equals("D"))
                 return (Convert.ToDateTime(toDate) - Convert.ToDateTime(fromDate)).Days;
-            else
-                return (Convert.ToDateTime(toDate) - Convert.ToDateTime(fromDate)).Days;
+            else if (type.ToUpper().Equals("Y"))
+                return Convert.ToDateTime(toDate).Year - Convert.ToDateTime(fromDate).Year;
+            else //if (type.ToUpper().Equals('M'))
+                return Convert.ToDateTime(toDate).Month - Convert.ToDateTime(fromDate).Month;
         }
 
         private static int CharToNumber(string str)

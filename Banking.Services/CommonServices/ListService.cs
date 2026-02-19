@@ -37,6 +37,13 @@ namespace Banking.Services
             return ReturnKeyValuePair(dataTable, "Module");
         }
 
+        // Tellerbranch, Tellerbranch, TellerVobranch, MatTellerVobranch, AutoTellerVobranch
+        public void GetTellerBranchList()
+        {
+            //    obj = server.CreateObject("GeneralTranQueries.TransactionQueries")
+            //    rs = obj.BranchCodes(cstr(session("userid")))
+        }
+
         private List<SelectListItem> ReturnKeyValuePair(DataTable dataTable, string type = "")
         {
             List<string> list = new List<string>
