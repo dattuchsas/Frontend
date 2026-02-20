@@ -1,6 +1,7 @@
 ﻿using Banking.Models;
 using Banking.Interfaces;
 using System.Data;
+using Banking.Framework;
 
 namespace Banking.Backend
 {
@@ -180,26 +181,11 @@ namespace Banking.Backend
             string DataTransactionsRet = string.Empty;
 
             string[,] DataArray;
-            string[] ArrRowValues = new string[1];
-            string TabFldValues;
-            string StrFld;
-            string StrTabName;
-            string TabWhereCondition;
-            string TransResult = string.Empty;
-            string AutoCondition;
-            string AutoConditioninit = string.Empty;
-            string Autoflds;
-            string AutoNumValue = string.Empty;
-            string AutoNumValueInit = string.Empty;
-            string AccNoPrefix;
-            string AccNoSuffix;
-            string ActualAccNo;
-            string AutoFldNames;
             string[] AutoType;
-            string AutoPmtCond;
-            DataTable Rsnfts;
-            DataTable RsAutoPmt;
-            DataTable Rstemp;
+            string[] ArrRowValues = new string[1];
+            string TransResult = string.Empty, AutoConditioninit = string.Empty, AutoNumValue = string.Empty, AutoNumValueInit = string.Empty;
+            string TabFldValues, StrFld, StrTabName, TabWhereCondition, AutoCondition, Autoflds, AccNoPrefix, AccNoSuffix, ActualAccNo, AutoFldNames, AutoPmtCond;
+            DataTable Rsnfts, RsAutoPmt, Rstemp;
             int intaccnolen, transcount;
 
             try
@@ -213,9 +199,6 @@ namespace Banking.Backend
                 //moduleid = Conversions.ToString(Interaction.IIf(IsNull(Strings.UCase(Strings.Trim(moduleid))), "", Strings.UCase(Strings.Trim(moduleid))));
                 //objQuery = ObjContext.CreateInstance("QueryRecordsets.FetchRecordsets");
                 //ObjTrans = ObjContext.CreateInstance("DataBaseTransactions.TransactionMethods");
-
-                //Rstemp = Interaction.CreateObject("ADODB.Recordset");
-                //Rsnfts = Interaction.CreateObject("adodb.recordset");
 
                 Autoflds = "";
                 AutoNumValue = "";
@@ -361,19 +344,32 @@ namespace Banking.Backend
                     }
                 }
 
-                // *************Transaction Started***************
+                // Transaction Started
                 for (transcount = 0; transcount < DataArray.GetLength(0); transcount++)
                 {
+                    if (string.IsNullOrWhiteSpace(DataArray[transcount, 1]))
+                        continue;
+
                     StrTabName = DataArray[transcount, 1];
                     StrFld = DataArray[transcount, 2];
                     TabFldValues = DataArray[transcount, 3];
-                    ArrRowValues = TabFldValues.Split("|");
+                    ArrRowValues = TabFldValues!.Split("|");
+
+                    // TODO
+                    //for (int i = 0; i < ArrRowValues.Length - 1; i++)
+                    //{
+                    //    if (ArrRowValues[i + 1].Contains("DD-MON-YYYY"))
+                    //    {
+                    //        ArrRowValues[i] = string.Concat(ArrRowValues[i], ArrRowValues[i + 1]);
+                    //        i++;
+                    //    }
+                    //}
 
                     TabWhereCondition = DataArray[transcount, 4];
 
                     if (DataArray[transcount, 0].Trim().ToUpper() == "I")
                     {
-                        /// ************For Insert****************
+                        // For Insert
                         if (!string.IsNullOrEmpty(Autoflds.Trim()))
                         {
                             // StrFld = StrFld & "," & Autoflds
@@ -401,13 +397,13 @@ namespace Banking.Backend
                     }
                     //else if (DataArray[transcount, 0].Trim().ToUpper() == "BI")
                     //{
-                    //    /// ************For Bulk Insertion****************
+                    //    // For Bulk Insertion
                     //    TransResult = "";
                     //    TransResult = await _transactionalFactory.BulkInsert(StrTabName, StrFld, DataArray[transcount, 3], BRCode, UserId, MachID, applicationDate, DayBeginEndStatusCheckYN);
                     //}
                     else if (DataArray[transcount, 0].Trim().ToUpper() == "U")
                     {
-                        /// ************For Update****************
+                        // For Update
                         if (!string.IsNullOrEmpty(Autoflds.Trim()))
                         {
                             // StrFld = StrFld & "," & Autoflds
@@ -419,26 +415,26 @@ namespace Banking.Backend
                     }
                     else if (DataArray[transcount, 0].Trim().ToUpper() == "D")
                     {
-                        /// ************For Delete****************
+                        // For Delete
                         TransResult = await _transactionalFactory.DeleteRecord(StrTabName, TabWhereCondition, BRCode, UserId, MachID, applicationDate, DayBeginEndStatusCheckYN);
                     }
                     //else if (DataArray[transcount, 0].Trim().ToUpper() == "R")
                     //{
-                    //    /// ************For Rejection****************
+                    //    // For Rejection
                     //    TransResult = await _transactionalFactory.RejectRecord(StrTabName, TabWhereCondition, BRCode, UserId, MachID, applicationDate, DayBeginEndStatusCheckYN);
                     //}
                     //else if (DataArray[transcount, 0].Trim().ToUpper() == "SI")
                     //{
-                    //    /// ************For Insertion using a Select statement ****************
+                    //    // For Insertion using a Select statement
                     //    TransResult = await _transactionalFactory.InsertUsingSelect(StrTabName, StrFld, ArrRowValues, TabWhereCondition, BRCode, UserId, MachID, applicationDate, DayBeginEndStatusCheckYN);
                     //}
 
                     // TransResult = "trans1"
-                    if (TransResult.Trim() != "Transaction Completed")
+                    if (TransResult.Trim() != BankingConstants.TransactionCompleted)
                         throw new Exception();
                 }
 
-                DataTransactionsRet = (!string.IsNullOrEmpty(AutoNumValue)) ? "Transaction Sucessful.|" + AutoNumValue : "Transaction Sucessful.";
+                DataTransactionsRet = (!string.IsNullOrEmpty(AutoNumValue)) ? string.Concat(BankingConstants.TransactionSuccessful, "|", AutoNumValue) : BankingConstants.TransactionSuccessful;
             }
             catch (Exception ex)
             {
@@ -448,9 +444,9 @@ namespace Banking.Backend
                     //string TransResult2 = await ModifyQueriedTrans("GENAUTONUMMAX", "MAXAUTONUM", ArrRowValuesInit, AutoConditioninit, BranchCode, UserCode, MachineID);
                 }
 
+                // Connection Failed
                 if (!string.IsNullOrEmpty(TransResult.Trim()))
                 {
-                    // *************Connection Failed************
                     DataTransactionsRet = TransResult.Replace("\n", "").Replace("\r", "");
                 }
                 else

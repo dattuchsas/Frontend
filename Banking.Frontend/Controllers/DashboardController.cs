@@ -13,7 +13,7 @@ namespace Banking.Frontend.Controllers
         {
         }
 
-        public async Task<IActionResult> Index(string moduleId = "")
+        public async Task<IActionResult> UserModules(string moduleId = "")
         {
             DataTable recmod = null!;
             string vmod = string.Empty, strQuery, appDate;
@@ -59,14 +59,14 @@ namespace Banking.Frontend.Controllers
             return View();
         }
 
-        public IActionResult UserModules()
+        public IActionResult Index()
         {
             string appdate = "";
             var model = new DashboardModel();
 
             var queryString = HttpContext.Session.GetString(SessionConstants.QueryString);
 
-            if (string.IsNullOrWhiteSpace(queryString) || queryString.Equals("modules=$"))
+            if (string.IsNullOrWhiteSpace(queryString) || queryString.Equals("record=$"))
             {
                 model.AssignedModules = [];
                 model.ErrorMessage = "No modules assigned. Please contact administrator.";

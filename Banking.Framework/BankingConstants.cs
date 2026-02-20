@@ -65,8 +65,9 @@
         public const string DataPresent = "Data Present";
         public const string BankNameNotSet = "No Bank Name Not Properly Set";
         public const string BranchDataNotSet = "Noo~Branch Data Not Set";
-        
+
         public const string TransactionCompleted = "Transaction Completed";
+        public const string TransactionSuccessful = "Transaction Sucessful";
 
         //public const string NoLicAMC = "Noo~License Or AMC Not Set";
         //public const string AMCExpiresOn = "Mes~Your AMC Is Going To Expire On {0}, Please Renew It";

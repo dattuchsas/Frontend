@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Http;
 using System.Data;
 using System.Globalization;
+using System.Text;
 using System.Xml;
 
 namespace Banking.Framework
@@ -63,6 +64,11 @@ namespace Banking.Framework
             { "ATM", "ATM" },
             { "PAYROLL", "Payroll" }
         };
+
+        public static string DecodeInput(string input)
+        {
+            return Encoding.UTF8.GetString(Convert.FromBase64String(input));
+        }
 
         public static void ReleaseMemory(DataTable source)
         {

@@ -56,6 +56,10 @@ function ValidateAadhaar(aadhaarNumber, branchCode) {
   }
 }
 
+function EncodeInput(input) {
+  return btoa(input);
+}
+
 function ValidatePANNumber(panNumber, branchCode) {
   if (panNumber == "") {
     bankingAlert("Please Enter PAN Number");
