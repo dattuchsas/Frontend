@@ -237,6 +237,7 @@ $(function () {
       processData: false, // REQUIRED
       contentType: false, // REQUIRED
       success: function (response) {
+        debugger;
         bankingAlert(result);
         window.scrollTo(0, 0);
       },
@@ -250,7 +251,72 @@ $(function () {
     ValidateAadhaarId();
   });
 
+  $("#Personal_PANNo").on('blur', function () {
+    PANCheck();
+  });
+
 });
+
+function PANCheck() {
+  if (window.document.frmCustomer.txtCustid.value == "") {
+    bankingAlert("Enter Customer Id");
+    $("#CustomerId").trigger('focus');
+    return;
+  }
+
+  var panNum = $("#Personal_PANNo").val().toUpperCase();
+
+  if (panNum == "") {
+    bankingAlert("Please enter PAN Number");
+    return;
+  }
+  else {
+    if ((panNum.length == "10") && (panNum.substring(0, 10)).match("[(/).]+")) {
+      bankingAlert("Not a valid PAN Number");
+      $("#Personal_PANNo").val('');
+    }
+    else {
+      if (panNum.length == "10") {
+        if ((panNum.substring(0, 5)).match(/^[a-zA-Z]+$/) && (panNum.substring(5, 9)).match(/^[0-9]+$/) && (panNum.substring(9, 10)).match(/^[a-zA-Z]+$/)) {
+          var st = "GETMODCUSTPANDTLS" + "|" + panNum.toUpperCase() + "|" + $("#CustomerId").val();
+
+          $.ajax({
+            url: '/GetDetails/GetModifiedCustomerPANDetails?searchString=' + encodeURIComponent(st),
+            type: 'GET',
+            success: function (response) {
+              debugger;
+              if (response != "") {
+                if (response != "0") {
+                  var stVal = str.split("|");
+                  var stCus = stVal[0].split("~");
+                  bankingAlert("This Pan card have already Customerid :" + stCus[0] + " and Name :" + stCus[1]);
+                  $("#Personal_PANNo").val('');
+                  $("#Personal_PANNo").trigger('focus');
+                  return;
+                }
+              }
+            },
+            error: function (err) {
+              console.log(err);
+            }
+          });
+        }
+        else {
+          bankingAlert("Not a valid PAN Number")
+          $("#Personal_PANNo").val('');
+          $("#Personal_PANNo").trigger('focus');
+          return;
+        }
+      }
+      else {
+        bankingAlert("Not a valid PAN Number")
+        $("#Personal_PANNo").val('');
+        $("#Personal_PANNo").trigger('focus');
+        return;
+      }
+    }
+  }
+}
 
 function DisplayDate() {
   var d = new Date();
@@ -376,7 +442,7 @@ function SearchCustomer() {
         return;
       }
       else {
-        var stmain1 = response.Split('~');
+        var stmain1 = response.split("~");
         bankingAlert("Customer ID: " + stmain1[0]);
         if (stmain1[1] == "N") {
           bankingAlert("This PAN Card is Inactive");
@@ -427,62 +493,33 @@ function IsMemberField() {
 }
 
 function ValidateAadhaarId() {
-  if (window.document.frmCustomer.opttransmod(1).checked == true) {
-    if (window.document.frmCustomer.txtCustid.value == "") {
-      bankingAlert("Enter Customer ID");
-      window.document.frmCustomer.txtCustid.focus();
-      return
-    }
-  }
-  if (window.document.frmCustomer.txtadharid.value != "") {
-    if (eval(window.document.frmCustomer.txtadharid.value.length) != 12) {
+  if (Personal_Aadhaar != "") {
+    if (eval($("#Personal_Aadhaar").val().length) != 12) {
       bankingAlert("Enter Valid Aadhar ID");
-      window.document.frmCustomer.txtadharid.value = "";
-      window.document.frmCustomer.txtadharid.focus();
+      $("#Personal_Aadhaar").val('');
+      return;
     }
 
-    var st = "GETMODCUSTAADHARUIDTLS" + "|" + window.document.frmCustomer.txtadharid.value + "|" + window.document.frmCustomer.txtCustid.value
-    window.document.all['iGetDtls1'].src = "../GEN/getDtls1.aspx?st=" + st
+    var st = "GETMODCUSTAADHARUIDTLS" + "|" + $("#Personal_Aadhaar").val() + "|";
 
-    popAADHARUIDDtls();
+    $.ajax({
+      url: '/GetDetails/GetModifiedCustomerAadhaarDetails?searchString=' + encodeURIComponent(st),
+      type: 'GET',
+      success: function (response) {
+        debugger;
+        if (response != "") {
+          if (response != "0") {
+            var stVal = str.split("|");
+            var stCus = stVal[0].split("~");
+            bankingAlert("This Aadhaar Card have already Customerid: " + stCus[0] + " and Name:" + stCus[1])
+            $("#Personal_Aadhaar").val('');
+            return;
+          }
+        }
+      },
+      error: function (err) {
+        console.log(err);
+      }
+    });
   }
 }
-
-function popAADHARUIDDtls(str) {
-  if (str == "") { }
-  else {
-    if (str == "0") {
-    }
-    else {
-      var stVal = str.split("|")
-
-      var stCus = stVal[0].split("~")
-
-      bankingAlert("This AADHAR card have already Customerid :" + stCus[0] + " and Name :" + stCus[1])
-      window.document.frmCustomer.txtadharid.value = "";
-      window.document.frmCustomer.txtadharid.focus();
-    }
-  }
-}
-
-
-//function GetType() {
-//  st = "CustType|Cust"
-//  // window.showModalDialog('<%="http://" & session("moduledir")& "/GEN/"%>' + "ListCustomer.aspx" + "?" + "st=" + st)
-//}
-
-//function GetMemberName() {
-//  debugger;
-//}
-
-//function Onsearch() {
-//  var stname1 = window.document.frmNewCustomer.txtName.value;
-//  if (stname1 == "") {
-//    alert("Please enter the name");
-//    window.document.frmNewCustomer.txtName.focus();
-//    return;
-//  }
-//  else {
-//    window.open('<%="http://" & session("moduledir")& "/customer/"%>' + "frmSearchTerroristList.aspx?txtCustName=" + stname1, "terrorist");
-//  }
-//}

@@ -2,19 +2,31 @@
 $(function () {
 
   let documents = [];
+  let familyMembers = [];
+
+  //$('input, textarea, select').prop('disabled', true);
+  //$("input[type='submit']").prop('disabled', true);
+  //$("#viewCustomer").addClass('active');
+  //$("#CustomerId").prop('disabled', false);
+
+  //$("#modifyCustomer").on('click', function () {
+  //  $('input, textarea, select').prop('disabled', false);
+  //  $("#viewCustomer").removeClass('active');
+  //  $("#modifyCustomer").addClass('active');
+  //  $("input[type='submit']").prop('disabled', false);
+  //});
 
   $("#MembershipNumber, #memberNoLabel").hide();
   $("#MembershipName, #memberNameLabel").hide();
 
-  $("#CustomerId").on('blur', function () {
-    debugger;
+  $("#CustomerId").on('change', function () {
     var stcond = " and status='R'";
     var st = $(this).val();
     if (st != "") {
       st = st + "|Main" + "|" + stcond
     }
     $("#hiddenCustId").val(st);
-    $("#loginForm").trigger('submit');
+    window.location.href = '/Customer/Index?custId=' + encodeURIComponent(EncodeInput(st));
   });
 
   $("#Personal_PANNo").on('blur', function () {
@@ -74,6 +86,46 @@ $(function () {
     $("#KYCType").val('');
     $("#KYCNumber").val('');
     $("#KYCFile").val('');
+  });
+
+  $("#AddToFamilyGrid").on("click", function () {
+    debugger;
+    let name = $("#Relation_Name").val();
+    let dob = $("#Relation_DOB").val();
+    let relationType = $("#Relation_Type").val();
+    let relationText = $("#Relation_Type option:selected").text();
+
+    let serialNumber = $("#familyDetails tr").length + 1;
+
+    let member = {
+      serialNo: serialNumber,
+      name: name,
+      dob: dob,
+      relationType: relationType
+    };
+
+    familyMembers.push(member);
+
+    $("#familyDetails").append(`
+        <tr>
+            <td>${serialNumber}</td>
+            <td>${name}</td>
+            <td>${dob}</td>
+            <td>${relationText}</td>
+        </tr>
+    `);
+
+    $("#HiddenFamilyField").val(familyMembers);
+
+    $("#Relation_Name").val('');
+    $("#Relation_Type").val('');
+    $("#Relation_DOB").val('');
+  });
+
+  $("#ClearFamilyDetails").on('click', function () {
+    $("#Relation_Name").val('');
+    $("#Relation_Type").val('');
+    $("#Relation_DOB").val('');
   });
 
   $("#MembershipNumber").on('blur', function () {
@@ -199,6 +251,15 @@ $(function () {
       formData.append(`kycDocuments[${index}].File`, doc.file);
     });
 
+    // Append Family Details to form
+    familyMembers.forEach((docs, index) => {
+      formData.append(`relations[${index}].Name`, docs.name);
+      formData.append(`relations[${index}].DOB`, docs.dob);
+      formData.append(`relations[${index}].RelationType`, docs.relationType);
+    });
+
+    debugger;
+
     $.ajax({
       type: "POST",
       url: form.action,
@@ -219,12 +280,6 @@ $(function () {
 });
 
 function PANCheck() {
-  if (window.document.frmCustomer.txtCustid.value == "") {
-    bankingAlert("Enter Customer Id");
-    $("#CustomerId").trigger('focus');
-    return;
-  }
-
   var panNum = $("#Personal_PANNo").val().toUpperCase();
 
   if (panNum == "") {
@@ -280,21 +335,14 @@ function PANCheck() {
 }
 
 function ValidateAadhaarId() {
-  if (window.document.frmCustomer.opttransmod(1).checked == true) {
-    if (window.document.frmCustomer.txtCustid.value == "") {
-      bankingAlert("Enter Customer ID");
-      window.document.frmCustomer.txtCustid.focus();
-      return
-    }
-  }
-  if (window.document.frmCustomer.txtadharid.value != "") {
-    if (eval(window.document.frmCustomer.txtadharid.value.length) != 12) {
+  if (Personal_Aadhaar != "") {
+    if (eval($("#Personal_Aadhaar").val().length) != 12) {
       bankingAlert("Enter Valid Aadhar ID");
-      window.document.frmCustomer.txtadharid.value = "";
-      window.document.frmCustomer.txtadharid.focus();
+      $("#Personal_Aadhaar").val('');
+      return;
     }
 
-    var st = "GETMODCUSTAADHARUIDTLS" + "|" + window.document.frmCustomer.txtadharid.value + "|" + window.document.frmCustomer.txtCustid.value
+    var st = "GETMODCUSTAADHARUIDTLS" + "|" + $("#Personal_Aadhaar").val() + "|";
 
     $.ajax({
       url: '/GetDetails/GetModifiedCustomerAadhaarDetails?searchString=' + encodeURIComponent(st),
@@ -305,9 +353,8 @@ function ValidateAadhaarId() {
           if (response != "0") {
             var stVal = str.split("|");
             var stCus = stVal[0].split("~");
-            bankingAlert("This AADHAR card have already Customerid :" + stCus[0] + " and Name :" + stCus[1]);
+            bankingAlert("This Aadhaar Card have already Customerid: " + stCus[0] + " and Name:" + stCus[1])
             $("#Personal_Aadhaar").val('');
-            $("#Personal_Aadhaar").trigger('focus');
             return;
           }
         }

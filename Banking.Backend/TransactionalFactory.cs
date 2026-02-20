@@ -182,10 +182,10 @@ namespace Banking.Backend
                     };
 
                     // Check for day begin and day end status is required
-                    connError = await CheckDayBeginDayEndStatus(queryModel);
+                    // connError = await CheckDayBeginDayEndStatus(queryModel);
 
-                    if (connError != "CONTINUE")
-                        throw new Exception();
+                    //if (connError != "CONTINUE")
+                    //    throw new Exception();
                 }
 
                 connError = "Connected";
@@ -287,12 +287,12 @@ namespace Banking.Backend
                     }
 
                     if (!string.IsNullOrEmpty(StrInsert.Trim()))
-                        await ProcessQueryAsync(StrInsert);
+                        await ProcessNonQueryAsync(StrInsert);
 
                     // Spliting the Collumn Names (Fields) to build the Update Statement
                     arrflds = strfields.Split(",");
 
-                    // ****** Spliting the Collumn Values (Fields Values) to build the Update Statement
+                    // ****** Spliting the Column Values (Fields Values) to build the Update Statement
                     ArrRowValue = ArrTempValues[RowCnt].Split("~");
 
                     /// *******  first concantinating the values for update ***********
@@ -313,7 +313,6 @@ namespace Banking.Backend
                     }
 
                     // Executing the update statement Based On Number of Rows
-
                     await ProcessQueryAsync(strquery);
 
                     var result = await ProcessNonQueryAsync(Strupdate);
@@ -328,10 +327,7 @@ namespace Banking.Backend
                         //if (blnLogErrors == true)
                         //    LogError("DataBaseTransactions", "UpdateRecord", "0", UpdateRecordRet + ": " + Strupdate);
 
-                        
                         rsHistCol = null!;
-
-                        
                         rsHistExt = null!;
 
                         return UpdateRecordRet;
@@ -339,11 +335,7 @@ namespace Banking.Backend
                 }
 
                 UpdateRecordRet = BankingConstants.TransactionCompleted;
-
-              
                 rsHistCol = null!;
-
-               
                 rsHistExt = null!;
             }
             catch (Exception ex)
@@ -385,10 +377,10 @@ namespace Banking.Backend
                         QueryType = OracleQueryType.Delete
                     };
 
-                    connError = await CheckDayBeginDayEndStatus(queryModel);
+                    //connError = await CheckDayBeginDayEndStatus(queryModel);
 
-                    if (connError != "CONTINUE")
-                        throw new Exception();
+                    //if (connError != "CONTINUE")
+                    //    throw new Exception();
                 }
 
                 // First passing the data into History tables before deleting the data from original tables

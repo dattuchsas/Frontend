@@ -1,2 +1,51 @@
-﻿@{
+﻿@using Banking.Framework
+@model Banking.Models.DashboardModel
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<script>
+    $(document).ready(function () {
+        var errorMessage = "@Html.Raw(System.Web.HttpUtility.HtmlEncode(Model.ErrorMessage))";
+        if (errorMessage !== "")
+        {
+            $('#errorMessageText').text(errorMessage);
+            $('#errorModal').modal('show');
+        }
+        $(".moduleClass").on('click', function () {
+            window.location.href= '@Url.Action("SelectedModule", "Dashboard")' + '?moduleId=' + $(this).attr('id');
+        });
+    });
+</script>
+
+@if (Model.AssignedModules.Keys.Count > 0)
+{
+    int cnt = 1;
+    <div class="row">
+        <div class="col-md-1"></div>
+        <div class="col-md-10">
+            <div class="row p-3">
+                <div class="row">
+                    @foreach (var item in Model.AssignedModules.Keys)
+                    {
+                        @if (cnt == 1)
+                        {
+                            <div class="col-3 d-grid gap-2 p-2">
+                                <button class="btn btn-lg btn-outline-maharaja moduleClass" id="@item">@Model.AssignedModules[item]</button>
+                            </div>
+                        }
+                        if (cnt == 2)
+                        {
+                            <div class="col-6 d-grid gap-2 p-2"></div>
+                            <div class="col-3 d-grid gap-2 p-2">
+                                <button class="btn btn-lg btn-outline-maharaja moduleClass" id="@item">@Model.AssignedModules[item]</button>
+                            </div>
+                        }
+                        cnt = (cnt == 2) ? 1 : ++cnt;
+                    }
+                </div>
+            </div>
+        </div>
+        <div class="col-md-1"></div>
+    </div>
 }

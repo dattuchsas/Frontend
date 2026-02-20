@@ -3,7 +3,17 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<form class="login-form" id="customerForm" novalidate asp-area="" asp-controller="Customer" asp-action="Index" asp-antiforgery="true" method="post">
+@if (!string.IsNullOrWhiteSpace(Model.ErrorMessage))
+{
+    <script>
+        var errorDiv = document.getElementById("mandatoryFieldsAlert");
+        errorDiv.textContent = '@Html.Raw(HtmlEncoder.Encode(Model.ErrorMessage))';
+        errorDiv.classList.remove("d-none");
+        errorDiv.style.display = "block";
+    </script>
+}
+
+<form class="login-form" id="customerForm" novalidate asp-area="" asp-controller="Customer" asp-action="UpdateCustomer" asp-antiforgery="true" method="post">
     @Html.AntiForgeryToken()
     <div class="card mb-2">
         <div class="card-header">
@@ -53,13 +63,13 @@
                                     </label>
                                 </div>
                                 <div class="ms-3 flex-grow-1">
-                                    <label asp-for="MembershipNumber" class="form-label">Membership No.</label>
+                                    <label asp-for="MembershipNumber" class="form-label" id="memberNoLabel">Membership No.</label>
                                     <input asp-for="MembershipNumber" type="text" class="form-control">
                                 </div>
                             </div>
                         </div>
                         <div class="col-md-6 col-lg-5 col-xl-5">
-                            <label asp-for="MembershipName" class="form-label">Membership Name</label>
+                            <label asp-for="MembershipName" class="form-label" id="memberNameLabel">Membership Name</label>
                             <input asp-for="MembershipName" type="text" class="form-control">
                         </div>
                         <div class="col-md-6 col-lg-3 col-xl-3">
@@ -100,8 +110,8 @@
                         </button>
                     </li>
                     <li class="nav-item" role="presentation">
-                        <button class="nav-link" id="mailing-tab" data-bs-toggle="tab" data-bs-target="#mailing-tab-pane"
-                                type="button" role="tab" aria-controls="mailing-tab-pane" aria-selected="false">
+                        <button class="nav-link" id="permanent-tab" data-bs-toggle="tab" data-bs-target="#permanent-tab-pane"
+                                type="button" role="tab" aria-controls="permanent-tab-pane" aria-selected="false">
                             Permanent Address
                         </button>
                     </li>
@@ -253,8 +263,8 @@
                                 </div>
                             </div>
                             <div class="col-md-12 col-xl-3 col-xxl-5 text-end text-md-end text-xl-start">
-                                <button type="button" class="btn btn-primary">Ok</button>
-                                <button type="button" class="btn btn-primary">Delete</button>
+                                <button type="button" class="btn btn-primary" id="AddToFamilyGrid">Ok</button>
+                                <button type="button" class="btn btn-primary" id="ClearFamilyDetails">Clear</button>
                             </div>
                         </div>
                         <table class="table table-bordered mt-3">
@@ -262,23 +272,24 @@
                                 <tr>
                                     <th scope="col">S.No</th>
                                     <th scope="col">Name</th>
-                                    <th scope="col">Placeholder</th>
+                                    <th scope="col">Date of Birth</th>
                                     <th scope="col">Relation</th>
                                 </tr>
                             </thead>
-                            <tbody>
-                                <tr>
-                                    <th scope="row">1</th>
-                                    <td>Razia Begum</td>
-                                    <td>05-Jul-2006</td>
-                                    <td>Wife</td>
-                                </tr>
-                                <tr>
-                                    <th scope="row">2</th>
-                                    <td> Khader Basha</td>
-                                    <td>10-Jul-2007</td>
-                                    <td>Son</td>
-                                </tr>
+                            <tbody id="familyDetails">
+                                @if (Model.RelationDetails != null)
+                                {
+                                    int i = 1;
+                                    foreach (var item in Model.RelationDetails)
+                                    {
+                                        <tr>
+                                            <th scope="row">@(i++)</th>
+                                            <td>@item.Name</td>
+                                            <td>@item.DOB</td>
+                                            <td>@item.RelationType</td>
+                                        </tr>
+                                    }
+                                }
                             </tbody>
                         </table>
                     </div>
@@ -328,6 +339,35 @@
                             <div class="col-md-6 col-lg-3 col-xl-2">
                                 <label asp-for="Mailing_Phone" class="form-label">Phone No.</label>
                                 <input asp-for="Mailing_Phone" type="text" class="form-control">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="tab-pane fade" id="permanent-tab-pane" role="tabpanel" aria-labelledby="permanent-tab"
+                         tabindex="0">
+                        <div class="row g-3">
+                            <div class="col-md-6 col-lg-6 col-xl-4">
+                                <label asp-for="Permanent_FlatNo" class="form-label">Flat/Plot No</label>
+                                <input asp-for="Permanent_FlatNo" type="text" class="form-control">
+                            </div>
+                            <div class="col-md-6 col-lg-6 col-xl-4">
+                                <label asp-for="Permanent_Building" class="form-label">Bldg./Society</label>
+                                <input asp-for="Permanent_Building" type="text" class="form-control">
+                            </div>
+                            <div class="col-md-6 col-lg-3 col-xl-4">
+                                <label asp-for="Permanent_Area" class="form-label">Area/Locality</label>
+                                <input asp-for="Permanent_Area" type="text" class="form-control">
+                            </div>
+                            <div class="col-md-6 col-lg-3 col-xl-2">
+                                <label asp-for="Permanent_City" class="form-label">City/Village</label>
+                                <input asp-for="Permanent_City" type="text" class="form-control">
+                            </div>
+                            <div class="col-md-6 col-lg-3 col-xl-2">
+                                <label asp-for="Permanent_Pincode" class="form-label">Pin Code</label>
+                                <input asp-for="Permanent_Pincode" type="text" class="form-control">
+                            </div>
+                            <div class="col-md-6 col-lg-3 col-xl-2">
+                                <label asp-for="Permanent_Phone" class="form-label">Phone No.</label>
+                                <input asp-for="Permanent_Phone" type="text" class="form-control">
                             </div>
                         </div>
                     </div>
@@ -420,6 +460,7 @@
     </div>
 
     <input type="hidden" id="hiddenCustId" name="custId" />
+    <input type="hidden" id="hiddenFamilyField" name="hiddenFamilyField" />
 </form>
 
 <script asp-append-version="true" src="~/js/app/customer.js"></script>

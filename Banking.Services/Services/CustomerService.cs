@@ -5,6 +5,7 @@ using Humanizer;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
 using System.Data;
+using System.Reflection.PortableExecutable;
 
 namespace Banking.Services
 {
@@ -159,6 +160,10 @@ namespace Banking.Services
                                 KYCNo = Conversions.ToString(row.ItemArray[2])
                             };
                             customerModel.KYCDetails.Add(kyc);
+
+                            var item = customerModel.KYCTypeList?.FirstOrDefault(x => x.Value == kyc.KYCId);
+
+                            customerModel.KYCTypeList?.Remove(item!);
                         }
 
                         // Relation Details
@@ -189,9 +194,7 @@ namespace Banking.Services
                         //"' AND glcode='101010' AND status='R'");
                     }
                     else
-                    {
-                        throw new Exception("Invalid Customer Id..");
-                    }
+                        customerModel.ErrorMessage = "Invalid Customer Id..";
                 }
                 else
                 {
@@ -208,7 +211,7 @@ namespace Banking.Services
                         //DataTable rsMem = await _databaseFactory.SingleRecordSet("SHAREHOLDERINFOMST", "NAME", "CUSTOMERID='" + memberId + "'");
                     }
                     else
-                        throw new Exception("Invalid Customer Id..");
+                        customerModel.ErrorMessage = "Invalid Customer Id..";
                 }
             }
 
@@ -244,7 +247,7 @@ namespace Banking.Services
             return customerModel;
         }
 
-        public async Task<string> SaveCustomer(ISession session, CustomerModel customerModel, List<KYC> kycDocuments, string status = "")
+        public async Task<string> SaveCustomer(ISession session, CustomerModel customerModel, List<KYC> kycDocuments)
         {
             try
             {
@@ -268,7 +271,7 @@ namespace Banking.Services
                 string panno = customerModel.Personal_PANNo!;
                 string ckycenrolldate = string.IsNullOrWhiteSpace(customerModel.Personal_CKYCEnrollDate) ?
                     session.GetString(SessionConstants.ApplicationDate) : customerModel.Personal_CKYCEnrollDate;
-                string ckycid = customerModel.Personal_CKYCID ?? "0";
+                string ckycid = customerModel.Personal_CKYCID ?? "";
                 string dob = customerModel.Personal_DOB!;
                 string riskcategory = customerModel.RiskCategory!;
                 string brcode = Conversions.ToString(session.GetString(SessionConstants.BranchCode));
@@ -289,12 +292,11 @@ namespace Banking.Services
                 customerid = (customerid.Trim().Length < 7) ? customerid.PadLeft(7, '0') : customerid.Substring(0, 7);
                 customerid = newbrcode + customerid;
 
-                string kycidtabname = string.Empty, kycidcols = string.Empty, kycdtlsvals1 = string.Empty;
-                string CKYCENROLLDTLStabname = string.Empty, CKYCENROLLDTLScols = string.Empty, CKYCENROLLDTLSvals = string.Empty;
+                string kycidcols = string.Empty, kycdtlsvals1 = string.Empty;
+                string CKYCENROLLDTLScols = string.Empty, CKYCENROLLDTLSvals = string.Empty;
 
                 if (kycDocuments.Count > 0)
                 {
-                    kycidtabname = "GENCUSTKYCDTLS";
                     kycidcols = "BRANCHCODE, CUSTOMERID, KYCID, DESCRIPTION, STATUS, USERID, MACHINEID, SYSTEMDATE";
                     string kycdtlsvals = string.Empty;
 
@@ -304,19 +306,19 @@ namespace Banking.Services
                         kycdtlsvals1 = kycdtlsvals1 + "|" + kycdtlsvals;
                     }
 
-                    if (!string.IsNullOrWhiteSpace(kycidpanno))
+                    if (!string.IsNullOrWhiteSpace(kycidpanno) && kycidpanno != "0")
                     {
                         kycdtlsvals = "'" + brcode + "','" + customerid + "','" + kycidpanno + "','" + panno.ToUpper() + "','R','" + userid + "','" + machineid + "',sysdate";
                         kycdtlsvals1 = kycdtlsvals1 + "|" + kycdtlsvals;
                     }
 
-                    if (!string.IsNullOrWhiteSpace(kycidadhar))
+                    if (!string.IsNullOrWhiteSpace(kycidadhar) && kycidadhar != "0")
                     {
                         kycdtlsvals = "'" + brcode + "','" + customerid + "','" + kycidadhar + "','" + aadhaarId.ToUpper() + "','R','" + userid + "','" + machineid + "',sysdate";
                         kycdtlsvals1 = kycdtlsvals1 + "|" + kycdtlsvals;
                     }
 
-                    if (!string.IsNullOrWhiteSpace(kycidgstin))
+                    if (!string.IsNullOrWhiteSpace(kycidgstin) && kycidgstin != "0")
                     {
                         kycdtlsvals = "'" + brcode + "','" + customerid + "','" + kycidgstin + "','" + customerModel.Personal_GSTIN?.ToUpper() + "','R','" + userid + "','" + machineid + "',sysdate";
                         kycdtlsvals1 = kycdtlsvals1 + "|" + kycdtlsvals;
@@ -325,27 +327,22 @@ namespace Banking.Services
                     kycdtlsvals1 = kycdtlsvals1.Substring(1);
 
                     foreach (var file in kycDocuments)
-                    {
                         SaveFile(file.File, customerid, file.KYCNo);
-                    }
                 }
 
                 if (!string.IsNullOrWhiteSpace(ckycid) && !string.IsNullOrWhiteSpace(ckycenrolldate))
                 {
                     CKYCEnrollmentDateModel result = await _generalValidationService.GetCKYCEnrollDetails(ckycenrolldate);
-
-                    CKYCENROLLDTLStabname = "CKYCENROLLDTLS";
                     CKYCENROLLDTLScols = "SNO, CUSTOMERID, CKYCID, ENROLLDT, DUEDATE, STATUS, REMARKS, APPLICATIONDATE, USERID, MACHINEID, SYSTEMDATE";
                     CKYCENROLLDTLSvals = "'" + result.CKYCSno + "','" + customerid + "','" + ckycid.ToUpper() + "',TO_DATE('" + ckycenrolldate + "', 'DD-MON-YYYY')," +
                         "TO_DATE('" + result.DueDate + "', 'DD-MON-YYYY'),'N','New Enrollment',TO_DATE('" + appdate + "', 'DD-MON-YYYY'),'" + userid + "','" + 
                         machineid + "',sysdate";
                 }
 
-                string tableName = "GENCUSTINFOMST";
                 string custFields = "name,fathername,CUSTSEX,mailaddress1,mailaddress2,mailaddress3,mailaddress4,mailaddress5,custemail,phone1,phone2,phone3,custmobile," +
                     "custfax,custdob,custminoryn,customertype,branchcode,currencycode,PANNO,GSTIN, CKYCID,CUSTOCCUPATION, CUSTMONTHLYINCOME,smsyn,userid,machineid," +
                     "applicationdate,systemdate,GlobalYn,customerid,riskcategory,CUSTMEMBERSHIPNO,AADHARUID,SALUTATIONID,RELATIONID,RELIGIONID,KYCID,mobaccessyn," +
-                    "PAN206AAYN,PAN206ABYN";
+                    "PAN206AAYN,PAN206ABYN,custmaritalstatus";
 
                 string custValues = "'" + customerModel.CustomerName + "','" + customerModel.Personal_RelationName + "','" + customerModel.Personal_Gender + "','" +
                     customerModel.Mailing_FlatNo + "','" + customerModel.Mailing_Building + "','" + customerModel.Mailing_Area + "','" + customerModel.Mailing_City + "','" +
@@ -357,10 +354,9 @@ namespace Banking.Services
                     customerModel.Personal_PANNo + "','" + kycidgstin + "','" + ckycid + "'," + occupationId + "," + income + ",'" + strsmsyn + "','" + 
                     userid + "','" + machineid + "',TO_DATE('" + appdate + "', 'DD-MON-YYYY'),sysdate,'" + globalcode + "','" + customerid + "','" + customerModel.RiskCategory + "', '" + memId + 
                     "'," + kycidadhar + "," + customerModel.Salutation + "," + customerModel.Personal_Relation + "," + religion + "," + kycidpanno + ",'" + strmobaccyn + 
-                    "','" + strpan206aayn + "','" + strpan206abyn + "'";
+                    "','" + strpan206aayn + "','" + strpan206abyn + "','" + customerModel.Personal_MaritalStatus + "'";
 
-                // custid, custtype, appdate, userid, machineid
-                // 01-Jan-1988
+                // custid, custtype, appdate, userid, machineidb
 
                 if (customerModel.IsMailingSameAsPermanent)
                 {
@@ -372,35 +368,39 @@ namespace Banking.Services
                 string[,] arrtrans = new string[3, 5];
                 int arrcnt = 0;
 
+                // Customer Info Insertion
                 arrtrans[arrcnt, 0] = "I";
-                arrtrans[arrcnt, 1] = tableName;
+                arrtrans[arrcnt, 1] = "GENCUSTINFOMST";
                 arrtrans[arrcnt, 2] = custFields;
                 arrtrans[arrcnt, 3] = custValues;
                 arrtrans[arrcnt, 4] = "";
 
+                // Customer KYC Details Insertion
                 if (kycDocuments.Count > 0)
                 {
                     arrcnt++;
                     arrtrans[arrcnt, 0] = "I";
-                    arrtrans[arrcnt, 1] = kycidtabname;
+                    arrtrans[arrcnt, 1] = "GENCUSTKYCDTLS";
                     arrtrans[arrcnt, 2] = kycidcols;
                     arrtrans[arrcnt, 3] = kycdtlsvals1;
                     arrtrans[arrcnt, 4] = "";
                 }
 
+                // CKYC Enrollment Details Insertion
                 if (!string.IsNullOrWhiteSpace(ckycid) && !string.IsNullOrWhiteSpace(ckycenrolldate))
                 {
                     arrcnt++;
                     arrtrans[arrcnt, 0] = "I";
-                    arrtrans[arrcnt, 1] = CKYCENROLLDTLStabname;
+                    arrtrans[arrcnt, 1] = "CKYCENROLLDTLS";
                     arrtrans[arrcnt, 2] = CKYCENROLLDTLScols;
                     arrtrans[arrcnt, 3] = CKYCENROLLDTLSvals;
                     arrtrans[arrcnt, 4] = "";
                 }
 
-                Console.WriteLine(arrtrans);
-
                 var output = await _databaseFactory.ProcessDataTransactions(arrtrans);
+
+                if (output.Equals(BankingConstants.TransactionSuccessful))
+                    return output + "|" + customerid;
 
                 return output;
 
@@ -416,847 +416,401 @@ namespace Banking.Services
             }
         }
 
-        //public async Task SaveExistingCustomer(ISession session, CustomerModel customerModel, List<KYC> kycDocuments)
-        //{
-        //    //     Obj = SERVER.CreateObject("GeneralTransactions.DBTransactions")
-
-        //    string obj, obj1, obj2, Strmsg, status, title, rs1, StrTabName, StrFldNames, cardvalues, rsTrn, rsTRes, objTrn, objTres, rsTab, objTab, rsStab, objStab;
-        //    string cntMst, idx, strTable, iCnt, stFeld, stCond, deltrans, deltranskyc;
-
-        //    //    kyciddtlsmain = Request.Form("hidkycid")
-        //    //    kyciddtls = split(kyciddtlsmain, "|")
-        //    //    appdate = session("applicationdate")
-        //    //    name = Request.Form("txtCustname")
-        //    //    userid = session("userid")
-        //    //    custid = Request.Form("txtcustid")
-        //    //    machineid = session("machineid")
-        //    //    narration = Request.Form("txtnarration")
-        //    //    famdtls = Request.Form("hidfamvals")
-        //    //    mode = Request.Form("hidmode")
-        //    //    custtype = Request.Form("txtCustType")
-        //    //    brcode = Request.Form("txtBranchCode")
-        //    //    panno = Request.Form("txtpan")
-        //    //    cardvalues = Request.Form("hdata")
-        //    //    fathername = Request.Form("txtfathername")
-        //    //    riskcategory = Request.Form("slctRiskcat")
-
-        //    //    aadhaarid = Request.Form("txtadharid")
-        //    //    SALUTATIONID = Request.Form("slcsalutation")
-        //    //    RELATIONID = Request.Form("slcrelation")
-        //    //    RELIGIONID = Request.Form("slcreligion")
-
-        //    //    gstin = Request.Form("txtgstin")
-        //    //    ckycid = Request.Form("txtckycid")
-        //    //    kycidpanno = Request.Form("hidpankycid")
-        //    //    kycidadhar = Request.Form("hidadharkycid")
-        //    //    kycidgstin = Request.Form("hidgstinkycid")
-        //    //    KYCID = kycidpanno
-        //    //    strsmsyn = Request.Form("hidsmsyn")
-        //    //    strmobaccyn = Request.Form("hidmobaccyn")
-        //    //    strpan206aayn = Request.Form("hdnpan206aayn")
-        //    //    strpan206abyn = Request.Form("hdnpan206abyn")
-
-        //    DataTable rs = await _databaseFactory.SingleRecordSet("gencustfamilydtls", "customerid", "customerid='" + customerModel.CustomerId + "'");
-
-        //    if (rs.Rows.Count > 0)
-        //        deltrans = "D";
-        //    else
-        //        deltrans = "X";
-
-        //    rs = await _databaseFactory.SingleRecordSet("GENCUSTKYCDTLS", "customerid", "customerid='" + customerModel.CustomerId + "'");
-
-        //    if (rs.Rows.Count > 0)
-        //        deltranskyc = "D";
-        //    else
-        //        deltranskyc = "X";
-
-
-        //    //    if len(famdtls) > 1 then
-        //    //        famdtls = split(famdtls, "#")
-        //    //        for i = 1 to ubound(famdtls)
-        //    //            famvals = famvals & "|" & famdtls(i) & ",'" & userid & "','" & _
-        //    //                machineid & "','" & appdate & "','" & custid & "'"
-        //    //            trans = "I"
-        //    //        next
-        //    //        famvals = trim(mid(famvals, 2))
-        //    //    else
-        //    //                    trans = "X"
-        //    //    end if
-
-        //    //    code = Request.Form("txtcode")
-        //    //    tabname = "genCUSTINFOMST"
-
-        //    string custfields = "branchcode,name,customertype,custmembershipno,custdob,custemail,custfax,custmobile,custminoryn,custmaritalstatus,custsex," +
-        //        "custoccupation,custqualification,custmonthlyincome,phone1,phone2,phone3,mailaddress1,mailaddress2,mailaddress3,mailaddress4,mailaddress5,pmtaddress1," +
-        //        "pmtaddress2,pmtaddress3,pmtaddress4,pmtaddress5,offaddress1,offaddress2,offaddress3,offaddress4,offaddress5,userid,machineid,applicationdate,systemdate," +
-        //        "customerid,PANNO,fathername,riskcategory,AADHARUID, SALUTATIONID, RELATIONID, RELIGIONID, KYCID,GSTIN, CKYCID,smsyn,mobaccessyn, PAN206AAYN, PAN206ABYN";
-
-
-
-        //    //    if kyciddtlsmain<> "" then
-        //    //    kycidtabname = "GENCUSTKYCDTLS"
-
-        //    //    kycidcols = "BRANCHCODE, CUSTOMERID, KYCID, DESCRIPTION, STATUS, USERID, MACHINEID, SYSTEMDATE"
-
-        //    //    kycdtlsvals1 = ""
-
-        //    //    kycdtlsvals = ""
-
-        //    //    for icnt = 0 to ubound(kyciddtls)
-
-        //    //    kyciddtls1 = split(kyciddtls(icnt), ",")
-
-        //    //    kycdtlsvals = "'" & brcode & "','" & custid & "','" & kyciddtls1(0) & "','" & UCase(kyciddtls1(1)) & "','R','" & userid & "','" & machineid & "',sysdate"
-
-        //    //    kycdtlsvals1 = kycdtlsvals1 & "|" & kycdtlsvals
-
-        //    //    next icnt
-
-
-        //    //    '' Panno
-
-        //    //    kycidpannoexists = "NO"
-
-        //    //    for icnt = 0 to ubound(kyciddtls)
-
-        //    //    kyciddtls1 = split(kyciddtls(icnt), ",")
-
-        //    //    if kycidpanno = kyciddtls1(0) then
-        //    //    kycidpannoexists = "YES"
-
-        //    //    exit for
-
-        //    //    end if
-
-        //    //    next icnt
-
-
-        //    //    if kycidpanno<> "" then
-
-        //    //    if kycidpannoexists = "YES" then
-
-        //    //    else
-        //    //                kycdtlsvals = "'" & brcode & "','" & custid & "','" & kycidpanno & "','" & UCase(panno) & "','R','" & userid & "','" & machineid & "',sysdate"
-
-        //    //        kycdtlsvals1 = kycdtlsvals1 & "|" & kycdtlsvals
-
-        //    //    end if
-
-        //    //    end if
-
-
-        //    //    '' Aadhar
-        //    //    kycidadharexists = "NO"
-
-        //    //    for icnt = 0 to ubound(kyciddtls)
-
-        //    //    kyciddtls1 = split(kyciddtls(icnt), ",")
-
-        //    //    if kycidadhar = kyciddtls1(0) then
-        //    //        kycidadharexists = "YES"
-
-        //    //            exit for
-
-        //    //    end if
-
-        //    //    next icnt
-
-        //    //    if kycidadhar<>"" then
-
-        //    //    if kycidadharexists = "YES" then
-
-        //    //    else
-        //    //                kycdtlsvals = "'" & brcode & "','" & custid & "','" & kycidadhar & "','" & UCase(aadhaarid) & "','R','" & userid & "','" & machineid & "',sysdate"
-
-        //    //        kycdtlsvals1 = kycdtlsvals1 & "|" & kycdtlsvals
-
-        //    //    end if
-
-        //    //    end if
-
-
-        //    //    '' GSTIN
-        //    //    kycidgstinexists = "NO"
-
-        //    //    for icnt = 0 to ubound(kyciddtls)
-
-        //    //    kyciddtls1 = split(kyciddtls(icnt), ",")
-
-        //    //    if kycidgstin = kyciddtls1(0) then
-        //    //        kycidgstinexists = "YES"
-
-        //    //            exit for
-
-        //    //    end if
-
-        //    //    next icnt
-
-
-        //    //    if kycidgstin<>"" then
-
-        //    //    if kycidgstinexists = "YES" then
-
-        //    //    else
-        //    //                kycdtlsvals = "'" & brcode & "','" & custid & "','" & kycidgstin & "','" & UCase(gstin) & "','R','" & userid & "','" & machineid & "',sysdate"
-
-        //    //        kycdtlsvals1 = kycdtlsvals1 & "|" & kycdtlsvals
-
-        //    //    end if
-
-        //    //    end if
-
-
-        //    //    kycdtlsvals1 = Mid(kycdtlsvals1, 2)
-
-        //    //    transkyc = "I"
-
-        //    //    else
-        //    //                    transkyc = "X"
-
-        //    //    end if
-
-
-        //    //    if mode = "New" then
-        //    //    Redim arrtrans(3, 4)
-
-        //    //        transtat = "I"
-
-        //    //        custvals = trim(ucase(Request.Form("hidcustvals"))) & ",'" & userid & "','" & _
-
-        //    //        machineid & "','" & appdate & "',sysdate,'" & custid & "','" & panno & "','" & fathername & "','" & riskcategory & "'" & _
-
-        //    //                     ",'" & aadhaarid & "','" & SALUTATIONID & "','" & RELATIONID & "','" & RELIGIONID & "','" & KYCID & "','" & gstin & "','" & ckycid & "','" & strsmsyn & "','" & strmobaccyn & "','" & strpan206aayn & "','" & strpan206abyn & "'"
-
-
-        //    //            arrtrans(0, 0) = transtat
-
-        //    //            arrtrans(0, 1) = tabname
-
-        //    //            arrtrans(0, 2) = custfields
-
-        //    //            arrtrans(0, 3) = custvals
-
-        //    //            arrtrans(0, 4) = ""
-
-
-        //    //            arrtrans(1, 0) = transtat
-
-        //    //            arrtrans(1, 1) = "Gencustfamilydtls"
-
-        //    //            arrtrans(1, 2) = ""
-
-        //    //            arrtrans(1, 3) = ""
-
-        //    //            arrtrans(1, 4) = "customerid='" & custid & "'"
-
-
-        //    //            arrtrans(2, 0) = transtat
-
-        //    //            arrtrans(2, 1) = "Gencustfamilydtls"
-
-        //    //            arrtrans(2, 2) = "branchcode,name,dob,relation,userid,machineid,applicationdate,Customerid"
-
-        //    //            arrtrans(2, 3) = famvals
-
-        //    //            arrtrans(2, 4) = ""
-
-
-        //    //          if kyciddtlsmain<> "" then
-
-
-        //    //            arrtrans(3, 0) = transtat
-
-        //    //            arrtrans(3, 1) = kycidtabname
-
-        //    //            arrtrans(3, 2) = kycidcols
-
-        //    //            arrtrans(3, 3) = kycdtlsvals1
-
-        //    //            arrtrans(3, 4) = ""
-
-        //    //        end if
-
-
-        //    //    elseif mode = "Modify" then
-        //    //    custvals = trim(ucase(Request.Form("hidcustvals"))) & ",'" & userid & "','" & _
-
-        //    //        machineid & "','" & appdate & "',sysdate,'" & custid & "','" & panno & "','" & fathername & "','" & riskcategory & "'" & _
-
-        //    //                  ",'" & aadhaarid & "','" & SALUTATIONID & "','" & RELATIONID & "','" & RELIGIONID & "','" & KYCID & "','" & gstin & "','" & ckycid & "','" & strsmsyn & "','" & strmobaccyn & "','" & strpan206aayn & "','" & strpan206abyn & "'"
-
-
-        //    //    if cardvalues<>"" then
-        //    //        Redim arrtrans(6, 4)
-
-        //    //            StrTabName = "CARDCUSTOMERDTLS"
-
-
-        //    //            StrFldNames = "BRANCHCODE,CUSTOMERID,NAME,CARDTYPE,CARDNO,CARDCATEGORYTYPE,CARDSCOPETYPE," & _
-
-        //    //            "CARDSPONSERTYPE,CURRENCYCODE,CARDLIMIT,CASHLIMIT,ISSUEDATE,VALIDFROMDATE," & _
-        //    //            "VALIDUPTODATE,MAINCARDNO,STATUS,TRANSTATUS," & _
-
-        //    //            "APPLICATIONDATE,USERID,MACHINEID,SYSTEMDATE"
-
-
-        //    //            arrtrans(0, 0) = "I"
-
-        //    //            arrtrans(0, 1) = StrTabName
-
-        //    //            arrtrans(0, 2) = StrFldNames
-
-        //    //            arrtrans(0, 3) = left(cardvalues, cdbl(len(cardvalues) - 1))
-
-        //    //            arrtrans(0, 4) = ""
-
-
-        //    //            arrtrans(1, 0) = transtat
-
-        //    //            arrtrans(1, 1) = tabname
-
-        //    //            arrtrans(1, 2) = custfields
-
-        //    //            arrtrans(1, 3) = custvals
-
-        //    //            arrtrans(1, 4) = ""
-
-
-        //    //            arrtrans(2, 0) = deltrans
-
-        //    //            arrtrans(2, 1) = "Gencustfamilydtls"
-
-        //    //            arrtrans(2, 2) = ""
-
-        //    //            arrtrans(2, 3) = ""
-
-        //    //            arrtrans(2, 4) = "customerid='" & custid & "'"
-
-
-        //    //            arrtrans(3, 0) = trans
-
-        //    //            arrtrans(3, 1) = "Gencustfamilydtls"
-
-        //    //            arrtrans(3, 2) = "branchcode,name,dob,relation,userid,machineid,applicationdate,Customerid"
-
-        //    //            arrtrans(3, 3) = famvals
-
-        //    //            arrtrans(3, 4) = ""
-
-
-        //    //            arrtrans(4, 0) = deltranskyc
-
-        //    //            arrtrans(4, 1) = kycidtabname
-
-        //    //            arrtrans(4, 2) = ""
-
-        //    //            arrtrans(4, 3) = ""
-
-        //    //            arrtrans(4, 4) = "customerid='" & custid & "'"
-
-
-        //    //            arrtrans(5, 0) = transkyc
-
-        //    //            arrtrans(5, 1) = kycidtabname
-
-        //    //            arrtrans(5, 2) = kycidcols
-
-        //    //            arrtrans(5, 3) = kycdtlsvals1
-
-        //    //            arrtrans(5, 4) = ""
-
-
-
-        //    //    rs = obj1.singlerecordset("GENMODULEMST", "MASTERTABLE", "MASTERTABLE is not null and trandaytable is not null AND MODULEID NOT IN ('SCHOOL','ATM') ")
-
-        //    //    if not rs.EOF and not rs.BOF then
-
-        //    //        idx = 6
-
-        //    //        do until rs.EOF
-
-        //    //        rstname = rs(0).value
-
-        //    //        rs1 = obj2.singlerecordset(rstname, "customerid", "customerid='" & custid & "'")
-
-        //    //        if not rs1.EOF and not rs1.BOF then
-
-        //    //            arrtrans(idx, 0) = "U"
-
-        //    //            arrtrans(idx, 1) = rs(0).value
-
-        //    //            arrtrans(idx, 2) = "NAME,USERID,SYSTEMDATE"
-
-        //    //            arrtrans(idx, 3) = "'" & name & "'~'" & userid & "'~'" & appdate & "'"
-
-        //    //            arrtrans(idx, 4) = "branchcode='" & brcode & "' and customerid='" & custid & "'"
-
-        //    //        end if
-
-        //    //        idx = idx + 1
-
-        //    //        rs.MoveNext
-        //    //        loop
-
-        //    //    end if
-
-
-        //    //    'rsTrn,rsTRes,objTrn,objTres
-
-        //    //    rsTrn = objTrn.singlerecordset("GENMODULEMST", "trandaytable", "MASTERTABLE is not null and trandaytable is not null AND MODULEID NOT IN ('SCHOOL','ATM')")
-
-        //    //        if not rsTrn.EOF and not rsTrn.BOF then
-
-        //    //            do until rsTrn.EOF
-
-        //    //            rstname = rsTrn(0).value
-
-        //    //            rsTRes = objTres.singlerecordset(rstname, "customerid", "customerid='" & custid & "'")
-
-        //    //                if not rsTRes.EOF and not rsTRes.BOF then
-
-        //    //                    arrtrans(idx, 0) = "U"
-
-        //    //                    arrtrans(idx, 1) = rsTrn(0).value
-
-        //    //                    arrtrans(idx, 2) = "NAME,USERID,SYSTEMDATE"
-
-        //    //                    arrtrans(idx, 3) = "'" & name & "'~'" & userid & "'~'" & appdate & "'"
-
-        //    //                    arrtrans(idx, 4) = "customerid='" & custid & "'"
-
-
-        //    //                    idx = idx + 1
-
-        //    //                end if
-
-        //    //            rsTrn.MoveNext
-
-        //    //            loop
-        //    //        end if
-
-
-        //    //    strTable = "LOCKERMST~GENCUSTJOINTHOLDERMST~GENCUSTNOMINEEMST~GENCUSTGUARDIANMST~GENCUSTINTRODUCERMST~GENSIGNOTRIESMST~GENDISPOSALDTLS~GENLIMITLNK~GENGUARANTORLNK~GENCUSTAADHARLNK~SIMST"
-
-
-        //    //    strVal = strTable.Split("~")
-
-
-        //    //        For iCnt = 0 To strVal.Length - 1
-
-
-        //    //            If strVal(iCnt) = "GENCUSTJOINTHOLDERMST" Then
-        //    //                stFeld = "JOINTHOLDERNAME,USERID,SYSTEMDATE"
-
-        //    //                stCond = "JHCUSTOMERID='" & custid & "'"
-
-        //    //                rsTab = objTab.singlerecordset(strVal(iCnt), "JHCUSTOMERID", "JHCUSTOMERID='" & custid & "'")
-
-
-        //    //            elseIf strVal(iCnt) = "GENCUSTNOMINEEMST" Then
-        //    //                stFeld = "NOMINEENAME,USERID,SYSTEMDATE"
-
-        //    //                stCond = "NOMCUSTOMERID='" & custid & "'"
-
-        //    //                rsTab = objTab.singlerecordset(strVal(iCnt), "NOMCUSTOMERID", "NOMCUSTOMERID='" & custid & "'")
-
-
-        //    //            elseIf strVal(iCnt) = "GENCUSTGUARDIANMST" Then
-        //    //                stFeld = "GUARDIANNAME,USERID,SYSTEMDATE"
-
-        //    //                stCond = "GRDCUSTOMERID='" & custid & "'"
-
-        //    //                rsTab = objTab.singlerecordset(strVal(iCnt), "GRDCUSTOMERID", "GRDCUSTOMERID='" & custid & "'")
-
-
-        //    //            elseIf strVal(iCnt) = "GENCUSTINTRODUCERMST" Then
-        //    //                stFeld = "INTRNAME,USERID,SYSTEMDATE"
-
-        //    //                stCond = "INTRCUSTOMERID='" & custid & "'"
-
-        //    //                rsTab = objTab.singlerecordset(strVal(iCnt), "INTRCUSTOMERID", "INTRCUSTOMERID='" & custid & "'")
-
-
-        //    //            elseIf strVal(iCnt) = "GENGUARANTORLNK" Then
-        //    //                stFeld = "GUARANTORNAME,USERID,SYSTEMDATE"
-
-        //    //                stCond = "GUARANTORID='" & custid & "'"
-
-        //    //                rsTab = objTab.singlerecordset(strVal(iCnt), "GUARANTORID", "GUARANTORID='" & custid & "'")
-
-
-        //    //            elseIf strVal(iCnt) = "GENLIMITLNK" Then
-        //    //                stFeld = "CUSTOMERNAME,USERID,SYSTEMDATE"
-
-        //    //                stCond = "customerid='" & custid & "'"
-
-        //    //                rsTab = objTab.singlerecordset(strVal(iCnt), "customerid", "customerid='" & custid & "'")
-
-
-        //    //            else
-
-        //    //                stFeld = "NAME,USERID,SYSTEMDATE"
-
-        //    //                stCond = "customerid='" & custid & "'"
-
-        //    //                rsTab = objTab.singlerecordset(strVal(iCnt), "customerid", "customerid='" & custid & "'")
-
-
-        //    //            end if
-
-
-        //    //            if not rsTab.EOF and not rsTab.BOF then
-
-        //    //                arrtrans(idx, 0) = "U"
-
-        //    //                arrtrans(idx, 1) = strVal(iCnt)
-
-        //    //                arrtrans(idx, 2) = stFeld
-
-        //    //                arrtrans(idx, 3) = "'" & name & "'~'" & userid & "'~'" & appdate & "'"
-
-        //    //                arrtrans(idx, 4) = stCond
-
-
-        //    //                idx = idx + 1
-
-        //    //            end if
-
-        //    //        Next
-
-
-        //    //        rsStab = objStab.singlerecordset("SIMST", "CREDITCUSTOMERID", "CREDITCUSTOMERID='" & custid & "'")
-
-
-        //    //        if not rsStab.EOF and not rsStab.BOF then
-
-        //    //            arrtrans(idx, 0) = "U"
-
-        //    //            arrtrans(idx, 1) = "SIMST"
-
-        //    //            arrtrans(idx, 2) = "CREDITNAME,USERID,SYSTEMDATE"
-
-        //    //            arrtrans(idx, 3) = "'" & name & "'~'" & userid & "'~'" & appdate & "'"
-
-        //    //            arrtrans(idx, 4) = "CREDITCUSTOMERID='" & custid & "'"
-
-
-        //    //            idx = idx + 1
-
-        //    //        end if
-
-
-        //    //    else
-        //    //                    rs = obj1.singlerecordset("GENMODULEMST", "count(*)", "MASTERTABLE is not null and trandaytable is not null AND MODULEID NOT IN ('SCHOOL','ATM')")
-
-
-        //    //      if not rs.EOF and not rs.BOF then
-        //    //         cntMst = rs(0).value
-        //    //         cntMst = cntMst + 4
-        //    //      end if
-
-
-        //    //         Redim arrtrans(cntMst, 4)
-
-        //    //        transtat = "U"
-
-        //    //        custvals = trim(ucase(Request.Form("hidcustvals"))) & "~'" & userid & "'~'" & _
-
-        //    //        machineid & "'~'" & appdate & "'~sysdate~'" & custid & "'~'" & panno & "'~'" & fathername & "'~'" & riskcategory & "'~'" & _
-
-        //    //                   aadhaarid & "'~'" & SALUTATIONID & "'~'" & RELATIONID & "'~'" & RELIGIONID & "'~'" & KYCID & "'~'" & gstin & "'~'" & ckycid & "'~'" & strsmsyn & "'~'" & strmobaccyn & "'~'" & strpan206aayn & "'~'" & strpan206abyn & "'"
-
-        //    //        'response.write(custvals)
-
-        //    //            arrtrans(0, 0) = transtat
-
-        //    //            arrtrans(0, 1) = tabname
-
-        //    //            arrtrans(0, 2) = custfields
-
-        //    //            arrtrans(0, 3) = custvals
-
-        //    //            arrtrans(0, 4) = "customerid='" & custid & "'"
-
-
-        //    //            arrtrans(1, 0) = deltrans
-
-        //    //            arrtrans(1, 1) = "Gencustfamilydtls"
-
-        //    //            arrtrans(1, 2) = ""
-
-        //    //            arrtrans(1, 3) = ""
-
-        //    //            arrtrans(1, 4) = "customerid='" & custid & "'"
-
-
-        //    //            arrtrans(2, 0) = trans
-
-        //    //            arrtrans(2, 1) = "Gencustfamilydtls"
-
-        //    //            arrtrans(2, 2) = "branchcode,name,dob,relation,userid,machineid,applicationdate,Customerid"
-
-        //    //            arrtrans(2, 3) = famvals
-
-        //    //            arrtrans(2, 4) = ""
-
-
-        //    //            arrtrans(3, 0) = deltranskyc
-
-        //    //            arrtrans(3, 1) = kycidtabname
-
-        //    //            arrtrans(3, 2) = ""
-
-        //    //            arrtrans(3, 3) = ""
-
-        //    //            arrtrans(3, 4) = "customerid='" & custid & "'"
-
-
-        //    //            arrtrans(4, 0) = transkyc
-
-        //    //            arrtrans(4, 1) = kycidtabname
-
-        //    //            arrtrans(4, 2) = kycidcols
-
-        //    //            arrtrans(4, 3) = kycdtlsvals1
-
-        //    //            arrtrans(4, 4) = ""
-
-
-        //    //        rs = obj1.singlerecordset("GENMODULEMST", "MASTERTABLE", "MASTERTABLE is not null and trandaytable is not null AND MODULEID NOT IN ('SCHOOL','ATM') ")
-
-        //    //        if not rs.EOF and not rs.BOF then
-
-        //    //           idx = 5
-
-        //    //           do until rs.EOF
-
-        //    //           rstname = rs(0).value
-
-        //    //           'if rstname <> "MISCMST" then
-
-        //    //            rs1 = obj2.singlerecordset(rstname, "nvl(customerid,0)", "nvl(customerid,0)='" & custid & "'")
-
-        //    //            if not rs1.EOF and not rs1.BOF then
-
-        //    //              arrtrans(idx, 0) = "U"
-
-        //    //              arrtrans(idx, 1) = rs(0).value
-
-        //    //              arrtrans(idx, 2) = "NAME,USERID,SYSTEMDATE"
-
-        //    //              arrtrans(idx, 3) = "'" & name & "'~'" & userid & "'~'" & appdate & "'"
-
-        //    //              arrtrans(idx, 4) = "customerid='" & custid & "'"
-
-        //    //              idx = idx + 1
-
-
-
-        //    //             end if
-
-        //    //            'end if
-
-        //    //            rs.MoveNext
-        //    //         loop
-
-        //    //        end if
-
-
-        //    //        rsTrn = objTrn.singlerecordset("GENMODULEMST", "trandaytable", "MASTERTABLE is not null and trandaytable is not null AND MODULEID NOT IN ('SCHOOL','ATM')")
-
-        //    //        if not rsTrn.EOF and not rsTrn.BOF then
-
-        //    //            do until rsTrn.EOF
-
-        //    //                rstname = rsTrn(0).value
-
-        //    //                rsTRes = objTres.singlerecordset(rstname, "customerid", "customerid='" & custid & "'")
-
-        //    //                if not rsTRes.EOF and not rsTRes.BOF then
-
-        //    //                    arrtrans(idx, 0) = "U"
-
-        //    //                    arrtrans(idx, 1) = rsTrn(0).value
-
-        //    //                    arrtrans(idx, 2) = "NAME,USERID,SYSTEMDATE"
-
-        //    //                    arrtrans(idx, 3) = "'" & name & "'~'" & userid & "'~'" & appdate & "'"
-
-        //    //                    arrtrans(idx, 4) = "customerid='" & custid & "'"
-
-
-        //    //                    idx = idx + 1
-
-        //    //                end if
-
-        //    //            rsTrn.MoveNext
-
-        //    //            loop
-        //    //        end if
-
-
-        //    //        strTable = "LOCKERMST~GENCUSTJOINTHOLDERMST~GENCUSTNOMINEEMST~GENCUSTGUARDIANMST~GENCUSTINTRODUCERMST~GENSIGNOTRIESMST~GENDISPOSALDTLS~GENLIMITLNK~GENGUARANTORLNK~GENCUSTAADHARLNK~SIMST"
-
-
-        //    //    strVal = strTable.Split("~")
-
-
-        //    //        For iCnt = 0 To strVal.Length - 1
-
-
-        //    //            If strVal(iCnt) = "GENCUSTJOINTHOLDERMST" Then
-        //    //                stFeld = "JOINTHOLDERNAME,USERID,SYSTEMDATE"
-
-        //    //                stCond = "JHCUSTOMERID='" & custid & "'"
-
-        //    //                rsTab = objTab.singlerecordset(strVal(iCnt), "JHCUSTOMERID", "JHCUSTOMERID='" & custid & "'")
-
-
-        //    //            elseIf strVal(iCnt) = "GENCUSTNOMINEEMST" Then
-        //    //                stFeld = "NOMINEENAME,USERID,SYSTEMDATE"
-
-        //    //                stCond = "NOMCUSTOMERID='" & custid & "'"
-
-        //    //                rsTab = objTab.singlerecordset(strVal(iCnt), "NOMCUSTOMERID", "NOMCUSTOMERID='" & custid & "'")
-
-
-        //    //            elseIf strVal(iCnt) = "GENCUSTGUARDIANMST" Then
-        //    //                stFeld = "GUARDIANNAME,USERID,SYSTEMDATE"
-
-        //    //                stCond = "GRDCUSTOMERID='" & custid & "'"
-
-        //    //                rsTab = objTab.singlerecordset(strVal(iCnt), "GRDCUSTOMERID", "GRDCUSTOMERID='" & custid & "'")
-
-
-        //    //            elseIf strVal(iCnt) = "GENCUSTINTRODUCERMST" Then
-        //    //                stFeld = "INTRNAME,USERID,SYSTEMDATE"
-
-        //    //                stCond = "INTRCUSTOMERID='" & custid & "'"
-
-        //    //                rsTab = objTab.singlerecordset(strVal(iCnt), "INTRCUSTOMERID", "INTRCUSTOMERID='" & custid & "'")
-
-
-        //    //            elseIf strVal(iCnt) = "GENGUARANTORLNK" Then
-        //    //                stFeld = "GUARANTORNAME,USERID,SYSTEMDATE"
-
-        //    //                stCond = "GUARANTORID='" & custid & "'"
-
-        //    //                rsTab = objTab.singlerecordset(strVal(iCnt), "GUARANTORID", "GUARANTORID='" & custid & "'")
-
-
-        //    //            elseIf strVal(iCnt) = "GENLIMITLNK" Then
-        //    //                stFeld = "CUSTOMERNAME,USERID,SYSTEMDATE"
-
-        //    //                stCond = "customerid='" & custid & "'"
-
-        //    //                rsTab = objTab.singlerecordset(strVal(iCnt), "customerid", "customerid='" & custid & "'")
-
-
-        //    //            else
-
-        //    //                stFeld = "NAME,USERID,SYSTEMDATE"
-
-        //    //                stCond = "customerid='" & custid & "'"
-
-        //    //                rsTab = objTab.singlerecordset(strVal(iCnt), "customerid", "customerid='" & custid & "'")
-
-
-        //    //            end if
-
-
-        //    //            if not rsTab.EOF and not rsTab.BOF then
-
-        //    //                arrtrans(idx, 0) = "U"
-
-        //    //                arrtrans(idx, 1) = strVal(iCnt)
-
-        //    //                arrtrans(idx, 2) = stFeld
-
-        //    //                arrtrans(idx, 3) = "'" & name & "'~'" & userid & "'~'" & appdate & "'"
-
-        //    //                arrtrans(idx, 4) = stCond
-
-
-        //    //                idx = idx + 1
-
-        //    //            end if
-
-        //    //        Next
-
-
-        //    //        rsStab = objStab.singlerecordset("SIMST", "CREDITCUSTOMERID", "CREDITCUSTOMERID='" & custid & "'")
-
-
-        //    //        if not rsStab.EOF and not rsStab.BOF then
-
-        //    //            arrtrans(idx, 0) = "U"
-
-        //    //            arrtrans(idx, 1) = "SIMST"
-
-        //    //            arrtrans(idx, 2) = "CREDITNAME,USERID,SYSTEMDATE"
-
-        //    //            arrtrans(idx, 3) = "'" & name & "'~'" & userid & "'~'" & appdate & "'"
-
-        //    //            arrtrans(idx, 4) = "CREDITCUSTOMERID='" & custid & "'"
-
-
-        //    //            idx = idx + 1
-
-        //    //        end if
-
-
-        //    //    end if
-
-        //    //    elseif mode = "Delete" then
-        //    //        Redim arrtrans(3, 4)
-
-        //    //        transtat = "D"
-
-        //    //            arrtrans(0, 0) = transtat
-
-        //    //            arrtrans(0, 1) = tabname
-
-        //    //            arrtrans(0, 2) = custfields
-
-        //    //            arrtrans(0, 3) = custvals
-
-        //    //            arrtrans(0, 4) = "customerid='" & custid & "'"
-
-        //    //            arrtrans(1, 0) = deltrans
-
-        //    //            arrtrans(1, 1) = "Gencustfamilydtls"
-
-        //    //            arrtrans(1, 2) = ""
-
-        //    //            arrtrans(1, 3) = ""
-
-        //    //            arrtrans(1, 4) = "customerid='" & custid & "'"
-
-        //    //            arrtrans(2, 0) = trans
-
-        //    //            arrtrans(2, 1) = "Gencustfamilydtls"
-
-        //    //            arrtrans(2, 2) = "branchcode,name,dob,relation,userid,machineid,applicationdate,Customerid"
-
-        //    //            arrtrans(2, 3) = famvals
-
-        //    //            arrtrans(2, 4) = ""
-
-        //    //            arrtrans(3, 0) = deltranskyc
-
-        //    //            arrtrans(3, 1) = kycidtabname
-
-        //    //            arrtrans(3, 2) = ""
-
-        //    //            arrtrans(3, 3) = ""
-
-        //    //            arrtrans(3, 4) = "customerid='" & custid & "'"
-        //    //    end if
-
-        //    //Strmsg = obj.DataTransactions(arrtrans)
-
-        //    //response.Redirect("customer.aspx?record=" & strmsg)
-        //}
+        public async Task<string> UpdateCustomer(ISession session, CustomerModel customerModel, List<KYC> kycDocuments, List<Relation> relations)
+        {
+            int idx = 0, cntMst = 0;
+            string strTable, stFeld, stCond;
+            string deltrans = string.Empty, trans = string.Empty, famvals = "", famdtls, transtat = "";
+            string kycidcols = "", kycdtlsvals1 = "", transkyc = string.Empty, deltranskyc = string.Empty;
+            string[] strVal;
+
+            string appdate = session.GetString(SessionConstants.ApplicationDate);
+            string userid = session.GetString(SessionConstants.UserId);
+            string machineid = session.GetString(SessionConstants.MachineId);
+
+            string brcode = customerModel.Branch ?? session.GetString(SessionConstants.BranchCode);
+            string name = customerModel.CustomerName ?? "";
+            string custtype = customerModel.CustomerType ?? "0";
+            string membershipno = customerModel.MembershipNumber ?? "";
+            string dob = customerModel.Personal_DOB ?? "";
+            string email = customerModel.Personal_Email ?? "";
+            string mobile = customerModel.Personal_Mobile ?? "";
+
+            string minor = customerModel.Personal_Minor ? "Y" : "N";
+            string marital = customerModel.Personal_MaritalStatus!;
+            string gender = customerModel.Personal_Gender!;
+            string occupation = customerModel.Occupation_Id ?? "0";
+            string qualification = customerModel.Occupation_Educataion ?? "0";
+            string income = customerModel.Occupation_Income ?? "0";
+
+            string panno = customerModel.Personal_PANNo ?? "";
+            string fathername = customerModel.Personal_RelationName ?? "";
+            string riskcategory = customerModel.RiskCategory ?? "0";
+            string custid = customerModel.CustomerId ?? "";
+            string aadhaarid = customerModel.Personal_Aadhaar ?? "";
+            string SALUTATIONID = customerModel.Salutation ?? "0";
+            string RELATIONID = customerModel.Personal_Relation ?? "0";
+            string RELIGIONID = customerModel.Personal_Religion ?? "0";
+            string gstin = customerModel.Personal_GSTIN ?? "";
+            string ckycid = customerModel.Personal_CKYCID ?? "";
+            // string narration = customerModel.CustomerTypeName ?? "";
+
+            //    cardvalues = Request.Form("hdata")
+            string kycidpanno = string.IsNullOrWhiteSpace(customerModel.Personal_PANNo) ? customerModel.Personal_PANNo! : "2";
+            string kycidadhar = string.IsNullOrWhiteSpace(customerModel.Personal_Aadhaar) ? customerModel.Personal_Aadhaar! : "12";
+            string kycidgstin = string.IsNullOrWhiteSpace(customerModel.Personal_GSTIN) ? customerModel.Personal_GSTIN! : "13";
+            string KYCID = kycidpanno;
+            string strsmsyn = customerModel.SMS_YesNo ? "Y" : "N";
+            string strmobaccyn = customerModel.MobileAccess_YesNo ? "Y" : "N";
+            string strpan206aayn = customerModel.Personal_PANAAYN ? "Y" : "N";
+            string strpan206abyn = customerModel.Personal_PANABYN ? "Y" : "N";
+            //string kyciddtlsmain = ""; // Request.Form("hidkycid")
+            //string[] kyciddtls = kyciddtlsmain.Split("|");
+            //famdtls = ""; // Request.Form("hidfamvals")
+
+            //DataTable rs = await _databaseFactory.SingleRecordSet("GENCUSTFAMILYDTLS", "customerid", "customerid='" + customerModel.CustomerId + "'");
+
+            //if (rs.Rows.Count > 0)
+            //    deltrans = "D";
+            //else
+            //    deltrans = "X";
+
+            //rs = await _databaseFactory.SingleRecordSet("GENCUSTKYCDTLS", "customerid", "customerid='" + customerModel.CustomerId + "'");
+
+            //if (rs.Rows.Count > 0)
+            //    deltranskyc = "D";
+            //else
+            //    deltranskyc = "X";
+
+            if (relations.Count > 0)
+            {
+                for (int i = 0; i < relations.Count; i++)
+                {
+                    string famvalstring = "'" + brcode + "','" + relations[i].Name + "',TO_DATE('" + relations[i].DOB + "', 'DD-MON-YYYY'),'" + relations[i].RelationType + "'";
+                    famvals += "|" + famvalstring + ",'" + userid + "','" + machineid + "',TO_DATE('" + appdate + "', 'DD-MON-YYYY'),'" + customerModel.CustomerId + "'";
+                }
+
+                trans = "I";
+
+                // Remove first '|'
+                if (!string.IsNullOrEmpty(famvals))
+                    famvals = famvals.Substring(1).Trim();
+            }
+
+            if (kycDocuments.Count > 0)
+            {
+                string kycdtlsvals = string.Empty;
+                kycidcols = "BRANCHCODE, CUSTOMERID, KYCID, DESCRIPTION, STATUS, USERID, MACHINEID, SYSTEMDATE";
+
+                for (int i = 0; i < kycDocuments.Count; i++)
+                {
+                    kycdtlsvals = "'" + brcode + "','" + custid + "','" + kycDocuments[i].KYCId + "','" + kycDocuments[i].KYCDescription + "','R','" + userid + "','" + machineid + "',sysdate";
+                    kycdtlsvals1 = kycdtlsvals1 + "|" + kycdtlsvals;
+                }
+
+                //// PAN No
+                //string kycidpannoexists = "NO";
+                //for (int i = 0; i < kyciddtls.Length - 1; i++)
+                //{
+                //    string[] kyciddtls1 = kyciddtls[i].Split(",");
+                //    if (kycidpanno == kyciddtls1[0])
+                //        kycidpannoexists = "YES";
+                //    break;
+                //}
+
+                //if (!string.IsNullOrWhiteSpace(kycidpanno))
+                //{
+                //    if (kycidpannoexists != "YES")
+                //    {
+                //        kycdtlsvals = "'" + brcode + "','" + custid + "','" + kycidpanno + "','" + panno.ToUpper() + "','R','" + userid + "','" + machineid + "',sysdate";
+                //        kycdtlsvals1 = kycdtlsvals1 + "|" + kycdtlsvals;
+                //    }
+                //}
+
+                //// Aadhaar No
+                //string kycidadharexists = "NO";
+
+                //for (int i = 0; i < kyciddtls.Length - 1; i++)
+                //{
+                //    string[] kyciddtls1 = kyciddtls[i].Split(",");
+                //    if (kycidadhar == kyciddtls1[0])
+                //        kycidadharexists = "YES";
+                //    break;
+                //}
+
+                //if (!string.IsNullOrWhiteSpace(kycidadhar))
+                //{
+                //    if (kycidadharexists != "YES")
+                //    {
+                //        kycdtlsvals = "'" + brcode + "','" + custid + "','" + kycidadhar + "','" + aadhaarid.ToUpper() + "','R','" + userid + "','" + machineid + "',sysdate";
+                //        kycdtlsvals1 = kycdtlsvals1 + "|" + kycdtlsvals;
+                //    }
+                //}
+
+                //// GSTIN
+                //string kycidgstinexists = "NO";
+
+                //for (int i = 0; i < kyciddtls.Length - 1; i++)
+                //{
+                //    string[] kyciddtls1 = kyciddtls[i].Split(",");
+                //    if (kycidgstin == kyciddtls1[0])
+                //        kycidgstinexists = "YES";
+                //    break;
+                //}
+
+                //if (!string.IsNullOrWhiteSpace(kycidadhar))
+                //{
+                //    if (kycidgstinexists != "YES")
+                //    {
+                //        kycdtlsvals = "'" + brcode + "','" + custid + "','" + kycidgstin + "','" + gstin.ToUpper() + "','R','" + userid + "','" + machineid + "',sysdate";
+                //        kycdtlsvals1 = kycdtlsvals1 + "|" + kycdtlsvals;
+                //    }
+                //}
+
+                kycdtlsvals1 = kycdtlsvals1.Substring(1);
+                transkyc = "I";
+            }
+            else
+                transkyc = "X";
+
+            // List<QueryModel> queryList = new List<QueryModel>();
+            string[,] arrtrans = new string[3, 5];
+            string custvals = "";
+
+            DataTable rs = await _databaseFactory.SingleRecordSet("GENMODULEMST", "count(*)",
+                "MASTERTABLE is not null and trandaytable is not null AND MODULEID NOT IN ('SCHOOL','ATM')");
+
+            if (rs.Rows.Count > 0)
+            {
+                cntMst = Convert.ToInt32(rs.Rows[0].ItemArray[0]);
+                cntMst = cntMst + 4;
+            }
+
+            arrtrans = new string[cntMst, 5];
+            transtat = "U";
+
+            string custfields = "branchcode,name,customertype,custmembershipno,custdob,custemail,custfax,custmobile,custminoryn,custmaritalstatus,custsex," +
+                "custoccupation,custqualification,custmonthlyincome,phone1,phone2,phone3,mailaddress1,mailaddress2,mailaddress3,mailaddress4,mailaddress5,pmtaddress1," +
+                "pmtaddress2,pmtaddress3,pmtaddress4,pmtaddress5,offaddress1,offaddress2,offaddress3,offaddress4,offaddress5,userid,machineid,applicationdate,systemdate," +
+                "customerid,PANNO,fathername,riskcategory,AADHARUID, SALUTATIONID, RELATIONID, RELIGIONID, KYCID,GSTIN, CKYCID,smsyn,mobaccessyn, PAN206AAYN, PAN206ABYN";
+
+            custvals = "'" + brcode + "'~'" + name + "'~'" + custtype + "'~'" + membershipno + "'~TO_DATE('" + dob + "', 'DD-MON-YYYY')~'" + email + "'~''~'" + mobile + 
+                "'~'" + minor + "'~'" + marital + "'~'" + gender + "'~" + occupation + "~" + qualification + "~" + income + "~'" + customerModel.Mailing_Phone + "'~'" + 
+                customerModel.Permanent_Phone + "'~'" + customerModel.Office_Phone + "'~'" + customerModel.Mailing_FlatNo + "'~'" + customerModel.Mailing_Building + "'~'" + 
+                customerModel.Mailing_Area + "'~'" + customerModel.Mailing_City + "'~'" + customerModel.Mailing_Pincode + "'~'" + customerModel.Mailing_FlatNo + "'~'" + 
+                customerModel.Mailing_Building + "'~'" + customerModel.Mailing_Area + "'~'" + customerModel.Mailing_City + "'~'" + customerModel.Mailing_Pincode + "'~'" +
+                customerModel.Office_Company + "'~'" + customerModel.Office_Building + "'~'" + customerModel.Office_Area + "'~'" + customerModel.Office_City + "'~'" + 
+                customerModel.Office_Pincode + "'~'" + userid + "'~'" + machineid + "'~TO_DATE('" + appdate + "', 'DD-MON-YYYY')~sysdate~'" + custid + "'~'" + panno + "'~'" + 
+                fathername + "'~'" + riskcategory + "'~'" + aadhaarid + "'~'" + SALUTATIONID + "'~'" + RELATIONID + "'~'" + RELIGIONID + "'~'" + KYCID + "'~'" + gstin + "'~'" + 
+                ckycid + "'~'" + strsmsyn + "'~'" + strmobaccyn + "'~'" + strpan206aayn + "'~'" + strpan206abyn + "'";
+
+            arrtrans[0, 0] = transtat;
+            arrtrans[0, 1] = "GENCUSTINFOMST";
+            arrtrans[0, 2] = custfields;
+            arrtrans[0, 3] = custvals;
+            arrtrans[0, 4] = "customerid='" + customerModel.CustomerId + "'";
+
+            arrtrans[1, 0] = trans;
+            arrtrans[1, 1] = "GENCUSTFAMILYDTLS";
+            arrtrans[1, 2] = "branchcode,name,dob,relation,userid,machineid,applicationdate,Customerid";
+            arrtrans[1, 3] = famvals;
+            arrtrans[1, 4] = "";
+
+            arrtrans[2, 0] = transkyc;
+            arrtrans[2, 1] = "GENCUSTKYCDTLS";
+            arrtrans[2, 2] = kycidcols;
+            arrtrans[2, 3] = kycdtlsvals1;
+            arrtrans[2, 4] = "";
+
+            rs = await _databaseFactory.SingleRecordSet("GENMODULEMST", "MASTERTABLE", "MASTERTABLE is not null and trandaytable is not null AND MODULEID NOT IN ('SCHOOL','ATM') ");
+
+            if (rs.Rows.Count > 0)
+            {
+                idx = 3;
+                foreach (DataRow row in rs.Rows)
+                {
+                    string rstname = Conversions.ToString(row.ItemArray[0]);
+                    rs = await _databaseFactory.SingleRecordSet(rstname, "nvl(customerid,0)", "nvl(customerid,0)='" + customerModel.CustomerId + "'");
+                    if (rs.Rows.Count > 0)
+                    {
+                        arrtrans[idx, 0] = "U";
+                        arrtrans[idx, 1] = rstname;
+                        arrtrans[idx, 2] = "NAME,USERID,SYSTEMDATE";
+                        arrtrans[idx, 3] = "'" + customerModel.CustomerName + "'~'" + userid + "'~'" + appdate + "'";
+                        arrtrans[idx, 4] = "customerid='" + customerModel.CustomerId + "'";
+                        idx++;
+                    }
+                }
+            }
+
+            rs = await _databaseFactory.SingleRecordSet("GENMODULEMST", "trandaytable", "MASTERTABLE is not null and trandaytable is not null AND MODULEID NOT IN ('SCHOOL','ATM')");
+
+            if (rs.Rows.Count > 0)
+            {
+                foreach (DataRow row in rs.Rows)
+                {
+                    string rstname = Conversions.ToString(row.ItemArray[0]);
+                    DataTable rsTrn = await _databaseFactory.SingleRecordSet(rstname, "customerid", "customerid='" + customerModel.CustomerId + "'");
+                    if (rsTrn.Rows.Count > 0)
+                    {
+                        arrtrans[idx, 0] = "U";
+                        arrtrans[idx, 1] = rstname;
+                        arrtrans[idx, 2] = "NAME,USERID,SYSTEMDATE";
+                        arrtrans[idx, 3] = "'" + customerModel.CustomerName + "'~'" + userid + "'~'" + appdate + "'";
+                        arrtrans[idx, 4] = "customerid='" + customerModel.CustomerId + "'";
+                        idx++;
+                    }
+                }
+            }
+
+            strTable = "LOCKERMST~GENCUSTJOINTHOLDERMST~GENCUSTNOMINEEMST~GENCUSTGUARDIANMST~GENCUSTINTRODUCERMST~GENSIGNOTRIESMST~GENDISPOSALDTLS~GENLIMITLNK~" +
+                "GENGUARANTORLNK~GENCUSTAADHARLNK~SIMST";
+            strVal = strTable.Split("~");
+
+            for (int i = 0; i < strVal.Length - 1; i++)
+            {
+                if (strVal[i] == "GENCUSTJOINTHOLDERMST")
+                {
+                    stFeld = "JOINTHOLDERNAME,USERID,SYSTEMDATE";
+                    stCond = "JHCUSTOMERID='" + customerModel.CustomerId + "'";
+                    rs = await _databaseFactory.SingleRecordSet(strVal[i], "JHCUSTOMERID", "JHCUSTOMERID='" + customerModel.CustomerId + "'");
+                }
+                else if (strVal[i] == "GENCUSTNOMINEEMST")
+                {
+                    stFeld = "NOMINEENAME,USERID,SYSTEMDATE";
+                    stCond = "NOMCUSTOMERID='" + customerModel.CustomerId + "'";
+                    rs = await _databaseFactory.SingleRecordSet(strVal[i], "NOMCUSTOMERID", "NOMCUSTOMERID='" + customerModel.CustomerId + "'");
+                }
+                else if (strVal[i] == "GENCUSTGUARDIANMST")
+                {
+                    stFeld = "GUARDIANNAME,USERID,SYSTEMDATE";
+                    stCond = "GRDCUSTOMERID='" + customerModel.CustomerId + "'";
+                    rs = await _databaseFactory.SingleRecordSet(strVal[i], "GRDCUSTOMERID", "GRDCUSTOMERID='" + customerModel.CustomerId + "'");
+                }
+                else if (strVal[i] == "GENCUSTINTRODUCERMST")
+                {
+                    stFeld = "INTRNAME,USERID,SYSTEMDATE";
+                    stCond = "INTRCUSTOMERID='" + customerModel.CustomerId + "'";
+                    rs = await _databaseFactory.SingleRecordSet(strVal[i], "INTRCUSTOMERID", "INTRCUSTOMERID='" + customerModel.CustomerId + "'");
+                }
+                else if (strVal[i] == "GENGUARANTORLNK")
+                {
+                    stFeld = "GUARANTORNAME,USERID,SYSTEMDATE";
+                    stCond = "GUARANTORID='" + customerModel.CustomerId + "'";
+                    rs = await _databaseFactory.SingleRecordSet(strVal[i], "GUARANTORID", "GUARANTORID='" + customerModel.CustomerId + "'");
+                }
+                else if (strVal[i] == "GENLIMITLNK")
+                {
+                    stFeld = "CUSTOMERNAME,USERID,SYSTEMDATE";
+                    stCond = "customerid='" + customerModel.CustomerId + "'";
+                    rs = await _databaseFactory.SingleRecordSet(strVal[i], "customerid", "customerid='" + customerModel.CustomerId + "'");
+                }
+                else
+                {
+                    stFeld = "NAME,USERID,SYSTEMDATE";
+                    stCond = "customerid='" + customerModel.CustomerId + "'";
+                    rs = await _databaseFactory.SingleRecordSet(strVal[i], "customerid", "customerid='" + customerModel.CustomerId + "'");
+                }
+
+                if (rs.Rows.Count > 0)
+                {
+                    arrtrans[idx, 0] = "U";
+                    arrtrans[idx, 1] = strVal[i];
+                    arrtrans[idx, 2] = stFeld;
+                    arrtrans[idx, 3] = "'" + customerModel.CustomerName + "'~'" + userid + "'~'" + appdate + "'";
+                    arrtrans[idx, 4] = stCond;
+                    idx = idx + 1;
+                }
+            }
+
+            rs = await _databaseFactory.SingleRecordSet("SIMST", "CREDITCUSTOMERID", "CREDITCUSTOMERID='" + customerModel.CustomerId + "'");
+
+            if (rs.Rows.Count > 0)
+            {
+                arrtrans[idx, 0] = "U";
+                arrtrans[idx, 1] = "SIMST";
+                arrtrans[idx, 2] = "CREDITNAME,USERID,SYSTEMDATE";
+                arrtrans[idx, 3] = "'" + customerModel.CustomerName + "'~'" + userid + "'~'" + appdate + "'";
+                arrtrans[idx, 4] = "CREDITCUSTOMERID='" + customerModel.CustomerId + "'";
+                idx = idx + 1;
+            }
+
+            #region New and Delete Customer Handling
+
+            //if (mode == "New")
+            //{
+            //    transtat = "I";
+            //    custvals = trim(ucase(Request.Form("hidcustvals"))) + ",'" + userid + "','" + machineid + "','" + appdate + "',sysdate,'" + customerModel.CustomerId + "','" +
+            //        panno + "','" + fathername + "','" + riskcategory + "'" + ",'" + aadhaarid + "','" + SALUTATIONID + "','" + RELATIONID + "','" + RELIGIONID + "','" +
+            //        KYCID + "','" + gstin + "','" + ckycid + "','" + strsmsyn + "','" + strmobaccyn + "','" + strpan206aayn + "','" + strpan206abyn + "'";
+
+            //    arrtrans[0, 0] = transtat;
+            //    arrtrans[0, 1] = tabname;
+            //    arrtrans[0, 2] = custfields;
+            //    arrtrans[0, 3] = custvals;
+            //    arrtrans[0, 4] = "";
+
+            //    arrtrans[1, 0] = transtat;
+            //    arrtrans[1, 1] = "Gencustfamilydtls";
+            //    arrtrans[1, 2] = "";
+            //    arrtrans[1, 3] = "";
+            //    arrtrans[1, 4] = "customerid='" + customerModel.CustomerId + "'";
+
+            //    arrtrans[2, 0] = transtat;
+            //    arrtrans[2, 1] = "Gencustfamilydtls";
+            //    arrtrans[2, 2] = "branchcode,name,dob,relation,userid,machineid,applicationdate,Customerid";
+            //    arrtrans[2, 3] = famvals;
+            //    arrtrans[2, 4] = "";
+
+            //    if (!string.IsNullOrWhiteSpace(kyciddtlsmain))
+            //    {
+            //        arrtrans[3, 0] = transtat;
+            //        arrtrans[3, 1] = "GENCUSTKYCDTLS";
+            //        arrtrans[3, 2] = kycidcols;
+            //        arrtrans[3, 3] = kycdtlsvals1;
+            //        arrtrans[3, 4] = "";
+            //    }
+            //}
+            //else if (mode == "Modify")
+            //{
+            //}
+            //else if (mode == "Delete")
+            //{
+            //    arrtrans = new string[3, 5];
+
+            //    transtat = "D";
+
+            //    arrtrans[0, 0] = transtat;
+            //    arrtrans[0, 1] = tabname;
+            //    arrtrans[0, 2] = custfields;
+            //    arrtrans[0, 3] = custvals;
+            //    arrtrans[0, 4] = "customerid='" + customerModel.CustomerId + "'";
+
+            //    arrtrans[1, 0] = deltrans;
+            //    arrtrans[1, 1] = "Gencustfamilydtls";
+            //    arrtrans[1, 2] = "";
+            //    arrtrans[1, 3] = "";
+            //    arrtrans[1, 4] = "customerid='" + customerModel.CustomerId + "'";
+
+            //    arrtrans[2, 0] = trans;
+            //    arrtrans[2, 1] = "Gencustfamilydtls";
+            //    arrtrans[2, 2] = "branchcode,name,dob,relation,userid,machineid,applicationdate,Customerid";
+            //    arrtrans[2, 3] = famvals;
+            //    arrtrans[2, 4] = "";
+
+            //    arrtrans[3, 0] = deltranskyc;
+            //    arrtrans[3, 1] = "GENCUSTKYCDTLS";
+            //    arrtrans[3, 2] = "";
+            //    arrtrans[3, 3] = "";
+            //    arrtrans[3, 4] = "customerid='" + customerModel.CustomerId + "'";
+            //}
+
+            #endregion
+
+            var strMessage = await _databaseFactory.ProcessDataTransactions(arrtrans);
+
+            return strMessage;
+        }
 
         public async Task<string> GetCustomerListByName(string name)
         {
