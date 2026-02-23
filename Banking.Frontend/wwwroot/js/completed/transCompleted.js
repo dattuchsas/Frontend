@@ -16,11 +16,6 @@
 
 //function ABBYesNo() {
 //  vAbbuser = "<%=session("abbuser")%>"
-//  if (vAbbuser == "Y") {
-//    window.document.frmTrans.txtbranchcode.readOnly = false
-//    window.document.frmTrans.cmdBrCode.disabled = false
-//    window.document.frmTrans.chkABB.disabled = false
-//  }
 //}
 
 //function formClear() {

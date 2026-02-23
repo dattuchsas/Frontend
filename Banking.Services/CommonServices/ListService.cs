@@ -17,13 +17,21 @@ namespace Banking.Services
             _databaseFactory = new DatabaseService(databaseSettings.Value);
         }
 
-        public async Task<List<SelectListItem>> GetServiceList(string fieldNames = "", string whereCondition = "", string orderClause = "")
+        // SERVICEID
+        public async Task<List<SelectListItem>> GetServiceList(string transactionMode)
         {
-            fieldNames = string.IsNullOrWhiteSpace(fieldNames) ? "CODE,NARRATION" : fieldNames;
+            string whereCond = string.Empty;
 
-            orderClause = string.IsNullOrWhiteSpace(orderClause) ? "CODE" : orderClause;
+            if (transactionMode == TransactionModes.Debit.ToString())
+                whereCond = "Code in ('1','3','4','7','8','9')";
+            else if (transactionMode == TransactionModes.Credit.ToString())
+                whereCond = "Code in('1','2','3','4','7')";
+            else if (transactionMode == TransactionModes.Clearing.ToString())
+                whereCond = "Code in('1','8')";
+            else
+                whereCond = "";
 
-            using DataTable dataTable = await _databaseFactory.SingleRecordSet("GENSERVICETYPESPMT", fieldNames, whereCondition, orderClause);
+            DataTable dataTable = await _databaseFactory.SingleRecordSet("GENSERVICETYPESPMT", "CODE,NARRATION", whereCond, "CODE");
 
             return ReturnKeyValuePair(dataTable, "Service");
         }

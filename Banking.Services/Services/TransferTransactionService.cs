@@ -13,34 +13,34 @@ namespace Banking.Services
         private readonly IDatabaseService _databaseFactory;
         private readonly ICommonService _commonService;
         private readonly IListService _listService;
+        private ITransactionalService _transactionalService;
 
         public TransferTransactionService(IOptions<DatabaseSettings> databaseSettings)
         {
             _databaseFactory = new DatabaseService(databaseSettings.Value);
             _commonService = new CommonService(databaseSettings);
             _listService = new ListService(databaseSettings);
+            _transactionalService = new TransactionalService(databaseSettings);
         }
 
-        public async Task<TransferTransactionModel> Get(ISession session)
+        public async Task<TransferTransactionModel> Get(ISession session, TransferTransactionModel model)
         {
-            TransferTransactionModel model = new TransferTransactionModel()
-            {
-                Branch = session.GetString(SessionConstants.BranchCode),
-                BranchList = await _commonService.GetBranchList(),
+            model.Branch = session.GetString(SessionConstants.BranchCode);
+            model.BranchList = await _transactionalService.GetBranchCodesByUserId(session.GetString(SessionConstants.UserId));
 
-                ServiceList = await _listService.GetServiceList(),
-                // ModuleList = await _listService.GetModuleList(),
+            if (string.IsNullOrWhiteSpace(model.TransactionMode.ToString()))
+                model.TransactionMode = TransactionModes.Debit;
 
-                TransactionMode = TransactionModes.Debit,
+            model.ServiceList = await _listService.GetServiceList(model.TransactionMode.ToString());
+            // ModuleList = await _listService.GetModuleList(),
 
-                CheckABB = false,
-                CheckCheque = false,
-                CheckLinkModule = false,
-                CheckTransDetails = false,
-                CheckDenoms = false,
-                CheckRateDetails = false,
-                CheckDenomsTally = false
-            };
+            model.CheckABB = false;
+            model.CheckCheque = false;
+            model.CheckLinkModule = false;
+            model.CheckTransDetails = false;
+            model.CheckDenoms = false;
+            model.CheckRateDetails = false;
+            model.CheckDenomsTally = false;
 
             return model;
         }
@@ -401,15 +401,15 @@ namespace Banking.Services
             model.CashierId = session.GetString("userid");
             vPrec = session.GetString("precision");
 
-            model.BranchCode = session.GetString("branchcode");
-            model.CurrencyCode = session.GetString("currencycode");
-            model.BranchNarration = session.GetString("branchnarration");
-            model.CurrencyNarration = session.GetString("currencynarration");
-            model.MachineId = session.GetString("machineid");
-            model.ABBUser = session.GetString("abbuser");
-            vModDir = session.GetString("moddir");
+            model.BranchCode = session.GetString(SessionConstants.BranchCode);
+            model.CurrencyCode = session.GetString(SessionConstants.CurrencyCode);
+            model.BranchNarration = session.GetString(SessionConstants.BranchNarration);
+            model.CurrencyNarration = session.GetString(SessionConstants.CurrencyNarration);
+            model.MachineId = session.GetString(SessionConstants.MachineId);
+            model.ABBUser = session.GetString(SessionConstants.ABBUser);
+            vModDir = session.GetString(SessionConstants.SelectedModule);
 
-            if (vModDir.ToUpper().Equals("CASH"))
+            if (!string.IsNullOrWhiteSpace(vModDir) && vModDir.ToUpper().Equals("CASH"))
             {
                 Rfldnms = "TELLERVERIFYREQYN";
 

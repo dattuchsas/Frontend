@@ -1,9 +1,8 @@
-﻿@model Banking.Models.TransferTransactionModel
+﻿@using Banking.Models
+@model Banking.Models.TransferTransactionModel
 @{
     Layout = "_Layout";
 }
-
-<script asp-append-version="true" src="~/js/app/transaction.js"></script>
 
 <div class="card h-100">
     <div class="card-header">
@@ -13,14 +12,13 @@
         <!--Radio / Check Box Selections Details-->
         <div class="d-flex flex-wrap bg-body-tertiary p-2 mb-3 border rounded">
             <div class="me-3 fw-bold">
-                <div class="form-check form-check-inline">
-                    <input asp-for="TransactionMode" class="form-check-input module-checkbox" type="radio" value="Debit">
-                    <label asp-for="TransactionMode" class="form-check-label">Debit</label>
-                </div>
-                <div class="form-check form-check-inline">
-                    <input asp-for="TransactionMode" class="form-check-input module-checkbox" type="radio" value="Credit">
-                    <label asp-for="TransactionMode" class="form-check-label">Credit</label>
-                </div>
+                @foreach (TransactionModes mode in Enum.GetValues(typeof(TransactionModes)))
+                {
+                    <div class="form-check form-check-inline" id="@mode">
+                        <input type="radio" asp-for="TransactionMode" class="form-check-input module-checkbox" value="@mode" />
+                        <label class="form-check-label">@mode</label>
+                    </div>
+                }
             </div>
             <div class="ms-auto">
                 <div class="form-check form-check-inline">
@@ -116,22 +114,22 @@
             <div class="phot-sign">
                 <div class="border rounded">
                     <div class="photo">
-                        <img src="img/placeholder-img.jpg" class="img-fluid rounded-top" />
+                        <img src="~/images/placeholder-img.jpg" class="img-fluid rounded-top" />
                     </div>
                     <div class="sign border-top">
-                        <img src="img/placeholder-sign.jpg" class="img-fluid rounded-bottom" />
+                        <img src="~/images/placeholder-sign.jpg" class="img-fluid rounded-bottom" />
                     </div>
                 </div>
             </div>
         </div>
-        <!-- Display Details-->
+@*         <!-- Display Details-->
         @Html.RenderPartialAsync("Display", Model)
 
         <!-- Remittence Details -->
         @Html.RenderPartialAsync("Remmitance", Model)
 
         <!-- Recurring Deposit -->
-        @Html.RenderPartialAsync("Recurring", Model)
+        @Html.RenderPartialAsync("Recurring", Model) *@
 
         <!--Cheque Details-->
         <div id="cheque" class="card d-none mt-3">
@@ -230,14 +228,16 @@
     </div>
 </div>
 
-<input type="text" asp-for="UserId" />
-<input type="text" asp-for="ABBUser" />
-<input type="text" asp-for="Hidden_BDT" />
-<input type="text" asp-for="ApplicationDate" />
-<input type="text" asp-for="CounterNo" />
-<input type="text" asp-for="CashierId" />
-<input type="text" asp-for="BranchCode" />
-<input type="text" asp-for="BranchNarration" />
-<input type="text" asp-for="CurrencyCode" />
-<input type="text" asp-for="CurrencyNarration" />
-<input type="text" asp-for="MachineId" />
+<input type="hidden" asp-for="UserId" />
+<input type="hidden" asp-for="ABBUser" />
+<input type="hidden" asp-for="Hidden_BDT" />
+<input type="hidden" asp-for="ApplicationDate" />
+<input type="hidden" asp-for="CounterNo" />
+<input type="hidden" asp-for="CashierId" />
+<input type="hidden" asp-for="BranchCode" />
+<input type="hidden" asp-for="BranchNarration" />
+<input type="hidden" asp-for="CurrencyCode" />
+<input type="hidden" asp-for="CurrencyNarration" />
+<input type="hidden" asp-for="MachineId" />
+
+<script asp-append-version="true" src="~/js/app/transaction.js"></script>

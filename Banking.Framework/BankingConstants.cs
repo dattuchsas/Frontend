@@ -18,12 +18,6 @@
         public const string New = "New";
     }
 
-    public class TransactionModes
-    {
-        public const string Debit = "Debit";
-        public const string Credit = "Credit";
-    }
-
     public class SessionConstants
     {
         public const string UserId = "UserId";
