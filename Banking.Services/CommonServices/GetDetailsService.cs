@@ -11,6 +11,7 @@ using System.Diagnostics.Eventing.Reader;
 using System.IO;
 using System.Reflection.Metadata;
 using System.Runtime.InteropServices;
+using System.Runtime.Intrinsics.Arm;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
 using System.Xml.Linq;
@@ -118,24 +119,6 @@ namespace Banking.Services
             BankingExtensions.ReleaseMemory(dataTable);
 
             return strResult;
-        }
-
-        // SERVICEID
-        public async Task<string> GetServiceList(string searchString)
-        {
-            string whereCond = string.Empty;
-            string[] search = searchString.Split('|');
-
-            if (search[1] == "Dbt")
-                whereCond = "Code in ('1','3','4','7','8','9')";
-            else if (search[1] == "Cdt")
-                whereCond = "Code in('1','2','3','4','7')";
-            else if (search[1] == "Clg")
-                whereCond = "Code in('1','8')";
-
-            DataTable dataTable = await _databaseFactory.SingleRecordSet("GENSERVICETYPESPMT", "CODE,NARRATION", whereCond, "CODE");
-
-            return string.Join("|", dataTable.Rows.Cast<DataRow>().Select(row => $"{row.ItemArray[0]}~{row.ItemArray[1]}"));
         }
 
         // GETMODCUSTPANDTLS
@@ -18928,6 +18911,2024 @@ namespace Banking.Services
 
 //                }
 //            }
+        }
+
+        public void TransactionQueries()
+        {
+            //Dim Rstemp As ADODB.Recordset
+            //Dim StrQuery As String
+            //Dim DbLink As String
+            //Dim Icount As Integer
+            //Dim objdblink As Object
+            //Dim ArrLink As Variant
+            //Dim strComponent As String
+            //Dim ErrNum As String
+            //Dim errDesc As String
+            //Dim clntDesc As String
+            //Public AdoConnObj As ADODB.Connection ' Connection Object
+            //Public objError As Object
+            //Public ArrError As Variant
+            //Public ConnError As String 'error object
+
+
+
+
+            //Public Function GLCodes(BRCode As String, ModuleCode As String, _
+            //                        Optional GLCategory As String) As ADODB.Recordset
+
+            //Dim StrModuleCode As String, strBranchCode As String
+            //Dim strGlCatCondition As String
+            //On Error GoTo errhand
+
+            //Call DBConnection
+
+            //If ConnError<> "Connected" Then Exit Function      '**** Not executing further due to connection faliure
+            //    ConnError = ""
+            //    Set Rstemp = CreateObject("ADODB.Recordset")
+            //    StrQuery = ""
+            //    strBranchCode = Trim(BRCode)
+            //    StrModuleCode = Trim(ModuleCode)
+
+
+            //'''''''''''****please do not change this piece of code it will effect the list of glcodes****
+            //    If Trim(GLCategory) = "" Or UCase(Trim(GLCategory)) = "A" Then
+            //        strGlCatCondition = " and glcode in (select glcode from GENGLMASTMST where moduleid='" _
+            //        & StrModuleCode & "' and GLCATEGORY='A')"   ''''''''''returns transactional glcodes"
+            //    Else
+            //        strGlCatCondition = " and glcode in (select glcode from GENGLMASTMST where moduleid='" _
+            //        & StrModuleCode & "' and GLCATEGORY='" & GLCategory & "')"   ''''''''' returns other category glcodes based on the request
+            //    End If
+            //'''''''''''' * ********************************************************************************
+
+            //If UCase(Trim(StrModuleCode)) = "GL" Then
+
+            //    StrQuery = "select glcode,Narration from genglsheetmst" & DbLink _
+            //    & " where (moduleid in (select moduleid " _
+            //    & " from genmoduletypesmst" & DbLink _
+            //    & " where upper(trim(implementedyn))<>'Y' and branchcode='" _
+            //    & strBranchCode & "') or trim(moduleid)='GL') and (trim(branchcode)='" _
+            //    & strBranchCode & "') and (status='R') order by glcode"
+            //Else
+
+            //    StrQuery = "select glcode,Narration from genglsheetmst" & DbLink _
+            //    & "  where moduleid in (select moduleid from genmoduletypesmst" _
+            //    & DbLink & "  where trim(moduleid)='" & StrModuleCode & "') " _
+            //    & " and trim(branchcode)='" & strBranchCode & "' and status='R' " _
+            //    & strGlCatCondition & "  order by glcode"
+
+
+            //End If
+
+
+            //    Rstemp.Open StrQuery, AdoConnObj
+            //    If Rstemp.EOF And Rstemp.BOF Then
+            //        ConnError = "Glcodes have not created for this Module."
+            //    End If
+
+
+            //    Set GLCodes = Rstemp
+
+
+            //    Rstemp.ActiveConnection = Nothing
+            //    If AdoConnObj.State = 1 Then AdoConnObj.Close
+            //    Set AdoConnObj = Nothing
+            //    Exit Function
+
+
+            //errhand:
+            //            ConnError = "GLCodes Could Not Be Retrieved Due to : " & Err.Number & " : " & Err.Description
+
+            //objErrlog.LogError "GeneralTranQueries", "GLCodes", Err.Number, Err.Description
+
+            //If Rstemp.State = 1 Then Rstemp.Close
+            //Set Rstemp = Nothing
+            //If AdoConnObj.State = 1 Then AdoConnObj.Close
+            //Set AdoConnObj = Nothing
+
+
+            //End Function
+
+            //Public Function AccountNumbers(BRCode As String, Optional ModuleCode As String, _
+            //                               Optional GLcode As String, Optional CurrencyCode As String, _
+            //                               Optional AccStatus As String, Optional TableName As String, _
+            //                               Optional RemType As String, Optional accSearch As String) As ADODB.Recordset
+
+            //Dim StrModuleCode As String, strBranchCode As String, strGLCode As String
+            //Dim status As String
+            //Dim TranStatus As String
+            //Dim arrStatus As Variant
+            //Dim arrTrStatus As Variant
+            //Dim BlnGLcode As Boolean
+            //Dim strTabName As String
+            //Dim strRemType As String
+            //On Error GoTo errhand
+            //If ModuleCode = "" Then
+            //    ConnError = "Module ID is Not Optional"
+            //    Exit Function
+            //End If
+
+            //Call DBConnection
+
+
+            //If ConnError<> "Connected" Then Exit Function      '**** Not executing further due to connection faliure
+            //   ' ConnError = ""
+            //    Set Rstemp = CreateObject("ADODB.Recordset")
+            //    StrQuery = ""
+            //    strBranchCode = UCase(Trim(BRCode))
+            //    StrModuleCode = UCase(Trim(ModuleCode))
+            //    strGLCode = UCase(Trim(GLcode))
+            //    strRemType = UCase(Trim(RemType))
+            //    If AccStatus = "" Then
+            //        status = "'R'"
+            //        TranStatus = "'A'"
+            //    Else
+            //       arrStatus = Split(AccStatus, ",", -1)
+
+
+            //        If arrStatus(0) = "A" Then
+            //            status = ""
+            //            TranStatus = ""
+            //        Else
+            //            arrTrStatus = Split(arrStatus(0), "OR", -1)
+
+
+            //                For Icount = 0 To UBound(arrTrStatus)
+            //                    status = status & "'" & UCase(Trim(arrTrStatus(Icount))) & "',"
+            //                Next
+
+            //            status = Left(status, Len(status) - 1)
+            //            arrTrStatus = Empty
+
+
+            //            arrTrStatus = Split(arrStatus(1), "OR", -1)
+            //                For Icount = 0 To UBound(arrTrStatus)
+            //                    TranStatus = TranStatus & "'" & UCase(Trim(arrTrStatus(Icount))) & "',"
+            //                Next
+            //            TranStatus = Left(TranStatus, Len(TranStatus) - 1)
+            //'            status = UCase(Trim(arrStatus(0)))
+            //'            TranStatus = UCase(Trim(arrStatus(1)))
+            //        End If
+            //   End If
+
+
+            //    If TableName = "" Then
+
+            //        StrQuery = "select MasterTable,GLCODEYN from genmodulemst" & DbLink _
+            //        & "  where moduleid ='" & StrModuleCode & "'"
+
+
+            //        StrQuery = UCase(StrQuery)
+            //        Set Rstemp = AdoConnObj.Execute(StrQuery)
+            //        If Rstemp.State = 0 Then GoTo errhand
+            //        strTabName = Rstemp!MasterTable
+            //        If UCase(Rstemp!GlcodeYN) = "Y" Then BlnGLcode = True
+            //        If Rstemp.State = 1 Then Rstemp.Close
+            //        Set Rstemp = Nothing
+
+
+            //        If BlnGLcode = True Then
+            //            If Trim(CurrencyCode) = "" Then
+            //               If status = "" Then
+            //                StrQuery = "select ACCNO,Name,CUSTOMERID,status from " & strTabName & DbLink & " where upper(trim(branchcode))='" & strBranchCode & "' " _
+            //                & " and upper(trim(glcode))='" & Trim(strGLCode) & "' " '''' and upper(trim(status))= 'R' order by Name"
+            //               Else
+            //                 StrQuery = "select ACCNO,Name,CUSTOMERID,status from " & strTabName & DbLink & " where upper(trim(branchcode))='" & strBranchCode & "' " _
+            //                & " and upper(trim(glcode))='" & Trim(strGLCode) & "' and upper(trim(status)) in (" _
+            //                & status & ") and transtatus in (" & TranStatus & ") "
+            //               End If
+            //            Else
+
+            //                If StrModuleCode = "SCR" Then
+            //                    StrQuery = "select ACCNO,Name,Customerid,status from " & strTabName & DbLink & " where  upper(trim(branchcode))='" & strBranchCode & "' " _
+            //                        & " and upper(trim(glcode))='" & Trim(strGLCode) & "' and upper(trim(status)) in (" & status _
+            //                        & ") and transtatus in (" & TranStatus & ") and upper(trim(currencycode))='" _
+            //                        & UCase(Trim(CurrencyCode)) & "' "
+
+
+            //                ElseIf status = "" Then
+            //                     StrQuery = "select ACCNO,Name,Customerid,status from " & strTabName & DbLink & " where upper(trim(branchcode))='" & strBranchCode & "' " _
+            //                        & " and upper(trim(glcode))='" & Trim(strGLCode) _
+            //                        & "' and upper(trim(currencycode))='" & UCase(Trim(CurrencyCode)) & "' "
+            //                Else
+
+            //                    StrQuery = "select ACCNO,Name,Customerid,status from " & strTabName & DbLink & " where upper(trim(branchcode))='" & strBranchCode & "' " _
+            //                        & " and upper(trim(glcode))='" & Trim(strGLCode) & "' and upper(trim(status)) in (" & status _
+            //                        & ") and transtatus in (" & TranStatus & ") and upper(trim(currencycode))='" _
+            //                        & UCase(Trim(CurrencyCode)) & "' "
+            //                     If Not accSearch = "" Then
+            //                        Dim searchby() As String
+            //                        searchby = Split(UCase(accSearch), "|")
+            //                        If searchby(0) = "NAME" Then
+            //                            StrQuery = StrQuery & "AND upper(NAME) LIKE '%" & searchby(1) & "%'"
+            //                        Else
+            //                            StrQuery = StrQuery & "AND ACCNO LIKE '" & searchby(1) & "%'"
+            //                        End If
+            //                     End If
+
+
+            //               End If
+            //            End If
+            //        Else
+            //            If status = "" Then
+            //                StrQuery = "select ACCNO,Name,CUSTOMERID,status from " & strTabName & DbLink _
+            //                & " where upper(trim(branchcode))='" & strBranchCode & "' " _
+            //                & "  " '''' and upper(trim(status))= 'R' order by Name"
+            //            Else
+            //                StrQuery = "select ACCNO,Name,CUSTOMERID,status from " & strTabName & DbLink _
+            //                & " where upper(trim(branchcode))='" & strBranchCode & "' " _
+            //                & " and upper(trim(status)) in (" & status & ") and transtatus in (" & TranStatus _
+            //                & ") "
+            //            End If
+
+
+            //        End If
+            //    Else
+
+            //        strTabName = TableName
+            //            If status = "" Then
+            //             StrQuery = "select ACCNO,Name,Customerid from " & strTabName & DbLink & " where upper(trim(branchcode))='" & strBranchCode & "' " _
+            //            & " and upper(trim(glcode))='" & Trim(strGLCode) _
+            //            & "' and upper(trim(moduleid))='" & UCase(Trim(ModuleCode)) & "' "
+            //           Else
+            //            StrQuery = "select ACCNO,Name,Customerid from " & strTabName & DbLink & " where upper(trim(branchcode))='" & strBranchCode & "' " _
+            //            & " and upper(trim(glcode))='" & Trim(strGLCode) & "' and upper(trim(status)) in ( " & status _
+            //            & ") and transtatus in (" & TranStatus & ") and upper(trim(moduleid))='" _
+            //            & UCase(Trim(ModuleCode)) & "' "
+            //           End If
+            //    End If
+            //        If strRemType<> "" Then
+            //            StrQuery = StrQuery & " and MODEOFREMITTANCE='" & strRemType & "'"
+            //        End If
+            //        StrQuery = StrQuery & " order by Accno"
+            //       StrQuery = UCase(StrQuery)
+            //    Set Rstemp = AdoConnObj.Execute(StrQuery)
+            //    If Rstemp.State = 0 Then GoTo errhand
+
+            //    ConnError = ""
+
+            //    Set AccountNumbers = Rstemp
+
+
+            //    Rstemp.ActiveConnection = Nothing
+            //    If AdoConnObj.State = 1 Then AdoConnObj.Close
+            //    Set AdoConnObj = Nothing
+
+
+            //    Exit Function
+
+
+            //errhand:
+            //            ConnError = "No Account Numbers Exist for This Module"
+
+            //objErrlog.LogError "GeneralTranQueries", "AccountNumbers", Err.Number, Err.Description
+
+
+            //    If Rstemp.State = 1 Then Rstemp.Close
+            //    Set Rstemp = Nothing
+            //    If AdoConnObj.State = 1 Then AdoConnObj.Close
+            //    Set AdoConnObj = Nothing
+
+            // End Function
+
+
+
+            //Public Function ModuleID(BRCode As String, _
+            //                         Optional AllModulesYN As String, _
+            //                         Optional UserID As String, _
+            //                         Optional VouchingYN As String, _
+            //                         Optional ModuleCondition As String) As ADODB.Recordset
+            //Dim strBrcode As String, StrUser As String
+            //Dim strVouchCondition As String
+            //Dim strOptModCond As String
+            //On Error GoTo errhand
+
+            //Call DBConnection
+
+            //If ConnError<> "Connected" Then Exit Function      '**** Not executing further due to connection faliure
+            //    ConnError = ""
+            //    Set Rstemp = CreateObject("ADODB.Recordset")
+            //    StrQuery = ""
+            //    strBrcode = UCase(Trim(BRCode))
+            //    StrUser = IIf(IsNull(Trim(UserID)), "", UCase(Trim(UserID)))
+            //    strOptModCond = IIf(IsNull(ModuleCondition), "", Trim(ModuleCondition))
+            //    If strOptModCond<> "" Then
+            //        strOptModCond = " and " & strOptModCond
+            //    End If
+            //'''''''''''****please do not change this piece of code it will effect the list of modules****
+            //    If Trim(VouchingYN) = "" Or UCase(Trim(VouchingYN)) = "Y" Then
+            //        strVouchCondition = " and gmm.VOUCHINGYN='Y'"   ''''''''''returns modules with transaction facility
+            //    Else
+            //        strVouchCondition = ""    ''''''''' returns all modules
+            //    End If
+            //'''''''''''' * ********************************************************************************
+
+            //'''    If StrUser <> "" Then
+            //        If Trim(AllModulesYN) = "" Or Trim(AllModulesYN) = "Y" Then
+            //            StrQuery = "Select gmt.ModuleID ModuleID,gmt.Narration Narration,gmm.Mastertable Mastertable " _
+            //            & " from GenModuleTypesMST" & DbLink & " gmt, genmodulemst" & DbLink & " gmm where " _
+            //            & "trim(gmt.BranchCode)='" & Trim(strBrcode) & "' and upper(gmt.IMPLEMENTEDYN)='Y' " _
+            //            & "and gmt.ModuleID =gmm.ModuleID " & strVouchCondition & strOptModCond & " order by gmt.ModuleID"
+
+
+            //        Else
+            //            StrQuery = "Select ModuleID,Narration from GenModuleTypesMST" & DbLink & "  where trim(BranchCode)='" _
+            //            & Trim(strBrcode) & "' and upper(IMPLEMENTEDYN)='Y' and ModuleID in (select gmm.moduleid " _
+            //            & " from genmodulemst" & DbLink & " gmm where trim(gmm.mastertable)is not null " _
+            //            & strVouchCondition & strOptModCond & " )" & strOptModCond & " order by ModuleID"
+            //        End If
+
+            //    If Rstemp.State = 1 Then Rstemp.Close
+            //    Rstemp.Open StrQuery, AdoConnObj
+            //    If Rstemp.EOF And Rstemp.BOF Then
+            //        ConnError = "Modules have not been implemented for this branch."
+            //        GoTo errhand
+            //    End If
+
+
+            //    Set ModuleID = Rstemp
+
+            //    Rstemp.ActiveConnection = Nothing
+            //    If AdoConnObj.State = 1 Then AdoConnObj.Close
+            //    Set AdoConnObj = Nothing
+
+
+            //Exit Function
+
+
+            //errhand:
+            //            If ConnError = "" Then
+            //                ConnError = "Modules Could Not Be Retrieved Due to : " & Err.Number & " : " & Err.Description
+            //End If
+
+            //objErrlog.LogError "GeneralTranQueries", "ModuleID", Err.Number, Err.Description
+
+            //    If Rstemp.State = 1 Then Rstemp.Close
+            //    Set Rstemp = Nothing
+            //    If AdoConnObj.State = 1 Then AdoConnObj.Close
+            //    Set AdoConnObj = Nothing
+            //End Function
+            //Public Function GetTranNo(Branchcode As String) As String
+            //    On Error GoTo errh
+            //    If Branchcode = "" Then
+            //     GetTranNo = "Branch Code should be sent or Sequence doesnot exists"
+            //    End If
+
+
+            //    Call DBConnection
+            //    If ConnError<> "Connected" Then
+            //        GetTranNo = ConnError
+            //        GetTranNo = Replace(GetTranNo, Chr(10), "")
+            //        GetTranNo = Replace(GetTranNo, Chr(13), "")
+            //        Exit Function
+            //    End If
+            //    Dim recTranNo As Object
+            //    Dim seqName As String
+            //        seqName = "SEQTRANNO" & Branchcode
+            //    Set recTranNo = CreateObject("Adodb.Recordset")
+            //    Dim sqname As String
+
+
+            //      sqname = "select " & seqName & DbLink & ".nextval Tranno from dual"
+
+
+            //    Set recTranNo = AdoConnObj.Execute(sqname, adCmdText)
+
+
+            //    If Not recTranNo.EOF And Not recTranNo.BOF Then
+            //        GetTranNo = recTranNo!tranno
+            //    Else
+            //        GetTranNo = "Tran No is Locked"
+            //    End If
+
+
+            //    If recTranNo.State = 1 Then recTranNo.Close
+            //    Set recTranNo = Nothing
+            //    If AdoConnObj.State = 1 Then AdoConnObj.Close
+            //    Set AdoConnObj = Nothing
+            //    Exit Function
+            //errh:
+            //            GetTranNo = Err.Number & " : " & Err.Description
+            // GetTranNo = Replace(GetTranNo, Chr(10), "")
+            // GetTranNo = Replace(GetTranNo, Chr(13), "")
+
+
+            // objErrlog.LogError "GeneralTranQueries", "GetTranNo", Err.Number, Err.Description
+
+            //If recTranNo.State = 1 Then recTranNo.Close
+            //Set recTranNo = Nothing
+            //If AdoConnObj.State = 1 Then AdoConnObj.Close
+            //Set AdoConnObj = Nothing
+
+
+            //End Function
+
+            //Public Function GetBatchno(Branchcode As String) As String
+            //  On Error GoTo errh
+            //  If Branchcode = "" Then
+            //     GetBatchno = "Branch Code should be sent or Sequence doesnot exists"
+            //  End If
+            //  Call DBConnection
+            //    If ConnError<> "Connected" Then
+            //        GetBatchno = ConnError
+            //        GetBatchno = Replace(GetBatchno, Chr(10), "")
+            //        GetBatchno = Replace(GetBatchno, Chr(13), "")
+            //        Exit Function
+            //    End If
+            //  Dim recBatch As Object
+            //  Dim seqName As String
+            //      seqName = "SEQBATCHNO" & Branchcode
+            //  Set recBatch = CreateObject("Adodb.Recordset")
+
+
+            //  Dim sqname As String
+            //      sqname = "select " & seqName & DbLink & ".nextval BatchNo from dual"
+
+
+            //  Set recBatch = AdoConnObj.Execute(sqname, adCmdText)
+            //      If Not recBatch.EOF And Not recBatch.BOF Then
+            //         GetBatchno = recBatch!BatchNo
+            //      Else
+            //         GetBatchno = "Batch No is Locked"
+            //      End If
+
+
+            //    If recBatch.State = 1 Then recBatch.Close
+            //    Set recBatch = Nothing
+            //    If AdoConnObj.State = 1 Then AdoConnObj.Close
+            //    Set AdoConnObj = Nothing
+
+
+            //    Exit Function
+            //errh:
+            //            GetBatchno = Err.Number & " : " & Err.Description
+            //GetBatchno = Replace(GetBatchno, Chr(10), "")
+            //GetBatchno = Replace(GetBatchno, Chr(13), "")
+
+            //objErrlog.LogError "GeneralTranQueries", "GetBatchno", Err.Number, Err.Description
+
+            //    If recBatch.State = 1 Then recBatch.Close
+            //    Set recBatch = Nothing
+            //    If AdoConnObj.State = 1 Then AdoConnObj.Close
+            //    Set AdoConnObj = Nothing
+
+
+            //End Function
+            //Public Function SystemDate() As String
+            //Dim recTrandate As Object
+            //On Error GoTo myerr
+            //  Call DBConnection
+            //    If ConnError<> "Connected" Then
+            //        SystemDate = ConnError
+            //        SystemDate = Replace(SystemDate, Chr(10), "")
+            //        SystemDate = Replace(SystemDate, Chr(13), "")
+            //        Exit Function
+            //    End If
+            //Set recTrandate = CreateObject("Adodb.Recordset")
+            //Set recTrandate = AdoConnObj.Execute("select to_char(sysdate,'dd-mon-yyyy hh:mi:ss') DateNTime from dual", , adCmdText)
+            //SystemDate = recTrandate!DateNTime
+
+            //If recTrandate.State = 1 Then recTrandate.Close
+            //Set recTrandate = Nothing
+            //If AdoConnObj.State = 1 Then AdoConnObj.Close
+            //Set AdoConnObj = Nothing
+
+
+            //Exit Function
+            //myerr:
+            //            SystemDate = Err.Number & " : " & Err.Description
+            //SystemDate = Replace(SystemDate, Chr(10), "")
+            //SystemDate = Replace(SystemDate, Chr(13), "")
+
+            //objErrlog.LogError "GeneralTranQueries", "SystemDate", Err.Number, Err.Description
+
+            //If recTrandate.State = 1 Then recTrandate.Close
+            //Set recTrandate = Nothing
+            //If AdoConnObj.State = 1 Then AdoConnObj.Close
+            //Set AdoConnObj = Nothing
+
+            //End Function
+
+
+
+            //'''''' This function is basically developed for creating the list of parameters based
+            //'''''' on the module id.To avoid the programmer to request the database quite often to
+            //'''''' check the parameters during transactions, which might delay the process.
+            //'''''' This function returns a single disconnected recordset with all the parameters for the
+            //'''''' module.
+
+            //Public Function ModuleParameters(Branchcode As String, ModuleCode As String, _
+            //                                    Optional CurrenyCode As String) As ADODB.Recordset
+
+
+            //Dim strBrcode As String
+            //Dim StrCurCode As String
+            //Dim StrModuleID As String
+            //Dim TabName() As String
+            //Dim TableNames As String
+            //Dim StrFields As String
+            //Dim StrCondition As String
+            //Dim RsCount As Integer
+            //Dim FldCount As Integer
+            //Dim DummyRS As ADODB.Recordset
+            //Dim RsParam() As ADODB.Recordset
+            //Dim RsCol As ADODB.Recordset
+            //Dim NewRows As Integer
+            //Dim arrFlds() As Variant
+            //Dim arrVals() As Variant
+            //Dim BlnUpdate As Boolean
+            //Dim BlnAddNew As Boolean
+            //Dim RowCount As Integer
+            //Dim ColCount As Integer
+            //Dim ColName As String
+            //Dim fldscnt As Integer
+            //On Error GoTo errhand
+
+            //strBrcode = UCase(Trim(Branchcode))
+            //StrModuleID = UCase(Trim(ModuleCode))
+            //StrCurCode = IIf(IsNull(Trim(CurrenyCode)), "", UCase(Trim(CurrenyCode)))
+
+            //Call DBConnection
+
+            //If ConnError<> "Connected" Then Exit Function
+            //Set Rstemp = CreateObject("ADODB.Recordset")
+            //StrQuery = "Select P.PMTTABLE PMTTABLE, T.Tname Tname from (select PMTTABLE from genmodulemst" & DbLink _
+            //        & " where upper(trim(moduleid))='" _
+            //        & StrModuleID & "') P, (select Tname from Tab" & DbLink & " where tname like" _
+            //        & "'%PMT' and tname like 'GEN%') T"
+            //    If Rstemp.State = 1 Then Rstemp.Close
+
+
+            //     Set Rstemp = AdoConnObj.Execute(StrQuery)
+            //     If Rstemp.EOF And Rstemp.BOF Then
+            //         ConnError = "No Parameters for this module"
+            //         Exit Function
+            //     End If
+            //     Rstemp.MoveFirst
+            //     If IsNull(Trim(Rstemp!pmttable)) Then
+            //            ReDim TabName(Rstemp.RecordCount - 1) As String
+            //            For Icount = 0 To UBound(TabName)
+            //                TabName(Icount) = Trim(Rstemp!Tname) & DbLink
+            //                Rstemp.MoveNext
+            //            Next Icount
+            //     Else
+            //            ReDim TabName(Rstemp.RecordCount) As String
+            //            TabName(0) = Trim(Rstemp!pmttable) & DbLink
+            //            For Icount = 1 To UBound(TabName)
+            //                TabName(Icount) = Trim(Rstemp!Tname) & DbLink
+            //                Rstemp.MoveNext
+            //            Next Icount
+            //     End If
+
+
+            //     For Icount = 0 To UBound(TabName)
+            //            TableNames = TableNames & TabName(Icount) & DbLink & ","
+            //     Next Icount
+
+            //     TableNames = Mid(TableNames, 1, Len(TableNames) - 1)
+            //     StrQuery = " select *  from " & TableNames & " where 1=2"
+
+
+            //     Set DummyRS = CreateObject("ADODB.Recordset")
+            //     DummyRS.CursorLocation = adUseClient
+            //     DummyRS.LockType = adLockOptimistic
+            //     DummyRS.CursorType = adOpenKeyset
+            //     DummyRS.Open StrQuery, AdoConnObj, adOpenKeyset, adLockOptimistic
+            //     'Set DummyRS = AdoConnObj.Execute(StrQuery)
+            //     BlnUpdate = DummyRS.Supports(adAddNew)
+            //     BlnAddNew = DummyRS.Supports(adUpdate)
+            //     Set RsCol = CreateObject("ADODB.Recordset")
+            //     ReDim RsParam(UBound(TabName)) As ADODB.Recordset
+
+
+            //     For Icount = 0 To(UBound(TabName))
+            //        Set RsParam(Icount) = CreateObject("ADODB.Recordset")
+            //        ColName = ""
+            //        '''For ColCount = 1 To 2
+            //        StrQuery = "Select * from Col where upper(tname)='" & TabName(Icount) _
+            //        & "' and upper(cname)='MODULEID'"
+            //            If RsCol.State = 1 Then RsCol.Close
+            //        Set RsCol = AdoConnObj.Execute(StrQuery)
+            //            If RsCol.RecordCount > 0 Then
+            //                ColName = "MODULEID"
+            //            Else
+            //                ColName = ""
+            //            End If
+            //         StrQuery = "Select * from Col where upper(tname)='" & TabName(Icount) _
+            //        & "' and upper(cname)='BRANCHCODE'"
+            //            If RsCol.State = 1 Then RsCol.Close
+            //            Set RsCol = AdoConnObj.Execute(StrQuery)
+            //        Set RsCol = AdoConnObj.Execute(StrQuery)
+
+
+            //        If ColName<> "" And RsCol.RecordCount > 0 Then
+            //            StrQuery = " Select * from " & TabName(Icount) & " where upper(trim(moduleid))='" _
+            //                    & StrModuleID & "' and upper(trim(branchcode))='" & strBrcode & "'"
+            //        ElseIf ColName<> "" Then
+            //             StrQuery = " Select * from " & TabName(Icount) & " where upper(trim(moduleid))='" _
+            //                    & StrModuleID & "'"
+            //        ElseIf RsCol.RecordCount > 0 Then
+            //             StrQuery = " Select * from " & TabName(Icount) & " where upper(trim(branchcode))='" _
+            //                    & strBrcode & "'"
+            //        Else
+            //             StrQuery = " Select * from " & TabName(Icount)
+            //        End If
+            //        Set RsParam(Icount) = AdoConnObj.Execute(StrQuery)
+            //        If Not RsParam(Icount).EOF And Not RsParam(Icount).BOF Then RsParam(Icount).MoveFirst
+            //        If RsParam(Icount).RecordCount > RsCount Then
+            //            RsCount = RsParam(Icount).RecordCount
+            //        End If
+            //     Next Icount
+
+
+            //    Dim dumfldname As String
+            //    fldscnt = 0
+
+
+            //For RowCount = 0 To RsCount - 1
+            //fldscnt = 0
+            //'''''' first checking the no.of fields for each parameter table o redim the array of fields and values
+            // For Icount = 0 To UBound(RsParam)
+            // If Not RsParam(Icount).EOF And Not RsParam(Icount).BOF Then
+            //    If Not RsParam(Icount).EOF Then
+            //      For FldCount = 0 To RsParam(Icount).Fields.Count - 1
+
+
+            //        If Trim(RsParam(Icount).Fields(FldCount).Name) <> "APPLICATIONDATE" And _
+            //            Trim(RsParam(Icount).Fields(FldCount).Name) <> "MODULEID" And _
+            //            Trim(RsParam(Icount).Fields(FldCount).Name) <> "BRANCHCODE" And _
+            //            Trim(RsParam(Icount).Fields(FldCount).Name) <> "CURRENCYCODE" And _
+            //            Trim(RsParam(Icount).Fields(FldCount).Name) <> "GLCODE" And _
+            //            Trim(RsParam(Icount).Fields(FldCount).Name) <> "USERID" And _
+            //            Trim(RsParam(Icount).Fields(FldCount).Name) <> "MACHINEID" And _
+            //            Trim(RsParam(Icount).Fields(FldCount).Name) <> "VERIFIEDBY" And _
+            //            Trim(RsParam(Icount).Fields(FldCount).Name) <> "VERIFIEDMACHINE" And _
+            //            Trim(RsParam(Icount).Fields(FldCount).Name) <> "APPROVEDBY" And _
+            //            Trim(RsParam(Icount).Fields(FldCount).Name) <> "APPROVEDMACHINE" Then
+            //            fldscnt = fldscnt + 1
+            //            dumfldname = dumfldname & "," & RsParam(Icount).Fields(FldCount).Name
+            //        End If
+            //      Next FldCount
+            //    End If
+            // End If
+            //Next Icount
+
+            //     ReDim arrFlds(fldscnt - 1) As Variant
+            //     ReDim arrVals(fldscnt - 1) As Variant
+            //     Dim fldnam As String
+            //'''''' asigning the values and fields to the array in order to add a new row to the dmmy recordset.
+            //        fldscnt = 0
+            //        For Icount = 0 To UBound(RsParam)
+            //            If Not RsParam(Icount).EOF And Not RsParam(Icount).BOF Then
+            //              If Not RsParam(Icount).EOF Then
+
+
+            //                For FldCount = 0 To RsParam(Icount).Fields.Count - 1
+
+            //                    If Trim(RsParam(Icount).Fields(FldCount).Name) <> "APPLICATIONDATE" And _
+            //                        Trim(RsParam(Icount).Fields(FldCount).Name) <> "MODULEID" And _
+            //                        Trim(RsParam(Icount).Fields(FldCount).Name) <> "BRANCHCODE" And _
+            //                        Trim(RsParam(Icount).Fields(FldCount).Name) <> "CURRENCYCODE" And _
+            //                        Trim(RsParam(Icount).Fields(FldCount).Name) <> "GLCODE" And _
+            //                        Trim(RsParam(Icount).Fields(FldCount).Name) <> "USERID" And _
+            //                        Trim(RsParam(Icount).Fields(FldCount).Name) <> "MACHINEID" And _
+            //                        Trim(RsParam(Icount).Fields(FldCount).Name) <> "VERIFIEDBY" And _
+            //                        Trim(RsParam(Icount).Fields(FldCount).Name) <> "VERIFIEDMACHINE" And _
+            //                        Trim(RsParam(Icount).Fields(FldCount).Name) <> "APPROVEDBY" And _
+            //                        Trim(RsParam(Icount).Fields(FldCount).Name) <> "APPROVEDMACHINE" Then
+            //                        fldnam = fldnam & "," & RsParam(Icount).Fields(FldCount).Name
+            //                        arrFlds(fldscnt) = RsParam(Icount).Fields(FldCount).Name
+            //                        arrVals(fldscnt) = IIf(IsNull(RsParam(Icount).Fields(FldCount).Value), " ", _
+            //                                                RsParam(Icount).Fields(FldCount).Value)
+            //                        fldscnt = fldscnt + 1
+
+
+            //                    End If
+            //                Next FldCount
+
+
+            //                If Not RsParam(Icount).EOF Then RsParam(Icount).MoveNext
+            //            End If
+            //          End If
+            //        Next Icount
+            //            fldnam = ""
+            //    '''''adding a new row to the dummy recordset so that to send the parameters to the client form.
+            //            DummyRS.AddNew arrFlds, arrVals
+            //    Next RowCount
+
+            //If DummyRS.EOF And DummyRS.BOF Then ConnError = " No Parameters for this module."
+            // Set ModuleParameters = DummyRS
+
+
+            //    DummyRS.ActiveConnection = Nothing
+
+
+            //    For Icount = 0 To(UBound(TabName))
+
+
+            //        If RsParam(Icount).State = 1 Then RsParam(Icount).Close
+            //        Set RsParam(Icount) = Nothing
+
+
+            //    Next Icount
+
+
+            //    If Rstemp.State = 1 Then Rstemp.Close
+            //    Set Rstemp = Nothing
+            //    If RsCol.State = 1 Then RsCol.Close
+            //    Set RsCol = Nothing
+            //    If AdoConnObj.State = 1 Then AdoConnObj.Close
+            //    Set AdoConnObj = Nothing
+
+
+            //Exit Function
+
+
+            //errhand:
+
+            //ConnError = Err.Number & " : " & Err.Description
+
+
+            //objErrlog.LogError "GeneralTranQueries", "ModuleID", Err.Number, Err.Description
+
+            //    If Rstemp.State = 1 Then Rstemp.Close
+            //    Set Rstemp = Nothing
+            //    If DummyRS.State = 1 Then DummyRS.Close
+            //    Set DummyRS = Nothing
+            //    If RsCol.State = 1 Then RsCol.Close
+            //    Set RsCol = Nothing
+            //    If AdoConnObj.State = 1 Then AdoConnObj.Close
+            //    Set AdoConnObj = Nothing
+
+            //End Function
+
+
+            //Public Function PrepareFinanceTranArray(ByRef RawArr() As Variant, ByVal UserID As String, _
+            //ByVal Applicationdate As Date, ByVal machineid As String, ByRef Errmsg As String, _
+            //ByRef BatchNo As String, ByRef TranNos As String, Optional ByVal TranStatus_PA As String = "P", _
+            //Optional ByVal TransactionDesc As String = "", Optional ByVal CashPaidYN As String = "N", _
+            //Optional ByVal SystemGeneratedYN As String = "N") As Variant
+
+            //    Dim sQuery As String, strTranNo As Long
+            //    Dim ArrIdx As Long
+            //    Dim AccBal As Double, AccName As String, ModeofTran As Integer
+            //    Dim objDBConn As ADODB.Connection
+            //    Dim objAccBal As Object
+            //    Dim BRCode As String, CurCode  As String, ModId  As String, TranType As String
+            //    Dim GLcode  As String, Accno  As String, TranAmt As Double
+            //    Dim TableName As String, FldNames As String, FldValues As String, ExceptionYN As String
+            //    Dim objrs As ADODB.Recordset, CustomerId As String
+            //    Dim TranArr(1000, 4) As String
+            //    Dim TranArrIdx As Long, LineNo As Integer, strAccBal As String
+
+
+            //    On Error GoTo ErrHandler
+
+
+            //    If UBound(RawArr) <= 0 Then
+            //        Err.Raise 999, , "Given Input Array does not had any details to Prepare Financial Transactions"
+            //    End If
+
+            //    'Dim TranArr(UBound(RawArr) * 2, 4) As String
+            //    LineNo = 1
+            //    If UCase(Trim(TranStatus_PA)) <> "P" And UCase(Trim(TranStatus_PA)) <> "A" Then
+            //        Err.Raise 999, , "Invalid Transaction Status is given. It should be either P(Pending) or A(Approved)."
+            //    ElseIf UCase(Trim(CashPaidYN)) <> "Y" And UCase(Trim(CashPaidYN)) <> "N" Then
+            //        Err.Raise 999, , "Invalid value given to CashPaidYN Param. It should be either Y(Yes) or N(No)."
+            //    ElseIf UCase(Trim(SystemGeneratedYN)) <> "Y" And UCase(Trim(SystemGeneratedYN)) <> "N" Then
+            //        Err.Raise 999, , "Invalid value given to SystemGeneratedYN Param. It should be either Y(Yes) or N(No)."
+            //    End If
+
+
+            //    LineNo = 2
+            //    Call DBConnection
+            //    If ConnError<> "Connected" Then
+            //        Err.Raise 999, , ConnError
+            //    End If
+            //    Set objDBConn = AdoConnObj
+            //    LineNo = 3
+            //    BatchNo = GetBatchno(CStr(RawArr(0, 0)))
+            //    If IsNumeric(BatchNo) = False Then
+            //        Err.Raise 999, , BatchNo
+            //    End If
+            //    TranNos = ""
+
+
+            //    Set objAccBal = CreateObject("AccountDetails.AccDetails")
+            //    If objAccBal Is Nothing Then
+            //        Err.Raise 999, , "Unable to create object of AccountDetails.AccDetails"
+            //    End If
+
+
+            //    TranArrIdx = 0
+            //    For ArrIdx = 0 To UBound(RawArr)
+
+
+            //        If RawArr(ArrIdx, 0) <> "" Then
+            //            LineNo = 4
+            //            BRCode = UCase(Trim(RawArr(ArrIdx, 0)))
+            //            CurCode = UCase(Trim(RawArr(ArrIdx, 1)))
+            //            ModId = UCase(Trim(RawArr(ArrIdx, 2)))
+            //            GLcode = UCase(Trim(RawArr(ArrIdx, 3)))
+            //            Accno = Trim(RawArr(ArrIdx, 4))
+            //            If IsNumeric(RawArr(ArrIdx, 5)) = False Then
+            //                Err.Raise 999, , "Invalid Transaction Amount found : " & RawArr(ArrIdx, 5)
+            //            End If
+            //            TranAmt = Abs(CDbl(RawArr(ArrIdx, 5)))
+            //            TranType = UCase(Trim(RawArr(ArrIdx, 6)))
+
+
+            //            If Trim(TranType) <> "D" And Trim(TranType) <> "C" Then
+            //                Err.Raise 999, , "Invalid Transaction Type : " & Trim(TranType)
+            //            End If
+            //            LineNo = 5
+            //            strTranNo = GetTranNo(CStr(BRCode))
+            //            TranNos = TranNos & strTranNo & ","
+
+
+            //            If(TranType = "D") Then
+            //                ModeofTran = 3
+            //                TranAmt = -1 * TranAmt
+            //            Else
+            //                ModeofTran = 4
+            //            End If
+            //            LineNo = 6
+            //            'Get Balance and Name of the given Account
+            //            strAccBal = objAccBal.GetBalance(BRCode, CurCode, ModId, GLcode, Accno)
+            //            If IsNumeric(strAccBal) = False Then
+            //                Err.Raise 999, , strAccBal
+            //            End If
+            //            AccBal = CDbl(strAccBal)
+            //            LineNo = 7
+            //            Set objrs = CreateObject("adodb.recordset")
+            //            Set objrs = objDBConn.Execute("select nvl(name,''),CUSTOMERID from " & Trim(ModId) & "MST " & _
+            //            " where branchcode='" & BRCode & "' and currencycode='" & CurCode & "'" & _
+            //            " and glcode='" & GLcode & "' and accno='" & Accno & "'")
+            //            LineNo = 8
+            //            If objrs.EOF = True Or objrs.BOF = True Then
+            //                Err.Raise 999, , "Unable to Get Name of the A/C : " & Accno & _
+            //                ", GL : " & GLcode
+            //            End If
+            //            AccName = IIf(IsNull(objrs(0).Value), "", objrs(0).Value)
+            //            CustomerId = IIf(IsNull(objrs(1).Value), "", objrs(1).Value)
+
+
+            //            LineNo = 9
+            //            TableName = "GENTRANSLOG"
+            //            FldNames = "BRANCHCODE," & _
+            //                    " CURRENCYCODE,MODULEID,GLCODE,ACCNO,BATCHNO,TRANNO,AMOUNT," & _
+            //                    " MODEOFTRAN,ENTEREDTIMEBAL," & _
+            //                    " EFFECTIVEDATE," & _
+            //                    " NAME,CASHPAIDYN,SYSTEMGENERATEDYN,REMARKS," & _
+            //                    " SERVICEID,EXCEPTIONYN," & _
+            //                    " APPLICATIONDATE,USERID,MACHINEID,TRANSTATUS," & _
+            //                    " SYSTEMDATE,CUSTOMERID"
+
+
+            //            FldValues = "'" & BRCode & "'," & _
+            //                    " '" & CurCode & "','" & ModId & "'," & _
+            //                    " '" & GLcode & "','" & Accno & "'," & _
+            //                    " " & BatchNo & "," & strTranNo & "," & _
+            //                    " " & TranAmt & ",'" & ModeofTran & "'," & AccBal & "," & _
+            //                    " '" & Format(Applicationdate, "dd-mmm-yyyy") & "'," & _
+            //                    " '" & AccName & "','" & CashPaidYN & "','" & SystemGeneratedYN & _
+            //                    "','" & TransactionDesc & "'," & _
+            //                    " '1','N'," & _
+            //                    " '" & Format(Applicationdate, "dd-mmm-yyyy") & "'," & _
+            //                    " '" & UserID & "','" & machineid & "','" & TranStatus_PA & "'," & _
+            //                    " sysdate,'" & CustomerId & "'"
+
+
+            //            If TranStatus_PA = "A" Then
+            //                FldNames = FldNames & ",VERIFIEDTIMEBAL,APPROVEDTIMEBAL," & _
+            //                    "APPROVEDBY,APPROVEDMACHINE,APPROVEDDATE"
+
+
+            //                FldValues = FldValues & "," & AccBal & "," & AccBal & ",'" & UserID & _
+            //                    "','" & machineid & "','" & Format(Applicationdate, "dd-mmm-yyyy") & "'"
+            //            End If
+
+
+            //            TranArr(TranArrIdx, 0) = "I"
+            //            TranArr(TranArrIdx, 1) = TableName
+            //            TranArr(TranArrIdx, 2) = FldNames
+            //            TranArr(TranArrIdx, 3) = FldValues
+            //            TranArr(TranArrIdx, 4) = ""
+            //            TranArrIdx = TranArrIdx + 1
+            //            LineNo = 10
+            //            'Insert into respective Tran Day Table
+            //            TableName = Trim(ModId) & "TranDay"
+            //            TranArr(TranArrIdx, 0) = "I"
+            //            TranArr(TranArrIdx, 1) = TableName
+            //            TranArr(TranArrIdx, 2) = FldNames
+            //            TranArr(TranArrIdx, 3) = FldValues
+            //            TranArr(TranArrIdx, 4) = ""
+            //            TranArrIdx = TranArrIdx + 1
+
+
+            //        End If
+
+
+            //    Next ArrIdx
+            //    LineNo = 11
+            //    PrepareFinanceTranArray = TranArr
+            //    Errmsg = ""
+
+
+            //    If objrs.State = 1 Then objrs.Close
+            //    Set objrs = Nothing
+            //    If objDBConn.State = 1 Then objDBConn.Close
+            //    Set objDBConn = Nothing
+
+
+
+            //    Exit Function
+
+
+            //ErrHandler:
+
+
+            //    Errmsg = "Error No : " & Err.Number & ", Line No: " & LineNo & _
+            //    ", Err Msg: " & Err.Description
+            //    PrepareFinanceTranArray = TranArr
+
+
+            //    objErrlog.LogError "GeneralTranQueries", "PrepareFinanceTranArray", Err.Number, Err.Description
+
+
+            //    If objrs.State = 1 Then objrs.Close
+            //    Set objrs = Nothing
+            //    If objDBConn.State = 1 Then objDBConn.Close
+            //    Set objDBConn = Nothing
+
+
+            //End Function
+        }
+
+        public void TransParameters()
+        {
+            //Dim Rstemp As ADODB.Recordset
+            //Dim RSModule As ADODB.Recordset
+            //Dim RsAccParam As ADODB.Recordset
+            //Dim StrQuery As String
+            //Dim DbLink As String
+            //Dim strTabName As String
+            //Dim Icount As Integer
+            //Dim objdblink As Object
+            //Dim ArrLink As Variant
+            //Dim StrModuleCode As String
+            //Dim strBranchCode As String
+            //Dim strGLCode As String
+            //Dim StrCurCode As String
+            //Dim strAccno As String
+            //Dim TrannDate As String
+            //Dim arrModCond As Variant
+            //Dim strBrCatCode As Variant
+            //Dim ChqBkYN As String
+            //Dim TDSYN As String
+            //Dim CatCode As String
+            //Dim strMsg As String
+            //Dim StrCondition As String
+            //Dim strParamFlds As String
+            //Dim strParamVals As String
+            //Dim strParamTabs As String
+            //Dim strDelimiter As String
+            //Dim arrParamFlds As Variant
+            //Dim arrParamVals As Variant
+            //Public AdoConnObj As ADODB.Connection ' Connection Object
+            //Public objError As Object
+            //Public ArrError As Variant
+            //Public ConnError As String 'error object
+
+
+
+            //Public Function GLTransactionParameters(ModuleCode As String, _
+            //                                        GLcode As String, _
+            //                                        TransactionDate As String, _
+            //                                        Optional CurrencyCode As String, _
+            //                                        Optional userBranchcode As String, _
+            //                                        Optional UserID As String, _
+            //                                        Optional machineid As String) As ADODB.Recordset
+
+            //Dim RsGLParam As ADODB.Recordset
+
+            //On Error GoTo errhand
+            //Set RsGLParam = CreateObject("adodb.recordset")
+            //strDelimiter = "~"
+            //Call DBConnection
+            //If ConnError<> "Connected" Then GoTo errhand
+
+            //StrQuery = ""
+            //StrModuleCode = UCase(Trim(ModuleCode))
+            //strGLCode = UCase(Trim(GLcode))
+            //TrannDate = Format(TransactionDate, "dd-Mmm-yyyy")
+            //StrCurCode = UCase(Trim(CurrencyCode))
+            //'TrannDate = Format(TrannDate, "dd-Mmm-yyyy")
+
+            //StrQuery = ""
+            //Set Rstemp = CreateObject("ADODB.Recordset")
+
+            //'''''''' Aquiring the parameter table name  for the given module. ''''''''''''''
+            //StrQuery = "select MasterTable,PMTTABLE from genmodulemst" & DbLink _
+            //        & "  where moduleid ='" & StrModuleCode & "'"
+
+
+            //        StrQuery = UCase(StrQuery)
+            //        Set Rstemp = AdoConnObj.Execute(StrQuery)
+            //        If Rstemp.State = 0 Then
+            //            ConnError = "Parameters Not Specified !"
+            //            GoTo errhand
+            //        End If
+            //        If Rstemp.RecordCount = 0 Or _
+            //            (Rstemp.RecordCount = 1 And IsNull(Rstemp!pmttable)) Then
+            //                ConnError = "Parameters Not Specified for this Module !"
+            //                GoTo errhand
+            //        Else
+            //            strTabName = UCase(Trim(Rstemp!pmttable))
+            //        End If
+            //        Rstemp.Close
+            //'''''''''''''' parameter table name retrieved ''''''''''''''''''''''''''
+
+            //''''''''''calling private function for Gl Parameters from the Moduleparameter table based
+            //''''''''''on the effective date.
+            //Set RSModule = CreateObject("ADODB.Recordset")
+            //ConnError = ModuleParameterRecord(strTabName)
+
+            //        For Icount = 0 To RSModule.Fields.Count - 1
+            //            If UCase(RSModule.Fields(Icount).Name) <> "BRANCHCODE" _
+            //                And UCase(RSModule.Fields(Icount).Name) <> "CURRENCYCODE" _
+            //                And UCase(RSModule.Fields(Icount).Name) <> "MODULEID" _
+            //                And UCase(RSModule.Fields(Icount).Name) <> "GLCODE" _
+            //                And UCase(RSModule.Fields(Icount).Name) <> "EFFECTIVEDATE" _
+            //                And UCase(RSModule.Fields(Icount).Name) <> "STATUS" _
+            //                And UCase(RSModule.Fields(Icount).Name) <> "APPLICATIONDATE" _
+            //                And UCase(RSModule.Fields(Icount).Name) <> "USERID" _
+            //                And UCase(RSModule.Fields(Icount).Name) <> "MACHINEID" _
+            //                And UCase(RSModule.Fields(Icount).Name) <> "VERIFIEDBY" _
+            //                And UCase(RSModule.Fields(Icount).Name) <> "VERIFIEDMACHINE" _
+            //                And UCase(RSModule.Fields(Icount).Name) <> "APPROVEDBY" _
+            //                And UCase(RSModule.Fields(Icount).Name) <> "APPROVEDMACHINE" _
+            //                And UCase(RSModule.Fields(Icount).Name) <> "SYSTEMDATE" Then
+            //                strParamFlds = strParamFlds & RSModule.Fields(Icount).Name & ","
+
+
+            //                If RSModule.RecordCount > 0 Then
+            //                    strParamVals = strParamVals _
+            //                    & IIf(IsNull(RSModule.Fields(Icount).Value), "", _
+            //                    RSModule.Fields(Icount).Value) & strDelimiter
+            //                Else
+            //                    strParamVals = strParamVals & "" & strDelimiter
+            //                End If
+            //            End If
+            //        Next Icount
+    
+            //   ' strParamFlds = Left(strParamFlds, Len(strParamFlds) - 1)
+            //    'strParamVals = Left(strParamVals, Len(strParamVals) - 1)
+            //    strParamTabs = strTabName
+    
+            //'''retrieving data from GENTRANTYPEMST parameter table
+            //StrQuery = "CASHDRYN, CASHCRYN, TRANSFERDRYN, TRANSFERCRYN, CLEARINGDRYN, CLEARINGCRYN"
+            //StrCondition = " currencycode='" & StrCurCode & "'"
+            //ConnError = ParameterRecord("GENTRANTYPEMST", StrQuery, "GENTRANTYPEMSTHIST", StrCondition)
+
+            //If ConnError<> "Connected" Then GoTo errhand
+
+            //    strParamFlds = Left(strParamFlds, Len(strParamFlds) - 1)
+            //    strParamVals = Left(strParamVals, Len(strParamVals) - 1)
+            //    strParamTabs = strParamTabs & ",GENTRANTYPEMST"
+
+            //        If ConnError <> "Connected" Then GoTo errhand
+
+            //StrQuery = " select " & strParamFlds & " from " & strParamTabs & " where 1=2"
+            //     '''''''''''''Dummy recordset
+
+
+            //RsGLParam.Open StrQuery, AdoConnObj, adOpenDynamic, adLockOptimistic
+
+            //'''''entering the parameter data into the dummy recordset.
+            //arrParamFlds = Split(strParamFlds, ",")
+            //arrParamVals = Split(strParamVals, strDelimiter)
+            //StrQuery = ""
+
+
+            //RsGLParam.AddNew
+            //For Icount = 0 To UBound(arrParamFlds)
+
+            //    RsGLParam(Icount) = IIf(Trim(arrParamVals(Icount)) = "", Null, _
+            //                        Trim(arrParamVals(Icount)))
+            //Next Icount
+
+
+            //Set GLTransactionParameters = RsGLParam
+
+            //RsGLParam.ActiveConnection = Nothing
+
+            //If RSModule.State = 1 Then RSModule.Close
+            //Set RSModule = Nothing
+            //If Rstemp.State = 1 Then Rstemp.Close
+            //Set Rstemp = Nothing
+
+            //If AdoConnObj.State = 1 Then AdoConnObj.Close
+            //Set AdoConnObj = Nothing
+
+            //Exit Function
+
+            //''''''''' Error trapping.
+            //errhand:
+            //    If ConnError = "Connected" Then
+            //        ConnError = Err.Number & " :- " & Err.Description
+            //    End If
+
+
+            //    objErrlog.LogError "GeneralTranQueries", "GLTransactionParameters", Err.Number, Err.Description
+
+            //    If RsGLParam.State = 1 Then RsGLParam.Close
+            //    Set RsGLParam = Nothing
+            //    If RSModule.State = 1 Then RSModule.Close
+            //    Set RSModule = Nothing
+            //    If Rstemp.State = 1 Then Rstemp.Close
+            //    Set Rstemp = Nothing
+            //    If AdoConnObj.State = 1 Then AdoConnObj.Close
+            //    Set AdoConnObj = Nothing
+
+
+
+
+
+            //End Function
+
+            //Public Function AccNoTransactionParameters(Branchcode As String, _
+            //                                        ModuleCode As String, _
+            //                                        GLcode As String, _
+            //                                        TransactionDate As String, _
+            //                                        Optional CurrencyCode As String, _
+            //                                        Optional Accno As String, _
+            //                                        Optional CategoryCode As String, _
+            //                                        Optional ChqBookYN As String, _
+            //                                        Optional ModuleConditions As Variant, _
+            //                                        Optional userBranchcode As String, _
+            //                                        Optional UserID As String, _
+            //                                        Optional machineid As String) As ADODB.Recordset
+
+
+
+
+            //Dim arrModuleQuery As Variant
+
+
+
+            //On Error GoTo errhand
+            //strDelimiter = "~"
+            //StrQuery = ""
+            //StrModuleCode = UCase(Trim(ModuleCode))
+            //strGLCode = UCase(Trim(GLcode))
+            //strBranchCode = UCase(Trim(Branchcode))
+            //StrCurCode = UCase(Trim(CurrencyCode))
+            //strAccno = IIf(IsNull(Trim(Accno)), "", Trim(Accno))
+            //CatCode = IIf(IsNull(Trim(CategoryCode)), "", UCase(Trim(CategoryCode)))
+            //ChqBkYN = IIf(IsNull(Trim(ChqBookYN)), "", UCase(Trim(ChqBookYN)))
+            //'TDSYN = IIf(IsNull(Trim(TDSYesNo)), "", UCase(Trim(TDSYesNo)))
+            //TrannDate = Format(TransactionDate, "dd-Mmm-yyyy")
+            //arrModCond = ModuleConditions
+
+            //Call DBConnection
+            //     If ConnError <> "Connected" Then
+            //            GoTo errhand
+            //    End If
+            //Set Rstemp = CreateObject("ADODB.Recordset")
+            //Set RSModule = CreateObject("ADODB.Recordset")
+            //Set RsAccParam = CreateObject("ADODB.Recordset")
+
+            //If strAccno <> "" Then
+            //''''''''''retrieving the account category code based on moduleid
+            //    If StrModuleCode = "SB" Or StrModuleCode = "CA" Or StrModuleCode = "DEP" Then
+            //        StrQuery = "Select CHEQUEBOOK, TDSYN, CATEGORYCODE from " & StrModuleCode & "MST" _
+            //        & DbLink & " where branchcode='" & strBranchCode & "' and accno='" & strAccno _
+            //        & "' and glcode='" & strGLCode & "' and currencycode='" & StrCurCode & "'"
+
+
+            //        Set Rstemp = AdoConnObj.Execute(StrQuery)
+            //        If Not Rstemp.EOF And Not Rstemp.BOF Then
+            //        TDSYN = IIf(IsNull(Rstemp!TDSYN), "", Format(Rstemp!TDSYN))
+            //        End If
+            //    ElseIf StrModuleCode = "LOAN" Then
+            //        StrQuery = "Select CHEQUEBOOK, CATEGORYCODE from " & StrModuleCode & "MST" _
+            //        & DbLink & " where branchcode='" & strBranchCode & "' and accno='" & strAccno _
+            //        & "' and glcode='" & strGLCode & "'"
+
+
+            //        Set Rstemp = AdoConnObj.Execute(StrQuery)
+            //        TDSYN = ""
+            //    Else
+            //        ConnError = "Parameters not avilable for this Module : " & StrModuleCode
+            //        GoTo errhand
+
+
+            //    End If
+            //        If Not Rstemp.EOF And Not Rstemp.BOF Then
+            //        CatCode = IIf(IsNull(Rstemp!CategoryCode), "", Format(Rstemp!CategoryCode))
+            //        ChqBkYN = IIf(IsNull(Rstemp!CHEQUEBOOK), "", Format(Rstemp!CHEQUEBOOK))
+            //        End If
+            //End If
+            //    ''''''''''retrieving the branch category code
+            //If Rstemp.State = 1 Then Rstemp.Close
+            //Set Rstemp = AdoConnObj.Execute("Select BRANCHCATCODE from GENBANKBRANCHMST " _
+            //& " where branchcode='" & strBranchCode & "'")
+            //If Not Rstemp.EOF And Not Rstemp.BOF Then
+            //strBrCatCode = IIf(IsNull(Rstemp!BRANCHCATCODE), "", Rstemp!BRANCHCATCODE)
+            //End If
+            //Rstemp.Close
+            //''''''''-----------------------------------------------------------------------------------
+            //''''''''-----------------------------------------------------------------------------------
+            //strParamTabs = ""
+
+    
+            //''''''''-----------------------------------------------------------------------------------
+            //''''''''-----------------------------------------------------------------------------------
+            //  If strBrCatCode = "99" Then
+            //    strBrCatCode = ""
+            //    End If
+
+
+            //    If CatCode = "99" Then
+            //        CatCode = ""
+            //    End If
+    
+            //    '''retrieving data from GENMINMAXBALANCEMST parameter table
+            //StrQuery = "MINAMOUNT, MAXAMOUNT, MINPERIODYEARS, MINPERIODMON, MINPERIODDAYS, " _
+            //        & "MAXPERIODYEARS, MAXPERIODMON, MAXPERIODDAYS,TDS,MULTIPLESOF"
+
+            //''StrCondition = " (CATEGORYCODE='" & CatCode & "' or CATEGORYCODE='99') and (BRANCHCATCODE='" & strBrCatCode _
+            //        & "' or BRANCHCATCODE='99') and CHEQUEBOOK='" & ChqBkYN & "' and currencycode='" & StrCurCode & "'"
+
+            //StrCondition = " (CATEGORYCODE='" & CatCode & "' or CATEGORYCODE='99') and (BRANCHCATCODE='" & strBrCatCode _
+            //        & "' or BRANCHCATCODE='99')  and currencycode='" & StrCurCode & "'"
+
+            //ConnError = ParameterRecord("GENMINMAXBALANCEMST", StrQuery, "GENMINMAXBALANCEMSTHIST", StrCondition)
+            //    If ConnError <> "Connected" Then GoTo errhand
+
+            //       strParamTabs = "GENMINMAXBALANCEMST,"
+            // ''''''''-----------------------------------------------------------------------------------
+            // ''''''''-----------------------------------------------------------------------------------
+            //  '''retrieving data from GENCHARGESMSTHIST parameter table
+            //StrQuery = "OUTRTNCHARGES, OUTRTNFREQ, OUTRTNCHARGEEXEMPT, OUTRTNGLCODE, INWRTNCHARGES, " _
+            //& "INWRTNFREQ, INWRTNCHARGESEXEMPT, INWRTNGLCODE, STOPPAYCHARGES, STOPPAYFREQ, " _
+            //& "STOPPAYCHARGESEXEMPT, STOPPAYGLCODE, ACCTCLOSCHARGES, ACCOUNTCLOSFREQ, " _
+            //& "ACCTCLOSCHARGESEXEMPT, ACCTCLOSGLCODE, MINTODCHARGES, MINTODFREQ, MINTODGLCODE, " _
+            //& "CHQISSUECHARGES, CHQISSUEFREQ, CHQISSUECHARGESEXEMPT, CHQISSUEGLCODE, STATEMENTCHARGES, " _
+            //& "STATEMENTCHRGFREQ, STATEMENTCHARGESEXEMPT, STATEMENTCHRGGLCODE, DUPSTATEMENTCHARGES," _
+            //& "DUPSTATEMENTCHRGFREQ, DUPSTATEMENTCHARGESEXEMPT, DUPSTATEMENTGLCODE, CHARGESPERFOLIO, " _
+            //& "FOLIOCHARGESFREQ, ENTRIESPERFOLIO, FOLIOCHARGESGLCODE, EXEMPTEDFOLIOS, MINTODCHARGESEXEMPT," _
+            //& "CHQVALIDPERIOD,OUTRTNCHARGEEXEMPTUNIT, INWRTNCHARGESEXEMPTUNIT, STOPPAYCHARGESEXEMPTUNIT," _
+            //& "ACCTCLOSCHARGESEXEMPTUNIT, CHQISSUECHARGESEXEMPTUNIT, STATEMENTCHARGESEXEMPTUNIT, " _
+            //& "DUPSTATEMENTCHARGESEXEMPTUNIT, MINTODCHARGESEXEMPTUNIT, INWRTNFREQUNITS, OUTRTNFREQUNITS," _
+            //& "STOPPAYFREQUNITS, ACCOUNTCLOSFREQUNITS, MINTODFREQUNITS, CHQISSUEFREQUNITS, " _
+            //& "STATEMENTCHRGFREQUNITS, DUPSTATEMENTCHRGFREQUNITS, FOLIOCHARGESFREQUNITS, OUTRTNINITIAL," _
+            //& "OUTRTNINITIALUNITS, INWRTNINITIAL, INWRTNINITIALUNITS, STOPPAYINITIAL, " _
+            //& "STOPPAYINITIALUNITS, ACCOUNTCLOSINITIAL, ACCOUNTCLOSINITIALUNITS, MINTODINITIAL, " _
+            //& "MINTODINITIALUNITS, CHQISSUEINITIAL, CHQISSUEINITIALUNITS, STATEMENTINITIAL, " _
+            //& "STATEMENTINITIALUNITS, DUPSTATEMENTINITIAL, DUPSTATEMENTINITIALUNITS, FOLIOINITIAL," _
+            //& "FOLIOINITIALUNITS, EXEMPTEDFOLIOSUNITS"
+
+
+            //StrCondition = " (CATEGORYCODE='" & CatCode & "' or CATEGORYCODE='99') and (BRANCHCATCODE='" _
+            //& strBrCatCode & "' or BRANCHCATCODE='99') and currencycode='" & StrCurCode & "'"
+
+
+            //ConnError = ParameterRecord("GENCHARGESMST", StrQuery, "GENCHARGESMSTHIST", StrCondition)
+
+
+            //    If ConnError <> "Connected" Then GoTo errhand
+
+            //    strParamTabs = strParamTabs & "GENCHARGESMST"
+    
+            //''''''''------------------------------------------------------------------------------------
+            //''''''''------------------------------------------------------------------------------------    strParamFlds = Left(strParamFlds, Len(strParamFlds) - 1)
+        
+            //''''''if moduleid is deposits than extra parameters from DEPPENALINTDTLS
+            //If StrModuleCode = "DEP" Then
+            //    StrCondition = " (CATEGORYCODE='" & CatCode & "' or CATEGORYCODE='99') and currencycode='" & StrCurCode & "'"
+
+
+            //        ConnError = ParameterRecord("DEPPENALINTDTLS", "PNLINTPCNT", "DEPPENALINTDTLSHIST", StrCondition)
+            //            If ConnError <> "Connected" Then GoTo errhand
+
+            //        strParamTabs = strParamTabs & ",DEPPENALINTDTLS"
+            //End If
+
+            //''''''''------------------------------------------------------------------------------------
+            //''''''''------------------------------------------------------------------------------------    strParamFlds = Left(strParamFlds, Len(strParamFlds) - 1)
+   
+            //'''''''''''''fields for Dummy recordset
+            //    strParamFlds = Left(strParamFlds, Len(strParamFlds) - 1)
+            //    strParamVals = Left(strParamVals, Len(strParamVals) - 1)
+    
+            //'''''''''''''query for Dummy recordset of GENMINMAXBALANCEMST and GENCHARGESMST
+            //StrQuery = " select " & strParamFlds & " from " & strParamTabs & " where 1=2"
+
+
+
+            //RsAccParam.Open StrQuery, AdoConnObj, adOpenDynamic, adLockOptimistic
+
+            //'''''entering the parameter data into the dummy recordset.
+            //arrParamFlds = Split(strParamFlds, ",")
+            //arrParamVals = Split(strParamVals, strDelimiter)
+            //StrQuery = ""
+
+            // ''''''''''''''''adding record to dummy recordset
+            //RsAccParam.AddNew
+
+            //For Icount = 0 To UBound(arrParamFlds)
+            //    RsAccParam(Icount) = IIf(Trim(arrParamVals(Icount)) = "", Null, _
+            //                        Trim(arrParamVals(Icount)))
+            //Next Icount
+            //'RsAccParam(0) = Null
+
+            //'RsAccParam.AddNew arrParamFlds, arrParamVals
+
+            //ConnError = "Connected"
+            //Set AccNoTransactionParameters = RsAccParam
+
+            //RsAccParam.ActiveConnection = Nothing
+
+            //If Rstemp.State = 1 Then Rstemp.Close
+            //Set Rstemp = Nothing
+            //If RSModule.State = 1 Then RSModule.Close
+            //Set RSModule = Nothing
+            //If AdoConnObj.State = 1 Then AdoConnObj.Close
+            //Set AdoConnObj = Nothing
+
+            //Exit Function
+
+            //''''''''' Error trapping.
+            //errhand:
+
+            //If ConnError = "Connected" Then
+            //    ConnError = Err.Number & " :- " & Err.Description
+            //End If
+
+            //objErrlog.LogError "GeneralTranQueries", "DBConnection", Err.Number, Err.Description
+
+            //If RsAccParam.State = 1 Then RsAccParam.Close
+            //Set RsAccParam = Nothing
+            //If Rstemp.State = 1 Then Rstemp.Close
+            //Set Rstemp = Nothing
+            //If RSModule.State = 1 Then RSModule.Close
+            //Set RSModule = Nothing
+            //If AdoConnObj.State = 1 Then AdoConnObj.Close
+            //Set AdoConnObj = Nothing
+            //End Function
+
+            //Private Function DepositsParameters() As String
+
+
+
+            //Exit Function
+
+            //''''''''' Error trapping.
+            //errhand:
+            //Set RSModule = Nothing
+            //Set AdoConnObj = Nothing
+            //If ConnError = "Connected" Then
+            //    ConnError = Err.Number & " :- " & Err.Description
+            //    DepositsParameters = ConnError
+            //End If
+            //End Function
+
+            //Private Function SBorCAParameters() As String
+            //End Function
+
+
+
+            //Private Function ModuleParameterRecord(ModulePMTtable As String, _
+            //                                       Optional ModuleMSTtable As String, _
+            //                                       Optional Condition As String) As String
+            //''''Selecting the Gl Parameters from the Moduleparameter table based on the effective date.
+
+            //On Error GoTo errhand
+
+            //Dim strModPmtTab As String
+            //strModPmtTab = ModulePMTtable
+
+            //StrQuery = ""
+            //StrQuery = " Select * from " & strModPmtTab & DbLink & " where glcode='" & strGLCode _
+            //            & "' and EFFECTIVEDATE= (select max(EFFECTIVEDATE) from " _
+            //            & strModPmtTab & DbLink & " where glcode='" & strGLCode & "' and " _
+            //            & "EFFECTIVEDATE<='" & TrannDate & "' " & Condition & ") " & Condition
+            //Set RSModule = AdoConnObj.Execute(StrQuery)
+
+            //        If RSModule.RecordCount< 1 Then
+            //            '''''''' selecting parameters from  module typemsthist table.
+            //            RSModule.Close
+
+
+            //            StrQuery = " Select * from " & strModPmtTab & "HIST" & DbLink & " where glcode='" _
+            //            & strGLCode & "' and EFFECTIVEDATE= (select max(EFFECTIVEDATE) from " _
+            //            & strModPmtTab & "HIST" & DbLink & " where glcode='" & strGLCode & "' and " _
+            //            & "EFFECTIVEDATE<='" & TrannDate & "' " & Condition & ") " & Condition
+
+            //            Set RSModule = AdoConnObj.Execute(StrQuery)
+            //            If RSModule.RecordCount< 1 Then
+            //                ConnError = "Parameters not specified for this Component"
+
+
+            //            End If
+            //        End If
+
+
+            //        If Trim(ModuleMSTtable) <> "" And Trim(strAccno) <> "" Then
+            //            If Rstemp.State = 1 Then Rstemp.Close
+            //            StrQuery = "Select CATEGORYCODE from " & Trim(ModuleMSTtable) & DbLink _
+            //            & " where branchcode='" & strBranchCode & "' and glcode='" & strGLCode & "' " _
+            //            & " and Accno='" & strAccno & "'"
+
+
+            //            Set Rstemp = AdoConnObj.Execute(StrQuery)
+            //            If Rstemp.RecordCount = 1 Then
+            //                CatCode = Rstemp!CategoryCode
+            //            Else
+            //                ConnError = " Account Holder's Category not specified."
+            //            End If
+            //        End If
+
+
+            //ModuleParameterRecord = ConnError
+
+            //''If RSModule.State = 1 Then RSModule.Close
+            //''Set RSModule = Nothing
+
+            //Exit Function
+
+            //''''''''' Error trapping.
+            //errhand:
+            //    If ConnError = "Connected" Then
+            //        ConnError = Err.Number & " :- " & Err.Description
+            //    End If
+
+
+            //    objErrlog.LogError "GeneralTranQueries", "ModuleParameterRecord", Err.Number, Err.Description
+    
+            //    ''If RSModule.State = 1 Then RSModule.Close
+            //    ''Set RSModule = Nothing
+
+
+            //End Function
+
+            //Private Function ParameterRecord(PmtDtlsTabName As String, ByVal PmtFields As String, _
+            //                                 PmtDtlsHistTabName As String, Condition As String) As String
+            //If Rstemp.State = 1 Then Rstemp.Close
+            //StrQuery = ""
+
+            //StrQuery = " Select " & PmtFields & " from " & PmtDtlsTabName & DbLink & " where " _
+            //    & " moduleid='" & StrModuleCode & "' and glcode='" & strGLCode _
+            //    & "' and status='R' and EFFECTIVEDATE<=(select max(EFFECTIVEDATE) from " _
+            //    & PmtDtlsTabName & DbLink & " where moduleid='" & StrModuleCode _
+            //    & "' and glcode='" & strGLCode & "' and " & Condition _
+            //    & " and status='R' and currencycode='" & StrCurCode _
+            //    & "' and EFFECTIVEDATE<='" & TrannDate & "') And " & Condition
+
+            //If PmtDtlsTabName = "DEPPENALINTDTLS" Then
+            //StrQuery = StrQuery & " order by CATEGORYCODE "
+            //End If
+
+            //Set Rstemp = AdoConnObj.Execute(StrQuery)
+
+            //        If Rstemp.RecordCount< 1 Then
+            //            '''''''' selecting parameters from  module typemsthist table.
+            //            Rstemp.Close
+
+
+            //            StrQuery = " Select " & PmtFields & " from " & PmtDtlsHistTabName & DbLink _
+            //            & " where moduleid='" & StrModuleCode & "' and glcode='" _
+            //            & strGLCode & "' and " & Condition & " and EFFECTIVEDATE= (select max(EFFECTIVEDATE) from " _
+            //            & PmtDtlsHistTabName & DbLink & " where moduleid='" & StrModuleCode _
+            //            & "' and glcode='" & strGLCode & "' and " & Condition _
+            //            & " and status='R' and currencycode='" & StrCurCode _
+            //            & "' and EFFECTIVEDATE<='" & TrannDate & "')"
+
+
+
+            //If PmtDtlsHistTabName = "DEPPENALINTDTLSHIST" Then
+            //StrQuery = StrQuery & " order by CATEGORYCODE "
+            //End If
+
+
+            //        Set Rstemp = AdoConnObj.Execute(StrQuery)
+
+
+            //        End If
+
+
+            //        For Icount = 0 To Rstemp.Fields.Count - 1
+            //            strParamFlds = strParamFlds & Rstemp.Fields(Icount).Name & ","
+            //            If Rstemp.RecordCount > 0 Then
+            //                strParamVals = strParamVals _
+            //                & IIf(IsNull(Rstemp.Fields(Icount).Value), "", Rstemp.Fields(Icount).Value) _
+            //                & strDelimiter
+            //            Else
+            //                strParamVals = strParamVals & "" & strDelimiter
+            //            End If
+            //        Next Icount
+
+            //        ParameterRecord = ConnError
+
+
+            //If Rstemp.State = 1 Then Rstemp.Close
+            //''Set Rstemp = Nothing
+
+            //Exit Function
+
+            //''''''''' Error trapping.
+            //errhand:
+
+            //    If ConnError = "Connected" Then
+            //        ConnError = Err.Number & " :- " & Err.Description
+            //    End If
+            //    ParameterRecord = ConnError
+
+
+            //    objErrlog.LogError "GeneralTranQueries", "ParameterRecord", Err.Number, Err.Description
+
+            //    If Rstemp.State = 1 Then Rstemp.Close
+            //    ''Set Rstemp = Nothing
+            //End Function
+
+
+            //Public Function FXTransactionParameters(Branchcode As String, _
+            //                                        ModuleCode As String, _
+            //                                        GLcode As String, _
+            //                                        TransactionDate As String, _
+            //                                        Optional FCurrencyCode As String, _
+            //                                        Optional Accno As String, _
+            //                                        Optional CategoryCode As String, _
+            //                                        Optional userBranchcode As String, _
+            //                                        Optional UserID As String, _
+            //                                        Optional machineid As String) As ADODB.Recordset
+
+            //Dim RsGLParam As ADODB.Recordset
+            //Dim StrFxMinMAxTab As String
+            //Dim strFxMinMaxFlds As String
+            //Dim strFxNotinalCat As String
+            //On Error GoTo errhand
+            //Set RsGLParam = CreateObject("adodb.recordset")
+            //strDelimiter = "~"
+            //Call DBConnection
+            //If ConnError <> "Connected" Then GoTo errhand
+
+            //StrQuery = ""
+            //StrModuleCode = UCase(Trim(ModuleCode))
+            //strGLCode = UCase(Trim(GLcode))
+            //TrannDate = Format(TransactionDate, "dd-Mmm-yyyy")
+            //StrCurCode = UCase(Trim(FCurrencyCode))
+            //strBranchCode = UCase(Trim(Branchcode))
+            //strAccno = IIf(IsNull(Trim(Accno)), "", Trim(Accno))
+            //CatCode = IIf(IsNull(Trim(CategoryCode)), "", UCase(Trim(CategoryCode)))
+            //'TrannDate = Format(TrannDate, "dd-Mmm-yyyy")
+
+            //StrQuery = ""
+            //Set Rstemp = CreateObject("ADODB.Recordset")
+
+            //If strAccno <> "" Then
+            //''''''''''retrieving the account category code based on moduleid
+
+
+            //        StrQuery = "Select CATEGORYCODE from " & StrModuleCode & "MST" _
+            //        & DbLink & " where branchcode='" & strBranchCode & "' and accno='" & strAccno _
+            //        & "' and glcode='" & strGLCode & "'"
+
+
+            //        Set Rstemp = AdoConnObj.Execute(StrQuery)
+
+
+            //   If Rstemp.RecordCount< 1 Then
+            //        ConnError = "Parameters not avilable for this Module : " & StrModuleCode
+            //        GoTo errhand
+
+
+            //    End If
+            //        CatCode = Format(Rstemp!CategoryCode)
+
+
+
+            //End If
+
+
+
+            //'''''''' Aquiring the parameter table name  for the given module. ''''''''''''''
+            //StrQuery = "select MasterTable,PMTTABLE from genmodulemst" & DbLink _
+            //        & "  where moduleid ='" & StrModuleCode & "'"
+
+
+            //        StrQuery = UCase(StrQuery)
+            //        Set Rstemp = AdoConnObj.Execute(StrQuery)
+            //        If Rstemp.State = 0 Then
+            //            ConnError = "Parameters Not Specified !"
+            //            GoTo errhand
+            //        End If
+            //        If Rstemp.RecordCount = 0 Or _
+            //            (Rstemp.RecordCount = 1 And IsNull(Rstemp!pmttable)) Then
+            //                ConnError = "Parameters Not Specified for this Module !"
+            //                GoTo errhand
+            //        Else
+            //            strTabName = UCase(Trim(Rstemp!pmttable))
+            //        End If
+            //   Rstemp.Close
+        
+        
+        
+            //'''''''''''''' parameter table name retrieved ''''''''''''''''''''''''''
+
+            //''''''''''calling private function for Gl Parameters from the Moduleparameter table based
+            //''''''''''on the effective date.
+            //Set RSModule = CreateObject("ADODB.Recordset")
+            //ConnError = ModuleParameterRecord(strTabName)
+
+            //        For Icount = 0 To RSModule.Fields.Count - 1
+            //            If UCase(RSModule.Fields(Icount).Name) <> "BRANCHCODE" _
+            //                And UCase(RSModule.Fields(Icount).Name) <> "CURRENCYCODE" _
+            //                And UCase(RSModule.Fields(Icount).Name) <> "MODULEID" _
+            //                And UCase(RSModule.Fields(Icount).Name) <> "GLCODE" _
+            //                And UCase(RSModule.Fields(Icount).Name) <> "EFFECTIVEDATE" _
+            //                And UCase(RSModule.Fields(Icount).Name) <> "STATUS" _
+            //                And UCase(RSModule.Fields(Icount).Name) <> "APPLICATIONDATE" _
+            //                And UCase(RSModule.Fields(Icount).Name) <> "USERID" _
+            //                And UCase(RSModule.Fields(Icount).Name) <> "MACHINEID" _
+            //                And UCase(RSModule.Fields(Icount).Name) <> "VERIFIEDBY" _
+            //                And UCase(RSModule.Fields(Icount).Name) <> "VERIFIEDMACHINE" _
+            //                And UCase(RSModule.Fields(Icount).Name) <> "APPROVEDBY" _
+            //                And UCase(RSModule.Fields(Icount).Name) <> "APPROVEDMACHINE" _
+            //                 And UCase(RSModule.Fields(Icount).Name) <> "TRANSTATUS" _
+            //                And UCase(RSModule.Fields(Icount).Name) <> "SYSTEMDATE" _
+            //                And UCase(RSModule.Fields(Icount).Name) <> "FCURRENCYCODE" Then
+            //                strParamFlds = strParamFlds & RSModule.Fields(Icount).Name & ","
+
+
+            //                If RSModule.RecordCount > 0 Then
+            //                    strParamVals = strParamVals _
+            //                    & IIf(IsNull(RSModule.Fields(Icount).Value), "", _
+            //                    RSModule.Fields(Icount).Value) & strDelimiter
+            //                Else
+            //                    strParamVals = strParamVals & "" & strDelimiter
+            //                End If
+            //            End If
+            //        Next Icount
+
+            //    strParamTabs = strTabName
+    
+            //'''retrieving data from GENTRANTYPEMST parameter table
+            //StrQuery = "CASHDRYN, CASHCRYN, TRANSFERDRYN, TRANSFERCRYN, CLEARINGDRYN, CLEARINGCRYN"
+            //StrCondition = " currencycode='" & StrCurCode & "'"
+            //ConnError = ParameterRecord("GENTRANTYPEMST", StrQuery, "GENTRANTYPEMSTHIST", StrCondition)
+
+            //If ConnError<> "Connected" Then GoTo errhand
+
+
+            //    strParamTabs = strParamTabs & ",GENTRANTYPEMST"
+
+            //        If ConnError <> "Connected" Then GoTo errhand
+
+            //''''''''''' parameters for minmaxbalance based on forex moduleid
+
+            //If StrModuleCode = "FXDEP" Then
+            //   StrFxMinMAxTab = "FXDEPMINMAXDTLS"
+            //ElseIf StrModuleCode = "FXLOAN" Then
+            //    StrFxMinMAxTab = "FXLOANMINMAXDTLS"
+            //End If
+            //    StrQuery = "Select MINTERM, MINPERIOD, MAXTERM, MAXPERIOD, MINAMOUNT, MAXAMOUNT, TDSYN from " _
+            //    & StrFxMinMAxTab & " where glcode='" & strGLCode _
+            //    & "' and EFFECTIVEDATE= (select max(EFFECTIVEDATE) from " & StrFxMinMAxTab _
+            //    & " where glcode='" & strGLCode & "' and " _
+            //    & "EFFECTIVEDATE<='" & TrannDate & "' and FCurrencycode='" _
+            //    & StrCurCode & "' and (categorycode='" & CatCode & "' or categorycode='99') ) " _
+            //    & " and (categorycode='" & CatCode & "'  or categorycode='99') and FCurrencycode='" _
+            //    & StrCurCode & "'"
+
+
+            //If Rstemp.State = 1 Then Rstemp.Close
+            //    Set Rstemp = AdoConnObj.Execute(StrQuery)
+
+
+            //If Rstemp.RecordCount< 1 Then
+            //'''''if no records at master table for that effective date then query history table
+            //     StrQuery = "Select MINTERM, MINPERIOD, MAXTERM, MAXPERIOD, MINAMOUNT, MAXAMOUNT ,TDSYN from " _
+            //    & StrFxMinMAxTab & "HIST where glcode='" & strGLCode _
+            //    & "' and EFFECTIVEDATE= (select max(EFFECTIVEDATE) from " & StrFxMinMAxTab _
+            //    & " where glcode='" & strGLCode & "' and " _
+            //    & "EFFECTIVEDATE<='" & TrannDate & "' and FCurrencycode='" _
+            //    & StrCurCode & "' and (categorycode='" & CatCode & "' or categorycode='99') ) " _
+            //    & "and FCurrencycode='" & StrCurCode & "' and (categorycode='" _
+            //    & CatCode & "'  or categorycode='99')"
+            //    If Rstemp.State = 1 Then Rstemp.Close
+            //    Set Rstemp = AdoConnObj.Execute(StrQuery)
+            //End If
+            //    strParamTabs = strParamTabs & "," & StrFxMinMAxTab
+            //    For Icount = 0 To Rstemp.Fields.Count - 1
+            //            strParamFlds = strParamFlds & Rstemp.Fields(Icount).Name & ","
+            //            If Rstemp.RecordCount > 0 Then
+            //                strParamVals = strParamVals _
+            //                & IIf(IsNull(Rstemp.Fields(Icount).Value), "", Rstemp.Fields(Icount).Value) _
+            //                & strDelimiter
+            //            Else
+            //                strParamVals = strParamVals & "" & strDelimiter
+            //            End If
+            //    Next Icount
+
+            //If StrModuleCode = "FXDEP" Then
+            //    StrQuery = "Select PERCENTAGE from FXDEPPENALINTDTLS where glcode='" & strGLCode _
+            //    & "' and EFFECTIVEDATE= (select max(EFFECTIVEDATE) from FXDEPPENALINTDTLS " _
+            //    & " where glcode='" & strGLCode & "' and " _
+            //    & "EFFECTIVEDATE<='" & TrannDate & "' and FCurrencycode='" _
+            //    & StrCurCode & "' and (categorycode='" & CatCode & "' or categorycode='99') ) " _
+            //    & " and (categorycode='" & CatCode & "'  or categorycode='99') and FCurrencycode='" _
+            //    & StrCurCode & "'"
+     
+            //    If Rstemp.State = 1 Then Rstemp.Close
+            //    Set Rstemp = AdoConnObj.Execute(StrQuery)
+
+
+            //    If Rstemp.RecordCount< 1 Then
+            //    '''''if no records at master table for that effective date then query history table
+            //         StrQuery = "Select PERCENTAGE from FXDEPPENALINTDTLSHIST where glcode='" & strGLCode _
+            //        & "' and EFFECTIVEDATE= (select max(EFFECTIVEDATE) from FXDEPPENALINTDTLSHIST " _
+            //        & " where glcode='" & strGLCode & "' and " _
+            //        & "EFFECTIVEDATE<='" & TrannDate & "' and FCurrencycode='" _
+            //        & StrCurCode & "' and (categorycode='" & CatCode & "' or categorycode='99') ) " _
+            //        & "and FCurrencycode='" & StrCurCode & "' and (categorycode='" _
+            //        & CatCode & "'  or categorycode='99')"
+            //        If Rstemp.State = 1 Then Rstemp.Close
+            //        Set Rstemp = AdoConnObj.Execute(StrQuery)
+            //    End If
+            //    strParamTabs = strParamTabs & ",FXDEPPENALINTDTLS"
+            //    For Icount = 0 To Rstemp.Fields.Count - 1
+            //            strParamFlds = strParamFlds & Rstemp.Fields(Icount).Name & ","
+            //            If Rstemp.RecordCount > 0 Then
+            //                strParamVals = strParamVals _
+            //                & IIf(IsNull(Rstemp.Fields(Icount).Value), "", Rstemp.Fields(Icount).Value) _
+            //                & strDelimiter
+            //            Else
+            //                strParamVals = strParamVals & "" & strDelimiter
+            //            End If
+            //    Next Icount
+
+            //End If
+
+            //    strParamFlds = Left(strParamFlds, Len(strParamFlds) - 1)
+            //    strParamVals = Left(strParamVals, Len(strParamVals) - 1)
+
+
+
+            //StrQuery = " select " & strParamFlds & " from " & strParamTabs & " where 1=2"
+            //     '''''''''''''Dummy recordset
+     
+            //RsGLParam.Open StrQuery, AdoConnObj, adOpenDynamic, adLockOptimistic
+
+            //'''''entering the parameter data into the dummy recordset.
+            //arrParamFlds = Split(strParamFlds, ",")
+            //arrParamVals = Split(strParamVals, strDelimiter)
+            //StrQuery = ""
+        
+            //RsGLParam.AddNew
+            //For Icount = 0 To UBound(arrParamFlds)
+
+
+            //    RsGLParam(Icount) = IIf(Trim(arrParamVals(Icount)) = "", Null, _
+            //                        Trim(arrParamVals(Icount)))
+            //Next Icount
+
+
+            //Set FXTransactionParameters = RsGLParam
+
+            //RsGLParam.ActiveConnection = Nothing
+
+            //If Rstemp.State = 1 Then Rstemp.Close
+            //Set Rstemp = Nothing
+            //If RSModule.State = 1 Then RSModule.Close
+            //Set RSModule = Nothing
+            //If AdoConnObj.State = 1 Then AdoConnObj.Close
+            //Set AdoConnObj = Nothing
+
+
+            //Exit Function
+
+            //''''''''' Error trapping.
+            //errhand:
+
+            //    If ConnError = "Connected" Then
+            //        ConnError = Err.Number & " :- " & Err.Description
+            //    End If
+
+
+            //    objErrlog.LogError "GeneralTranQueries", "FXTransactionParameters", Err.Number, Err.Description
+
+
+            //    If RsGLParam.State = 1 Then RsGLParam.Close
+            //    Set RsGLParam = Nothing
+            //    If Rstemp.State = 1 Then Rstemp.Close
+            //    Set Rstemp = Nothing
+            //    If RSModule.State = 1 Then RSModule.Close
+            //    Set RSModule = Nothing
+            //    If AdoConnObj.State = 1 Then AdoConnObj.Close
+            //    Set AdoConnObj = Nothing
+
+            //End Function
+        }
+
+        public void UserTransaction()
+        {
+            //Public Function GenerateNReturnVoucherNo(ByVal i_BrCode As String, i_CurrencyCode As String, _
+            //ByVal i_ClearingType As String, ByVal i_LodgementDt As Date, ByVal i_ApplicationDt As Date, _
+            //ByVal i_UserId As String, ByVal i_MachineId As String, ByRef o_VoucherNo As String) As String
+
+
+            //    On Error GoTo ErrHandler
+            //    'Desc : Generate Voucher Number
+
+
+            //    Dim objQuery As Object, ObjTrans As Object, ObjContext As Object
+            //    Dim objAuto As Object
+            //    Dim Rstemp As ADODB.Recordset
+            //    Dim RsAutoPmt As ADODB.Recordset
+            //    Dim AutoFlds As String, AutoValues As String, AutoCondition As String
+            //    Dim sLodgementDate As String, TransResult As String
+            //    Dim AccNoPrefix As String, AccNoSuffix As String, AutoNumValue As String
+            //    Dim AutoPmtCondition As String, InitialValue As String, strDateRes As String
+            //    Dim ActualAccNo As Integer, LineNo As Integer
+            //    Dim ArrRowValues As Variant
+            //    Dim sApplicationDate As String, Errmsg As String
+
+            //    o_VoucherNo = ""
+
+
+            //    sLodgementDate = Format(i_LodgementDt, "dd-mmm-yyyy")
+            //    sApplicationDate = Format(i_ApplicationDt, "dd-mmm-yyyy")
+
+
+            //    LineNo = 1
+            //    Set ObjContext = GetObjectContext
+
+
+            //    LineNo = 2
+            //    Set objQuery = ObjContext.CreateInstance("QueryRecordsets.FetchRecordsets")
+            //    Set ObjTrans = ObjContext.CreateInstance("DataBaseTransactions.TransactionMethods")
+
+
+            //    Set Rstemp = CreateObject("ADODB.Recordset")
+
+
+            //    LineNo = 3
+            //    AutoFlds = "BranchCode,maxautotablename,maxautofieldName," & _
+            //            "CLEARINGTYPE,LODGEMENTDATE,currencycode"
+
+
+            //    AutoValues = "'" & i_BrCode & "','CLGLODGEMENTVOUCHERDTLS','VOUCHERNO'," & _
+            //            "'" & i_ClearingType & "','" & sLodgementDate & "','" & i_CurrencyCode & "'"
+
+
+            //    AutoCondition = "branchcode='" & i_BrCode & "' and " & _
+            //              "maxautotablename='CLGLODGEMENTVOUCHERDTLS' and " & _
+            //              "maxautofieldName='VOUCHERNO' AND currencycode='" & i_CurrencyCode & "' and " & _
+            //              "clearingtype='" & i_ClearingType & "' and " & _
+            //              "lodgementdate=to_date('" & sLodgementDate & "','dd-mm-yyyy')"
+
+            //    AccNoPrefix = "": AccNoSuffix = "": ActualAccNo = 0
+            //    AutoNumValue = ""
+
+
+            //    AutoPmtCondition = "MAXAUTOTABLENAME='CLGLODGEMENTVOUCHERDTLS' and " & _
+            //                    "MAXAUTOFIELDNAME='VOUCHERNO'"
+
+
+            //    LineNo = 4
+            //    Set RsAutoPmt = CreateObject("ADODB.Recordset")
+            //    Set RsAutoPmt = objQuery.SingleRecordSet("GENAUTONUMBERPMT", "*", AutoPmtCondition)
+            //    If RsAutoPmt.EOF And RsAutoPmt.BOF Then
+            //        ObjContext.SetAbort
+            //        Set objQuery = Nothing
+            //        Set ObjContext = Nothing
+            //        Set ObjTrans = Nothing
+            //        GenerateNReturnVoucherNo = "Error: Parameters for the AccountNo to be specified"
+            //        Exit Function
+            //    End If
+            //    InitialValue = ""
+            //    strDateRes = ""
+
+
+            //    LineNo = 5
+            //    Set Rstemp = objQuery.SingleRecordSet("GENAUTONUMMAX", "*", AutoCondition & " FOR UPDATE")
+            //    'Set Rstemp = objQuery.SingleRecordSet("GENAUTONUMMAX", "*", AutoCondition)
+
+
+            //    LineNo = 6
+            //    TransResult = ""
+            //    Set objAuto = CreateObject("AutoNumber.Generation")
+            //    AutoNumValue = objAuto.GetAutoNumber("GENAUTONUMMAX", "MAXAUTONUM", _
+            //        AutoCondition, CStr(RsAutoPmt!InitialValue))
+
+
+            //    If Mid(AutoNumValue, 1, 5) = "ERROR" Then
+            //        ObjContext.SetAbort
+            //        Set objQuery = Nothing
+            //        Set ObjContext = Nothing
+            //        Set ObjTrans = Nothing
+            //        AutoNumValue = Replace(AutoNumValue, Chr(10), "")
+            //        AutoNumValue = Replace(AutoNumValue, Chr(13), "")
+            //        GenerateNReturnVoucherNo = "Error: " & AutoNumValue
+            //        Exit Function
+            //    End If
+            //    Set objAuto = Nothing
+
+
+            //    LineNo = 7
+            //    ReDim ArrRowValues(0) As Variant
+
+
+            //    If AutoNumValue = CStr(RsAutoPmt!InitialValue) Then
+            //        AutoFlds = AutoFlds & ",MAXAUTONUM"
+            //        ArrRowValues(0) = AutoValues & "," & AutoNumValue
+            //        TransResult = ""
+            //        Set ObjContext = GetObjectContext
+
+            //        LineNo = 8
+            //        TransResult = ObjTrans.InsertRecord("GENAUTONUMMAX", AutoFlds, ArrRowValues, _
+            //        i_BrCode, i_UserId, i_MachineId, sApplicationDate, "N")
+            //        If TransResult<> "Trans Completed" Then
+            //            ObjContext.SetAbort
+            //            Set objQuery = Nothing
+            //            Set ObjContext = Nothing
+            //            Set ObjTrans = Nothing
+            //            TransResult = Replace(TransResult, Chr(10), "")
+            //            TransResult = Replace(TransResult, Chr(13), "")
+            //            GenerateNReturnVoucherNo = TransResult
+
+
+            //            Exit Function
+            //        End If
+            //    Else
+            //        LineNo = 10
+            //        ArrRowValues(0) = AutoNumValue
+            //        AutoFlds = "MAXAUTONUM"
+            //        Set ObjContext = GetObjectContext
+            //        TransResult = objQuery.ModifyQueriedTrans("GENAUTONUMMAX", AutoFlds, _
+            //                        ArrRowValues, AutoCondition, i_BrCode, i_UserId, i_MachineId)
+            //        'TransResult = ObjTrans.UpdateRecord("GENAUTONUMMAX", AutoFlds, ArrRowValues, _
+            //        'AutoCondition, i_BrCode, i_UserId, i_MachineId, sApplicationDate, "N")
+
+
+            //        If TransResult<> "Trans Completed" Then
+            //            ObjContext.SetAbort
+            //            Set ObjContext = Nothing
+            //            TransResult = Replace(TransResult, Chr(10), "")
+            //            TransResult = Replace(TransResult, Chr(13), "")
+            //            GenerateNReturnVoucherNo = TransResult
+            //            Exit Function
+            //        End If
+            //    End If
+            //    ObjContext.SetComplete
+
+            //    LineNo = 11
+
+
+            //    AccNoPrefix = Trim(RsAutoPmt!Prefixvalue) & ""
+            //    AccNoSuffix = Trim(RsAutoPmt!suffixvalue) & ""
+            //    ActualAccNo = CDbl(AutoNumValue)
+            //    AutoNumValue = Trim(RsAutoPmt!Prefixvalue) & AutoNumValue & Trim(RsAutoPmt!suffixvalue)
+
+
+            //    o_VoucherNo = AutoNumValue
+            //    GenerateNReturnVoucherNo = "Successfully Completed"
+
+
+            //    If Rstemp.State = 1 Then Rstemp.Close
+            //    Set Rstemp = Nothing
+            //    If RsAutoPmt.State = 1 Then RsAutoPmt.Close
+            //    Set RsAutoPmt = Nothing
+
+
+
+            //    Exit Function
+
+
+            //ErrHandler:
+            //            ObjContext.SetAbort
+            //            Set ObjTrans = Nothing
+            //    Set ObjContext = Nothing
+            //    Set objQuery = Nothing
+
+
+            //    Errmsg = "Error: " & Err.Number & ", Line No: " & LineNo & _
+            //    ", Err Msg: " & Err.Description
+
+
+            //    GenerateNReturnVoucherNo = Errmsg
+
+
+            //    objErrlog.LogError "GeneralTranQueries", "GenerateNReturnVoucherNo", Err.Number, Err.Description
+
+            //    If Rstemp.State = 1 Then Rstemp.Close
+            //    Set Rstemp = Nothing
+            //    If RsAutoPmt.State = 1 Then RsAutoPmt.Close
+            //    Set RsAutoPmt = Nothing
+
+            //End Function
         }
     }
 }

@@ -4,6 +4,6 @@ namespace Banking.Interfaces
 {
     public interface IListService
     {
-        Task<List<SelectListItem>> GetServiceList(string searchType = "", string whereCondition = "", string orderClause = "");
+        Task<List<SelectListItem>> GetServiceList(string searchString);
     }
 }
