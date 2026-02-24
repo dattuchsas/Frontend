@@ -18,15 +18,16 @@ namespace Banking.Services
         }
 
         // SERVICEID
-        public async Task<List<SelectListItem>> GetServiceList(string transactionMode)
+        public async Task<List<SelectListItem>> GetServiceList(string searchString)
         {
             string whereCond = string.Empty;
+            string[] search = searchString.Split('|');
 
-            if (transactionMode == TransactionModes.Debit.ToString())
+            if (search[1] == TransactionModes.Debit.ToString())
                 whereCond = "Code in ('1','3','4','7','8','9')";
-            else if (transactionMode == TransactionModes.Credit.ToString())
+            else if (search[1] == TransactionModes.Credit.ToString())
                 whereCond = "Code in('1','2','3','4','7')";
-            else if (transactionMode == TransactionModes.Clearing.ToString())
+            else if (search[1] == TransactionModes.Clearing.ToString())
                 whereCond = "Code in('1','8')";
             else
                 whereCond = "";

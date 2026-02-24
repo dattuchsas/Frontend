@@ -1,146 +1,164 @@
 ﻿
 $(function () {
 
-  var bdt = $("#Hidden_BDT").val();
-  var vUserId = $("#UserId").val();
-  var vAppDate = $("#ApplicationDate").val();
-  var vCounterNo = $("#CounterNo").val();
-  var vCashierId = $("#CashierId").val();
-  var vBranchCode = $("#BranchCode").val();
-  var vBrNarration = $("#BranchNarration").val();
-  var vCurCode = $("#CurrencyCode").val();
-  var vCurNarration = $("#CurrencyNarration").val();
-  var vMachineId = $("#MachineId").val();
-  var vAbbUser = $("#ABBUser").val();
-  var vMode = $("#Hidden_Mode").val();
-  var vModule = $("#SelectedModule").val();
+    var bdt = $("#Hidden_BDT").val();
+    var vUserId = $("#UserId").val();
+    var vAppDate = $("#ApplicationDate").val();
+    var vCounterNo = $("#CounterNo").val();
+    var vCashierId = $("#CashierId").val();
+    var vBranchCode = $("#BranchCode").val();
+    var vBrNarration = $("#BranchNarration").val();
+    var vCurCode = $("#CurrencyCode").val();
+    var vCurNarration = $("#CurrencyNarration").val();
+    var vMachineId = $("#MachineId").val();
+    var vAbbUser = $("#ABBUser").val();
+    var vMode = $("#Hidden_Mode").val();
+    var vModule = $("#SelectedModule").val();
 
-  $("#CheckDenoms").prop('disabled', true);
+    $("#CheckDenoms").prop('disabled', true);
 
-  $("#Clearing").addClass('d-none');
+    $("#Clearing").addClass('d-none');
 
-  var mode = "ADD";
-  var chkNull = "true";
+    ServiceId();
 
-  if (vAbbUser == "Y") {
-    $("#Branch").prop('readonly', false);
-    $("#CheckABB").prop('disabled', false);
-  }
 
-  //if (vModule == "CLG")
-  //{
-  //  window.document.all['divRadDebit'].style.display = "none";
-  //  window.document.all['divRadCredit'].style.display = "none";
-  //  window.document.all['divRadClg'].style.display = "block";
-  //}
+    var mode = "ADD";
+    var chkNull = "true";
 
-  $("#TransactionMode").on("change click", function () {
-    TranMode(vMode, bdt);
-    ModeChange(bdt);
-  });
+    if (vAbbUser == "Y") {
+        $("#Branch").prop('readonly', false);
+        $("#CheckABB").prop('disabled', false);
+    }
 
-  // window.document.frames['iPost'].frmPost.hdnSBCAAccClose.value = "";
+    //if (vModule == "CLG")
+    //{
+    //  window.document.all['divRadDebit'].style.display = "none";
+    //  window.document.all['divRadCredit'].style.display = "none";
+    //  window.document.all['divRadClg'].style.display = "block";
+    //}
 
-  //TransMode(vMode, bdt);
-  //NatBranch();
-  //DefaultValues();
-  //SumDrCrDefault();
-  //CashMode();
-  //Denom();
-  //OnFocus();
+    $("#TransactionMode").on("change click", function () {
+        TranMode(vMode, bdt);
+        ModeChange(bdt);
+    });
 
-  //if (mode != "MODIFY") {
-  //  excpIntValues();
-  //}
+    // window.document.frames['iPost'].frmPost.hdnSBCAAccClose.value = "";
+
+    //TransMode(vMode, bdt);
+    //NatBranch();
+    //DefaultValues();
+    //SumDrCrDefault();
+    //CashMode();
+    //Denom();
+    //OnFocus();
+
+    //if (mode != "MODIFY") {
+    //  excpIntValues();
+    //}
+
 
 });
 
 function ServiceId(vMode) {
-  var DbCr;
-  var modId;
+    var DbCr;
+    var modId;
 
-  if (((vMode == "REC") || (vMode == "PAY")) && (mode != "MODIFY")) { //&& (window.document.frmTrans.Mfgpaydt.Rows > 1)
-    alert("Only one Cash Transaction allowed at a time." + "\n" + " Post already entered data.")
-    return;
-  }
+    if (((vMode == "REC") || (vMode == "PAY")) && (mode != "MODIFY")) { //&& (window.document.frmTrans.Mfgpaydt.Rows > 1)
+        alert("Only one Cash Transaction allowed at a time." + "\n" + " Post already entered data.")
+        return;
+    }
 
-  if ($("#TransactionModes").val() == "Debit") {
-    DbCr = "Dbt"
-  }
-  else if ($("#TransactionModes").val() == "Credit") {
-    DbCr = "Cdt"
-  }
-  else if ($("#TransactionModes").val() == "Clearing") {
-    // Checking for clearingtype - selected or not 
-    //if ((window.document.frmTrans.cmdcleartype.value == "Select") ||
-    //  (window.document.frmTrans.cmdcleartype.value == "")) {
-    //  alert("Select ClearingType")
-    //  return;
-    //}
-    DbCr = "Clg"
-  }
-  modId = $("#Module").val().toUpperCase();
+    if ($("#TransactionModes").val() == "Debit") {
+        DbCr = "Debit"
+    }
+    else if ($("#TransactionModes").val() == "Credit") {
+        DbCr = "Credit"
+    }
+    else if ($("#TransactionModes").val() == "Clearing") {
+        // Checking for clearingtype - selected or not 
+        //if ((window.document.frmTrans.cmdcleartype.value == "Select") ||
+        //  (window.document.frmTrans.cmdcleartype.value == "")) {
+        //  alert("Select ClearingType")
+        //  return;
+        //}
+        DbCr = "Clearing"
+    }
+    modId = $("#Module").val().toUpperCase();
 
-  st = "Service|" + DbCr + "|" + modId
+    st = "Service|" + DbCr + "|" + modId
 
-  // window.showModalDialog("/GEN/TranList.aspx" + "?" + "st=" + st)
+    $.ajax({
+        url: '/List/GetServiceIdList',
+        type: 'GET',
+        data: { searchString: encodeURIComponent(st) },
+        success: function (data) {
+            debugger;
+            var dropdown = $('#ServiceCode');
+            dropdown.empty();
+            dropdown.append('<option value="">Select</option>');
+
+            $.each(data, function (i, item) {
+                dropdown.append('<option value="' + item.value + '">' + item.text + '</option>');
+            });
+        }
+    });
 }
 
 function Tellermodule() {
-  var bdt = $("#Hidden_BDT").val();
-  var selectedModule = $("#SelectedModule").val();
-  var transMode = $("#TransactionMode").val();
+    var bdt = $("#Hidden_BDT").val();
+    var selectedModule = $("#SelectedModule").val();
+    var transMode = $("#TransactionMode").val();
 
-  if (bdt.toUpperCase() == "TRUE")
-    return;
+    if (bdt.toUpperCase() == "TRUE")
+        return;
 
-  if ((selectedModule == 'CLG') && (transMode == 'Clearing')) {
-    if ((window.document.frmTrans.cmdcleartype.value == "Select") || (window.document.frmTrans.cmdcleartype.value == "")) {
-      bankingAlert("Please select Clearing Type.")
-      window.document.frmTrans.cmdcleartype.focus()
-      return;
+    if ((selectedModule == 'CLG') && (transMode == 'Clearing')) {
+        //if ((window.document.frmTrans.cmdcleartype.value == "Select") || (window.document.frmTrans.cmdcleartype.value == "")) {
+        //    bankingAlert("Please select Clearing Type.")
+        //    window.document.frmTrans.cmdcleartype.focus()
+        //    return;
+        //}
     }
-  }
 
-  if (((vMode == "REC") || (vMode == "PAY")) && (window.document.frmTrans.Mfgpaydt.Rows > 1) && (mode != "MODIFY")) {
-    bankingAlert("Only one Cash Transaction allowed at a time." + "\n" + "Post already entered data.")
-    return;
-  }
-
-  if ((window.document.frmTrans.txtbranchcode.value == "") || (window.document.frmTrans.txtcurrencycode.value == "")) {
-    return;
-  }
-
-  if (eval(window.document.frmTrans.txtServiceId.value) == "2") {
-    stmod = "TellermoduleID";
-    stbr = window.document.frmTrans.txtbranchcode.value.toUpperCase()
-    var strServiceId = window.document.frmTrans.txtServiceId.value
-    kstr = stmod + "|" + stbr + "|" + strServiceId
-
-    if (window.document.frmTrans.tranmode[2].checked == false) {
-      window.document.frmTrans.chkCheque.checked = false
+    if (((vMode == "REC") || (vMode == "PAY")) && (mode != "MODIFY") && (window.document.frmTrans.Mfgpaydt.Rows > 1)) {
+        bankingAlert("Only one Cash Transaction allowed at a time." + "\n" + "Post already entered data.")
+        return;
     }
-    window.showModalDialog('<%="http://" & session("moduledir")& "/DEPOSITS/"%>' + "List.aspx" + "?" + "st=" + kstr)
-  }
-  else {
-    stmod = "Tellermodule";
-    stbr = window.document.frmTrans.txtbranchcode.value.toUpperCase()
-    kstr = stmod + "|" + stbr
-    if (window.document.frmTrans.tranmode[2].checked == false) {
-      window.document.frmTrans.chkCheque.checked = false
+
+    if (($("#Branch").val() == "") || ($("#CurrencyCode").val() == "")) {
+        return;
     }
-    window.showModalDialog('<%="http://" & session("moduledir")& "/GEN/"%>' + "TranList.aspx" + "?" + "st=" + kstr)
-  }
+
+    if (eval($("#ServiceCode").val()) == "2") {
+        stmod = "TellermoduleID";
+        stbr = $("#Branch").val().toUpperCase();
+        var strServiceId = $("#ServiceCode").val();
+        kstr = stmod + "|" + stbr + "|" + strServiceId
+
+        if (transMode != "Clearing") {
+            $("#CheckCheque").prop('checked', false);
+        }
+        // window.showModalDialog('<%="http://" & session("moduledir")& "/DEPOSITS/"%>' + "List.aspx" + "?" + "st=" + kstr)
+    }
+    else {
+        stmod = "Tellermodule";
+        stbr = $("#Branch").val().toUpperCase()
+        kstr = stmod + "|" + stbr
+        if (transMode != "Clearing") {
+            $("#CheckCheque").prop('checked', false);
+        }
+        // window.showModalDialog('<%="http://" & session("moduledir")& "/GEN/"%>' + "TranList.aspx" + "?" + "st=" + kstr)
+    }
 }
 
 function ModeChange(bdt) {
-  if (bdt.toUpperCase() == "TRUE")
-    return;
-  ModuleClear();
-  Remclear();
-  funloanclear();
-  Cls();
-  window.document.frmTrans.cmdModId.disabled = false
+    if (bdt.toUpperCase() == "TRUE")
+        return;
+    ModuleClear();
+    Remclear();
+    funloanclear();
+    Cls();
+    window.document.frmTrans.cmdModId.disabled = false
 }
 
 
@@ -335,53 +353,53 @@ function ModeChange(bdt) {
 //}
 
 function TransMode(vMode, bdt) {
-  if (vMode == "TRANS") {
-    if ($("#TransactionMode").val() == "Debit") {
-      trnMode = "3"
-      trnDesc = "Dr Transfer"
-      Amt = "-" + window.document.frmTrans.txtAmt.value
-      $("#Hidden_GST").val($("#GSTIN").val());
-      $("#Hidden_Cust").val($("#CustomerId").val());
-      if (bdt.toUpperCase() == "TRUE") {
-        $("#Module").val('INV');
-        $("#Module").prop("readonly", true);
-        $("#Module").prop("disabled", true);
-      }
-    }
-    else if ($("#TransactionMode").val() == "Credit") {
-      $("#Hidden_CustomerId").val($("#CustomerId").val());
-      $("#Hidden_ReceipientName").val($("#AccountNumber").val());
+    if (vMode == "TRANS") {
+        if ($("#TransactionMode").val() == "Debit") {
+            trnMode = "3"
+            trnDesc = "Dr Transfer"
+            Amt = "-" + window.document.frmTrans.txtAmt.value
+            $("#Hidden_GST").val($("#GSTIN").val());
+            $("#Hidden_Cust").val($("#CustomerId").val());
+            if (bdt.toUpperCase() == "TRUE") {
+                $("#Module").val('INV');
+                $("#Module").prop("readonly", true);
+                $("#Module").prop("disabled", true);
+            }
+        }
+        else if ($("#TransactionMode").val() == "Credit") {
+            $("#Hidden_CustomerId").val($("#CustomerId").val());
+            $("#Hidden_ReceipientName").val($("#AccountNumber").val());
 
-      trnMode = "4"
-      trnDesc = "Cr Transfer"
+            trnMode = "4"
+            trnDesc = "Cr Transfer"
 
-      Amt = $("#Amount").val()
+            Amt = $("#Amount").val()
 
-      if (bdt.toUpperCase() == "TRUE") {
-        window.document.frmTrans.txtModId.value = "INV"
-        window.document.frmTrans.txtModDesc.value = "Investments"
-        window.document.frmTrans.cmdModId.Enabled = false
-        window.document.frmTrans.txtModId.readOnly = true
-        window.document.frmTrans.txtModDesc.readOnly = true
-        window.document.frmTrans.txtModId.disabled = true
-        window.document.frmTrans.txtModDesc.disabled = true
-      }
+            if (bdt.toUpperCase() == "TRUE") {
+                window.document.frmTrans.txtModId.value = "INV"
+                window.document.frmTrans.txtModDesc.value = "Investments"
+                window.document.frmTrans.cmdModId.Enabled = false
+                window.document.frmTrans.txtModId.readOnly = true
+                window.document.frmTrans.txtModDesc.readOnly = true
+                window.document.frmTrans.txtModId.disabled = true
+                window.document.frmTrans.txtModDesc.disabled = true
+            }
+        }
+        else if ($("#TransactionMode").val() == "Clearing") {
+            trnMode = "5"
+            trnDesc = "Dr Clearing"
+            Amt = "-" + window.document.frmTrans.txtAmt.value
+        }
     }
-    else if ($("#TransactionMode").val() == "Clearing") {
-      trnMode = "5"
-      trnDesc = "Dr Clearing"
-      Amt = "-" + window.document.frmTrans.txtAmt.value
+    else if (vMode == "REC") {
+        trnMode = "2"
+        trnDesc = "Cr Cash"
+        Amt = (window.document.frmTrans.txtAmt.value)
     }
-  }
-  else if (vMode == "REC") {
-    trnMode = "2"
-    trnDesc = "Cr Cash"
-    Amt = (window.document.frmTrans.txtAmt.value)
-  }
-  else if (vMode == "PAY") {
-    trnMode = "1"
-    trnDesc = "Dr Cash"
-    Amt = (window.document.frmTrans.txtAmt.value)
-    window.document.frmTrans.hid194NCustID.value = window.document.frmTrans.txtCustId.value;
-  }
+    else if (vMode == "PAY") {
+        trnMode = "1"
+        trnDesc = "Dr Cash"
+        Amt = (window.document.frmTrans.txtAmt.value)
+        window.document.frmTrans.hid194NCustID.value = window.document.frmTrans.txtCustId.value;
+    }
 }
