@@ -71,17 +71,16 @@
                     </div>
                     <div class="col-md-6 col-lg-6 col-xl-3">
                         <label asp-for="ServiceCode" class="form-label">Service Id</label>
-                        <select class="form-select" readonly>
-                            <option selected="">Transaction - 1</option>
-                        </select>
+                        <select asp-for="ServiceCode" asp-items="@Model.ServiceList" class="form-control"></select>
                     </div>
                     <div class="col-md-6 col-lg-4 col-xl-3">
                         <label asp-for="Module" class="form-label">Module ID</label>
-                        <select class="form-select" id="serviceSelect">
+                        <select asp-for="Module" asp-items="@Model.ModuleList" class="form-control"></select>
+                        @*<select class="form-select" id="serviceSelect">
                             <option value="saving">Saving Bank - SB</option>
                             <option value="loan">Loans</option>
                             <option value="rem">Remittence - REM</option>
-                        </select>
+                        </select>*@                    
                     </div>
                     <div class="col-md-6 col-lg-4 col-xl-3">
                         <label asp-for="AccountType" class="form-label">Acc. Type</label>

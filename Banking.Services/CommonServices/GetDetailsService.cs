@@ -1,22 +1,8 @@
 ﻿using Banking.Framework;
 using Banking.Interfaces;
 using Banking.Models;
-using Humanizer;
 using Microsoft.Extensions.Options;
-using Newtonsoft.Json.Linq;
-using System;
 using System.Data;
-using System.Diagnostics;
-using System.Diagnostics.Eventing.Reader;
-using System.IO;
-using System.Reflection.Metadata;
-using System.Runtime.InteropServices;
-using System.Runtime.Intrinsics.Arm;
-using System.Security.Cryptography;
-using System.Threading.Tasks;
-using System.Xml.Linq;
-using static System.Net.Mime.MediaTypeNames;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace Banking.Services
 {
