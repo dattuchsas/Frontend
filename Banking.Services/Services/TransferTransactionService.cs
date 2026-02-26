@@ -32,7 +32,7 @@ namespace Banking.Services
                 model.TransactionMode = TransactionModes.Debit;
 
             model.ServiceList = await _listService.GetServiceList(model.TransactionMode.ToString());
-            model.ModuleList = await _listService.get .GetModuleList(),
+            //model.ModuleList = await _listService.get .GetModuleList(),
 
             model.CheckABB = false;
             model.CheckCheque = false;
