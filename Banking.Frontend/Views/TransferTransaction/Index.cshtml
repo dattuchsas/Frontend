@@ -62,8 +62,8 @@
                     <div class="col-lg-7 col-xl-4">
                         <label asp-for="AccountNumber" class="form-label">Account Number<span class="text-danger">*</span></label>
                         <div class="input-group">
-                            <input asp-for="AccountNumber" type="text" class="form-control" value="101-102020-0000123" maxlength="16">
-                            <button class="btn btn-primary" type="button" id="accountNumberSearch">Search</button>
+                            <input asp-for="AccountNumber" type="text" class="form-control" placeholder="000-000000-0000000" maxlength="16">
+                            <button class="btn btn-primary" type="button" id="accountNumberSearch"><i class="bi bi-search"></i></button>
                         </div>
                     </div>
                     <div class="col-lg-6 col-xl-5">
@@ -71,25 +71,19 @@
                     </div>
                     <div class="col-md-6 col-lg-6 col-xl-3">
                         <label asp-for="ServiceCode" class="form-label">Service Id</label>
-                        <select class="form-select" readonly>
-                            <option selected="">Transaction - 1</option>
-                        </select>
+                        <select asp-for="ServiceCode" asp-items="@Model.ServiceList" class="form-select"></select>
                     </div>
                     <div class="col-md-6 col-lg-4 col-xl-3">
                         <label asp-for="Module" class="form-label">Module ID</label>
-                        <select class="form-select" id="serviceSelect">
-                            <option value="saving">Saving Bank - SB</option>
-                            <option value="loan">Loans</option>
-                            <option value="rem">Remittence - REM</option>
-                        </select>
+                        <select asp-for="Module" asp-items="@Model.ModuleList" class="form-select"></select>
                     </div>
                     <div class="col-md-6 col-lg-4 col-xl-3">
-                        <label asp-for="AccountType" class="form-label">Acc. Type</label>
+                        <label asp-for="AccountType" class="form-label">Acccount Type</label>
                         <input asp-for="AccountType" type="text" class="form-control" readonly>
                     </div>
                     <div class="col-md-6 col-lg-4 col-xl-3">
-                        <label asp-for="EffectiveDate" class="form-label">Eff.Date</label>
-                        <input asp-for="EffectiveDate" type="date" class="form-control">
+                        <label asp-for="EffectiveDate" class="form-label">Effective Date</label>
+                        <input asp-for="EffectiveDate" type="text" class="form-control">
                     </div>
                     <div class="col-md-6 col-lg-4 col-xl-3">
                         <label asp-for="Amount" class="form-label">Amount <span class="text-danger">*</span></label>

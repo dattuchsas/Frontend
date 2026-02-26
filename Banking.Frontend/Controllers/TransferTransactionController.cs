@@ -12,7 +12,9 @@ namespace Banking.Frontend.Controllers
 
         public async Task<IActionResult> Index()
         {
-            var model = await _transferTransactionService.Get(session);
+            TransferTransactionModel model = new TransferTransactionModel();
+
+            model = await _transferTransactionService.Get(session, model);
 
             model = await _transferTransactionService.GetDetails(session, model);
 

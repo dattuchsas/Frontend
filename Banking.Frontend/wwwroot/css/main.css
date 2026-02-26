@@ -33,7 +33,7 @@ body {
 }
 /*Header css*/
 .logo-container img {
-    width: 80px;
+    width: 60px;
 }
 
 .fw-bold {
@@ -69,7 +69,7 @@ body {
 
     .main-nav .nav-link {
         color: #fff;
-        padding: 0.75rem 1.5rem !important;
+        padding: 0rem 1rem !important;
     }
 
     .main-nav .dropdown-item {

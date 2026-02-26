@@ -1,48 +1,31 @@
 ﻿@model Banking.Models.BaseModel
 
-<header class="main-nav">
-    <nav class="container-xxl navbar navbar-expand-lg py-0">
-        <div class="container-fluid">
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent"
-                    aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarSupportedContent">
-                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-                    <li class="nav-item dropdown">
-                        <a class="nav-link" asp-controller="Dashboard" asp-action="Index">
-                            Home
-                        </a>
-                    </li>
-                    @if (Model.MenuDetails != null)
-                    {
-                        foreach (var item in Model.MenuDetails)
+<ul class="navbar-nav me-auto mb-2 mb-lg-0">
+    <li class="nav-item dropdown">
+        <a class="nav-link" asp-controller="Dashboard" asp-action="Index">
+            Home
+        </a>
+    </li>
+    @if (Model.MenuDetails != null)
+    {
+        foreach (var item in Model.MenuDetails)
+        {
+            <li class="nav-item dropdown">
+                <a class="nav-link @(item.SubMenu != null && item.SubMenu.Any() ? "dropdown-toggle" : "")"
+                   href="@(item.SubMenu != null && item.SubMenu.Any() ? "#" : Url.Action(item.ActionName, item.ControllerName))"
+                   @(item.SubMenu != null && item.SubMenu.Any() ? "data-bs-toggle=\"dropdown\" aria-expanded=\"false\"" : "")>
+                    @item.Text
+                </a>
+                @if (item.SubMenu != null)
+                {
+                    <ul class="dropdown-menu">
+                        @foreach (var innerItem in item.SubMenu)
                         {
-                            <li class="nav-item dropdown">
-                                <a class="nav-link @(item.SubMenu != null && item.SubMenu.Any() ? "dropdown-toggle" : "")"
-                                   href="@(item.SubMenu != null && item.SubMenu.Any() ? "#" : Url.Action(item.ActionName, item.ControllerName))"
-                                   @(item.SubMenu != null && item.SubMenu.Any() ? "data-bs-toggle=\"dropdown\" aria-expanded=\"false\"" : "")>
-                                    @item.Text
-                                </a>
-                                @if (item.SubMenu != null)
-                                {
-                                    <ul class="dropdown-menu">
-                                        @foreach (var innerItem in item.SubMenu)
-                                        {
-                                            <li><a class="dropdown-item" asp-controller="@innerItem.ControllerName" asp-action="@innerItem.ActionName">@innerItem.Text</a></li>
-                                        }
-                                    </ul>
-                                }
-                            </li>
+                            <li><a class="dropdown-item" asp-controller="@innerItem.ControllerName" asp-action="@innerItem.ActionName">@innerItem.Text</a></li>
                         }
-                    }
-                    <li class="nav-item">
-                        <a class="nav-link" asp-controller="" asp-action="">
-                            Help
-                        </a>
-                    </li>
-                </ul>
-            </div>
-        </div>
-    </nav>
-</header>
+                    </ul>
+                }
+            </li>
+        }
+    }
+</ul>
