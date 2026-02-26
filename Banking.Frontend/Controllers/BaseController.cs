@@ -24,6 +24,7 @@ namespace Banking.Frontend.Controllers
         protected IDashboardService _dashboardService;
         protected ICustomerService _customerService;
         protected ITransferTransactionService _transferTransactionService;
+        protected IListService _listService;
 
         public BaseController(IConfiguration configuration, IHttpContextAccessor httpContextAccessor)
         {
@@ -45,6 +46,7 @@ namespace Banking.Frontend.Controllers
             _dashboardService = _dashboardService ?? new DashboardService(_options);
             _customerService = _customerService ?? new CustomerService(_options);
             _transferTransactionService = _transferTransactionService ?? new TransferTransactionService(_options);
+            _listService = _listService ?? new ListService(_options);
 
             _stopwatch = new Stopwatch();
             _loggerModel = new LoggerModel();
