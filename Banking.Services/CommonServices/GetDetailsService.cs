@@ -17213,7 +17213,7 @@ namespace Banking.Services
 //                    {
 //                        window.close()
                     
-//    callerWindowObj.CatCodeRtn(kstr);
+//                        callerWindowObj.CatCodeRtn(kstr);
 //                    }
 
 //                    else if (type.substring(0, 13) == "remcode")

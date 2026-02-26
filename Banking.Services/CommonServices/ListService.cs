@@ -18,16 +18,16 @@ namespace Banking.Services
         }
 
         // SERVICEID
-        public async Task<List<SelectListItem>> GetServiceList(string searchString)
+        public async Task<List<SelectListItem>> GetServiceList(string searchString = "")
         {
             string whereCond = string.Empty;
             string[] search = searchString.Split('|');
 
-            if (search[1] == TransactionModes.Debit.ToString())
+            if (search.Length > 1 && search[1] == TransactionModes.Debit.ToString())
                 whereCond = "Code in ('1','3','4','7','8','9')";
-            else if (search[1] == TransactionModes.Credit.ToString())
+            else if (search.Length > 1 && search[1] == TransactionModes.Credit.ToString())
                 whereCond = "Code in('1','2','3','4','7')";
-            else if (search[1] == TransactionModes.Clearing.ToString())
+            else if (search.Length > 1 && search[1] == TransactionModes.Clearing.ToString())
                 whereCond = "Code in('1','8')";
             else
                 whereCond = "";
@@ -37,11 +37,9 @@ namespace Banking.Services
             return ReturnKeyValuePair(dataTable, "Service");
         }
 
-        public async Task<List<SelectListItem>> GetModuleList(string fieldNames = "", string whereCondition = "", string orderClause = "")
+        public async Task<List<SelectListItem>> GetModuleList(string whereCondition = "")
         {
-            fieldNames = string.IsNullOrWhiteSpace(fieldNames) ? "CODE,NARRATION" : fieldNames;
-
-            using DataTable dataTable = await _databaseFactory.SingleRecordSet("GENSERVICETYPESPMT", fieldNames, whereCondition, "CODE");
+            using DataTable dataTable = await _databaseFactory.SingleRecordSet("GENSERVICETYPESPMT", "CODE,NARRATION", whereCondition, "CODE");
 
             return ReturnKeyValuePair(dataTable, "Module");
         }
