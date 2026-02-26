@@ -1,6 +1,5 @@
 ﻿using Banking.Framework;
 using Banking.Interfaces;
-using Banking.Interfaces.IServices;
 using Banking.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
@@ -32,7 +31,7 @@ namespace Banking.Services
                 model.TransactionMode = TransactionModes.Debit;
 
             model.ServiceList = await _listService.GetServiceList(model.TransactionMode.ToString());
-            //model.ModuleList = await _listService.get .GetModuleList(),
+            model.ModuleList = await _listService.GetModuleList();
 
             model.CheckABB = false;
             model.CheckCheque = false;

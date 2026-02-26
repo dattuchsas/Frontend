@@ -9,6 +9,7 @@
     string branchCode = Conversions.ToString(session.GetString(SessionConstants.BranchCode));
     string branchName = Conversions.ToString(session.GetString(SessionConstants.BranchNarration));
     string controllerName = Conversions.ToString(session.GetString(SessionConstants.ControllerName));
+    string actionName = Conversions.ToString(session.GetString(SessionConstants.ActionName));
 }
 
 <!doctype html>
@@ -69,7 +70,7 @@
                     <span class="navbar-toggler-icon"></span>
                 </button>
                 <div class="collapse navbar-collapse d-flex w-100 align-items-center" id="navbarSupportedContent">
-                    @if (!controllerName.Equals(ControllerNames.Dashboard) && !controllerName.Equals(ControllerNames.Login))
+                    @if (!controllerName.Equals(ControllerNames.Login) && (!controllerName.Equals(ControllerNames.Dashboard)))
                     {
                         @await Component.InvokeAsync("Menu")
                     }

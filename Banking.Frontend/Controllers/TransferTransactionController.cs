@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Banking.Framework;
+using Banking.Models;
+using Microsoft.AspNetCore.Mvc;
 
 namespace Banking.Frontend.Controllers
 {
@@ -9,8 +11,10 @@ namespace Banking.Frontend.Controllers
         {
         }
 
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(string accountNumber = "")
         {
+            accountNumber = string.IsNullOrWhiteSpace(accountNumber) ? accountNumber : BankingExtensions.DecodeInput(accountNumber);
+
             TransferTransactionModel model = new TransferTransactionModel();
 
             model = await _transferTransactionService.Get(session, model);

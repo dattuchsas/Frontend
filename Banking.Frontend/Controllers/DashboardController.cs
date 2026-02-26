@@ -13,52 +13,6 @@ namespace Banking.Frontend.Controllers
         {
         }
 
-        public async Task<IActionResult> UserModules(string moduleId = "")
-        {
-            DataTable recmod = null!;
-            string vmod = string.Empty, strQuery, appDate;
-
-            string[] vmodx = moduleId.Split("~", StringSplitOptions.RemoveEmptyEntries);
-
-            if ((vmodx.Length - 1) > 0)
-            {
-                vmod = vmodx[0];
-                session.SetString(SessionConstants.SelectedModule, vmod);
-                session.SetString("moddir", vmodx[1]);
-            }
-
-            string usrid = session.GetString(SessionConstants.UserId) ?? string.Empty;
-            string serverId = session.GetString(SessionConstants.ServerId) ?? string.Empty;
-
-            serverId = serverId.Equals("120.0.0.1") || serverId.Equals("::1") ? "localhost" : serverId;
-
-            DataTable recdtls = await _dashboardService.ProcessSingleRecordRequest(TableNames.ServerVirtualDirDtls,
-                                "machinename,virtualdir", "upper(trim(machinename))='" + serverId + "'");
-
-            string strHOTrALWBrCode = await _dashboardService.GetHOTRALWBrCode();
-
-            if (vmod.Equals("PAYROLL"))
-            {
-                strQuery = "SELECT USERID FROM GENUSERMST WHERE BRANCHCODE = '" + strHOTrALWBrCode + "' AND GROUPID = 'ADMIN' AND USERID = '" + usrid + "'";
-
-                DataTable rsAuto = await _dashboardService.GetUserId(strQuery);
-
-                if (rsAuto.Rows.Count == 0)
-                {
-                    var d = recdtls.Rows[0].ItemArray[0];
-                    var d1 = recdtls.Rows[0].ItemArray[1];
-
-                    // Response.Redirect("http://" + d + "/" + d1 + "/modulescr.aspx?record10=" + "Not Allowed To Open This Payroll Module Contact Head Office");
-                }
-
-                BankingExtensions.ReleaseMemory(rsAuto);
-            }
-
-            session.SetString(SessionConstants.SelectedModule, vmod.Trim());
-
-            return View();
-        }
-
         public IActionResult Index()
         {
             string appdate = "";
@@ -121,7 +75,7 @@ namespace Banking.Frontend.Controllers
             return View(model);
         }
 
-        public async Task<IActionResult> SelectedModule(string moduleId = "")
+        public async Task<IActionResult> CommonModule(string moduleId = "")
         {
             DataTable recmod = null!;
             string vmod = string.Empty, strQuery, appDate;
@@ -135,164 +89,157 @@ namespace Banking.Frontend.Controllers
                 session.SetString("moddir", vmodx[1]);
             }
 
-            string mainstr = string.Empty;
-            string usrid = session.GetString(SessionConstants.UserId) ?? string.Empty;
-            string serverId = session.GetString(SessionConstants.ServerId) ?? string.Empty;
+            //string mainstr = string.Empty;
+            //string usrid = session.GetString(SessionConstants.UserId) ?? string.Empty;
+            //string serverId = session.GetString(SessionConstants.ServerId) ?? string.Empty;
 
-            serverId = serverId.Equals("120.0.0.1") || serverId.Equals("::1") ? "localhost" : serverId;
+            //serverId = serverId.Equals("120.0.0.1") || serverId.Equals("::1") ? "localhost" : serverId;
 
-            DataTable recdtls = await _dashboardService.ProcessSingleRecordRequest(TableNames.ServerVirtualDirDtls,
-                "machinename,virtualdir", "upper(trim(machinename))='" + serverId + "'");
+            //DataTable recdtls = await _dashboardService.ProcessSingleRecordRequest(TableNames.ServerVirtualDirDtls,
+            //    "machinename,virtualdir", "upper(trim(machinename))='" + serverId + "'");
 
-            if (recdtls.Rows.Count > 0)
-            {
-                string item0 = Conversions.ToString(recdtls.Rows[0].ItemArray[0]);
-                string item1 = Conversions.ToString(recdtls.Rows[0].ItemArray[1]);
+            //if (recdtls.Rows.Count > 0)
+            //{
+            //    string item0 = Conversions.ToString(recdtls.Rows[0].ItemArray[0]);
+            //    string item1 = Conversions.ToString(recdtls.Rows[0].ItemArray[1]);
+            //    mainstr = string.Concat(item0.Trim(), "/", item1.Trim(), "/", "~", mainstr.Trim());
+            //    session.SetString("moduledir", item0 + "/" + item1);
+            //    if (usrid == "")
+            //    {
+            //        Redirect("http://" + item0 + "/" + item1.Trim() + "/useridscreen.aspx?record=" + "Your session is timeout. Please login again..");
+            //    }
+            //}
 
-                mainstr = string.Concat(item0.Trim(), "/", item1.Trim(), "/", "~", mainstr.Trim());
+            //string strHOTrALWBrCode = await _dashboardService.GetHOTRALWBrCode();
 
-                session.SetString("moduledir", item0 + "/" + item1);
+            //if (vmod.Equals("PAYROLL"))
+            //{
+            //    strQuery = "SELECT USERID FROM GENUSERMST WHERE BRANCHCODE = '" + strHOTrALWBrCode + "' AND GROUPID = 'ADMIN' AND USERID = '" + usrid + "'";
 
-                if (usrid == "")
-                {
-                    Redirect("http://" + item0 + "/" + item1.Trim() + "/useridscreen.aspx?record=" + "Your session is timeout. Please login again..");
-                }
-            }
+            //    DataTable rsAuto = await _dashboardService.GetUserId(strQuery);
 
-            string strHOTrALWBrCode = await _dashboardService.GetHOTRALWBrCode();
+            //    if (rsAuto.Rows.Count == 0)
+            //    {
+            //        var d = recdtls.Rows[0].ItemArray[0];
+            //        var d1 = recdtls.Rows[0].ItemArray[1];
 
-            if (vmod.Equals("PAYROLL"))
-            {
-                strQuery = "SELECT USERID FROM GENUSERMST WHERE BRANCHCODE = '" + strHOTrALWBrCode + "' AND GROUPID = 'ADMIN' AND USERID = '" + usrid + "'";
+            //        // Response.Redirect("http://" + d + "/" + d1 + "/modulescr.aspx?record10=" + "Not Allowed To Open This Payroll Module Contact Head Office");
+            //    }
 
-                DataTable rsAuto = await _dashboardService.GetUserId(strQuery);
+            //    BankingExtensions.ReleaseMemory(rsAuto);
+            //}
 
-                if (rsAuto.Rows.Count == 0)
-                {
-                    var d = recdtls.Rows[0].ItemArray[0];
-                    var d1 = recdtls.Rows[0].ItemArray[1];
-
-                    // Response.Redirect("http://" + d + "/" + d1 + "/modulescr.aspx?record10=" + "Not Allowed To Open This Payroll Module Contact Head Office");
-                }
-
-                BankingExtensions.ReleaseMemory(rsAuto);
-            }
-
-            session.SetString("module", vmod.Trim());
             // session("servername") = Request.ServerVariables("SERVER_NAME")
 
-            string valStr = ",";
-            valStr = valStr.Substring(1);
+            //string valStr = ",";
+            //valStr = valStr.Substring(1);
 
-            appDate = Convert.ToDateTime(session.GetString(SessionConstants.ApplicationDate)).ToShortDateString();
+            //appDate = Convert.ToDateTime(session.GetString(SessionConstants.ApplicationDate)).ToShortDateString();
 
             string brcode = session.GetString(SessionConstants.BranchCode) ?? string.Empty;
 
-            DataTable recdaybeg = null!;
-            string daybeg = string.Empty;
-            string daybegin1 = session.GetString(SessionConstants.DayBegin1) ?? string.Empty;
-            if (daybegin1.Equals("over"))
-            {
-                recdaybeg = await _dashboardService.ProcessSingleRecordRequest(TableNames.GenApplicationDateMaster,
-                    "daybeginstatus,dayendstatus,PREDAYENDCHKYN",
-                    "applicationdate='" + appDate + "' and branchcode='" + brcode + "'");
+            //DataTable recdaybeg = null!;
+            //string daybeg = string.Empty;
+            //string daybegin1 = session.GetString(SessionConstants.DayBegin1) ?? string.Empty;
+            //if (daybegin1.Equals("over"))
+            //{
+            //    recdaybeg = await _dashboardService.ProcessSingleRecordRequest(TableNames.GenApplicationDateMaster,
+            //        "daybeginstatus,dayendstatus,PREDAYENDCHKYN",
+            //        "applicationdate='" + appDate + "' and branchcode='" + brcode + "'");
 
-                if (recdaybeg.Rows.Count > 0)
-                {
-                    string val = Conversions.ToString(recdaybeg.Rows[0].ItemArray[0]);
-                    string val1 = Conversions.ToString(recdaybeg.Rows[0].ItemArray[1]);
-                    string val2 = Conversions.ToString(recdaybeg.Rows[0].ItemArray[2]);
-                    if (val == "O" && val1 == "N" && val2 == "N")
-                        daybeg = "Yes";
-                }
-            }
+            //    if (recdaybeg.Rows.Count > 0)
+            //    {
+            //        string val = Conversions.ToString(recdaybeg.Rows[0].ItemArray[0]);
+            //        string val1 = Conversions.ToString(recdaybeg.Rows[0].ItemArray[1]);
+            //        string val2 = Conversions.ToString(recdaybeg.Rows[0].ItemArray[2]);
+            //        if (val == "O" && val1 == "N" && val2 == "N")
+            //            daybeg = "Yes";
+            //    }
+            //}
 
-            daybeg = "No";
-            recdtls = null!;
+            //daybeg = "No";
+            //BankingExtensions.ReleaseMemory(recdtls);
 
-            string gcode = session.GetString(SessionConstants.GroupCode) ?? string.Empty;
+            //string gcode = session.GetString(SessionConstants.GroupCode) ?? string.Empty;
 
-            if (daybeg.Equals("Yes"))
-            {
-                recdtls = await _dashboardService.ProcessSingleRecordRequest("genmoduleidformsmst a",
-                    "distinct a.menutitle,a.narration,a.forms,a.gendir,a.mainmenu,a.menuorder,a.FORMSORDER",
-                    "(a.formsid in( select formsid from gengroupformsmst where groupcode='" +
-                    gcode + "' and a.moduleid='" + vmod.Trim() + "' and status='R') or " +
-                    "a.formsid in( select formsid from genuseridformsmst where " +
-                    " userid='" + session.GetString(SessionConstants.UserId) + "' AND " +
-                    " a.moduleid='" + vmod.Trim() + "' and status='R' and addoreliminate='A'))" +
-                    " and a.formsid not in( select formsid from genuseridformsmst where " +
-                    " moduleid='" + vmod.Trim() + "' and status='R' and addoreliminate='E'" +
-                    " and userid='" + session.GetString(SessionConstants.UserId) + "')" +
-                    "order by a.menuorder,a.FORMSORDER ");
-            }
-            else
-            {
-                recdtls = await _dashboardService.ProcessSingleRecordRequest("genmoduleidformsmst a",
-                    "distinct a.menutitle,a.narration,a.forms,a.gendir,a.mainmenu,a.menuorder,a.FORMSORDER",
-                    "(a.formsid in( select formsid from gengroupformsmst where groupcode='" +
-                    gcode + "' and a.moduleid='" + vmod.Trim() + "' and status='R') or " +
-                    "a.formsid in( select formsid from genuseridformsmst where " +
-                    " userid='" + session.GetString(SessionConstants.UserId) + "' AND " +
-                    " a.moduleid='" + vmod.Trim() + "' and status='R' and addoreliminate='A'))" +
-                    " and a.formsid not in (select formsid from genuseridformsmst where " +
-                    " moduleid='" + vmod.Trim() + "' and status='R' and addoreliminate='E'" +
-                    " and userid='" + session.GetString(SessionConstants.UserId) + "') " +
-                    " and a.formstatus ='A' order by a.menuorder,a.FORMSORDER ");
-            }
+            //if (daybeg.Equals("Yes"))
+            //{
+            //    recdtls = await _dashboardService.ProcessSingleRecordRequest("genmoduleidformsmst a",
+            //        "distinct a.menutitle,a.narration,a.forms,a.gendir,a.mainmenu,a.menuorder,a.FORMSORDER",
+            //        "(a.formsid in (select formsid from gengroupformsmst where groupcode='" +
+            //        gcode + "' and a.moduleid='" + vmod.Trim() + "' and status='R') or " +
+            //        "a.formsid in (select formsid from genuseridformsmst where " +
+            //        " userid='" + session.GetString(SessionConstants.UserId) + "' AND " +
+            //        " a.moduleid='" + vmod.Trim() + "' and status='R' and addoreliminate='A'))" +
+            //        " and a.formsid not in (select formsid from genuseridformsmst where " +
+            //        " moduleid='" + vmod.Trim() + "' and status='R' and addoreliminate='E'" +
+            //        " and userid='" + session.GetString(SessionConstants.UserId) + "')" +
+            //        "order by a.menuorder,a.FORMSORDER ");
+            //}
+            //else
+            //{
+            //    recdtls = await _dashboardService.ProcessSingleRecordRequest("genmoduleidformsmst a",
+            //        "distinct a.menutitle,a.narration,a.forms,a.gendir,a.mainmenu,a.menuorder,a.FORMSORDER",
+            //        "(a.formsid in (select formsid from gengroupformsmst where groupcode='" +
+            //        gcode + "' and a.moduleid='" + vmod.Trim() + "' and status='R') or " +
+            //        "a.formsid in (select formsid from genuseridformsmst where " +
+            //        " userid='" + session.GetString(SessionConstants.UserId) + "' AND " +
+            //        " a.moduleid='" + vmod.Trim() + "' and status='R' and addoreliminate='A'))" +
+            //        " and a.formsid not in (select formsid from genuseridformsmst where " +
+            //        " moduleid='" + vmod.Trim() + "' and status='R' and addoreliminate='E'" +
+            //        " and userid='" + session.GetString(SessionConstants.UserId) + "') " +
+            //        " and a.formstatus ='A' order by a.menuorder,a.FORMSORDER ");
+            //}
 
-            recmod = await _dashboardService.ProcessSingleRecordRequest(TableNames.GenModuleMaster,
-                "moduledir,narration", "moduleid='" + vmod.Trim() + "'");
+            recmod = await _dashboardService.ProcessSingleRecordRequest(TableNames.GenModuleMaster, "moduledir,narration", "moduleid='" + vmod.Trim() + "'");
 
             if (recmod.Rows.Count > 0)
                 session.SetString("modulenarration", Conversions.ToString(recmod.Rows[0].ItemArray[1]));
 
-            string chkstr = string.Empty;
+            //string chkstr = string.Empty;
 
-            if (recdtls.Rows.Count > 0)
-            {
-                chkstr = Conversions.ToString(recdtls.Rows[0].ItemArray[0]);
-                mainstr = chkstr;
-            }
+            //if (recdtls.Rows.Count > 0)
+            //{
+            //    chkstr = Conversions.ToString(recdtls.Rows[0].ItemArray[0]);
+            //    mainstr = chkstr;
+            //}
 
-            foreach (DataRow row in recdtls.Rows)
-            {
-                string stdir = string.Empty;
+            //foreach (DataRow row in recdtls.Rows)
+            //{
+            //    string stdir = string.Empty;
 
-                if (Convert.IsDBNull(row.ItemArray[3]).Equals(false))
-                    stdir = Conversions.ToString(row.ItemArray[3]);
-                else
-                    stdir = Conversions.ToString(row.ItemArray[0]);
+            //    if (Convert.IsDBNull(row.ItemArray[3]).Equals(false))
+            //        stdir = Conversions.ToString(row.ItemArray[3]);
+            //    else
+            //        stdir = Conversions.ToString(row.ItemArray[0]);
 
-                if (Conversions.ToString(row.ItemArray[0]) == chkstr)
-                    mainstr = mainstr + "," + Conversions.ToString(row.ItemArray[1]) + "*" + stdir + "/" +
-                        Conversions.ToString(row.ItemArray[2]);
-                else
-                {
-                    chkstr = Conversions.ToString(row.ItemArray[0]);
-                    mainstr = mainstr + "|" + Conversions.ToString(row.ItemArray[0]) + "," + Conversions.ToString(row.ItemArray[1])
-                        + "*" + stdir + "/" + Conversions.ToString(row.ItemArray[2]);
-                }
-            }
+            //    if (Conversions.ToString(row.ItemArray[0]) == chkstr)
+            //        mainstr = mainstr + "," + Conversions.ToString(row.ItemArray[1]) + "*" + stdir + "/" +
+            //            Conversions.ToString(row.ItemArray[2]);
+            //    else
+            //    {
+            //        chkstr = Conversions.ToString(row.ItemArray[0]);
+            //        mainstr = mainstr + "|" + Conversions.ToString(row.ItemArray[0]) + "," + Conversions.ToString(row.ItemArray[1])
+            //            + "*" + stdir + "/" + Conversions.ToString(row.ItemArray[2]);
+            //    }
+            //}
 
-            recdtls = null!;
+            // BankingExtensions.ReleaseMemory(recdtls);
 
-            recdtls = await _dashboardService.ProcessSingleRecordRequest(TableNames.ServerVirtualDirDtls,
-                "machinename,virtualdir", "upper(trim(machinename))='" + serverId.ToUpper() + "'");
+            //recdtls = await _dashboardService.ProcessSingleRecordRequest(TableNames.ServerVirtualDirDtls,
+            //    "machinename,virtualdir", "upper(trim(machinename))='" + serverId.ToUpper() + "'");
 
-            if (recdtls.Rows.Count > 0)
-            {
-                string val = Conversions.ToString(recdtls.Rows[0].ItemArray[0]);
-                string val1 = Conversions.ToString(recdtls.Rows[0].ItemArray[1]);
-                mainstr = string.Concat(val.Trim(), "/", val1.Trim(), "/", "~", mainstr, "~", vmod.Trim());
-                session.SetString("moduledir", string.Concat(val.Trim(), "/", val1.Trim()));
-                session.SetString("menustring", mainstr);
-            }
+            //if (recdtls.Rows.Count > 0)
+            //{
+            //    string val = Conversions.ToString(recdtls.Rows[0].ItemArray[0]);
+            //    string val1 = Conversions.ToString(recdtls.Rows[0].ItemArray[1]);
+            //    mainstr = string.Concat(val.Trim(), "/", val1.Trim(), "/", "~", mainstr, "~", vmod.Trim());
+            //    session.SetString("moduledir", string.Concat(val.Trim(), "/", val1.Trim()));
+            //    session.SetString("menustring", mainstr);
+            //}
 
             // This code is Cash Module Denomination Purpose YN purpose. -- ADD by ramakrishna.
-            string module = session.GetString("module") ?? string.Empty;
-
-            if (module.Equals("CASH"))
+            if (vmod.Equals("CASH"))
             {
                 DataTable rs = null!;
                 rs = await _dashboardService.ProcessSingleRecordRequest(TableNames.GenBankBranchMaster,
@@ -305,16 +252,14 @@ namespace Banking.Frontend.Controllers
                 BankingExtensions.ReleaseMemory(rs);
             }
 
-            DataTable rsclg = null!;
-
-            rsclg = await _dashboardService.ProcessSingleRecordRequest(TableNames.GenBankBranchMaster, "CLGRETCHGSAUTOPOSTYN", "BRANCHCODE='" + brcode + "'");
+            DataTable rsclg = await _dashboardService.ProcessSingleRecordRequest(TableNames.GenBankBranchMaster, "CLGRETCHGSAUTOPOSTYN", "BRANCHCODE='" + brcode + "'");
 
             if (rsclg.Rows.Count > 0)
                 session.SetString(SessionConstants.ClgRetChgsAutoYN, Conversions.ToString(rsclg.Rows[0].ItemArray[0]));
 
             BankingExtensions.ReleaseMemory(rsclg);
 
-            return RedirectToAction("Index", vmodx[1]);
+            return RedirectToAction(ActionNames.Index, ControllerNames.Common);
         }
 
         [HttpGet]

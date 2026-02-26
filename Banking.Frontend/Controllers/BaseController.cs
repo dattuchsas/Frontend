@@ -1,6 +1,5 @@
 ﻿using Banking.Framework;
 using Banking.Interfaces;
-using Banking.Interfaces.IServices;
 using Banking.Models;
 using Banking.Services;
 using Microsoft.AspNetCore.Mvc;
@@ -36,8 +35,10 @@ namespace Banking.Frontend.Controllers
             _options = Options.Create(_configuration.GetSection("OracleSettings").Get<DatabaseSettings>() ?? new DatabaseSettings());
 
             var controllerName = Conversions.ToString(httpContextAccessor.HttpContext?.Request.RouteValues["controller"]);
+            var actionName = Conversions.ToString(httpContextAccessor.HttpContext?.Request.RouteValues["controller"]);
 
             session.SetString(SessionConstants.ControllerName, controllerName);
+            session.SetString(SessionConstants.ActionName, actionName);
 
             session.SetString(SessionConstants.CurrencyCode, "INR");
 

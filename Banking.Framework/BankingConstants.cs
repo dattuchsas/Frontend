@@ -8,6 +8,7 @@
         public const string User = "User";
         public const string GetDetails = "GetDetails";
         public const string TransferTransaction = "TransferTransaction";
+        public const string Common = "Common";
     }
 
     public class ActionNames
@@ -16,6 +17,7 @@
         public const string UserModules = "UserModules";
         public const string SelectedModule = "SelectedModule";
         public const string New = "New";
+        public const string LandingPage = "LandingPage";
     }
 
     public class SessionConstants
@@ -48,6 +50,7 @@
         public const string CurrencyNarration = "CurrencyNarration";
 
         public const string ControllerName = "ControllerName";
+        public const string ActionName = "ActionName";
         public const string SelectedModule = "SelectedModule";
         public const string QueryString = "QueryString";
         public const string ReferrerController = "ReferrerController";

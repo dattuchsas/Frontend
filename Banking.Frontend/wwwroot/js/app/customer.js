@@ -26,7 +26,7 @@ $(function () {
       st = st + "|Main" + "|" + stcond
     }
     $("#hiddenCustId").val(st);
-    window.location.href = '/Customer/Index?custId=' + encodeURIComponent(EncodeInput(st));
+    window.location.href = '/TransferTransaction/Index?accountNumber=' + encodeURIComponent(EncodeInput(st));
   });
 
   $("#Personal_PANNo").on('blur', function () {
