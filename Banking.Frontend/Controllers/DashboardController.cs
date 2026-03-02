@@ -20,6 +20,10 @@ namespace Banking.Frontend.Controllers
 
             var queryString = HttpContext.Session.GetString(SessionConstants.QueryString);
 
+            if (string.IsNullOrWhiteSpace(queryString))
+
+
+
             if (string.IsNullOrWhiteSpace(queryString) || queryString.Equals("record=$"))
             {
                 model.AssignedModules = [];

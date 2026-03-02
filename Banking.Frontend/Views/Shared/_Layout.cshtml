@@ -36,63 +36,66 @@
     <script asp-append-version="true" src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
 </head>
 <body>
-    <header class="main-header py-1">
-        <div class="container-xxl">
-            <div class="d-flex align-items-center flex-wrap">
-                <div class="logo-container d-flex align-items-center">
-                    <div class="me-2">
-                        <img src="~/images/maharaja_logo.svg" alt="Logo" />
-                    </div>
-                    <div>
-                        <h3 class="mb-0">THE MAHARAJA CO.OP URBAN BANK LTD.</h3>
-                    </div>
-                </div>
-                <div class="mt-2 mt-md-0  logout-container d-flex align-items-center fw-bold ms-auto">
-                    <div class="me-3 text-end">
-                        <div>FinXPro Banking System</div>
-                        @appDate
-                    </div>
-                    @if (!controllerName.Equals(ControllerNames.Login))
-                    {
-                        <div class="icon">
-                            <a class="text-white" asp-controller="Login" asp-action="Logout"><i class="bi bi-box-arrow-right"></i></a>
-                        </div>
-                    }
-                </div>
-            </div>
-        </div>
-    </header>
-    <header class="main-nav">
-        <nav class="container-xxl navbar navbar-expand-lg py-0">
-            <div class="container-fluid">
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent"
-                        aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-                <div class="collapse navbar-collapse d-flex w-100 align-items-center" id="navbarSupportedContent">
-                    @if (!controllerName.Equals(ControllerNames.Login) && (!controllerName.Equals(ControllerNames.Dashboard)))
-                    {
-                        @await Component.InvokeAsync("Menu")
-                    }
-                    <div id="idleTimerUI" class="text-white ms-auto" style="font-size:14px;">
-                            Session timeout in: <span id="uiTimer">05:00</span>
-                        </div>
-                    </div>
-            </div>
-        </nav>
-    </header>
-    @if (!controllerName.Equals(ControllerNames.Login))
-    {
-        <header class="sub-header mb-3">
+    <div class="sticky-top">
+        <header class="main-header py-1">
             <div class="container-xxl">
                 <div class="d-flex align-items-center flex-wrap">
-                    <h6 class="mb-0 px-5">Welcome, <span class="primary-color">@userName</span></h6>
-                    <h2 class="mb-0 ms-auto mt-2 mt-sm-0 px-5">Branch: @branchName</h2>
+                    <div class="logo-container d-flex align-items-center">
+                        <div class="me-2">
+                            <img src="~/images/maharaja_logo.svg" alt="Logo" />
+                        </div>
+                        <div>
+                            <h1 class="mb-0">THE MAHARAJA CO.OP URBAN BANK LTD.</h1>
+                        </div>
+                    </div>
+                    <div class="mt-2 mt-md-0  logout-container d-flex align-items-center fw-bold ms-auto">
+                        <div class="me-3 text-end">
+                            <div>FinXPro Banking System</div>
+                            @appDate
+                        </div>
+                        @if (!controllerName.Equals(ControllerNames.Login))
+                        {
+                            <div class="icon">
+                                <a class="text-white" asp-controller="Login" asp-action="Logout"><i class="bi bi-box-arrow-right"></i></a>
+                            </div>
+                        }
+                    </div>
                 </div>
             </div>
         </header>
-    }
-
+        <header class="main-nav">
+            <nav class="container-xxl navbar navbar-expand-lg py-0">
+                <div class="container-fluid">
+                    <div class="navbar-brand d-lg-none">Navigation</div>
+                    <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+                            data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false"
+                            aria-label="Toggle navigation">
+                        <span class="navbar-toggler-icon"></span>
+                    </button>
+                    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                        @if (!controllerName.Equals(ControllerNames.Login) && (!controllerName.Equals(ControllerNames.Dashboard)))
+                        {
+                            @await Component.InvokeAsync("Menu")
+                        }
+                        <div id="idleTimerUI" class="text-white ms-auto p-1" style="font-size:14px;">
+                            Session timeout in: <span id="uiTimer">05:00</span>
+                        </div>
+                    </div>
+                </div>
+            </nav>
+        </header>
+        @if (!controllerName.Equals(ControllerNames.Login))
+        {
+            <header class="sub-header mb-2">
+                <div class="container-xxl">
+                    <div class="d-flex align-items-center flex-wrap">
+                        <h6 class="mb-0 px-3">Welcome, <span class="primary-color">@userName</span></h6>
+                        <h2 class="mb-0 ms-auto mt-2 mt-sm-0">Branch: @branchName</h2>
+                    </div>
+                </div>
+            </header>
+        }
+    </div>
     <main class="mb-3">
         <div class="container-xxl">
             <div class="row">

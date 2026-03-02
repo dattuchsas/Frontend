@@ -10,7 +10,7 @@ namespace Banking.Services
     public class DatabaseService : IDatabaseService
     {
         private DatabaseFactory _databaseFactory;
-        private readonly OracleRetryHelper _oracleRetryHelper;
+        private readonly OracleRetryHelper _oracleRetryHelper;  
 
         public DatabaseService(DatabaseSettings databaseSettings)
         {
@@ -34,6 +34,11 @@ namespace Banking.Services
             string glcode = "", string moduleid = "")
         {
             return await _databaseFactory.ProcessDataTransactions(TransDataArray, BranchCode, UserCode, MachineID, ApplicationDate, DayBeginEndStatusCheckYN, glcode, moduleid);
+        }
+
+        public async Task<DataTable> GetModuleId(string branchCode, string AllModulesYN = "", string UserID = "", string VouchingYN = "", string ModuleCondition = "")
+        {
+            return await _databaseFactory.GetModuleId(branchCode, AllModulesYN, UserID, VouchingYN, ModuleCondition);
         }
 
         //public async Task<string> ModifyQueriedTrans(string TableName, string FldNames, string[] ArrValues, string wherecondition = "", string BranchCode = "",

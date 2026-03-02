@@ -6,5 +6,6 @@ namespace Banking.Interfaces
     {
         Task<List<SelectListItem>> GetServiceList(string searchString = "");
         Task<List<SelectListItem>> GetModuleList(string whereCondition = "");
+        Task<string> GetModuleId(string searchString = "");
     }
 }

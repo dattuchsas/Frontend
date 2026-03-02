@@ -1,8 +1,10 @@
 ﻿using Microsoft.AspNetCore.Http;
+using Newtonsoft.Json.Linq;
 using System.Data;
 using System.Globalization;
 using System.Text;
 using System.Xml;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace Banking.Framework
 {
@@ -37,7 +39,7 @@ namespace Banking.Framework
 
         public static int ToInt(this object? str)
         {
-            return Convert.ToInt32(str);
+            return !Convert.IsDBNull(str) ? Convert.ToInt32(str) : 0;
         }
     }
 

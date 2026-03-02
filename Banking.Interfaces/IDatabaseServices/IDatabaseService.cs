@@ -13,6 +13,9 @@ namespace Banking.Interfaces
             string MachineID = "", string ApplicationDate = "", string DayBeginEndStatusCheckYN = "",
             string glcode = "", string moduleid = "");
 
+        Task<DataTable> GetModuleId(string branchCode, string AllModulesYN = "", string UserID = "", string VouchingYN = "", string ModuleCondition = "");
+
+
         //Task<string> ModifyQueriedTrans(string TableName, string FldNames, string[] ArrValues, string wherecondition = "", string BranchCode = "",
         //    string UserCode = "", string MachineID = "");
 

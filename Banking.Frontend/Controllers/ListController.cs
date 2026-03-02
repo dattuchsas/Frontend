@@ -10,6 +10,7 @@ namespace Banking.Frontend.Controllers
         {
         }
 
+        // ServiceId
         [HttpGet]
         public async Task<IActionResult> GetServiceIdList(string searchString)
         {
@@ -18,10 +19,11 @@ namespace Banking.Frontend.Controllers
             return Json(list);
         }
 
+        // TellerModuleId or MatTellerModuleId or AutoTellerModuleId
         [HttpGet]
         public async Task<IActionResult> GetModuleIdList(string searchString)
         {
-            List<SelectListItem> list = await _listService.GetServiceList(searchString);
+            var list = await _listService.GetModuleId(searchString);
 
             return Json(list);
         }

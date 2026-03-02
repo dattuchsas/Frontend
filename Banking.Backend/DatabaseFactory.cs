@@ -1,7 +1,8 @@
-﻿using Banking.Models;
+﻿using Banking.Framework;
 using Banking.Interfaces;
+using Banking.Models;
+using System.Collections.Generic;
 using System.Data;
-using Banking.Framework;
 
 namespace Banking.Backend
 {
@@ -457,6 +458,35 @@ namespace Banking.Backend
             }
 
             return DataTransactionsRet;
+        }
+
+        public async Task<DataTable> GetModuleId(string branchCode, string AllModulesYN = "", string UserID = "", string VouchingYN = "", string ModuleCondition = "")
+        {
+            string strVouchCondition, strQuery = "";
+
+            string strBrcode = branchCode.Trim().ToUpper();
+            string strUser = string.IsNullOrWhiteSpace(UserID) ? "" : UserID.Trim().ToUpper();
+            string strOptModCond = string.IsNullOrWhiteSpace(ModuleCondition) ? "" : ModuleCondition.Trim();
+
+            if (!string.IsNullOrWhiteSpace(strOptModCond))
+                strOptModCond = " and " + strOptModCond;
+
+            // Please do not change this piece of code it will effect the list of modules
+            if (VouchingYN.Trim() == "" || VouchingYN.Trim().ToUpper() == "Y")
+                strVouchCondition = " and gmm.VOUCHINGYN='Y'"; // returns modules with transaction facility
+            else
+                strVouchCondition = ""; //returns all modules
+
+            if (AllModulesYN.Trim() == "" || AllModulesYN.Trim() == "Y")
+                strQuery = "Select gmt.ModuleID ModuleID,gmt.Narration Narration,gmm.Mastertable Mastertable from GenModuleTypesMST" + _dataLink + " gmt, genmodulemst" + 
+                    _dataLink + " gmm where trim(gmt.BranchCode)='" + strBrcode.Trim() + "' and upper(gmt.IMPLEMENTEDYN)='Y' and gmt.ModuleID = gmm.ModuleID " + 
+                    strVouchCondition + strOptModCond + " order by gmt.ModuleID";
+            else
+                strQuery = "Select ModuleID,Narration from GenModuleTypesMST" + _dataLink + "  where trim(BranchCode)='" + strBrcode.Trim() + 
+                    "' and upper(IMPLEMENTEDYN)='Y' and ModuleID in (select gmm.moduleid from genmodulemst" + _dataLink + " gmm where trim(gmm.mastertable)is not null " + 
+                    strVouchCondition + strOptModCond + " )" + strOptModCond + " order by ModuleID";
+
+            return await ProcessQueryAsync(strQuery);
         }
 
         //public async Task<string> ModifyQueriedTrans(string TableName, string FldNames, string[] ArrValues, string wherecondition = "", string BranchCode = "",

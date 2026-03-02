@@ -22,16 +22,20 @@ namespace Banking.Services
             _transactionalService = new TransactionalService(databaseSettings);
         }
 
-        public async Task<TransferTransactionModel> Get(ISession session, TransferTransactionModel model)
+        public async Task<TransferTransactionModel> Get(ISession session)
         {
-            model.Branch = session.GetString(SessionConstants.BranchCode);
-            model.BranchList = await _transactionalService.GetBranchCodesByUserId(session.GetString(SessionConstants.UserId));
+            TransferTransactionModel model = new()
+            {
+                Branch = session.GetString(SessionConstants.BranchCode),
+                BranchList = await _transactionalService.GetBranchCodesByUserId(session.GetString(SessionConstants.UserId))
+            };
 
             if (string.IsNullOrWhiteSpace(model.TransactionMode.ToString()))
                 model.TransactionMode = TransactionModes.Debit;
 
-            model.ServiceList = await _listService.GetServiceList(model.TransactionMode.ToString());
-            model.ModuleList = await _listService.GetModuleList();
+            string serviceCode = string.Concat("Service|", model.TransactionMode.ToString());
+
+            model.ServiceList = await _listService.GetServiceList(serviceCode);
 
             model.CheckABB = false;
             model.CheckCheque = false;
@@ -398,7 +402,7 @@ namespace Banking.Services
                 model.ApplicationDate = session.GetString(SessionConstants.ApplicationDate);
 
             model.CashierId = session.GetString("userid");
-            vPrec = session.GetString("precision");
+            model.Hidden_Precision = session.GetString("precision");
 
             model.BranchCode = session.GetString(SessionConstants.BranchCode);
             model.CurrencyCode = session.GetString(SessionConstants.CurrencyCode);
@@ -406,6 +410,7 @@ namespace Banking.Services
             model.CurrencyNarration = session.GetString(SessionConstants.CurrencyNarration);
             model.MachineId = session.GetString(SessionConstants.MachineId);
             model.ABBUser = session.GetString(SessionConstants.ABBUser);
+
             vModDir = session.GetString(SessionConstants.SelectedModule);
 
             if (!string.IsNullOrWhiteSpace(vModDir) && vModDir.ToUpper().Equals("CASH"))
@@ -523,6 +528,10 @@ namespace Banking.Services
 
             if (session.GetString(SessionConstants.SelectedModule) == "CLG")
                 model.Hidden_Title = "Clearing Inward Entry";
+
+            model.Hidden_ChequeValidPeriod = session.GetString(SessionConstants.ChequeValidPeriod);
+            model.Hidden_ChequeLength = session.GetString(SessionConstants.ChequeLength);
+            model.SelectedModule = session.GetString(SessionConstants.SelectedModule);
 
             return model;
         }

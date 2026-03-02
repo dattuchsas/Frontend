@@ -8,21 +8,20 @@
     <div class="card-header">
         <h3 class="mb-0 section-title">Transfers</h3>
     </div>
-    <div class="card-body">
-        <!--Radio / Check Box Selections Details-->
-        <div class="d-flex flex-wrap bg-body-tertiary p-2 mb-3 border rounded">
+    <div class="card-body pt-2">
+        <div class="d-flex flex-wrap bg-light px-2 pt-2 mb-2 border rounded">
             <div class="me-3 fw-bold">
                 @foreach (TransactionModes mode in Enum.GetValues(typeof(TransactionModes)))
                 {
                     <div class="form-check form-check-inline" id="@mode">
-                        <input type="radio" asp-for="TransactionMode" class="form-check-input module-checkbox" value="@mode" />
-                        <label class="form-check-label">@mode</label>
+                        <input asp-for="TransactionMode" type="radio" class="form-check-input module-checkbox" value="@mode" />
+                        <label asp-for="TransactionMode" class="form-check-label">@mode</label>
                     </div>
                 }
             </div>
             <div class="ms-auto">
                 <div class="form-check form-check-inline">
-                    <input asp-for="CheckABB" class="form-check-input module-checkbox" type="checkbox">
+                    <input asp-for="CheckABB" class="form-check-input module-checkbox" type="checkbox" />
                     <label asp-for="CheckABB" class="form-check-label">ABB</label>
                 </div>
                 <div class="form-check form-check-inline">
@@ -30,78 +29,84 @@
                     <label asp-for="CheckCheque" class="form-check-label">Cheque</label>
                 </div>
                 <div class="form-check form-check-inline">
-                    <input asp-for="CheckLinkModule" class="form-check-input module-checkbox" type="checkbox">
+                    <input asp-for="CheckLinkModule" class="form-check-input module-checkbox" type="checkbox" />
                     <label asp-for="CheckLinkModule" class="form-check-label">Link Module</label>
                 </div>
                 <div class="form-check form-check-inline">
-                    <input asp-for="CheckTransDetails" class="form-check-input module-checkbox" type="checkbox">
-                    <label asp-for="CheckTransDetails" class="form-check-label">Trans Dts</label>
+                    <input asp-for="CheckTransDetails" class="form-check-input module-checkbox" type="checkbox" />
+                    <label asp-for="CheckTransDetails" class="form-check-label">Trans Details</label>
                 </div>
                 <div class="form-check form-check-inline">
-                    <input asp-for="CheckDenoms" class="form-check-input module-checkbox" type="checkbox">
+                    <input asp-for="CheckDenoms" class="form-check-input module-checkbox" type="checkbox" />
                     <label asp-for="CheckDenoms" class="form-check-label">Denoms</label>
                 </div>
                 <div class="form-check form-check-inline">
-                    <input asp-for="CheckRateDetails" class="form-check-input module-checkbox" type="checkbox">
-                    <label asp-for="CheckRateDetails" class="form-check-label">Rate Dtls</label>
+                    <input asp-for="CheckRateDetails" class="form-check-input module-checkbox" type="checkbox" />
+                    <label asp-for="CheckRateDetails" class="form-check-label">Rate Details</label>
                 </div>
                 <div class="form-check form-check-inline">
-                    <input asp-for="CheckDenomsTally" class="form-check-input module-checkbox" type="checkbox">
+                    <input asp-for="CheckDenomsTally" class="form-check-input module-checkbox" type="checkbox" />
                     <label asp-for="CheckDenomsTally" class="form-check-label">Denom Tally</label>
                 </div>
             </div>
         </div>
-        <!--Search Selections-->
         <div class="row">
             <div class="col">
-                <div class="row align-items-end g-3">
-                    <div class="col-lg-5 col-xl-3">
+                <div class="row align-items-end gx-3 gy-2">
+                    <div class="col-md-6 col-lg-3 col-xl-3">
                         <label asp-for="Branch" class="form-label">Branch Code</label>
                         <select asp-for="Branch" asp-items="@Model.BranchList" class="form-select"></select>
                     </div>
-                    <div class="col-lg-7 col-xl-4">
-                        <label asp-for="AccountNumber" class="form-label">Account Number<span class="text-danger">*</span></label>
-                        <div class="input-group">
-                            <input asp-for="AccountNumber" type="text" class="form-control" placeholder="000-000000-0000000" maxlength="16">
-                            <button class="btn btn-primary" type="button" id="accountNumberSearch"><i class="bi bi-search"></i></button>
-                        </div>
-                    </div>
-                    <div class="col-lg-6 col-xl-5">
-                        <input asp-for="CustomerName" type="text" class="form-control" readonly>
-                    </div>
-                    <div class="col-md-6 col-lg-6 col-xl-3">
+                    <div class="col-md-6 col-lg-3 col-xl-3">
                         <label asp-for="ServiceCode" class="form-label">Service Id</label>
                         <select asp-for="ServiceCode" asp-items="@Model.ServiceList" class="form-select"></select>
                     </div>
-                    <div class="col-md-6 col-lg-4 col-xl-3">
-                        <label asp-for="Module" class="form-label">Module ID</label>
-                        <select asp-for="Module" asp-items="@Model.ModuleList" class="form-select"></select>
+                    <div class="col-md-6 col-lg-3 col-xl-3">
+                        <label asp-for="ModuleCode" class="form-label">Module ID</label>
+                        <select asp-for="ModuleCode" asp-items="@Model.ModuleList" class="form-select"></select>
                     </div>
-                    <div class="col-md-6 col-lg-4 col-xl-3">
-                        <label asp-for="AccountType" class="form-label">Acccount Type</label>
-                        <input asp-for="AccountType" type="text" class="form-control" readonly>
+                    <div class="col-md-6 col-lg-3 col-xl-3">
+                        <label asp-for="GLCode" class="form-label">GL Code</label>
+                        <select asp-for="GLCode" asp-items="@Model.GLCodeList" class="form-select"></select>
                     </div>
-                    <div class="col-md-6 col-lg-4 col-xl-3">
+                    <div class="col-md-4 col-lg-3 col-xl-3">
+                        <label asp-for="AccountNumber" class="form-label">Account Number<span class="text-danger">*</span></label>
+                        <div class="input-group">
+                            <input asp-for="AccountNumber" type="text" class="form-control" />
+                            <button class="btn btn-sm btn-primary" type="button" id="accountNumberSearch"><i class="bi bi-search"></i></button>
+                        </div>
+                    </div>
+                    <div class="col-md-8 col-lg-6 col-xl-6">
+                        <label class="form-label">Name</label>
+                        <div class="input-group">
+                            <input asp-for="CustomerName" type="text" class="form-control" readonly />
+                            <a href="Account-Details.html" target="_blank" class="btn btn-sm btn-primary"
+                               type="button">D</a>
+                        </div>
+                    </div>
+                    <div class="col-md-6 col-lg-3 col-xl-3">
                         <label asp-for="EffectiveDate" class="form-label">Effective Date</label>
-                        <input asp-for="EffectiveDate" type="text" class="form-control">
+                        <div class="input-group date" data-provide="datepicker">
+                            <input asp-for="EffectiveDate" type="text" class="form-control">
+                            <div class="input-group-addon input-group-text">
+                                <img src="~/images/datepicker_icon.svg" width="24">
+                            </div>
+                        </div>
                     </div>
-                    <div class="col-md-6 col-lg-4 col-xl-3">
+                    <div class="col-md-6 col-lg-3 col-xl-3">
                         <label asp-for="Amount" class="form-label">Amount <span class="text-danger">*</span></label>
-                        <input asp-for="Amount" type="text" class="form-control text-end" value="0.00">
+                        <div class="input-group">
+                            <input asp-for="Amount" type="text" class="form-control text-end" />
+                            <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#TDSBackdrop">TDS</button>
+                        </div>
                     </div>
-                    <div class="col-md-6 col-lg-4 col-xl-3">
-                        <button type="button" class="btn btn-primary mb-2 mb-sm-0" data-bs-toggle="modal"
-                                data-bs-target="#TDSBackdrop">
-                            TDS
-                        </button>
-                        <button type="button" class="btn btn-primary mb-2 mb-sm-0" data-bs-toggle="modal"
-                                data-bs-target="#AccDetBackdrop">
-                            AccDet
-                        </button>
-                    </div>
-                    <div class="col-lg-4 col-xl-6">
+                    <div class="col-md-8 col-lg-6 col-xl-6">
                         <label asp-for="Narration" class="form-label">Narration</label>
-                        <input asp-for="Narration" type="text" class="form-control">
+                        <input asp-for="Narration" type="text" class="form-control" />
+                    </div>
+                    <div class="col-md-4 col-lg-3 col-xl-3">
+                        <a href="#" target="_self" class="btn btn-w-auto btn-primary">Ok</a>
+                        <a href="#" target="_self" class="btn btn-w-auto btn-primary">Clear</a>
                     </div>
                 </div>
             </div>
@@ -116,103 +121,302 @@
                 </div>
             </div>
         </div>
-@*         <!-- Display Details-->
-        @Html.RenderPartialAsync("Display", Model)
-
-        <!-- Remittence Details -->
-        @Html.RenderPartialAsync("Remmitance", Model)
-
-        <!-- Recurring Deposit -->
-        @Html.RenderPartialAsync("Recurring", Model) *@
-
         <!--Cheque Details-->
-        <div id="cheque" class="card d-none mt-3">
-            <div class="card-body">
-                <p class="card-title fw-bold">
-                    <h5>Cheque Details</h5>
-                    <div class="row g-3">
-                        <div class="col-sm-6 col-md-3">
-                            <label class="form-label">Cheque Type</label>
-                            <select class="form-select" readonly="">
-                                <option selected="">Select</option>
-                            </select>
-                        </div>
-                        <div class="col-sm-6 col-md-3">
-                            <label asp-for="ChequeNo" class="form-label">Cheque No</label>
-                            <input asp-for="ChequeNo" type="text" class="form-control">
-                        </div>
-                        <div class="col-sm-6 col-md-3">
-                            <label asp-for="ChequeDate" class="form-label">Cheque Dt.</label>
-                            <input asp-for="ChequeDate" type="date" class="form-control">
-                        </div>
-                        <div class="col-sm-6 col-md-3">
-                            <label asp-for="ChequeFavouring" class="form-label">Cheque Fav.</label>
-                            <input asp-for="ChequeFavouring" type="text" class="form-control">
-                        </div>
-                    </div>
+        <div id="cheque" class="d-none">
+            <hr />
+            <div class="row gx-3 gy-2">
+                <div class="col-sm-6 col-md-3 col-xl-2">
+                    <label class="form-label">Check Type</label>
+                    <select class="form-select" readonly="">
+                        <option selected="">Select</option>
+                    </select>
+                </div>
+                <div class="col-sm-6 col-md-3 col-xl-2">
+                    <label asp-for="ChequeNo" class="form-label">Cheque No</label>
+                    <input asp-for="ChequeNo" type="text" class="form-control">
+                </div>
+                <div class="col-sm-6 col-md-3 col-xl-2">
+                    <label asp-for="ChequeDate" class="form-label">Cheque Dt.</label>
+                    <input asp-for="ChequeDate" type="date" class="form-control">
+                </div>
+                <div class="col-sm-6 col-md-3 col-xl-2">
+                    <label asp-for="ChequeFavouring" class="form-label">Cheque Fav.</label>
+                    <input asp-for="ChequeFavouring" type="text" class="form-control">
+                </div>
             </div>
         </div>
-        <div class="pt-3 text-center">
-            <a href="#" target="_self" class="btn btn-primary mb-2">Ok</a>
-            <a href="#" target="_self" class="btn btn-primary mb-2">Clear</a>
+        <hr />
+        <!--Search Selections Details-->
+        <div class="service-box mt-2" id="saving">
+            <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3  row-cols-lg-4 row-cols-xl-5 gx-3 gy-2">
+                <div class="col">
+                    <label class="form-label">Clear Bal</label>
+                    <div>9173.09</div>
+                </div>
+                <div class="col">
+                    <label class="form-label">Unclear Bal</label>
+                    <div>9173.09</div>
+                </div>
+                <div class="col">
+                    <label class="form-label">Acc Bal</label>
+                    <div>9173.09</div>
+                </div>
+                <div class="col">
+                    <label class="form-label">Oper. Instr</label>
+                    <div>Self</div>
+                </div>
+                <div class="col">
+                    <label class="form-label">Oper. by</label>
+                    <div>Manthena Muralikrishna</div>
+                </div>
+                <div class="col">
+                    <label class="form-label">Pend Bal.</label>
+                    <div>0.00</div>
+                </div>
+                <div class="col">
+                    <label class="form-label">Customer Id</label>
+                    <div>1010003770</div>
+                </div>
+                <div class="col">
+                    <label class="form-label">Limit Amt.</label>
+                    <div></div>
+                </div>
+                <div class="col">
+                    <label class="form-label">TotCashDr</label>
+                    <div>165000.00</div>
+                </div>
+                <div class="col">
+                    <label class="form-label">TotCashCr</label>
+                    <div>850000.00</div>
+                </div>
+                <div class="col">
+                    <label class="form-label">LmtExpDt</label>
+                    <div></div>
+                </div>
+                <div class="col">
+                    <label class="form-label">GSTIN</label>
+                    <div></div>
+                </div>
+            </div>
+        </div>
+        <!--Loans Selections Details-->
+        <div class="service-box d-none mt-2" id="loan">
+            <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3  row-cols-lg-4 row-cols-xl-5 gx-3 gy-2">
+                <div class="col">
+                    <label class="form-label">Sanction Amt.</label>
+                    <div>68000.00</div>
+                </div>
+                <div class="col">
+                    <label class="form-label">Acc Bal</label>
+                    <div>-79982.09</div>
+                </div>
+                <div class="col">
+                    <label class="form-label">Disbursed Amt</label>
+                    <div>68000.00</div>
+                </div>
+                <div class="col">
+                    <label class="form-label">Clear Bal</label>
+                    <div>9173.09</div>
+                </div>
+                <div class="col">
+                    <label class="form-label">Unclear Bal</label>
+                    <div>0.00</div>
+                </div>
+                <div class="col">
+                    <label class="form-label">Available</label>
+                    <div>0.00</div>
+                </div>
+                <div class="col">
+                    <label class="form-label">Oper. by</label>
+                    <div>Manthena Muralikrishna</div>
+                </div>
+                <div class="col">
+                    <label class="form-label">Pend Bal.</label>
+                    <div>0.00</div>
+                </div>
+                <div class="col">
+                    <label class="form-label">Customer Id</label>
+                    <div>1010003770</div>
+                </div>
+                <div class="col">
+                    <label class="form-label">Pend Int Amt.</label>
+                    <div></div>
+                </div>
+                <div class="col">
+                    <label class="form-label">Inst Amt</label>
+                    <div>5962.00</div>
+                </div>
+                <div class="col">
+                    <label class="form-label">NoOfPndlns</label>
+                    <div>13</div>
+                </div>
+                <div class="col">
+                    <label class="form-label">NPA Int Amt</label>
+                    <div></div>
+                </div>
+            </div>
+            <hr>
+            <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3  row-cols-lg-4 row-cols-xl-5 gx-3 gy-2">
+                <div class="col">
+                    <label class="form-label">Int Pending</label>
+                    <input type="text" class="form-control">
+                </div>
+                <div class="col">
+                    <label class="form-label">Int Amt</label>
+                    <input type="text" class="form-control">
+                </div>
+                <div class="col">
+                    <label class="form-label">Chrg Pending</label>
+                    <input type="text" class="form-control">
+                </div>
+                <div class="col">
+                    <label class="form-label">Chrg Amt</label>
+                    <input type="text" class="form-control">
+                </div>
+                <div class="col">
+                    <label class="form-label">Insur Pending</label>
+                    <input type="text" class="form-control">
+                </div>
+                <div class="col">
+                    <label class="form-label">Insur Amt</label>
+                    <input type="text" class="form-control">
+                </div>
+                <div class="col">
+                    <label class="form-label">NPA Pending</label>
+                    <input type="text" class="form-control">
+                </div>
+                <div class="col">
+                    <label class="form-label">NPA Amt</label>
+                    <input type="text" class="form-control">
+                </div>
+                <div class="col">
+                    <label class="form-label">PrincPending</label>
+                    <input type="text" class="form-control">
+                </div>
+                <div class="col">
+                    <label class="form-label">PrincAmt</label>
+                    <input type="text" class="form-control">
+                </div>
+                <div class="col">
+                    <label class="form-label">Reserve</label>
+                    <input type="text" class="form-control">
+                </div>
+                <div class="col">
+                    <label class="form-label">Exc Amt</label>
+                    <input type="text" class="form-control">
+                </div>
+            </div>
+        </div>
+        <!--Remittence Selections Details-->
+        <div class="service-box d-none" id="rem">
+            <div class="row align-items-end gx-3 gy-2">
+                <div class="col-sm-6  col-lg-3 col-xl-2">
+                    <label class="form-label">Issued on Bank</label>
+                    <select class="form-select">
+                        <option selected="">101 - The Maharaja Coop</option>
+                    </select>
+                </div>
+                <div class="col-sm-6  col-lg-3 col-xl-2">
+                    <label for="Cust-Type" class="form-label">Issued on Branch</label>
+                    <select class="form-select">
+                        <option selected="">101 - Dwarakanagar</option>
+                    </select>
+                </div>
+                <div class="col-sm-6 col-md-4  col-lg-3 col-xl-2">
+                    <label class="form-label">Favouring.</label>
+                    <input type="text" class="form-control">
+                </div>
+                <div class="col-sm-6 col-md-4  col-lg-3 col-xl-2">
+                    <label class="form-label">Comm.</label>
+                    <input type="text" class="form-control">
+                </div>
+                <div class="col-sm-6 col-md-4  col-lg-3 col-xl-2">
+                    <label class="form-label">Rec. Nam</label>
+                    <select class="form-select">
+                        <option selected="">Select</option>
+                    </select>
+                </div>
+                <div class="col-sm-6 col-md-4  col-lg-3 col-xl-2">
+                    <label class="form-label">GST</label>
+                    <input type="text" class="form-control">
+                </div>
+                <div class="col-sm-6 col-md-4  col-lg-3 col-xl-2">
+                    <label class="form-label">CESS</label>
+                    <input type="text" class="form-control">
+                </div>
+                <div class="col-sm-6 col-md-4  col-lg-3 col-xl-2">
+                    <label class="form-label">Pan No</label>
+                    <input type="text" class="form-control">
+                </div>
+                <div class="col-sm-6 col-md-4  col-lg-3 col-xl-2">
+                    <label class="form-label">Mobile</label>
+                    <input type="text" class="form-control">
+                </div>
+                <div class="col-sm-6 col-md-8  col-lg-3 col-xl-2">
+                    <label class="form-label">Address1</label>
+                    <input type="text" class="form-control">
+                </div>
+                <div class="col-sm-6  col-lg-3 col-xl-2">
+                    <label class="form-label">Addr.2</label>
+                    <input type="text" class="form-control">
+                </div>
+                <div class="col-sm-6  col-lg-3 col-xl-2">
+                    <label class="form-label">Addr.3</label>
+                    <input type="text" class="form-control">
+                </div>
+            </div>
         </div>
         <!--Batch Details-->
-        <div class="card mt-2">
-            <div class="card-body">
-                <div class="table-responsive">
-                    <table class="table table-bordered">
-                        <thead>
-                            <tr>
-                                <th>Batch No</th>
-                                <th>Tran No</th>
-                                <th>GL Code</th>
-                                <th>GL Description</th>
-                                <th>Acc No</th>
-                                <th>Name</th>
-                                <th>Amount</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td></td>
-                                <td></td>
-                                <td></td>
-                                <td></td>
-                                <td></td>
-                                <td></td>
-                                <td></td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-                <div class="row align-items-end justify-content-md-center g-3">
-                    <div class="col-sm-6 col-md-3 col-lg-2">
-                        <label asp-for="DebitTransactions" class="form-label">Dr. Transactions</label>
-                        <input asp-for="DebitTransactions" type="text" class="form-control text-danger text-end" readonly>
-                    </div>
-                    <div class="col-sm-6 col-md-3 col-lg-2">
-                        <label asp-for="CreditTransactions" class="form-label">Cr. Transactions</label>
-                        <input asp-for="CreditTransactions" type="text" class="form-control text-end" readonly>
-                    </div>
-                    <div class="col-md-3 col-lg-4">
-                        <label asp-for="Total" class="form-label">Total</label>
-                        <div class="d-flex align-items-center">
-                            <div class="flex-grow-1 me-1">
-                                <input asp-for="Total" type="text" class="form-control text-end" readonly>
-                            </div>
-                            <div class="flex-grow-1 ms-1">
-                                <input asp-for="Total" type="text" class="form-control text-end" readonly>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-sm-6 col-md-3 col-lg-2">
-                        <label asp-for="Difference" class="form-label">Difference</label>
-                        <input asp-for="Difference" type="text" class="form-control text-end" readonly>
-                    </div>
-                </div>
+        <div class="table-responsive mt-3">
+            <table class="table table-bordered">
+                <thead>
+                    <tr>
+                        <th>Batch No</th>
+                        <th>Tran No</th>
+                        <th>GL Code</th>
+                        <th>GL Description</th>
+                        <th>Acc No</th>
+                        <th>Name</th>
+                        <th>Amount</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 row-cols-xl-5 gx-3 gy-2">
+            <div class="col">
+                <label asp-for="DebitTransactions" class="form-label">Dr. Transactions</label>
+                <div class="text-danger">@Model.DebitTransactions</div>
+            </div>
+            <div class="col">
+                <label asp-for="CreditTransactions" class="form-label">Cr. Transactions</label>
+                <div>@Model.CreditTransactions</div>
+            </div>
+            <div class="col">
+                <label asp-for="DebitTotal" class="form-label">Dr. Total</label>
+                <div>@Model.DebitTransactions</div>
+            </div>
+            <div class="col">
+                <label asp-for="CreditTotal" class="form-label">Cr. Total</label>
+                <div>@Model.CreditTransactions</div>
+            </div>
+            <div class="col">
+                <label asp-for="Difference" class="form-label">Difference</label>
+                <div>@Model.Difference</div>
             </div>
         </div>
-        <div class="text-center pt-4">
+        <hr class="my-3">
+        <div class="text-center">
             <a href="#" target="_self" class="btn btn-primary mb-2">Post</a>
             <a href="#" target="_self" class="btn btn-primary mb-2">Modify</a>
             <a href="#" target="_self" class="btn btn-primary mb-2">Delete</a>
@@ -221,6 +425,7 @@
         </div>
     </div>
 </div>
+
 
 <input type="hidden" asp-for="UserId" />
 <input type="hidden" asp-for="ABBUser" />
@@ -233,5 +438,14 @@
 <input type="hidden" asp-for="CurrencyCode" />
 <input type="hidden" asp-for="CurrencyNarration" />
 <input type="hidden" asp-for="MachineId" />
+
+<input type="hidden" asp-for="Hidden_194NCustomerId" />
+
+<input type="hidden" asp-for="Hidden_Mode" />
+<input type="hidden" asp-for="Hidden_SubMode" />
+<input type="hidden" asp-for="Hidden_ChequeValidPeriod" />
+<input type="hidden" asp-for="Hidden_ChequeLength" />
+<input type="hidden" asp-for="Hidden_Precision" />
+<input type="hidden" asp-for="SelectedModule" />
 
 <script asp-append-version="true" src="~/js/app/transaction.js"></script>

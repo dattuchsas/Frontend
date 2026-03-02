@@ -15246,18 +15246,10 @@ namespace Banking.Services
 
             //     rs = obj.singlerecordset("GENCURRENCYTYPEMST", "currencycode,narration,precision")
 
-
-
             //elseif left(strType,12)= "Tellermodule" then
-
             //    obj = server.CreateObject("GeneralTranQueries.TransactionQueries")
-
-
             //    k = split(strType, "|")
-
-
             //     rs = obj.ModuleID(cstr(k(1)), "")
-
 
             //elseif left(strType,11)= "Telleraccno" then
 
@@ -17142,15 +17134,14 @@ namespace Banking.Services
 //        window.close()
                     
 //    }
-//                    ////---------------------------------------------------------------------------------
-//                    //-----ServiedId
+
+//                    // ServiedId
 //                    else if (type.substring(0, 7) == "Service")
 //                    {
 //                        callerWindowObj.ServiceCode(kstr)
-                    
-//      window.close()
+//                        window.close()
 //                    }
-//                    //----ServiceId Ends
+
 //                    //-----Link Module  
 //                    else if (type.substring(0, 9) == "LnkModule")
 //                    {
@@ -17381,42 +17372,15 @@ namespace Banking.Services
             //elseif left(strType,5)= "Curr1" OR left(strType,5)= "Curr2" OR left(strType,5)= "Curr3" OR left(strType,5)= "Curr4"  then
             //   k = split(strType, "|")
             //   rs = obj.singlerecordset("GENCURRENCYTYPEMST", "currencycode,narration,precision", cstr(k(1)))
+
             //elseif strType = "Module" or strType = "Module1" or strType = "Module2" or strType = "Module3" or strType = "Module4" or strType = "Module5" or strType = "Module6" then
             //    rs = obj.singlerecordset("genmoduletypesmst", "moduleid,Narration", "implementedyn='Y'")
-            //elseif left(strType,14)= "TellermoduleID" or left(strType,17)= "MatTellermoduleID" or left(strType,18)= "AutoTellermoduleID" then
-            //dim strWhcon
-            //    obj = server.CreateObject("GeneralTranQueries.TransactionQueries")
-
-
-            //    k = split(strType, "|")
-
-
-            //    if cstr(k(2)) = "1" then
-
-
-            //        'rs=obj.ModuleID(cstr(k(1)))
-
-            //        strWhcon = " gmt.MODULEID in ('SB','CA','LOAN','MISC','CC','INV','PL','REM')"
-
-            //        rs = obj.ModuleID(cstr(k(1)), "Y", "", "", strWhcon)
-
-
-            //    elseif cstr(k(2))= "2" then
-            //        strWhcon = " MODULEID in ('SB','CA','DEP') "
-
-            //        rs = obj.ModuleID(cstr(k(1)), "N", "", "", strWhcon)
-
-            //    end if
-
-
 
             //elseif left(strType, 5) = "Accno" then
             //    dim objTrn
             //    objTrn = Server.CreateObject("GeneralTranQueries.TransactionQueries")
             //    rs = objTrn.AccountNumbers(cstr(brchCd), cstr(Modid), cstr(atype))
-
             //    objTrn = nothing
-
 
             //elseif left(strType,6)= "CustID" then
             //    stname = left(strType, 4)
@@ -18325,36 +18289,26 @@ namespace Banking.Services
 //                    else if (type.substring(0, 12) == "AutoTrglcode")
 //                    {
 //                        callerWindowObj.TrGlidAuto(str);
-//                        window.close()
 //                    }
 //                    else if (type.substring(0, 5) == "Curr4")
 //                    {
 //                        callerWindowObj.Currid4(str);
-//                        window.close()
 //                    }
 //                    else if (type == "Module")
 //                    {
 //                        callerWindowObj.Moduleid(str);
-//                        window.close()
 //                    }
 //                    else if (type.substring(0, 14) == "TellermoduleID")
 //                    {
-//                        window.close()
-                    
-//    callerWindowObj.modulecode(str)
+//                        callerWindowObj.modulecode(str)
 //                    }
-
 //                    else if (type.substring(0, 17) == "MatTellermoduleID")
 //                    {
-//                        window.close()
-                    
-//    callerWindowObj.modulecodeMat(str)
+//                        callerWindowObj.modulecodeMat(str)
 //                    }
 //                    else if (type.substring(0, 18) == "AutoTellermoduleID")
 //                    {
-//                        window.close()
-                    
-//    callerWindowObj.modulecodeAuto(str)
+//                        callerWindowObj.modulecodeAuto(str)
 //                    }
 //                    else if (type == "BankCodes")
 //                    {
@@ -18649,8 +18603,6 @@ namespace Banking.Services
 //                        callerWindowObj.Cashiercd(str);
 //                        window.close()
 //                    }
-//                    //---------------
-
 //                    else if (type.substring(0, 12) == "Tellermodule")
 //                    {
 //                        //window.attachEvent(window.opener.modulecode(str))
