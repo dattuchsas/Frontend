@@ -27,6 +27,9 @@ namespace Banking.Models
         public string? GLCode { get; set; }
         public List<SelectListItem>? GLCodeList { get; set; }
 
+        public string? CategoryCode { get; set; }
+        public List<SelectListItem>? CategoryList { get; set; }
+
         public string? AccountType { get; set; }
         public string? ApplicationName { get; set; }
         public DateTime? EffectiveDate { get; set; }
@@ -156,8 +159,7 @@ namespace Banking.Models
     public enum TransactionModes
     {
         Debit,
-        Credit,
-        Clearing
+        Credit
     }
 
     public class TransferTransactionComponents

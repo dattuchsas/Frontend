@@ -21,6 +21,7 @@ $(function () {
   var vPrecision = $("#Hidden_Precision").val();
 
   $("#Branch").prop('disabled', true);
+  $("#GLCode").prop('readonly', true);
   $("#Clearing").hide();
 
   ABBYesNo();
@@ -32,13 +33,14 @@ $(function () {
   Denom(vMode);
   OnFocus(vSelectedModule);
 
+  // ServiceCode(vMode, mode);
+
   var mode = "ADD";
 
   $("#ServiceCode").on('change', function () {
     debugger;
-    // ServiceCode(vMode, mode);
-    // ControlOnBlur('ServiceCode', vUserId, vServiceCode, vModuleCode, vGLCode, vAccNo, vCurrencyCode, vBrCode);
-    ModuleList(bdt, vSelectedModule, vMode);
+    ControlOnBlur('ServiceCode');
+    //ModuleList(bdt, vSelectedModule, vMode);
   });
 
   $("#CheckDenoms").prop('disabled', true);
@@ -52,7 +54,7 @@ $(function () {
     var vAccNo = $("#AccountNumber").val();
     var vServiceId = $("#ServiceCode").val();
 
-    ControlOnBlur('AccountNumber', vModuleId, vGLCode, vAccNo, vCurrencyCode, vBrCode);
+    ControlOnBlur('AccountNumber');
     AccountParameters(vAccNo, 'ACCNO', vModuleId, vAppDate, vBrCode);
 
     BalanceDetails(vServiceId, vBrCode, vModuleId, vGLCode, vAccNo, vCurrencyCode);
@@ -86,7 +88,7 @@ $(function () {
   //  window.document.all['divRadClg'].style.display = "block";
   //}
 
-  //$("#TransactionMode").on("change click", function () {
+  //$("#TransactionMode input[type='checkbox']:checked").on("change click", function () {
   //  TranMode(vMode, bdt);
   //  ModeChange(bdt);
   //});
@@ -96,6 +98,37 @@ $(function () {
   //if (mode != "MODIFY") {
   //  excpIntValues();
   //}
+
+  $(".glcode").on('click', function () {
+    debugger;
+    GLCode();
+  });
+
+  $("#searchValue").on('blur', function () {
+    debugger;
+    var kstr = "TellGlaccno|" + $("#ModuleCode").val() + "|" + $("#Branch").val();
+
+    $.ajax({
+      url: '/List/ListGLQuery',
+      type: 'GET',
+      data: {
+        searchString: kstr,
+        hidsearch: $("#searchOptions option:selected").val() + "|" + $("#searchValue").val()
+      },
+      success: function (response) {
+        debugger;
+        var str = response[0].value + " - " + response[0].text;
+        $('#GLCode').val(str);
+        $('#GLCodeListPopup').modal('hide');
+        $("#GLCodeListPopup").fadeOut();
+        $('#myModal').modal('hide');
+        $('.modal-backdrop').remove();
+      },
+      error: function (err) {
+        HandleAjaxError(err);
+      }
+    });
+  });
 });
 
 function ABBYesNo() {
@@ -259,20 +292,25 @@ function Denom(vMode) {
 }
 
 function OnFocus(vSelectedModule) {
-  if (vSelectedModule.toUpperCase() == "CLG")
-  {
+  if (vSelectedModule.toUpperCase() == "CLG") {
     $("input[name='TransactionMode'][value='Clearing']").prop('checked', true);
     CLGDivCrDr();
   }
 }
 
-function ControlOnBlur(txtName, vUserid, vServiceCode, vModuleCode, vGLCode, vAccNo, vCurrencyCode, vBrCode) {
+function ControlOnBlur(txtName) { // , vUserid, vModuleCode, vGLCode, vAccNo, vCurrencyCode, vBrCode) {
   var strVal = "", strWhr = "";
   debugger;
+
+  var vBranchCode = $("#Branch").val();
+  var vModuleCode = $("#ModuleCode").val().toUpperCase();
+  var vGLCode = $("#GLCode").val().split("-")[0];
+  var vAccNo = $("#AccountNumber").val();
+  var vServiceCode = $("#ServiceCode").val();
+
   if ($("#" + txtName + "").val() == "") {
     return;
   }
-
   if (txtName == "Branch") {
     if (vUserid != "" && vBrCode != "") {
       strVal = "COMP" + "~!~" + "txtbranchdesc" + "~!~" + vBrCode + "~!~" + vUserid;
@@ -289,10 +327,10 @@ function ControlOnBlur(txtName, vUserid, vServiceCode, vModuleCode, vGLCode, vAc
     AbbApplDtBr()
   }
   else if (txtName == "AccountNumber") {
-    if (vBrCode != "" && vModuleCode != "" && vGLCode != "" && vAccNo != "") {
-      strVal = "COMP" + "~!~" + "txtAccNm" + "~!~" + vBrCode + "~!~" + vModuleCode + "~!~" + vGLCode + "~!~" + vAccNo
+    if (vBranchCode != "" && vModuleCode != "" && vGLCode.trim() != "" && vAccNo != "") {
+      strVal = "COMP" + "~!~" + "txtAccNm" + "~!~" + vBranchCode + "~!~" + vModuleCode + "~!~" + vGLCode + "~!~" + vAccNo;
       if (vModuleCode == 'SCR')
-        strVal = strVal + "~!~" + vCurrencyCode
+        strVal = strVal + "~!~" + vCurrencyCode;
     }
     if (vModuleCode == "SCR") {
       SuspenseDetails(st[1], vModuleCode, vBranchCode, vMode);
@@ -310,6 +348,39 @@ function ControlOnBlur(txtName, vUserid, vServiceCode, vModuleCode, vGLCode, vAc
 
   if (strVal != "") {
     strVal = txtName + "~!~" + strVal;
+    var ins = strVal.split("~!~");
+    debugger;
+    $.ajax({
+      url: '/List/GenOnBlur?searchString=' + encodeURIComponent(strVal),
+      type: 'GET',
+      success: function (response) {
+        debugger;
+        GetOnBlur(response, ins[4]);
+      },
+      error: function (err) {
+        HandleAjaxError(err);
+      }
+    });
+
+    //$.ajax({
+    //  url: '/List/GenOnBlur?searchString=' + encodeURIComponent(strVal),
+    //  type: 'GET',
+    //  success: function (data) {
+    //    debugger;
+    //    alert(data);
+    //    //  var dropdown = $('#ServiceCode');
+    //    //  dropdown.empty();
+    //    //  dropdown.append('<option value="">Select</option>');
+
+    //    //  $.each(data, function (i, item) {
+    //    //    dropdown.append('<option value="' + item.value + '">' + item.text + '</option>');
+    //    //  });
+    //  },
+    //  error: function (err) {
+    //    HandleAjaxError(err);
+    //  }
+    //});
+
     // window.document.all['iGeneral'].src = "http://GEN/genonblur.aspx?strParam=" + strVal;
   }
 
@@ -742,13 +813,13 @@ function ControlOnBlur(txtName, vUserid, vServiceCode, vModuleCode, vGLCode, vAc
 }
 
 function ModuleList(bdt, selectedModule, vMode) {
-  debugger;
-  var transMode = $("#TransactionMode").val();
+
+  var transMode = $("#TransactionMode:checked").val();
 
   if (bdt.toUpperCase() == "TRUE")
     return;
 
-  if ((selectedModule == 'CLG') && (transMode == 'Clearing')) {
+  if ((selectedModule == "CLG") && (transMode == "Clearing")) {
     //if ((window.document.frmTrans.cmdcleartype.value == "Select") || (window.document.frmTrans.cmdcleartype.value == "")) {
     //    bankingAlert("Please select Clearing Type.")
     //    window.document.frmTrans.cmdcleartype.focus()
@@ -765,31 +836,25 @@ function ModuleList(bdt, selectedModule, vMode) {
     return;
   }
 
-  var stmod, stbr;
-
   if (eval($("#ServiceCode").val()) == "2") {
-    stmod = "TellerModuleId";
-    stbr = $("#Branch").val().toUpperCase();
-    var strServiceId = $("#ServiceCode").val();
-    kstr = stmod + "|" + stbr + "|" + strServiceId;
 
     if (transMode != "Clearing") {
       $("#CheckCheque").prop('checked', false);
     }
 
+    var kstr = "TellerModuleId|" + $("#Branch").val().toUpperCase() + "|" + $("#ServiceCode").val();
+
+    debugger;
+
     $.ajax({
-      url: '/List/GetModuleIdList?searchString=' + encodeURIComponent(st),
+      url: '/List/GetModuleIdList?searchString=' + encodeURIComponent(kstr),
       type: 'GET',
       success: function (data) {
         debugger;
-        alert(data);
-        //  var dropdown = $('#ServiceCode');
-        //  dropdown.empty();
-        //  dropdown.append('<option value="">Select</option>');
-
-        //  $.each(data, function (i, item) {
-        //    dropdown.append('<option value="' + item.value + '">' + item.text + '</option>');
-        //  });
+        BindDropdown($('#ModuleCode'), response);
+      },
+      error: function (err) {
+        HandleAjaxError(err);
       }
     });
 
@@ -802,21 +867,11 @@ function ModuleList(bdt, selectedModule, vMode) {
     }
 
     $.ajax({
-      url: '/List/GetModuleIdList',
+      url: '/List/GetModuleIdList?searchString=' + encodeURIComponent(st),
       type: 'GET',
-      data: {
-        searchString: encodeURIComponent(st)
-      },
       success: function (response) {
         debugger;
-        alert(response);
-        //  var dropdown = $('#ServiceCode');
-        //  dropdown.empty();
-        //  dropdown.append('<option value="">Select</option>');
-
-        //  $.each(data, function (i, item) {
-        //    dropdown.append('<option value="' + item.value + '">' + item.text + '</option>');
-        //  });
+        BindDropdown($('#ModuleCode'), response);
       },
       error: function (err) {
         debugger;
@@ -827,6 +882,400 @@ function ModuleList(bdt, selectedModule, vMode) {
     // window.showModalDialog('<%="http://" & session("moduledir")& "/GEN/"%>' + "TranList.aspx" + "?" + "st=" + kstr)
   }
 }
+
+function GetOnBlur(strdt, pmodid) {
+  var txtName = strdt.split("~|");
+
+  if ((txtName[2] == "C") || (txtName[2] == "T") || (txtName[2] == "J") || (txtName[2] == "F")) {
+    // var pmodid = '<%=insstr(4)%>';
+    if ((pmodid == "SB") || (pmodid == "CA") || (pmodid == "CC") || (pmodid == "LOAN") || (pmodid == "DEP")) {
+      var statusdes, statusdesc1;
+      if (txtName[2] == "C") {
+        statusdesc = "Closed";
+      }
+      else if (txtName[2] == "T") {
+        statusdesc = "Inoperative";
+      }
+      else if (txtName[2] == "J") {
+        statusdesc = "Rejected";
+      }
+      else if (txtName[2] == "F") {
+        statusdesc = "Frozen";
+      }
+      statusdesc1 = "Acc No Is " + statusdesc;
+      alert(statusdesc1);
+      window.parent.window.document.frmTrans.item(txtName[0]).value = "";
+      window.parent.window.document.frmTrans.item(txtName[1]).value = "";
+      return;
+    }
+  }
+  if (txtName[2] == "P") {
+    alert("Master Approval Is Pending");
+    window.parent.window.document.frmTrans.item(txtName[0]).value = "";
+    window.parent.window.document.frmTrans.item(txtName[1]).value = "";
+    return;
+  }
+  if (txtName[2] != "NoRecords") {
+    if (txtName[0] == "txtModId")
+      window.parent.window.document.frmTrans.txtModDesc.value = txtName[2];
+    else
+      window.parent.window.document.frmTrans.item(txtName[1]).value = txtName[2];
+  }
+  else {
+    alert("No Records Found");
+    window.parent.window.document.frmTrans.item(txtName[0]).value = "";
+    window.parent.window.document.frmTrans.item(txtName[1]).value = "";
+  }
+  ReturnedBack(txtName[0]);
+}
+
+function ReturnedBack(str) {
+  if (str == "txtGLcode") {
+    if (window.document.frmTrans.tranmode[2].checked == true) {
+      if (window.document.frmTrans.txtModId.value == "REM") {
+        window.document.frmTrans.txtinstrno.focus();
+      }
+    }
+    else {
+      if (window.document.frmTrans.txtModId.value == "REM") {
+        if (window.document.frmTrans.txtGLDesc.value != "") {
+          window.document.frmTrans.txtAmt.focus();
+          window.document.frmTrans.txtAmt.value = "0.00";
+          window.document.frmTrans.txtAmt.select();
+        }
+      }
+      else {
+        if (window.document.frmTrans.txtGLDesc.value != "") {
+          window.document.frmTrans.txtAccNo.focus();
+        }
+      }
+    }
+  }
+  else if (str == "txtAccNo") {
+    if (window.document.frmTrans.txtAccNm.value != "") {
+      window.document.frmTrans.txtAmt.focus();
+      window.document.frmTrans.txtAmt.value = "0.00";
+      window.document.frmTrans.txtAmt.select();
+    }
+  }
+}
+
+function GLCode() {
+  if ($("#Branch").val() == "") {
+    bankingAlert("Please select Branch");
+    return;
+  }
+  if ($("#ServiceCode").val() == "") {
+    bankingAlert("Please select Service id.");
+    return;
+  }
+  if ($("#ModuleCode").val() == null || $("#ModuleCode").val() == "") {
+    bankingAlert("Please select Module Id.");
+    return;
+  }
+
+  var kstr = "TellGlaccno|" + $("#ModuleCode").val() + "|" + $("#Branch").val();
+
+  LoadGLCodeDropdown(kstr);
+
+  // window.showModalDialog("../gensbca/ListGlQuery.aspx?st=" + kstr)
+}
+
+function LoadGLCodeDropdown(kstr) {
+  if (kstr.substring(0, 11) == "TellGlaccno" || kstr.substring(0, 11) == "chargesaccno" || kstr.substring(0, 11) == "CreTellGlno") {
+    $("#searchOptions").empty();
+    $("#searchOptions").append('<option value="name" selected>GL Name</option>');
+    $("#searchOptions").append('<option value="num">GL Number</option>');
+  }
+  if (kstr.substring(0, 11) == "Telleraccno" || kstr.substring(0, 11) == "LnkCreAccno" || kstr.substring(0, 11) == "TelLockAcno") {
+    $("#searchOptions").empty();
+    $("#searchOptions").append('<option value="name" selected>Acc. Name</option>');
+    $("#searchOptions").append('<option value="num">Acc. Number</option>');
+  }
+  if (kstr.substring(0, 11) == "batchnumber") {
+    $("#searchOptions").empty();
+    $("#searchOptions").append('<option value="bnumber" selected>Batch Number</option>');
+    $("#searchOptions").append('<option value="tnumber">Tran Number</option>');
+    $("#searchOptions").append('<option value="narr">Narration</option>');
+  }
+  $("#GLCodeListPopup").modal('show');
+}
+
+function AccCode(vServiceId, vModuleId, vBrCode, vGLCode, vCUrrencyCode) {
+  var stacc = "";
+  if (vServiceId == "3" || vServiceId == "4") {
+    if (window.document.frmTrans.Mfgpaydt.Rows > 1) {
+      alert("Post or Cancel already entered data...")
+      return
+    }
+    if (vModuleId.toUpperCase() == "SB" || vModuleId.toUpperCase() == "CA")
+      stacc = "Telleraccno";
+    else
+      stacc = "DepRenCloseAccno";
+  }
+  else
+    stacc = "Telleraccno";
+
+  if ((vBrCode.length > 0) && (vGLCode.length > 0) && (vModuleId.length > 0) && (vCUrrencyCode.length > 0)) {
+    var kstr = stacc + "|" + vBrCode + "|" + vModuleId + "|" + vGLCode + "|" + vCUrrencyCode + "|" + vServiceId;
+    $.ajax({
+      url: '/List/GetTransList',
+      type: 'GET',
+      data: {
+        searchString: kstr
+      },
+      success: function (response) {
+        debugger;
+        alert(response);
+        // BindDropdown($('#ModuleCode'), response);
+      },
+      error: function (err) {
+        debugger;
+        HandleAjaxError(err);
+      }
+    });
+  }
+}
+
+function JointHolderValidation(vBrCode, vAccNo, vModuleId) {
+  if ($(TransactionMode).val() == "Debit") {
+    var st = "GETJOINTHOLDER|" + vBrCode + "|INR|" + st[1] + "|" + vAccNo + "|" + vModuleId;
+    $.ajax({
+      url: '/GetDetails/GetDetails',
+      type: 'GET',
+      data: {
+        searchString: st
+      },
+      success: function (response) {
+        debugger;
+        alert(response);
+        // BindDropdown($('#ModuleCode'), response);
+      },
+      error: function (err) {
+        debugger;
+        HandleAjaxError(err);
+      }
+    });
+    // window.document.all['iGetDtls'].src = "getDtls.aspx?st=" + st
+  }
+}
+
+function GetATMCardDetails(vServiceCode, vBrCode, vModuleId, vAccNo, vGLCode) {
+  if ($("#TransactionMode:checked").val() == "Debit") {
+    if (vServiceCode == 4) {
+      var strmodid1 = vModuleId.toUpperCase()
+      if ((strmodid1 == "SB") || (strmodid1 == "CA")) {
+        var st = "ATMCardDet|" + vBrCode.toUpperCase() + "|" + vGLCode.toUpperCase() + "|" + vAccNo
+        // window.document.all['iGetDtls'].src = "../GENSBCA/GetAccDetails.aspx?st=" + st
+      }
+    }
+  }
+}
+
+function SuspenseDetails(GLCode, vModuleId, vBranchCode, vMode) {
+  debugger;
+  var catdtls = "";
+  if ((vMode == "TRANS") || (vMode == "PAY")) {
+    if ((vModuleId == "SCR") && (GLCode != "") && (vBranchCode != "")) {
+      catdtls = "SUSPENCE~!~" + vModuleId + "~!~" + GLCode + "~!~" + vBranchCode;
+
+      $.ajax({
+        url: '/GetDetails/GetQueryDisplay',
+        type: 'GET',
+        data: {
+          searchString: catdtls
+        },
+        success: function (response) {
+          debugger;
+          SuspenceCallback(response);
+        },
+        error: function (err) {
+          HandleAjaxError(err);
+        }
+      });
+    }
+  }
+  else if (vMode == "REC") {
+    catdtls = "SUSPENCE~!~" + vModuleId + "~!~" + GLCode + "~!~" + vBranchCode;
+
+    $.ajax({
+      url: '/GetDetails/GetQueryDisplay',
+      type: 'GET',
+      data: {
+        searchString: catdtls
+      },
+      success: function (response) {
+        debugger;
+        SuspenceCallback(response);
+      },
+      error: function (err) {
+        HandleAjaxError(err);
+      }
+    });
+  }
+}
+
+// Code added by Radhika on 12 May 2008 - Desc: To select CheckBook Check box, when accounts of modules CC,CA,SB in Debit Tran mode
+function GetAccountDetails(vModuleId, vBranchCode, vAccountNumber) {
+  debugger;
+
+  if (eval($("#ServiceCode").val() != "1")) {
+    return;
+  }
+  if ($("#TransactionMode input[type='checkbox']:checked").val() != "Debit")
+    return;
+
+  if (vModuleId.toUpperCase() != 'SB' && vModuleId.toUpperCase() != 'CA' && vModuleId.toUpperCase() != 'CC') {
+    return;
+  }
+
+  var kstr = "CHQACCYESNO" + "~" + vModuleId + "~" + st[1] + "~~" + "INR" + "~" + vBranchCode + "~~~" + vAccountNumber + "~";
+  // window.document.all['getAccDet'].src = '<%="http://" & session("moduledir")& "/GEN/"%>' + "genParameters.aspx?strparam=" + kstr
+}
+
+function SuspenceCallback(kstr) {
+  var catdtls;
+  var scrAmt = "";
+  var strDisp = "";
+  var prec = $("#Hidden_Precision").val();
+
+  var Brcode = $("#Branch").val();
+  var GlCd = $("#GLCode").val().split(" - ")[0];
+  var Accno = $("#AccountNumber").val();
+
+  // window.document.frmTrans.hidscr.value = "";
+
+  TransMode(vMode, bdt);
+
+  if (ModId == "SCR") {
+    if (window.document.frmTrans.chkDispAccNo.checked == true) {
+      strDisp = "Disposals";
+      scrAmt = window.document.frmTrans.txtAmt.value;
+    }
+
+    if (((kstr == "DR") && (trnMode == "4")) || ((kstr == "DR") && (trnMode == "2"))) {
+      catdtls = GlCd + "~!~" + prec + "~!~" + Brcode + "~!~" + Curr + "~!~" + Accno + "~!~" + strDisp + "~!~" + scrAmt;
+      scrgridYN = "YES";
+
+      // window.showModalDialog('<%="http://" & session("moduledir")& "/GEN/"%>' + "scrflex.aspx" + "?" + "catdtls=" + catdtls)
+      $.ajax({
+        url: '/GetDetails/GetSCRFlex',
+        type: 'GET',
+        data: {
+          searchString: catdtls
+        },
+        success: function (response) {
+          debugger;
+          alert(response);
+        },
+        error: function (err) {
+          HandleAjaxError(err);
+        }
+      });
+      return;
+    }
+    else if (((kstr == "CR") && (trnMode == "3")) || ((kstr == "CR") && (trnMode == "1"))) {
+      catdtls = GlCd + "~!~" + prec + "~!~" + Brcode + "~!~" + Curr + "~!~" + Accno + "~!~" + strDisp + "~!~" + scrAmt
+      scrgridYN = "YES"
+
+      // window.showModalDialog('<%="http://" & session("moduledir")& "/GEN/"%>' + "scrflex.aspx" + "?" + "catdtls=" + catdtls);
+      $.ajax({
+        url: '/GetDetails/GetSCRFlex',
+        type: 'GET',
+        data: {
+          searchString: catdtls
+        },
+        success: function (response) {
+          debugger;
+          alert(response);
+        },
+        error: function (err) {
+          HandleAjaxError(err);
+        }
+      });
+      return;
+    }
+  }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/****************** Callback Functions ********************/
+
+
+
+
+
 
 
 
@@ -893,18 +1342,18 @@ function CLGDivCrDr() {
     //window.document.all['iGeneral'].src = '<%="http://" & session("moduledir")& "/GEN/"%>' + "minBalChk.aspx?strparam=" + strpm
   }
   else {
-  //  window.document.all.divCrDr.style.display = "block"
-  //  window.document.frmTrans.chkCheque.disabled = false
-  //  window.document.frmTrans.chkCheque.checked = false
-  //  window.document.frmTrans.cmdcleartype.style.display = "none";
-  //  window.document.frmTrans.tranmode[0].disabled = false
-  //  window.document.frmTrans.tranmode[1].disabled = false
-  //  window.document.frmTrans.tranmode[0].checked = true
-  //  Cheque()
-  //  window.document.frmTrans.cmdModId.disabled = false
-  //  window.document.frmTrans.cmdGLCode.disabled = false
-  //  window.document.frmTrans.cmdAccno.disabled = false
-  //  window.document.frmTrans.chkDispDtls.disabled = false
+    //  window.document.all.divCrDr.style.display = "block"
+    //  window.document.frmTrans.chkCheque.disabled = false
+    //  window.document.frmTrans.chkCheque.checked = false
+    //  window.document.frmTrans.cmdcleartype.style.display = "none";
+    //  window.document.frmTrans.tranmode[0].disabled = false
+    //  window.document.frmTrans.tranmode[1].disabled = false
+    //  window.document.frmTrans.tranmode[0].checked = true
+    //  Cheque()
+    //  window.document.frmTrans.cmdModId.disabled = false
+    //  window.document.frmTrans.cmdGLCode.disabled = false
+    //  window.document.frmTrans.cmdAccno.disabled = false
+    //  window.document.frmTrans.chkDispDtls.disabled = false
   }
 }
 
@@ -922,23 +1371,6 @@ function RecPayLmt() {
   }
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 //function PubVariables() {
 //  // <%=vUserid & "~" & vAppdate & "~" & vCounterno & "~" & vCashierid & "~" & vBranchCode & "~" & vBrnarration & "~" & vCurCode & "~" & vCurnarration & "~" & vMachineId & "~"%>
 //  var strSessionFld = window.document.frmTrans.txtSessionflds.value
@@ -955,31 +1387,7 @@ function RecPayLmt() {
 //  fxRateTypes();
 //}
 
-
-
-
-
-
-
 // This function is used to send parameters to List form to display various Glcodes avialabe. It displays Glcodes based on branchcode and module id.  
-function GLCode() {
-  if ($("#Branch").val() == "") {
-    bankingAlert("Please select Branchcode.");
-    return;
-  }
-  if ($("#Module").val() == "") {
-    bankingAlert("Please select Module Id.");
-    return;
-  }
-
-  var kstr = "TellGlaccno|" + $("#Module").val() + "|" + $("#Branch").val();
-
-  // window.showModalDialog("../gensbca/ListGlQuery.aspx?st=" + kstr)
-}
-
-
-
-
 
 function ModeChange(bdt) {
   if (bdt.toUpperCase() == "TRUE")
@@ -997,10 +1405,10 @@ function CategoryCode() {
 }
 
 function ServiceIdDivs() {
-// For clearing outward returns
-//  window.document.frmTrans.cmdModId.disabled = false
-//  byBranch.innerHTML = "Issued by Branch"
-//  byBank.innerHTML = "Issued by Bank"
+  // For clearing outward returns
+  //  window.document.frmTrans.cmdModId.disabled = false
+  //  byBranch.innerHTML = "Issued by Branch"
+  //  byBank.innerHTML = "Issued by Bank"
 
   if (eval($("#ServiceCode").val()) == "8") {
     debugger;
@@ -1037,20 +1445,19 @@ function ServiceIdDivs() {
 }
 
 function DepDivClear() {
-//  window.document.frmTrans.txtDOpAmt.value = ""
-//  window.document.frmTrans.txtDCurrAmt.value = ""
-//  window.document.frmTrans.txtDMatAmt.value = ""
-//  window.document.frmTrans.txtDCustId.value = ""
-//  window.document.frmTrans.txtDOpDate.value = ""
-//  window.document.frmTrans.txtDEffDt.value = ""
-//  window.document.frmTrans.txtDMatDt.value = ""
-//  window.document.frmTrans.txtDOpBy.value = ""
-//  window.document.frmTrans.txtDROI.value = ""
-//  window.document.frmTrans.txtDOpInstr.value = ""
-//  window.document.frmTrans.txtDIntAcc.value = ""
-//  window.document.frmTrans.txtDPaidupto.value = ""
+  //  window.document.frmTrans.txtDOpAmt.value = ""
+  //  window.document.frmTrans.txtDCurrAmt.value = ""
+  //  window.document.frmTrans.txtDMatAmt.value = ""
+  //  window.document.frmTrans.txtDCustId.value = ""
+  //  window.document.frmTrans.txtDOpDate.value = ""
+  //  window.document.frmTrans.txtDEffDt.value = ""
+  //  window.document.frmTrans.txtDMatDt.value = ""
+  //  window.document.frmTrans.txtDOpBy.value = ""
+  //  window.document.frmTrans.txtDROI.value = ""
+  //  window.document.frmTrans.txtDOpInstr.value = ""
+  //  window.document.frmTrans.txtDIntAcc.value = ""
+  //  window.document.frmTrans.txtDPaidupto.value = ""
 }
-
 
 //function NatBranch() {
 //  with (window.document.frmTrans) {
@@ -1062,16 +1469,6 @@ function DepDivClear() {
 //    }
 //  }
 //}
-
-
-
-
-
-
-
-
-
-
 
 function AccountParameters(AccNoOrCatCode, AccOrCat, vModuleId, vAppDate, vBrCode, vCurrencyCode, vGLCode) {
   debugger;
@@ -1115,20 +1512,14 @@ function BalanceDetails(vServiceId, vBrCode, vModuleId, vGLCode, vAccNo, vCurren
 }
 
 function GetPendingInterest(vModuleId, vBrCode, vGLCode, vAccNo) {
-  if ((vModuleId == "LOAN") && ($("#TransactionMode").is('checked') == true)) {
+  if ((vModuleId == "LOAN") && ($("#TransactionMode input[type='checkbox']:checked").val() == "Credit")) {
     st = vBrCode + "|" + "INR" + "|LOAN|" + vGLCode + "|" + vAccNo;
 
     // window.document.all['idetails'].src = '<%="http://" & session("moduledir")& "/Loan/"%>' + "loanrenewintcalc.aspx?st=" + st;
   }
 }
 
-function JointHolderValidation(vBrCode, vAccNo, vModuleId) {
-  if ($(TransactionMode).val() == "Debit") {
-    var st = "GETJOINTHOLDER|" + vBrCode + "|INR|" + st[1] + "|" + vAccNo + "|" + vModuleId;
 
-    // window.document.all['iGetDtls'].src = "getDtls.aspx?st=" + st
-  }
-}
 
 function Check206AA206AB(vBrCode, vModuleId, vAccNo, vGLCode) {
   var st = "Check206AA206AB" + "|" + vBrCode + "|" + vModuleId + "|" + vGLCode + "|" + vAccNo + "|INR";
@@ -1144,89 +1535,11 @@ function SetCCDrCrLienYN(vModuleId, vBrCode, vAccNo, vAppDate, vGLCode) {
   // window.document.all['iGetDtls'].src = "getDtls.aspx?st=" + st
 }
 
-function GetATMCardDetails(vServiceCode, vBrCode, vModuleId, vAccNo, vGLCode) {
-  if ($("#TransactionMode").val() == "Debit") {
-    if (vServiceCode == 4) {
-      var strmodid1 = vModuleId.toUpperCase()
-      if ((strmodid1 == "SB") || (strmodid1 == "CA")) {
-        var st = "ATMCardDet|" + vBrCode.toUpperCase() + "|" + vGLCode.toUpperCase() + "|" + vAccNo
-        // window.document.all['iGetDtls'].src = "../GENSBCA/GetAccDetails.aspx?st=" + st
-      }
-    }
-  }
-}
-
-// Suspense Start
-// This function is used to populate different category codes and descriptions for suspense and sundry.
-function SuspenseDetails(GLCode, vModuleId, vBranchCode, vMode) {
-  debugger;
-
-  var catdtls = "";
-
-  if ((vMode == "TRANS") || (vMode == "PAY")) {
-    if ((vModuleId == "SCR") && (GLCode != "") && (vBranchCode != "")) {
-      catdtls = "SUSPENCE~!~" + vModuleId + "~!~" + GLCode + "~!~" + vBranchCode;
-      // window.document.all['iDisp'].src = '<%="http://" & session("moduledir")& "/GEN/"%>' + "querydisplay.aspx?st=" + catdtls
-    }
-  }
-  else if (vMode == "REC") {
-    catdtls = "SUSPENCE~!~" + vModuleId + "~!~" + GLCode + "~!~" + vBranchCode;
-    // window.document.all['iDisp'].src = '<%="http://" & session("moduledir")& "/GEN/"%>' + "querydisplay.aspx?st=" + catdtls
-  }
-}
-
-// Code added by Radhika on 12 May 2008
-// Desc: To select CheckBook Check box, when accounts of modules CC,CA,SB in Debit Tran mode
-function GetAccountDetails(vModuleId, vBranchCode, vAccountNumber) {
-  debugger;
-
-  if (eval($("#ServiceCode").val() != "1")) {
-    return;
-  }
-  if ($("#TransactionMode").is('checked') != true)
-    return;
-
-  if (vModuleId.toUpperCase() != 'SB' && vModuleId.toUpperCase() != 'CA' && vModuleId.toUpperCase() != 'CC') {
-    return;
-  }
-
-  var kstr = "CHQACCYESNO" + "~" + vModuleId + "~" + st[1] + "~~" + "INR" + "~" + vBranchCode + "~~~" + vAccountNumber + "~";
-  // window.document.all['getAccDet'].src = '<%="http://" & session("moduledir")& "/GEN/"%>' + "genParameters.aspx?strparam=" + kstr
-}
 
 
 
-function AccCode(vServiceId, vModuleId, vBrCode, vGLCode, vCUrrencyCode) {
 
-  // window.document.frmTrans.txtUnits.value = ""
-  var stacc = "";
 
-  //if (window.document.frmTrans.chkDispAccNo.checked == false) {
-  //  if (vServiceId == "3" || vServiceId == "4") {
-  //    if (window.document.frmTrans.Mfgpaydt.Rows > 1) {
-  //      alert("Post or Cancel already entered data...")
-  //      return
-  //    }
-  //    if (vModuleId.toUpperCase() == "SB" || vModuleId.toUpperCase() == "CA") {
-  //      stacc = "Telleraccno";
-  //    }
-  //    else {
-  //      stacc = "DepRenCloseAccno";
-  //    }
-  //  }
-  //  else {
-  //    stacc = "Telleraccno";
-  //  }
-  //}
-  //else {
-  //  stacc = "DispAccNo"
-  //}
-
-  var kstr = stacc + "|" + vBrCode + "|" + vModuleId + "|" + vGLCode + "|" + vCUrrencyCode + "|" + vServiceId;
-
-  //if ((vBrCode.length > 0) && (vGLCode.length > 0) && (vModuleId.length > 0) && (vCUrrencyCode.length > 0))
-  //  window.showModalDialog('<%="http://" & session("moduledir")& "/GEN/"%>' + "TranList.aspx" + "?" + "st=" + kstr)
-}
 
 // Account Details
 function AccDetails(vBrCode, vModuleId, vGLCode, vAccNo) {
@@ -1254,11 +1567,40 @@ function AccDetails(vBrCode, vModuleId, vGLCode, vAccNo) {
   // window.open('<%="http://" & session("moduledir")& "/GenSBCA/"%>' + "accountdetails.aspx?strData=" + strData, "SB");
 }
 
+//function funloanclear() {
+//  window.document.frmTrans.txtloanaccbal.value = ""
+//  window.document.frmTrans.txtloanclearbal.value = ""
+//  window.document.frmTrans.txtloanCustId.value = ""
+//  window.document.frmTrans.txtloandisbamt.value = ""
+//  window.document.frmTrans.txtloanOpaBy.value = ""
+//  window.document.frmTrans.txtloansancamt.value = ""
+//  window.document.frmTrans.txtloanunclear.value = ""
+//  window.document.frmTrans.txtloanavailbal.value = ""
+//  window.document.frmTrans.txtLpendbal.value = ""
+//  window.document.frmTrans.txtIntPendAmt.value = ""
+//  window.document.frmTrans.txtNPAIntAmt.value = ""
+//  window.document.frmTrans.txtloanintsamt.value = ""
+//  window.document.frmTrans.txtloanpendinst.value = ""
+//  window.document.frames("iloandtls").frmloaninterestdetails.txtintamt.value = ""
+//  window.document.frames("iloandtls").frmloaninterestdetails.txtchrgamt.value = ""
+//  window.document.frames("iloandtls").frmloaninterestdetails.txtinsuramt.value = ""
+//  window.document.frames("iloandtls").frmloaninterestdetails.txtnpaamt.value = ""
+//  window.document.frames("iloandtls").frmloaninterestdetails.txtprncpalamt.value = ""
+//  window.document.frames("iloandtls").frmloaninterestdetails.txtprncamt.value = ""
+//  window.document.frames("iloandtls").frmloaninterestdetails.txtprncpending.value = ""
+//  window.document.frames("iloandtls").frmloaninterestdetails.txtintpending.value = ""
+//  window.document.frames("iloandtls").frmloaninterestdetails.txtchrgpending.value = ""
+//  window.document.frames("iloandtls").frmloaninterestdetails.txtinsurpending.value = ""
+//  window.document.frames("iloandtls").frmloaninterestdetails.txtnpapending.value = ""
+//  window.document.frames("iloandtls").frmloaninterestdetails.txtprncexcess.value = ""
+//  document.getElementById("divPhSign").style.display = 'none';
+//}
 
 
 
 
 /*******************************************/
+
 function ServiceCode(vMode, mode) {
   debugger;
   if (((vMode == "REC") || (vMode == "PAY")) && (mode != "MODIFY")) { //&& (window.document.frmTrans.Mfgpaydt.Rows > 1)
@@ -1294,4 +1636,5 @@ function ServiceCode(vMode, mode) {
     }
   });
 }
+
 

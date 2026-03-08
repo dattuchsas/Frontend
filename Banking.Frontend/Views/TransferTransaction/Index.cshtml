@@ -67,7 +67,10 @@
                     </div>
                     <div class="col-md-6 col-lg-3 col-xl-3">
                         <label asp-for="GLCode" class="form-label">GL Code</label>
-                        <select asp-for="GLCode" asp-items="@Model.GLCodeList" class="form-select"></select>
+                        <div class="input-group">
+                            <input asp-for="GLCode" type="text" class="form-control">
+                            <button type="button" class="btn btn-sm btn-primary glcode"><i class="bi bi-search"></i></button>
+                        </div>
                     </div>
                     <div class="col-md-4 col-lg-3 col-xl-3">
                         <label asp-for="AccountNumber" class="form-label">Account Number<span class="text-danger">*</span></label>
@@ -447,5 +450,88 @@
 <input type="hidden" asp-for="Hidden_ChequeLength" />
 <input type="hidden" asp-for="Hidden_Precision" />
 <input type="hidden" asp-for="SelectedModule" />
+
+<!-- Customer List Modal -->
+<div class="modal fade" id="GLCodeListPopup" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h1 class="modal-title fs-5" id="staticBackdropLabel">Customer List</h1>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <!-- Account wise fields -->
+                <div id="search_account" class="search-section">
+                    <div class="row align-items-end gx-3 gy-2">
+                        <div class="col-xl-4">
+                            <label class="form-label">Search</label>
+                            <select class="form-select" id="searchOptions"></select>
+                        </div>
+                        <div class="col-xl-8">
+                            <input id="searchValue" type="text" class="form-control">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer justify-content-center">
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Ok</button>
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- TDS Modal -->
+<div class="modal fade" id="TDSBackdrop" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"
+     aria-labelledby="TDSBackdropLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h1 class="modal-title fs-5" id="staticBackdropLabel">TDS Details</h1>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Transaction For Financial Year 01-Apr-2025 and 31-Mar-2026 Panno AHMPG0690D and ITR E File Return N0
+                <hr class="my-3" />
+                <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th>SNO</th>
+                            <th>ACCNO</th>
+                            <th>AMOUNT</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>1</td>
+                            <td>101102020000000106</td>
+                            <td>0</td>
+                        </tr>
+                        <tr>
+                            <td>2</td>
+                            <td>101102020000000107</td>
+                            <td>0</td>
+                        </tr>
+                        <tr>
+                            <td>4</td>
+                            <td>101102020000000108</td>
+                            <td>0</td>
+                        </tr>
+                        <tr>
+                            <td>5</td>
+                            <td>101102020000000109</td>
+                            <td>0</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+            </div>
+            <div class="modal-footer justify-content-center">
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Ok</button>
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>
 
 <script asp-append-version="true" src="~/js/app/transaction.js"></script>

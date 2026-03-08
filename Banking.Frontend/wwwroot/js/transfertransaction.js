@@ -746,56 +746,7 @@ function getRemCancGST() {
 
 //}
 //----------------------------------------------------------------------------------
-//This function is used to show forms based on conditions
-function suspencereturn(kstr) {
-  //alert("kstr="+kstr)
-  var catdtls, Brcode, GlCd, Curr, Accno
-  var scrAmt = 0
-  var prec = window.document.frmTrans.hpr.value
-  var strDisp = ""
 
-  Brcode = window.document.frmTrans.txtbranchcode.value.toUpperCase();
-  GlCd = window.document.frmTrans.txtGLcode.value.toUpperCase();
-  Curr = window.document.frmTrans.txtcurrencycode.value.toUpperCase();
-  Accno = window.document.frmTrans.txtAccNo.value.toUpperCase();
-  scrstr = kstr
-  window.document.frmTrans.hidscr.value = ""
-
-  TranMode()
-
-  if (ModId == "SCR") {
-    if (window.document.frmTrans.chkDispAccNo.checked == true) {
-      var strDisp = "Disposals"
-      scrAmt = window.document.frmTrans.txtAmt.value
-    }
-    else {
-      var strDisp = ""
-      scrAmt = ""
-    }
-
-    //if((kstr=="DR") && (trnMode=="4"))
-    if (((kstr == "DR") && (trnMode == "4")) ||
-      ((kstr == "DR") && (trnMode == "2"))) {
-      catdtls = GlCd + "~!~" + prec + "~!~" + Brcode + "~!~" + Curr + "~!~" + Accno + "~!~" + strDisp + "~!~" + scrAmt
-      scrgridYN = "YES"
-      window.showModalDialog('<%="http://" & session("moduledir")& "/GEN/"%>' +
-        "scrflex.aspx" + "?" + "catdtls=" + catdtls, window, "status:no;DialogWidth:745px;DialogHeight:210px;DialogLeft:60px;DialogTop:150px")
-      return;
-    }
-    else if (((kstr == "CR") && (trnMode == "3")) ||
-      ((kstr == "CR") && (trnMode == "1"))) {
-
-      catdtls = GlCd + "~!~" + prec + "~!~" + Brcode + "~!~" + Curr + "~!~" + Accno + "~!~" + strDisp + "~!~" + scrAmt
-      //// This is not a fly page.. It is a window
-      scrgridYN = "YES"
-      //alert("scrflexcatdtls=" + catdtls)
-      window.showModalDialog('<%="http://" & session("moduledir")& "/GEN/"%>' +
-        "scrflex.aspx" + "?" + "catdtls=" + catdtls, window, "status:no;DialogWidth:745px;DialogHeight:210px;DialogLeft:60px;DialogTop:150px")
-      return;
-    }
-
-  }
-}
 //----------------------------------------------------------------------------------
 //This function is used to store category details
 function categorycode(kstr) {
@@ -11533,47 +11484,47 @@ function cntrlOnblurret(txtName) {
 
 //}
 
-function ReturnedBack(str) {
-  if (str == "txtServiceId") {
-    if (window.document.frmTrans.txtServiceName.value != "") {
-      window.document.frmTrans.txtModId.focus()
-    }
-  }
-  else if (str == "txtModId") {
-    if (window.document.frmTrans.txtModDesc.value != "") {
-      window.document.frmTrans.txtGLcode.focus()
-    }
-  }
-  else if (str == "txtGLcode") {
-    if (window.document.frmTrans.tranmode[2].checked == true) {
-      if (window.document.frmTrans.txtModId.value == "REM") {
-        window.document.frmTrans.txtinstrno.focus()
-      }
-    }
-    else {
-      if (window.document.frmTrans.txtModId.value == "REM") {
-        if (window.document.frmTrans.txtGLDesc.value != "") {
-          window.document.frmTrans.txtAmt.focus()
-          window.document.frmTrans.txtAmt.value = "0.00"
-          window.document.frmTrans.txtAmt.select()
-        }
-      }
-      else {
-        if (window.document.frmTrans.txtGLDesc.value != "") {
-          window.document.frmTrans.txtAccNo.focus()
-        }
-      }
-    }
+//function ReturnedBack(str) {
+//  if (str == "txtServiceId") {
+//    if (window.document.frmTrans.txtServiceName.value != "") {
+//      window.document.frmTrans.txtModId.focus()
+//    }
+//  }
+//  else if (str == "txtModId") {
+//    if (window.document.frmTrans.txtModDesc.value != "") {
+//      window.document.frmTrans.txtGLcode.focus()
+//    }
+//  }
+//  else if (str == "txtGLcode") {
+//    if (window.document.frmTrans.tranmode[2].checked == true) {
+//      if (window.document.frmTrans.txtModId.value == "REM") {
+//        window.document.frmTrans.txtinstrno.focus()
+//      }
+//    }
+//    else {
+//      if (window.document.frmTrans.txtModId.value == "REM") {
+//        if (window.document.frmTrans.txtGLDesc.value != "") {
+//          window.document.frmTrans.txtAmt.focus()
+//          window.document.frmTrans.txtAmt.value = "0.00"
+//          window.document.frmTrans.txtAmt.select()
+//        }
+//      }
+//      else {
+//        if (window.document.frmTrans.txtGLDesc.value != "") {
+//          window.document.frmTrans.txtAccNo.focus()
+//        }
+//      }
+//    }
 
-  }
-  else if (str == "txtAccNo") {
-    if (window.document.frmTrans.txtAccNm.value != "") {
-      window.document.frmTrans.txtAmt.focus()
-      window.document.frmTrans.txtAmt.value = "0.00"
-      window.document.frmTrans.txtAmt.select()
-    }
-  }
-}
+//  }
+//  else if (str == "txtAccNo") {
+//    if (window.document.frmTrans.txtAccNm.value != "") {
+//      window.document.frmTrans.txtAmt.focus()
+//      window.document.frmTrans.txtAmt.value = "0.00"
+//      window.document.frmTrans.txtAmt.select()
+//    }
+//  }
+//}
 
 //----------------------------------------------------------------------------------
 function dispDetails() {

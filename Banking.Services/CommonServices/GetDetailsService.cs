@@ -1,8 +1,16 @@
 ﻿using Banking.Framework;
 using Banking.Interfaces;
 using Banking.Models;
+using Humanizer;
 using Microsoft.Extensions.Options;
+using System;
 using System.Data;
+using System.Diagnostics.Contracts;
+using System.Diagnostics.Eventing.Reader;
+using System.Reflection;
+using System.Security.Principal;
+using System.Xml.Linq;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace Banking.Services
 {
@@ -185,9 +193,27 @@ namespace Banking.Services
             return strResult;
         }
 
-
-        public void GetDetails()
+        public async Task<string> GetDetails(string searchString = "")
         {
+            DataTable dataTable = null!;
+            string strResult = string.Empty;
+            string[] strArr = searchString.Split("|");
+
+            if (strArr.Length <= 0)
+                return strResult;
+
+            if (strArr[0].Equals("GETJOINTHOLDER", StringComparison.OrdinalIgnoreCase))
+            {
+                string sqlStr = "SELECT CASE WHEN OPERATINGINSTR = 2 THEN 'Either or Survival' WHEN OPERATINGINSTR = 3 THEN 'Joint Holder Account' END OPINSTRDESC FROM " +
+                    strArr[5] + "MST WHERE OPERATINGINSTR != 1 AND ACCNO='" + strArr[4] + "' AND GLCODE='" + strArr[3] + "' AND BRANCHCODE='" + strArr[1] + "'";
+                dataTable = await _databaseFactory.ProcessQueryAsync(sqlStr);
+                if (dataTable.Rows.Count > 0)
+                    strResult = Conversions.ToString(dataTable.Rows[0].ItemArray[0]);
+            }
+
+            return strResult;
+
+
             //dim objgenval as new GENVALIDATIONS.Validations
             //objGen = server.CreateObject("ProGeneral.clsGeneral")
             //dim strVal
@@ -1592,29 +1618,6 @@ namespace Banking.Services
             //        end if
 
             //        rs = nothing
-
-            //    elseif strArr(0)= "GETJOINTHOLDER" then
-            //        strResult = ""
-
-            //        obj = server.CreateObject("ReportPurposeOnly.Reportonly")
-
-            //        sqlStr = " SELECT CASE WHEN OPERATINGINSTR = 2 THEN 'Either or Survival' WHEN OPERATINGINSTR = 3 THEN 'Joint Holder Account' END OPINSTRDESC FROM " & strArr(5) & "MST WHERE OPERATINGINSTR != 1 AND ACCNO='" & strArr(4) & "' AND GLCODE='" & strArr(3) & "' AND BRANCHCODE='" & strArr(1) & "'"
-
-            //        rs = obj.SingleSelectStat(sqlStr)
-
-            //        if obj.ConnError = "Connected" then
-
-            //            if not rs.BOF and not rs.EOF then
-
-            //                strResult = rs(0).value
-
-            //                else
-            //                strResult = ""
-
-            //            end if
-
-            //        end if
-
 
             //    elseif strArr(0) = "CheckThreshHoldLimit" then
             //    dim frmfinyr,tofinyr,frmyear,toyear,strmon,strAppdate1,dblAmount,dblTranAmt,dblThresHoldLmt
@@ -12079,6 +12082,1939 @@ namespace Banking.Services
 
 
             //obj = nothing
+        }
+
+        public async Task<string> GetQueryDisplay(string searchString = "")
+        {
+            DataTable dataTable = null!;
+            string counterNo = string.Empty;
+
+            if (searchString.Substring(0, 8).Equals("SUSPENCE", StringComparison.OrdinalIgnoreCase))
+            {
+                string[] st = searchString.Split("~!~");
+
+                dataTable = await _databaseFactory.SingleRecordSet("GENGLMASTMST", "NORMALBALANCE", 
+                    " upper(MODULEID)='" + st[1].Trim().ToUpper() + "' " + " AND upper(GLCODE)='" + st[2].Trim().ToUpper() + "'");
+
+                if (dataTable.Rows.Count > 0)
+                    counterNo = Conversions.ToString(dataTable.Rows[0].ItemArray[0]);
+            }
+
+            return counterNo;
+
+            //  dim rs,obj
+            //  rs = server.CreateObject("adodb.recordset")
+            //  obj = server.CreateObject("queryrecordsets.fetchrecordsets")
+            //  dim strTab, strCond
+
+            // if LEFT(STR1, 8) = "SUSPENCE" then
+            // elseif LEFT(STR1,12)= "GETMINPERIOD" then
+            //    st = SPLIT(STR1, "|")
+
+            //    counterno = ""
+
+            //    dim intMinDays as integer
+
+            //    intMinDays = 0
+
+            //    obj = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+            //    sqlStr = "SELECT (SELECT APPLICATIONDATE FROM GENAPPLICATIONDATEMST WHERE BRANCHCODE='" & st(1) & "' AND ((DAYBEGINSTATUS='O' AND DAYENDSTATUS='N' AND HODAYBEGINSTATUS='O' AND HODAYENDSTATUS='N') OR (DAYBEGINSTATUS='O' AND DAYENDSTATUS='O' AND HODAYBEGINSTATUS='O' AND HODAYENDSTATUS='N')))-(SELECT ADD_MONTHS((SELECT SANCTIONEDDATE FROM LOANMST WHERE ACCNO='" & st(4) & "' AND GLCODE='" & st(3) & "' AND BRANCHCODE='" & st(1) & "'),(SELECT NVL(MINPERIODMON,0) FROM GENMINMAXBALANCEMST WHERE GLCODE='" & st(3) & "'))+(SELECT NVL(MINPERIODDAYS,0) FROM GENMINMAXBALANCEMST WHERE GLCODE='" & st(3) & "') REQDATE FROM DUAL) FROM DUAL"
+
+
+            //    rs = obj.SingleSelectStat(sqlStr)
+
+            //    if obj.ConnError = "Connected" then
+
+            //        if not rs.BOF and not rs.EOF then
+
+            //            intMinDays = cDbl(rs(0).value)
+
+            //        end if
+
+            //    end if
+
+            //    rs = nothing
+
+            //    if (intMinDays < 0)
+            //                        sqlStr = "SELECT TO_NUMBER((SELECT ADD_MONTHS(SYSDATE,(SELECT NVL(MINPERIODMON,0) FROM GENMINMAXBALANCEMST WHERE GLCODE='" & st(3) & "'))+(SELECT NVL(MINPERIODDAYS,0) FROM GENMINMAXBALANCEMST WHERE GLCODE='" & st(3) & "') REQDATE FROM DUAL)-SYSDATE)*(SELECT ROI FROM LOANMST WHERE ACCNO='" & st(4) & "' AND GLCODE='" & st(3) & "' AND BRANCHCODE='" & st(1) & "' AND CURRENCYCODE='" & st(2) & "')/36500 FROM DUAL"
+
+
+            //        rs = obj.SingleSelectStat(sqlStr)
+
+            //        if obj.ConnError = "Connected" then
+
+            //            if not rs.BOF and not rs.EOF then
+
+            //                counterno = intMinDays & "|" & rs(0).value
+
+            //            end if
+
+            //        end if
+
+            //        rs = nothing
+
+
+            //        sqlStr = "SELECT NVL(SUM(AMOUNT), 0) AMT FROM LOANTRAN WHERE ACCNO='" & st(4) & "' AND GLCODE='" & st(3) & "' AND BRANCHCODE='" & st(1) & "' AND CHQFVG='IC'"
+
+            //        rs = obj.SingleSelectStat(sqlStr)
+
+            //        if obj.ConnError = "Connected" then
+
+            //            if not rs.BOF and not rs.EOF then
+
+            //                counterno = counterno & "|" & rs(0).value
+
+            //            else
+            //                counterno = counterno & "|0"
+
+            //            end if
+
+            //        end if
+
+            //        rs = nothing
+
+            //    else
+            //                        counterno = intMinDays & "|" & "0|0"
+
+            //    end if
+
+
+            // elseif LEFT(STR1, 12) = "RDMATAMTCALC" then
+            //    st = SPLIT(STR1, "~")
+
+            //    vAppdate = session("applicationdate")
+
+            //    prinamt = st(1)
+
+            //    years = st(2)
+
+            //    months = st(3)
+
+            //    rdmatdate = st(4)
+
+            //    intrate = st(5)
+
+            //    days = st(6)
+
+
+
+            //     if years = "" then
+            //        years = 0
+            //     end if
+            //     if months = "" then
+            //        months = 0
+            //     end if
+            //     if days = "" then
+            //        days = 0
+            //     end if
+
+
+            //    'matdate= dateadd("d",cdbl(totdays),cdate(vAppdate)) 
+
+            //    'rdmatdate = format(matdate,"dd-MMM-yyyy")
+
+            //    objMat = server.CreateObject("MaturityValueCalc.MatValue")
+
+
+            //     Prd = years & "|" & months & "|" & days
+
+
+            //    msg = objMat.GetMaturityvalue(cstr(Prd), cstr(vAppdate), cstr(rdmatdate), cdbl(prinamt), "", "Y", cdbl(intrate))
+
+            //    counterno = msg
+
+            //    'response.write(msg)
+            // 'response.write(cstr(Prd) & cstr(vAppdate) & cstr(rdmatdate) & cdbl(prinamt)  & cdbl(intrate))
+            //'response.end
+            // elseif LEFT(STR1,8)= "Category" then
+
+            //        st = SPLIT(STR1, "~!~")
+
+
+            //        rs = obj.singleRecordSet("SCRCATEGORYMST", "CATEGORYNAME", "branchcode='" & st(1) & "' and  currencycode='" & st(2) & "' and CATEGORYCODE='" & st(3) & "'")
+
+            //        if not rs.EOF and not rs.bof then
+
+            //            counterno = rs(0).value
+
+            //        end if
+
+
+
+            //'--------------------------------------------------------sharath----------------
+
+            //'the following condition recieves a query string with tables, display fields and conditions as one string we r spliting it into an array then passing to component 
+
+            //elseif Left(str1,16)= "CombinationQuery" then
+            //    st = SPLIT(STR1, "|")
+
+            //    myString = st(3)
+
+            //    myString = Replace(myString, "~", "%")
+
+            //    rs = obj.singleRecordSet(st(1), st(2), myString)     'st1,st2,st3 are the tables, fields and conditions respectively
+
+            //    if not rs.EOF and not rs.bof then
+
+            //          do while not rs.EOF
+
+            //            for i = 0 to rs.fields.count - 1
+
+            //              counterno = counterno & rs(i).value & "~"
+
+            //            next
+
+            //            counterno = counterno & "|"                   ' counterno is a hidden variable holds the rs data joined with ~ and | 
+
+            //            rs.Movenext
+
+            //          loop
+
+            //        else
+            //                    counterno = "NO"
+            //     end if
+
+            //elseif Left(str1, 17) = "lCombinationQuery" then
+            //        st = SPLIT(STR1, "|")
+
+            //        myString = st(3)
+
+            //        myString = Replace(myString, "~", "%")
+
+            //        myString = Replace(myString, "lm.ACCNO( )", "lm.ACCNO(+)")
+
+            //        myString = Replace(myString, "lm.GLCODE( )", "lm.GLCODE(+)")
+
+            //        myString = Replace(myString, "lm.BRANCHCODE( )", "lm.BRANCHCODE(+)")
+
+            //        myString = Replace(myString, "lm.CURRENCYCODE( )", "lm.CURRENCYCODE(+)")
+
+            //        rs = obj.singleRecordSet(st(1), st(2), myString)     'st1,st2,st3 are the tables, fields and conditions respectively
+
+            //    if not rs.EOF and not rs.bof then
+
+            //          do while not rs.EOF
+
+            //            for i = 0 to rs.fields.count - 1
+
+            //              counterno = counterno & rs(i).value & "~"
+
+            //            next
+
+            //            counterno = counterno & "|"                   ' counterno is a hidden variable holds the rs data joined with ~ and | 
+
+            //            rs.Movenext
+
+            //          loop
+
+            //        else
+            //                    counterno = "NO"
+            //     end if
+
+
+            //     elseif Left(str1, 17) = "cCombinationQuery" then
+            //        st = SPLIT(STR1, "|")
+
+            //        myString = st(3)
+
+            //        myString = Replace(myString, "~", "%")
+
+            //        myString = Replace(myString, "ll.linkedaccno( )", "ll.linkedaccno(+)")
+
+            //        myString = Replace(myString, "ll.linkedglcode( )", "ll.linkedglcode(+)")
+
+            //        myString = Replace(myString, "ll.branchcode( )", "ll.branchcode(+)")
+
+            //        myString = Replace(myString, "ll.currencycode( )", "ll.currencycode(+)")
+
+            //        myString = Replace(myString, "lm.limitid( )", "lm.limitid(+)")
+
+            //        myString = Replace(myString, "lm.customerid( )", "lm.customerid(+)")
+
+            //        myString = Replace(myString, "lm.branchcode( )", "lm.branchcode(+)")
+
+            //        myString = Replace(myString, "lm.currencycode( )", "lm.currencycode(+)")
+
+
+            //        rs = obj.singleRecordSet(st(1), st(2), myString)     'st1,st2,st3 are the tables, fields and conditions respectively
+
+            //    if not rs.EOF and not rs.bof then
+
+            //          do while not rs.EOF
+
+            //            for i = 0 to rs.fields.count - 1
+
+            //              counterno = counterno & rs(i).value & "~"
+
+            //            next
+
+            //            counterno = counterno & "|"                   ' counterno is a hidden variable holds the rs data joined with ~ and | 
+
+            //            rs.Movenext
+
+            //          loop
+
+            //        else
+            //                    counterno = "NO"
+            //     end if
+
+            //elseif Left(str1, 7) = "IssBank" then  ' THIS IS CALLED FROM GEN\REMITTANCE.ASPX
+
+            //        st = SPLIT(STR1, "|")
+
+
+            //        strTab = "GENOTHERBANKMST A, GENBANKACCMST B"
+
+            //        strflds = "TRIM(Upper(A.BANKNAME))"
+
+
+            //        strCond = "B.STATUS='R'AND B.REMITANCEYN='Y'" & _
+
+            //        " AND B.BRANCHCODE='" & trim(ucase(st(2))) & "' AND B.CURRENCYCODE='" & _
+
+            //         trim(ucase(st(3))) & "' AND B.OTHERBANKCODE='" & _
+
+            //        trim(ucase(st(4))) & "' AND B.OTHERBANKCODE=A.BANKCODE AND A.STATUS=B.STATUS"
+
+
+            //        if st(1) = "del" then
+            //        strTab = "GENOTHERBANKMST A, REMISSUEBANKMST B"
+
+            //        strCond = "B.STATUS='R' AND B.REMTYPE='" & trim(ucase(st(2))) & _
+
+            //        "' AND B.BRANCHCODE='" & trim(ucase(st(3))) & "' AND B.CURRENCYCODE='" & _
+
+            //         trim(ucase(st(4))) & "' AND B.OTHERBANKCODE='" & _
+
+            //        trim(ucase(st(5))) & "' AND B.OTHERBANKCODE=A.BANKCODE AND A.STATUS=B.STATUS"
+
+            //        '  if st(2)="ADD" then
+
+            //        '  strTab="REMISSUEBANKMST a, Remtypemst b"
+
+            //        '  strCond="a.STATUS='R' AND a.REMTYPE='" & trim(ucase(st(2))) & _
+
+            //        '"' AND a.BRANCHCODE = '" & trim(ucase(st(3))) & "' AND a.CURRENCYCODE = '" & _
+
+            //        ' trim(ucase(st(4))) & "' AND a.OTHERBANKCODE = '" & _ 
+            //        ' trim(ucase(st(5))) & "' AND a.OTHERBANKCODE = b.ISSUEDONBANKCODE AND A.STATUS = B.STATUS"
+
+            //        ' strflds="TRIM(Upper(issuedonbankdesc))"
+
+            //        ' end if
+
+            //    end if
+
+            //        rs = obj.singleRecordSet(strTab, strflds, strCond)
+
+
+            //        COUNTERNO = ST(0) & "|"
+
+            //        if not rs.EOF and not rs.bof then
+
+            //            counterno = counterno & rs(0).value
+
+            //        end if
+            //elseif Left(str1, 10) = "ADDIssBank" then  ' THIS IS CALLED FROM GEN\REMITTANCE.ASPX
+
+            //     st = SPLIT(STR1, "|")
+            //    rs = obj.singlerecordset("remtypemst", "issuedonbankdesc", "status='R' and remtype='" & st(2) & "' and issuedonbankcode='" & st(3) & "'")
+
+
+            //    COUNTERNO = ST(0) & "|"
+
+            //        if not rs.EOF and not rs.bof then
+
+            //            counterno = counterno & rs(0).value
+
+            //        end if
+
+
+            //elseif Left(str1, 10) = "RINVGlcode" then
+
+            //    k = split(str1, "|")
+            //     if k(1) = "INS" then
+            //    rs = obj.singlerecordset("GenGlsheetmst", "distinct narration", "branchcode='" & k(2) & "' and moduleid='" & k(4) & "' and glcode='" & k(3) & "'")
+            //    else
+            //                rs = obj.singlerecordset("REMISSUEBANKMST a,GenGlsheetmst b", _
+
+            //                                    "distinct b.narration", "a.branchcode='" & k(2) & "' and a.currencycode='" & k(3) & "' and a.remtype='" & k(4) & "' and a.OTHERBANKCODE='" & k(5) & "' AND a.OTHERBRANCHCODE='" & k(6) & "' and a.branchcode=b.branchcode  and a.invglcode=b.GLCODE and a.invglcode='" & k(7) & "'")
+            //    end if
+
+
+            //        if not rs.EOF and not rs.bof then
+
+            //            counterno = counterno & rs(0).value
+
+            //               else
+            //                counterno = counterno & "NO"
+
+            //        end if
+
+
+
+
+            //elseif Left(str1, 7) = "DELVIEW" then
+
+            //    k = split(str1, "|")
+
+
+            //    rs = obj.singlerecordset("REMISSUEBANKMST a,GenGlsheetmst b,invmst c", "distinct a.invglcode,b.narration,a.invaccno,c.name", "a.branchcode=b.branchcode and a.invaccno=c.accno and a.invglcode=c.glcode and a.invglcode=b.glcode and a.remtype='ADD' and a.OTHERBANKCODE='" & k(4) & "' and a.OTHERBRANCHCODE='" & k(5) & "'  and a.BRANCHCODE='" & k(1) & "' and a.currencycode='" & k(2) & "'")
+
+
+
+            //        if not rs.EOF and not rs.bof then
+            //counterno = counterno & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value
+
+            //         else
+            //                counterno = counterno & "NO"
+
+            //         end if
+
+
+
+
+            //elseif Left(str1, 8) = "INVAccno" then  ' THIS IS CALLED FROM GEN\REMITTANCE.ASPX
+
+            //    k = split(str1, "|")
+
+
+            //    if k(1) = "INS" then
+            // rs = obj.singlerecordset("invmst", _
+
+            //                        "distinct name", "branchcode='" & k(2) & "'and currencycode='" & k(3) & "' and glcode='" & k(4) & "' and status='R' and transtatus='A' and accno='" & k(5) & "'")
+
+            //                        else
+            //                rs = obj.singlerecordset("REMISSUEBANKMST a,invmst b", _
+
+            //                "distinct b.name", "a.branchcode='" & k(2) & "' and a.currencycode='" & k(3) & "' and a.remtype='" & k(4) & "' and a.OTHERBANKCODE='" & k(5) & "' AND a.OTHERBRANCHCODE='" & k(6) & "' and a.invglcode='" & k(7) & "' and a.branchcode=b.branchcode  and a.invglcode=b.GLCODE and a.invaccno=b.accno and a.invaccno='" & k(8) & "'")
+
+            //                        end if
+
+
+            //        if not rs.EOF and not rs.bof then
+
+            //            counterno = counterno & rs(0).value
+
+            //               else
+            //                counterno = counterno & "NO"
+
+            //        end if
+
+
+            //elseif Left(str1, 9) = "IssBranch" then  ' THIS IS CALLED FROM GEN\REMITTANCE.ASPX
+
+            //        st = SPLIT(STR1, "|")
+
+            //        strTab = "GENOTHERBRANCHMST A, GENBANKACCMST B"
+
+            //        strCond = "B.STATUS='R' AND B.REMITANCEYN='Y'" & _
+
+            //        " AND B.BRANCHCODE='" & trim(ucase(st(2))) & "' AND B.CURRENCYCODE='" & _
+
+            //         trim(ucase(st(3))) & "' AND B.OTHERBANKCODE='" & _
+
+            //        trim(ucase(st(4))) & "' AND B.OTHERBRANCHCODE='" & _
+
+            //        trim(ucase(st(5))) & "' AND B.OTHERBANKCODE=A.BANKCODE AND " & _
+
+            //        "B.OTHERBRANCHCODE=A.BRANCHCODE AND A.STATUS=B.STATUS"
+
+
+            //        if st(1) = "del" then
+            //        strTab = "GENOTHERBRANCHMST A, REMISSUEBANKMST B"
+
+            //        strCond = "B.STATUS='R' AND B.REMTYPE='" & trim(ucase(st(2))) & _
+
+            //        "' AND B.BRANCHCODE='" & trim(ucase(st(3))) & "' AND B.CURRENCYCODE='" & _
+
+            //         trim(ucase(st(4))) & "' AND B.OTHERBANKCODE='" & _
+
+            //        trim(ucase(st(5))) & "' AND B.OTHERBRANCHCODE='" & _
+
+            //        trim(ucase(st(6))) & "' AND B.OTHERBANKCODE=A.BANKCODE AND " & _
+
+            //        "B.OTHERBRANCHCODE=A.BRANCHCODE AND A.STATUS=B.STATUS"
+
+            //        end if
+
+
+            //        rs = obj.singleRecordSet(strTab, "TRIM(Upper(A.BRANCHNAME))", strCond)
+
+
+            //         COUNTERNO = ST(0) & "|"
+
+            //        if not rs.EOF and not rs.bof then
+
+            //            counterno = counterno & rs(0).value
+
+            //        end if
+
+
+            //elseif Left(str1, 12) = "ADDIssBranch" then  ' THIS IS CALLED FROM GEN\REMITTANCE.ASPX
+
+            //    st = split(str1, "|")
+
+
+            //  rs = obj.singlerecordset("GENCORRESPBANKBRANCHESMST", "branchname", "status='R' and bankcode='" & st(2) & "' and branchcode='" & st(3) & "' and branchcode not in (select otherbranchcode from REMISSUEBANKMST where otherbankcode='" & st(2) & "')")
+
+
+            //    COUNTERNO = ST(0) & "|"
+
+            //        if not rs.EOF and not rs.bof then
+
+            //            counterno = counterno & rs(0).value
+
+            //        end if
+
+
+            //elseif Left(str1, 12) = "BnkAccglcode" then  ' THIS IS CALLED FROM GEN\REMITTANCE.ASPX
+
+            //        st = SPLIT(STR1, "|")
+
+
+            //        strTab = "GENGLSHEETMST A, GENBANKACCMST B"
+
+            //        strCond = "B.STATUS='R'AND B.REMITANCEYN='Y'" & _
+
+            //        " AND B.BRANCHCODE='" & trim(ucase(st(2))) & "' AND B.CURRENCYCODE='" & _
+
+            //         trim(ucase(st(3))) & "' AND B.OTHERBANKCODE='" & trim(ucase(st(4))) & _
+
+            //         "' and B.OTHERBRANCHCODE='" & trim(ucase(st(5))) & "' AND A.GLCODE='" & _
+
+            //        trim(ucase(st(6))) & "' AND A.GLCODE = B.MISCGLCODE AND" & _
+
+            //        " A.BRANCHCODE=B.BRANCHCODE AND A.STATUS=B.STATUS"
+
+
+
+            //        if st(1) = "del" then
+            //        strTab = "GENGLSHEETMST A, REMISSUEBANKMST B"
+
+            //        strCond = "B.STATUS='R'AND B.REMTYPE='" & trim(ucase(st(2))) & _
+
+            //        "' AND B.BRANCHCODE='" & trim(ucase(st(3))) & "' AND B.CURRENCYCODE='" & _
+
+            //         trim(ucase(st(4))) & "' AND B.OTHERBANKCODE='" & trim(ucase(st(5))) & _
+
+            //         "' and B.OTHERBRANCHCODE='" & trim(ucase(st(6))) & "' AND A.GLCODE='" & _
+
+            //        trim(ucase(st(7))) & "' AND A.GLCODE = B.MISCGLCODE AND" & _
+
+            //        " A.BRANCHCODE=B.BRANCHCODE AND A.STATUS=B.STATUS"
+
+            //        end if
+
+
+            //        rs = obj.singleRecordSet(strTab, "DISTINCT TRIM(Upper(A.NARRATION))", strCond)
+
+
+
+            //         COUNTERNO = ST(0) & "|"
+
+            //        if not rs.EOF and not rs.bof then
+
+            //            counterno = counterno & rs(0).value
+
+            //        end if
+
+            //elseif Left(str1, 8) = "BnkAccno" then  ' THIS IS CALLED FROM GEN\REMITTANCE.ASPX
+
+            //        st = SPLIT(STR1, "|")
+
+
+            //        strTab = "MISCMST A, GENBANKACCMST B"
+
+            //        strCond = "B.STATUS='R' AND B.REMITANCEYN='Y'" & _
+
+            //        " AND B.BRANCHCODE='" & trim(ucase(st(2))) & "' AND B.CURRENCYCODE='" & _
+
+            //         trim(ucase(st(3))) & "' AND B.OTHERBANKCODE='" & trim(ucase(st(4))) & _
+
+            //         "' and B.OTHERBRANCHCODE='" & trim(ucase(st(5))) & "' AND A.GLCODE='" & _
+
+            //        trim(ucase(st(6))) & "' AND A.ACCNO='" & _
+
+            //        trim(ucase(st(7))) & "' AND A.GLCODE = B.MISCGLCODE AND" & _
+
+            //        " A.ACCNO=B.MISCACCNO AND A.BRANCHCODE=B.BRANCHCODE AND " & _
+
+            //        "A.CURRENCYCODE=B.CURRENCYCODE AND A.STATUS=B.STATUS AND B.MISCACCNO " & _
+
+            //        "NOT IN (SELECT DISTINCT MISCACCNO FROM REMISSUEBANKMST WHERE" & _
+
+            //        " MISCGLCODE='" & trim(ucase(st(6))) & "')"
+
+
+
+            //        if st(1) = "del" then
+            //        strTab = "MISCMST A, REMISSUEBANKMST B"
+
+            //        strCond = "B.STATUS='R' AND B.REMTYPE='" & trim(ucase(st(2))) & _
+
+            //        "' AND B.BRANCHCODE='" & trim(ucase(st(3))) & "' AND B.CURRENCYCODE='" & _
+
+            //         trim(ucase(st(4))) & "' AND B.OTHERBANKCODE='" & trim(ucase(st(5))) & _
+
+            //         "' and B.OTHERBRANCHCODE='" & trim(ucase(st(6))) & "' AND A.GLCODE='" & _
+
+            //        trim(ucase(st(7))) & "' AND A.ACCNO='" & _
+
+            //        trim(ucase(st(8))) & "' AND A.GLCODE = B.MISCGLCODE AND" & _
+
+            //        " A.ACCNO=B.MISCACCNO AND A.BRANCHCODE=B.BRANCHCODE AND " & _
+
+            //        "A.CURRENCYCODE=B.CURRENCYCODE AND A.STATUS=B.STATUS"
+
+            //        end if
+
+
+            //        rs = obj.singleRecordSet(strTab, "DISTINCT TRIM(Upper(A.NAME))", strCond)
+
+
+            //         COUNTERNO = ST(0) & "|"
+
+            //        if not rs.EOF and not rs.bof then
+
+            //            counterno = counterno & rs(0).value
+
+            //        end if
+
+            //elseif LEFT(STR1, 7) = "PigmyGl" then
+
+            //        st = SPLIT(STR1, "|")
+
+
+            //        rs = obj.singleRecordSet("GENGLSHEETMST", "NARRATION", "branchcode='" & st(1) & "' and  MODULEID='" & st(2) & "' and GLCODE='" & st(3) & "'")
+
+
+            //        COUNTERNO = ST(0) & "|"
+
+
+            //        if not rs.EOF and not rs.bof then
+
+            //             counterno = counterno & rs(0).value
+
+            //        end if
+
+            //elseif LEFT(STR1, 8) = "PigmyAcc" then
+
+            //        st = SPLIT(STR1, "|")
+
+
+            //        rs = obj.singleRecordSet(st(2) & "MST", "NAME", "branchcode='" & st(1) _
+            //        & "' and GLCODE='" & st(3) & "' AND ACCNO='" & st(4) & _
+
+            //        "' and accno not in (select accno from pigmyagentmst where " & _
+
+            //        "branchcode='" & st(1) & "' and glcode='" & st(3) & "' and " & _
+
+            //        "status='R')")
+
+
+            //        COUNTERNO = ST(0) & "|"
+
+
+            //        if not rs.EOF and not rs.bof then
+
+            //             counterno = counterno & rs(0).value
+
+            //        end if
+
+
+            //elseif LEFT(STR1, 11) = "DescDisplay" then
+
+            //        st = SPLIT(STR1, "|")
+
+
+            //        'DescDisplay~GenBankBranchMst~Narration~BRANCHCODE='104'|txtbranchcode
+
+            //        'DescDisplay~GenCurrencyTypeMst~Narration~CURRENCYCODE='INR'|txtcurrencycode
+
+            //        'DescDisplay~GENGLSHEETMST~NARRATION~branchcode='104' AND GLCODE='102040' AND MODULEID='PIGMY'|txtglcode
+
+            //        'DescDisplay~PIGMYAGENTMST~NAME~branchcode='104' AND GLCODE='102040' AND AGENTCODE='1001'|txtAgentCode
+
+            //        'DescDisplay~PIGMYACCOUNTSMST~NAME~branchcode='104' AND GLCODE='102040' AND AGENTCODE='1002' AND ACCNO='4'|txtaccno
+
+            //        'OR
+
+            //        'DescDisplay~PIGMYMST~NAME~branchcode='104' AND GLCODE='102040' AND AGENTCODE='1001' AND ACCNO='1'|txtaccno
+
+            //        'OR
+
+            //        'DescDisplay~PIGMYAGENTMST a, PIGMYMST b~a.AGENTNAME,a.ACCNO,b.Name~a.branchcode='104' AND a.GLCODE='102040' AND a.AGENTCODE='1002' AND a.BRANCHCODE=b. BRANCHCODE AND a.CURRENCYCODE=b.CURRENCYCODE AND a.GLCODE=b.GLCODE AND a.ACCNO=b.ACCNO |"+strTxt
+
+
+            //            kst = SPLIT(st(0), "~")
+
+            //            if ucase(trim(kst(1))) = "PIGMYACCOUNTSMST" then
+
+            //                kst(3) = kst(3) & " AND status='R' and TRANSTATUS='A' AND NVL(curbal,0) >0"
+
+            //            end if
+
+
+            //            rs = obj.singleRecordSet(kst(1), kst(2), kst(3))
+
+
+            //        ''COUNTERNO = st(1) & "~"
+
+
+            //        'if not rs.EOF and not rs.bof then
+
+            //        '	counterno= counterno & rs(0).value 
+
+            //        'else   
+
+            //        '	COUNTERNO="No"	
+
+            //        'end if
+
+
+            //        if not rs.EOF and not rs.bof then
+
+            //            for idx = 0 to rs.Fields.Count - 1
+
+            //                counterno = counterno & rs(idx).value & "|"
+
+            //            next
+
+            //        else
+            //                    COUNTERNO = "No"
+
+            //        end if
+
+
+            //        COUNTERNO = COUNTERNO & "~" & st(1)
+
+
+            //elseif left(str1,14)= "LastIntCalDate"
+
+
+            //        'LastIntCalDate~104~INR~PIGMYACCOUNTSMST~102040~1001~1~
+
+
+            //        st = split(str1, "~")
+
+
+            //        dim typeMst, strLogCond
+
+
+            //        typeMst = Trim(st(3))
+
+
+            //      ' 1 brcode, 2 curcode, 3 pigmyacctran, 4 glcode, 5 agentcode, 6 accno 
+
+
+            //        strCond = "branchcode='" & st(1) & _
+            //         "' and currencycode='" & st(2) & _
+
+            //         "' and glcode='" & st(4) & _
+
+            //         "' and upper(agentcode)=upper('" & st(5) & _
+
+            //         "') and upper(accno)=upper('" & st(6) & _
+
+            //         "') and status='R' and transtatus='A'"
+
+
+            //        rs = server.CreateObject("adodb.recordset")
+
+            //        rsGenActLog = server.CreateObject("adodb.recordset")
+
+
+            //        'code commented by Radhika on 23 Jan 2009
+
+            //        'rs=Obj.SingleRecordset(typeMst,"to_char(LASTINTCALCDATE,'dd - MON - yyyy')", cstr(strCond))
+
+            //        'New code is
+
+            //        rs = Obj.SingleRecordset(typeMst, "LASTINTCALCDATE,opdate", cstr(strCond))
+
+
+            //        counterno = "Nothing"
+
+
+            //        if not rs.EOF and not rs.bof then
+
+
+            //            'If Last Int Calc Date is null then return "Opening Date"
+
+            //            if IsDBNull(rs(0).value) = true then
+            //                counterno = rs(1).value 'opdate
+
+            //            else
+            //                counterno = dateadd("d", 1, rs(0).value) 'Last Int Calc Date + 1 day
+
+            //            end if
+
+            //            counterno = format(counterno, "dd-MMM-yyyy")
+
+
+            //        end if
+
+            //elseif left(str1, 15) = "MonthlyInterest"
+
+
+            //    'MonthlyInterest|104|INR|PIGMY|102040|1002|4|11-JAN-2008|30-Mar-2008
+
+
+            //    st = SPLIT(STR1, "|")
+
+
+            //    'Begin: Entire Code was commented by Radhika on 21 Jan 2009
+
+            //    'strTab="PIGMYACCTRAN a, pigmyaccountsmst b"
+
+
+            //    'strCond="upper(a.branchcode)='" & cstr(ucase(st(1))) & "' and a.branchcode=" & _
+
+            //    '	"b.branchcode and upper(a.currencycode)='" & cstr(ucase(st(2))) & _
+
+            //    '	"' and a.currencycode = b.currencycode and upper(a.moduleid)= '" & _
+
+            //    '	cstr(ucase(st(3))) & "' and upper(a.glcode)= '" & cstr(ucase(st(4))) & _
+
+            //    '	"' and a.glcode = b.glcode and upper(a.agentcode)= '" & cstr(ucase(st(5))) & _
+
+            //    '	"' and upper(a.accno)= '" & cstr(ucase(st(6))) & "' and a.accno = b.accno " & _
+
+            //    '	" and a.agentcode=b.agentcode AND A.TRANSTATUS='A' AND B.STATUS='R' AND" & _
+
+            //    '	" A.TRANSTATUS=B.TRANSTATUS AND A.APPLICATIONDATE BETWEEN '" & cstr(st(7)) & _
+
+            //    '	"' AND '" & cstr(st(8)) & "' AND A.APPLICATIONDATE > B.LASTINTCALCDATE  " & _
+
+            //    '	" AND B.OPDATE<='" & cstr(st(8)) & "'  GROUP BY a.BRANCHCODE, a.CURRENCYCODE," & _
+
+            //    '	" a.MODULEID, a.GLCODE, a.AGENTCODE, a.ACCNO,  TO_CHAR(a.APPLICATIONDATE ,'MM')" & _
+
+            //    '	"  ORDER BY TO_CHAR(a.APPLICATIONDATE ,'MM')"
+
+
+            //    'rs=server.CreateObject("adodb.recordset")
+
+
+            //    'rs=Obj.SingleRecordset(strTab,"DECODE(TO_CHAR(a.APPLICATIONDATE ,'MM'),'01'," & _	
+
+            //    '	"'JANUARY','02','FEBRUARY', '03','MARCH','04','APRIL','05','MAY','06'," & _
+
+            //    '	"'JUNE','07','JULY','08','AUGUST','09','SEPTEMBER', '10','OCTOBER','11'," & _
+
+            //    '	"'NOVEMBER','12','DECEMBER') mon, nvl(SUM(AMOUNT),0),'Balance','Interest'",_
+
+            //    '	 cstr(strCond))
+
+            //    '	
+
+            //    'COUNTERNO=""
+
+
+            //    'if not rs.EOF and not rs.bof then
+
+
+            //    '	do while not rs.EOF
+
+            //    '		for idx=0 to rs.Fields.Count -1 
+
+            //    '			counterno= counterno & rs(idx).value & "~"   
+
+            //    '		next
+
+            //    '		counterno= counterno & "|"
+
+            //    '		rs.MoveNext()
+
+            //    '	loop
+
+
+            //    '	rs=nothing
+
+            //    '	rs=server.CreateObject("adodb.recordset")
+
+
+            //    '	rs=Obj.SingleRecordset("PIGMYINTRATEMST a, PIGMYTYPEMST b","roi", _
+
+            //    '	"a.INTTYPE=b.INTMETHOD and a.GLCODE=b.GLCODE and a.GLCODE='" & cstr(st(4)) & "'")
+
+            //    '	'and a.INTTYPE = '1'
+
+            //    '	
+
+            //    '	if not rs.EOF and not rs.bof then
+
+            //    '			counterno= counterno & rs(0).value    
+
+            //    '	else
+
+            //    '		counterno= counterno & "0"    		
+
+            //    '	end if
+
+            //    'else
+
+            //    '	counterno= counterno & "No"    
+
+            //    'end if
+
+            //    'End: Entire Code was commented by Radhika on 21 Jan 2009
+
+
+            //    'Begin: New Code was Written by Radhika on 21 Jan 2009
+
+            //    dim BrCode, CurCode, ModID, GlCode, AgentCode, Accno, FromDt, ToDt, ROI
+
+
+            //    BrCode = cstr(ucase(st(1)))
+
+            //    CurCode = cstr(ucase(st(2)))
+
+            //    ModID = cstr(ucase(st(3)))
+
+            //    GlCode = cstr(ucase(st(4)))
+
+            //    AgentCode = cstr(ucase(st(5)))
+
+            //    Accno = cstr(ucase(st(6)))
+
+            //    FromDt = cstr(st(7))
+
+            //    ToDt = cstr(st(8))
+
+
+            //    'get Last interest calc date of given a/c
+
+            //    strTab = "pigmyaccountsmst"
+
+            //    strCond = "upper(branchcode)='" & BrCode & "'" & _
+
+            //        " and upper(currencycode)='" & CurCode & "'" & _
+
+            //        " and upper(glcode)='" & GlCode & "'" & _
+
+            //        " and upper(agentcode)='" & AgentCode & "'" & _
+
+            //        " and upper(accno)='" & Accno & "'" & _
+
+            //        " and OPDATE<='" & ToDt & "'"
+
+
+            //    rs = server.CreateObject("adodb.recordset")
+
+
+            //    rs = Obj.SingleRecordset(strTab, "LASTINTCALCDATE,nvl(Curbal,0),opdate,nvl(ROI,0)", _
+
+            //    cstr(strCond))
+
+
+            //    dim LastIntCalcDt, tempdt, SumOfTranAmts, MonthBal
+
+            //    dim CurBal, sCols, str
+
+
+            //    if rs.EOF = true or rs.bof = true then
+            //        counterno = counterno & "No"
+
+            //    else
+            //        if isdbnull(rs(0).value) = true then
+
+            //        'Last INt Calc date is null
+
+            //            LastIntCalcDt = rs(2).value 'opdate 
+
+            //        else
+            //                LastIntCalcDt = dateadd("d", 1, rs(0).value) 'Last Int Calc date + 1 day
+
+            //        end if
+
+            //        'LastIntCalcDt= cdate(format(LastIntCalcDt,"dd-MMM-yyyy"))
+
+            //        CurBal = rs(1).value
+
+            //        ROI = rs(3).value
+
+            //        rs = nothing
+
+
+            //        if LastIntCalcDt >= cdate(ToDt) then
+
+            //        'Last Int Calc Date >= Given Int Calc Upto Date
+
+            //            counterno = counterno & "No"
+
+            //        else
+
+            //                'Get Sum of Tran Amounts between Last Int Calc Date 
+
+            //            'and upto its month end
+
+            //            tempdt = format(LastIntCalcDt, "dd-MMM-yyyy")
+
+
+            //            strCond = "upper(branchcode)='" & BrCode & "'" & _
+
+            //                " and upper(currencycode)='" & CurCode & "'" & _
+
+            //                " and upper(glcode)='" & GlCode & "'" & _
+
+            //                " and upper(agentcode)='" & AgentCode & "'" & _
+
+            //                " and upper(accno)='" & Accno & "'" & _
+
+            //                " and APPLICATIONDATE>='" & tempdt & "'" & _
+
+            //                " and APPLICATIONDATE<=TO_CHAR(LAST_DAY(TO_DATE('" & tempdt & _
+
+            //                "','DD-MON-YYYY')),'DD-MON-YYYY')"
+
+
+            //            sCols = "NVL(SUM(NVL(amount,0)),0)"
+
+
+            //            rs = Obj.SingleRecordset("vPigmyAccTran", sCols, strCond)
+
+
+            //            SumOfTranAmts = 0
+
+            //            if rs.eof = false and rs.bof = false then
+            //                SumOfTranAmts = iif(isdbnull(rs(0).value), 0, rs(0).value)
+
+            //            end if
+
+
+            //            'Get Month End Balance in Last Int Calc date MOnth
+
+            //            sCols = " Getpigmyanydaybal('" & BrCode & "','" & _
+
+            //                CurCode & "','" & ModID & "','" & GlCode & "','" & _
+
+            //                AgentCode & "','" & Accno & "'," & _
+
+            //                "TO_CHAR(LAST_DAY(TO_DATE('" & tempdt & _
+
+            //                "','DD-MON-YYYY')),'DD-MON-YYYY')) "
+
+
+            //            rs = Obj.SingleRecordset("dual", sCols, " ")
+
+            //            MonthBal = 0
+
+            //            if rs.EOF = false and rs.bof = false then
+
+            //                if ucase(mid(rs(0).value, 1, 5)) <> "ERROR" then
+            //                    MonthBal = cdbl(rs(0).value)
+
+            //                end if
+
+            //            end if
+
+
+            //            str = format(cdate(tempdt), "MMM yyyy") & "~" & SumOfTranAmts & _
+
+            //            "~" & MonthBal & "~Interest~"
+
+
+            //            COUNTERNO = str & "|"
+
+
+            //            'Get Next month First Day of "Last Int Calc Date"
+
+            //            tempdt = dateadd("m", 1, LastIntCalcDt)
+
+            //            tempdt = "01-" & format(tempdt, "MMM-yyyy")
+
+
+            //            do while cdate(tempdt) <= cdate(ToDt)
+
+
+            //                strCond = "upper(branchcode)='" & BrCode & "'" & _
+
+            //                    " and upper(currencycode)='" & CurCode & "'" & _
+
+            //                    " and upper(glcode)='" & GlCode & "'" & _
+
+            //                    " and upper(agentcode)='" & AgentCode & "'" & _
+
+            //                    " and upper(accno)='" & Accno & "'" & _
+
+            //                    " and APPLICATIONDATE>='" & tempdt & "'" & _
+
+            //                    " and APPLICATIONDATE<=TO_CHAR(LAST_DAY(TO_DATE('" & tempdt & _
+
+            //                    "','DD-MON-YYYY')),'DD-MON-YYYY')"
+
+
+            //                sCols = "NVL(SUM(NVL(amount,0)),0)"
+
+
+            //                rs = Obj.SingleRecordset("vPigmyAccTran", sCols, strCond)
+
+
+            //                SumOfTranAmts = 0
+
+            //                if rs.eof = false and rs.bof = false then
+            //                    SumOfTranAmts = iif(isdbnull(rs(0).value), 0, rs(0).value)
+
+            //                end if
+
+
+            //                MonthBal = MonthBal + SumOfTranAmts
+
+
+            //                str = format(cdate(tempdt), "MMM yyyy") & "~" & SumOfTranAmts & _
+
+            //                "~" & MonthBal & "~Interest~"
+
+
+            //                COUNTERNO = COUNTERNO & str & "|"
+
+
+            //                tempdt = dateadd("m", 1, cdate(tempdt))
+
+            //                tempdt = format(cdate(tempdt), "dd-MMM-yyyy")
+
+            //            loop
+
+
+            //            '********* Get ROI and add it to return string  *********
+
+            //            '
+
+            //            'Begin: Existing code commented by Radhika on 23 Jan 2009
+
+            //            'Reason: ROI is fetching from PigmyAccountsMst table
+
+            //            'rs=nothing
+
+            //            'rs=server.CreateObject("adodb.recordset")
+
+
+            //            'rs=Obj.SingleRecordset("PIGMYINTRATEMST a, PIGMYTYPEMST b","roi", _
+
+            //            '"a.INTTYPE=b.INTMETHOD and a.GLCODE=b.GLCODE and a.GLCODE='" & _
+
+            //            'cstr(st(4)) & "'") 			'and a.INTTYPE='1'
+
+
+            //            'if not rs.EOF and not rs.bof then
+
+            //            '	counterno= counterno & rs(0).value    
+
+            //            'else
+
+            //            '	counterno= counterno & "0"    		
+
+            //            'end if
+
+            //            'End: Existing code commented by Radhika on 23 Jan 2009
+
+
+            //            'New code is written by Radhika on 23 jan 2009
+
+            //            counterno = counterno & ROI
+
+
+            //        end if
+
+            //    end if
+
+            //    'End: New Code was Written by Radhika on 21 Jan 2009	
+
+
+            //elseif left(str1,21)= "MonthlyMinbalInterest"
+
+
+            //        'MonthlyMinbalInterest|104|INR|PIGMY|102040|1002|4|11-JAN-2008|30-Mar-2008
+
+
+            //        st = SPLIT(STR1, "|")
+
+
+            //          dim mbday, mbdate, tStr
+
+            //          tStr = ""
+
+            //          rs = nothing
+
+
+            //            rs = server.CreateObject("adodb.recordset")
+
+
+            //            rs = Obj.SingleRecordset("PIGMYTYPEMST", "MONTHLYMINBALDAY", "glcode='" & st(4) & "'")
+
+
+            //        'select roi from PIGMYINTRATEMST a, PIGMYTYPEMST b where a.INTTYPE=b.INTMETHOD and a.GLCODE=b.GLCODE and a.GLCODE='102040' and a.INTTYPE='1'
+
+
+            //   if not rs.EOF and not rs.bof then
+
+
+            //      if IsDBNull(rs(0).value) = true then
+            //        counterno = "No MinBalDay"
+
+            //      else
+            //                mbday = rs(0).value
+
+            //        'if IsDBNull(rs(0).value)=false then
+
+            //                'counterno= cstr(rs(0).value)    	
+
+            //            'end if	
+
+            //        'select EFFECTIVEDATE, dayendbal,'BALANCE','INTEREST' from pigmyacctran A where EFFECTIVEDATE=(SELECT MAX(EFFECTIVEDATE) from pigmyacctran WHERE EFFECTIVEDATE <='10 - FEB - 2008' AND ACCNO=A.ACCNO AND AGENTCODE=A.AGENTCODE) AND ACCNO=4 AND AGENTCODE='1002'
+
+
+            //        mbdate = split(st(7), "-")
+
+            //        temp = mbdate(0)
+
+
+            //        mbdate = mbday & "-" & mbdate(1) & "-" & mbdate(2)
+
+
+            //        if cint(temp) <= cint(mbday) then
+            //            mbdate = format(cdate(mbdate), "dd-MMM-yyyy")
+
+            //        else
+            //                mbdate = format(DateAdd("m", 1, cdate(mbdate)), "dd-MMM-yyyy")
+
+            //        end if
+
+
+
+            //        do while cdate(mbdate) <= cdate(st(8))
+
+
+            //            'Code commented by Radhika on 21 Jan 2009
+
+            //            'Reason: Effectivedate and Tran Number were looking separately. 
+
+            //            '        It should search combinedly
+            //'			strCond ="EFFECTIVEDATE=(SELECT MAX(EFFECTIVEDATE) from pigmyacctran WHERE EFFECTIVEDATE <='" & mbdate & "' AND ACCNO=A.ACCNO AND AGENTCODE=A.AGENTCODE AND BRANCHCODE=A.BRANCHCODE AND CURRENCYCODE=A.CURRENCYCODE AND MODULEID=A.MODULEID AND GLCODE=A.GLCODE) AND upper(BRANCHCODE)='" & ucase(ST(1)) & "' AND upper(CURRENCYCODE)='" & ucase(ST(2)) & "' AND upper(MODULEID)='" & ucase(ST(3)) & "' AND upper(GLCODE)='" & ucase(ST(4)) & "' AND upper(ACCNO)='" & ucase(ST(6)) & "' AND upper(AGENTCODE)='" & ucase(ST(5)) & "' and tranno =(SELECT MAX(tranno) from pigmyacctran WHERE EFFECTIVEDATE <='" & mbdate & "' AND ACCNO= A.ACCNO AND AGENTCODE=A.AGENTCODE AND BRANCHCODE=A.BRANCHCODE AND CURRENCYCODE=A.CURRENCYCODE AND MODULEID=A.MODULEID AND GLCODE=A.GLCODE)"
+
+
+            //            'End of Code commented by Radhika on 21 Jan 2009
+
+
+            //            'New Code written by Radhika on 21 Jan 2009			
+
+            //            strCond = " UPPER(BRANCHCODE)='" & ucase(ST(1)) & "' AND " & _
+
+            //            " UPPER(CURRENCYCODE)='" & ucase(ST(2)) & "' AND UPPER(MODULEID)='" & _
+
+            //            ucase(ST(3)) & "' AND UPPER(GLCODE)='" & ucase(ST(4)) & "'" & _
+
+            //            " AND UPPER(AGENTCODE)='" & ucase(ST(5)) & "' AND UPPER(ACCNO)='" & _
+
+            //            ucase(ST(6)) & "' AND (EFFECTIVEDATE,tranno) =(SELECT b.EFFECTIVEDATE," & _
+
+            //            " MAX(b.tranno) FROM PIGMYACCTRAN b WHERE b.BRANCHCODE=A.BRANCHCODE " & _
+
+            //            " AND b.CURRENCYCODE=A.CURRENCYCODE AND b.MODULEID=A.MODULEID AND " & _
+
+            //            " b.GLCODE=A.GLCODE AND b.AGENTCODE=A.AGENTCODE AND b.aCCNO= A.ACCNO " & _
+
+            //            " AND b.EFFECTIVEDATE =(SELECT MAX(EFFECTIVEDATE) FROM PIGMYACCTRAN c " & _
+
+            //            " WHERE c.BRANCHCODE=A.BRANCHCODE AND c.CURRENCYCODE=A.CURRENCYCODE " & _
+
+            //            " AND c.MODULEID=A.MODULEID AND c.GLCODE=A.GLCODE AND " & _
+
+            //            " c.AGENTCODE=A.AGENTCODE AND c.aCCNO= A.ACCNO AND " & _
+
+            //            " c.EFFECTIVEDATE <='" & mbdate & "') GROUP BY b.EFFECTIVEDATE)"
+
+
+            //            rs = Obj.SingleRecordset("pigmyacctran A", "'" & mbdate & "', dayendbal,'BALANCE','INTEREST'", strCond)
+
+
+            //            if not rs.EOF and not rs.bof then
+
+            //                for idx = 0 to rs.Fields.Count - 1
+
+            //                    tStr = tStr & rs(idx).value & "~"
+
+            //                next
+
+            //            ELSE
+
+            //                TSTR = tSTR & mbdate & "~0~BALANCE~INTEREST~"
+
+            //            end if
+
+
+            //            tStr = tStr & "|"
+
+
+            //            mbdate = format(DateAdd("m", 1, cdate(mbdate)), "dd-MMM-yyyy")
+
+
+            //            RS = NOTHING
+
+
+            //        loop
+
+            //        rs = nothing
+
+
+            //        rs = server.CreateObject("adodb.recordset")
+
+
+            //        rs = Obj.SingleRecordset("PIGMYINTRATEMST a, PIGMYTYPEMST b", "roi", "a.INTTYPE=b.INTMETHOD and a.GLCODE=b.GLCODE and a.GLCODE='" & cstr(st(4)) & "' and a.INTTYPE='1'")
+
+
+            //        'select roi from PIGMYINTRATEMST a, PIGMYTYPEMST b where a.INTTYPE=b.INTMETHOD and a.GLCODE=b.GLCODE and a.GLCODE='102040' and a.INTTYPE='1'
+
+
+            //        if not rs.EOF and not rs.bof then
+
+            //            tStr = tStr & rs(0).value
+
+            //        else
+            //                tStr = tStr & "0"
+
+            //        end if
+
+
+            //        if tStr = "" then
+            //            counterno = "No"
+
+            //        else
+            //                    counterno = tStr
+
+            //        end if
+
+            //      end if
+            //   end if
+            //elseif left(str1, 15) = "AgentCommission"
+
+            //        dim Comm, CommType
+            //'AgentCommission|104|INR|PIGMY|102040|1002|1|11-JAN-2008|30-Mar-2008
+
+            //    st = SPLIT(STR1, "|")
+
+            //    rs = nothing
+
+
+            //    rs = server.CreateObject("adodb.recordset")
+
+            //    rs = Obj.SingleRecordset("PIGMYCOMMRATEMST a, PIGMYTYPEMST b", _
+
+            //        "nvl(a.COMMRATE,0), nvl(a.COMMTYPE,0)", "a.COMMTYPE=b.COMMMETHOD and " & _
+
+            //        "a.GLCODE=b.GLCODE and a.GLCODE='" & cstr(st(4)) & "'")
+
+
+            //    if not rs.EOF and not rs.BOF then
+
+            //        if rs(0).value = 0 or rs(1).value = 0 then
+            //            COUNTERNO = "NoComm"
+
+            //        else
+            //                Comm = rs(0).value
+
+            //            CommType = rs(1).value
+
+            //            if rs(1).value = 1 then
+
+            //                strTab = "PIGMYTRAN A, PIGMYCOMMRATEMST B"
+
+
+            //                strFlds = "TO_CHAR(A.APPLICATIONDATE ,'dd-MON-yyyy'), " & _
+
+            //                "nvl(SUM(NVL(A.AMOUNT,0)),0), (nvl(SUM(NVL(A.AMOUNT,0)),0)*" & _
+
+            //                "B.COMMRATE)/100"
+
+
+            //                strCond = "A.GLCODE=B.GLCODE AND A.CURRENCYCODE=" & _
+
+            //                "B.CURRENCYCODE AND upper(A.branchcode)='" & _
+
+            //                cstr(ucase(st(1))) & "' and upper(A.currencycode)='" & _
+
+            //                cstr(ucase(st(2))) & "' and upper(A.glcode)='" & _
+
+            //                cstr(ucase(st(4))) & "' and upper(A.accno)='" & _
+
+            //                cstr(ucase(st(6))) & "' AND A.TRANSTATUS='A' AND " & _
+
+            //                "A.APPLICATIONDATE BETWEEN '" & cstr(st(7)) & "' AND '" & _
+
+            //                cstr(st(8)) & "' AND NVL(A.AMOUNT,0)>0 " & _
+
+            //                " AND A.LINKGLCODE IS NULL AND A.LINKACCNO IS NULL " & _
+
+            //                " GROUP BY A.APPLICATIONDATE,B.COMMRATE " & _
+
+            //                "ORDER BY A.APPLICATIONDATE"
+
+
+            //                'strCond="upper(branchcode)='" & cstr(ucase(st(1))) & "' and upper(currencycode)='" & cstr(ucase(st(2))) & "' and upper(glcode)='" & cstr(ucase(st(4))) & "' and upper(accno)='" & cstr(ucase(st(6))) & "' AND TRANSTATUS='A' AND APPLICATIONDATE BETWEEN '" & cstr(st(7)) & "' AND '" & cstr(st(8)) & "' GROUP BY APPLICATIONDATE ORDER BY APPLICATIONDATE"
+
+
+            //                rs = nothing
+
+
+            //                rs = server.CreateObject("adodb.recordset")
+
+
+            //                rs = Obj.SingleRecordset(cstr(strTab), cstr(strFlds), _
+
+            //                                        cstr(strCond))
+
+
+            //                COUNTERNO = ""
+
+
+            //                if not rs.EOF and not rs.BOF then
+
+            //                    do while not rs.EOF
+
+            //                        for idx = 0 to rs.Fields.Count - 1
+
+            //                            counterno = counterno & rs(idx).value & "~"
+
+            //                        next
+
+            //                        counterno = counterno & "|"
+
+            //                        rs.MoveNext()
+
+            //                    loop
+
+            //                else
+            //                    counterno = counterno & "No"
+
+            //                end if
+
+
+            //                counterno = counterno & CommType
+
+
+            //            else if rs(1).value = 2 then
+
+            //                strTab = "PIGMYTRAN"
+
+
+            //                strFlds = "TO_CHAR(APPLICATIONDATE ,'dd-MON-yyyy'), " & _
+
+            //                "nvl(SUM(NVL(AMOUNT,0)),0), '0'"
+
+
+            //                strCond = "upper(branchcode)='" & _
+
+            //                cstr(ucase(st(1))) & "' and upper(currencycode)='" & _
+
+            //                cstr(ucase(st(2))) & "' and upper(glcode)='" & _
+
+            //                cstr(ucase(st(4))) & "' and upper(accno)='" & _
+
+            //                cstr(ucase(st(6))) & "' AND TRANSTATUS='A' AND " & _
+
+            //                "APPLICATIONDATE BETWEEN '" & cstr(st(7)) & "' AND '" & _
+
+            //                cstr(st(8)) & "' AND NVL(AMOUNT,0)>0 " & _
+
+            //                " AND LINKGLCODE IS NULL AND LINKACCNO IS NULL " & _
+
+            //                " GROUP BY APPLICATIONDATE " & _
+
+            //                " ORDER BY APPLICATIONDATE"
+
+
+            //                'strCond="upper(branchcode)='" & cstr(ucase(st(1))) & "' and upper(currencycode)='" & cstr(ucase(st(2))) & "' and upper(glcode)='" & cstr(ucase(st(4))) & "' and upper(accno)='" & cstr(ucase(st(6))) & "' AND TRANSTATUS='A' AND APPLICATIONDATE BETWEEN '" & cstr(st(7)) & "' AND '" & cstr(st(8)) & "' GROUP BY APPLICATIONDATE ORDER BY APPLICATIONDATE"
+
+
+            //                rs = nothing
+
+
+            //                rs = server.CreateObject("adodb.recordset")
+
+
+            //                rs = Obj.SingleRecordset(cstr(strTab), cstr(strFlds), _
+
+            //                                        cstr(strCond))
+
+
+            //                COUNTERNO = ""
+
+
+            //                if not rs.EOF and not rs.BOF then
+
+            //                    do while not rs.EOF
+
+            //                        for idx = 0 to rs.Fields.Count - 1
+
+            //                            counterno = counterno & rs(idx).value & "~"
+
+            //                        next
+
+            //                        counterno = counterno & "|"
+
+            //                        rs.MoveNext()
+
+            //                    loop
+
+            //                else
+            //                    counterno = counterno & "No"
+
+            //                end if
+
+
+            //                dim strCommRt,strFrmRt,strToRt,strRes
+
+            //                strTab = "PIGMYCOMMRATEMST"
+
+
+            //                strFlds = "nvl(COMMRATE,0), nvl(FROMAMOUNT,0), nvl(TOAMOUNT,0)"
+
+
+            //                strCond = "upper(currencycode)='" & _
+
+            //                cstr(ucase(st(2))) & "' and upper(moduleid)='" & _
+
+            //                cstr(ucase(st(3))) & "' and upper(glcode)='" & _
+
+            //                cstr(ucase(st(4))) & "' AND STATUS='R' ORDER BY FROMAMOUNT"
+
+
+            //                'strCond="upper(branchcode)='" & cstr(ucase(st(1))) & "' and upper(currencycode)='" & cstr(ucase(st(2))) & "' and upper(glcode)='" & cstr(ucase(st(4))) & "' and upper(accno)='" & cstr(ucase(st(6))) & "' AND TRANSTATUS='A' AND APPLICATIONDATE BETWEEN '" & cstr(st(7)) & "' AND '" & cstr(st(8)) & "' GROUP BY APPLICATIONDATE ORDER BY APPLICATIONDATE"
+
+
+            //                rs = nothing
+
+
+            //                rs = server.CreateObject("adodb.recordset")
+
+
+            //                rs = Obj.SingleRecordset(cstr(strTab), cstr(strFlds), _
+
+            //                                        cstr(strCond))
+
+
+            //                if not rs.EOF and not rs.BOF then
+
+
+            //                    do while not rs.EOF
+
+            //                        strCommRt = strCommRt & rs(0).value & "-"
+
+            //                        strFrmRt = strFrmRt & rs(1).value & "-"
+
+            //                        strToRt = strToRt & rs(2).value & "-"
+
+
+            //                        rs.MoveNext()
+
+            //                    loop
+
+            //                    strRes = strCommRt & "$" & strFrmRt & "$" & strToRt
+
+            //                else
+            //                strRes = "NoComm"
+
+            //                end if
+
+
+            //                counterno = counterno & strRes
+
+
+            //            end if
+
+
+            //        end if
+
+            //    else
+            //        if COUNTERNO = "" or COUNTERNO = nothing then
+            //            COUNTERNO = "NoComm"
+
+            //        end if
+
+            //    end if
+
+
+
+
+            //'-------------------------------------------sharath-------------------------
+
+
+            //end if
+            // obj = nothing
+            // %>
+        }
+
+        public async Task<string[,]> GetSCRFlex(string searchString = "", int precision = 0)
+        {
+            string[,] grid = new string[100, 10];
+            double prec, tempamt, amount, reamount = 0, balance = 0;
+            DataTable rsscr = null!, rsdtls = null!, rscontra = null!;
+
+            string[] dtls = searchString.Split("~!~");
+            string strDispo = dtls[5];
+            string strAmount = dtls[6];
+
+
+            if (searchString.Length > 0)
+            {
+                dtls = searchString.Split("~!~");
+                rsscr = await _databaseFactory.SingleRecordSet("GENGLMASTMST", "NORMALBALANCE", " MODULEID='SCR' and GLCODE='" + dtls[0] + "'");
+
+                if (Conversions.ToString(rsscr.Rows[0].ItemArray[0]).Equals("DR"))
+                    rsscr = await _databaseFactory.SingleRecordSet("SCRDTLS S,SCRMST C", "S.CONTRACOMPLETE,S.ACCNO,c.NAME, nvl(S.OPBAL,0), " +
+                        "to_char(S.OPDATE,'dd-Mon-yyyy'),S.TRANNO,S.BATCHNO, to_char(S.APPLICATIONDATE, 'dd-Mon-yyyy'),nvl(S.NARRATION,'') NARRATION", 
+                        "S.CONTRACOMPLETE<>'F' AND S.GLCODE='" + dtls[0] + "' and s.currencycode=c.currencycode AND s.branchcode = c.branchcode and S.GLCODE=c.glcode and " +
+                        "s.branchcode='" + dtls[2] + "' and s.ACCNO='" + dtls[4] + "' and s.CURRENCYCODE='" + dtls[3] + "' and s.ACCNO=c.ACCNO", "S.OPDATE,S.TRANNO");
+                else
+                    rsscr = await _databaseFactory.SingleRecordSet("SCRDTLS S,SCRMST C", "S.CONTRACOMPLETE,S.ACCNO,c.NAME, nvl(S.OPBAL,0)," +
+                        "to_char(S.OPDATE,'dd-Mon-yyyy'),S.TRANNO,S.BATCHNO, to_char(S.APPLICATIONDATE,'dd-Mon-yyyy'),nvl(S.NARRATION,'') NARRATION", 
+                        "S.CONTRACOMPLETE<>'F' AND S.GLCODE='" + dtls[0] + "' and s.currencycode=c.currencycode AND s.branchcode = c.branchcode and S.GLCODE=c.glcode and " +
+                        "s.branchcode='" + dtls[2] + "' and s.ACCNO='" + dtls[4] + "' and s.CURRENCYCODE='" + dtls[3] + "' and s.ACCNO=c.ACCNO", "S.OPDATE,S.TRANNO");
+
+                if (dtls[1].Length > 0)
+                    prec = Convert.ToDouble(dtls[1]);
+                else
+                    prec = precision;
+
+                //    Response.Write("<script language=vbscript>" & chr(13))
+                //    Response.Write("sub scrdtls()" & chr(13))
+
+                if (rsscr.Rows.Count > 0)
+                {
+                    int i = 0;
+                    foreach (DataRow row in rsscr.Rows)
+                    {
+                        //    Response.Write("window.document.frmscr.scrflex.rows= " & " window.document.frmscr.scrflex.rows+1" & chr(13))
+
+                        rsdtls = await _databaseFactory.SingleRecordSet("SCRCONTRADTLS", "NVL(sum(AMOUNT),0)", "branchcode='" + dtls[2] + "' and CURRENCYCODE='"
+                            + dtls[3] + "' and ORIGINATINGTRANNO='" + row.ItemArray[5] + "' and ORIGINATINGBATCHNO='" + row.ItemArray[6] + "' and ORIGINATINGDATE='"
+                            + row.ItemArray[7] + "'");
+
+                        rscontra = await _databaseFactory.SingleRecordSet("GENTEMPTRANSLOG", "NVL(sum(AMOUNT),0)", "branchcode='" + dtls[2] + "' and " +
+                            "CURRENCYCODE='" + dtls[3] + "' and moduleid='SCR' and c63='" + row.ItemArray[5] + "' and c62='" + row.ItemArray[6] + "' and c61='" +
+                            row.ItemArray[7] + "' and transtatus='P'");
+
+                        if (rscontra.Rows.Count > 0)
+                        {
+                            if (Convert.ToDouble(rscontra.Rows[0].ItemArray[0]) < 0)
+                                tempamt = Convert.ToDouble(Conversions.ToString(rscontra.Rows[0].ItemArray[0]).Substring(2));
+                            else
+                                tempamt = Convert.ToDouble(rscontra.Rows[0].ItemArray[0]);
+                        }
+                        else
+                            tempamt = 0;
+
+                        if (Conversions.ToString(rsscr.Rows[0].ItemArray[0]) == "P")
+                        {
+                            rsdtls = await _databaseFactory.SingleRecordSet("SCRCONTRADTLS", "nvl(sum(nvl(AMOUNT,0)),0)", "branchcode='" + dtls[2] + "' and " +
+                                "CURRENCYCODE='" + dtls[3] + "' and  ORIGINATINGTRANNO='" + row.ItemArray[5] + "' and ORIGINATINGBATCHNO='" + row.ItemArray[6] + "' and " +
+                                "ORIGINATINGDATE='" + row.ItemArray[7] + "'");
+
+                            if (Convert.ToDouble(row.ItemArray[3]) < 0)
+                                amount = Convert.ToDouble(Conversions.ToString(row.ItemArray[3]).Substring(2));
+                            else
+                                amount = Convert.ToDouble(row.ItemArray[3]);
+
+                            if (rsdtls.Rows.Count > 0)
+                            {
+                                if (Convert.ToDouble(row.ItemArray[0]) < 0)
+                                    reamount = Convert.ToDouble(Conversions.ToString(row.ItemArray[0]).Substring(2)) + Convert.ToDouble(tempamt);
+                                else
+                                    reamount = Convert.ToDouble(row.ItemArray[0]) + Convert.ToDouble(tempamt);
+                                balance = Convert.ToDouble(amount) - Convert.ToDouble(reamount);
+                            }
+                        }
+                        else
+                        {
+                            if (Convert.ToDouble(row.ItemArray[3]) < 0)
+                                amount = Convert.ToDouble(Conversions.ToString(row.ItemArray[3]).Substring(2));
+                            else
+                                amount = Convert.ToDouble(row.ItemArray[3]);
+
+                            reamount = tempamt;
+                            balance = amount - reamount;
+                        }
+
+                        grid[i, 0] = Conversions.ToString(row.ItemArray[0]); // Account No
+                        grid[i, 1] = Conversions.ToString(row.ItemArray[2]); // Name
+                        grid[i, 2] = Conversions.ToString(row.ItemArray[8]); // Narration
+                        grid[i, 3] = BankingExtensions.GridPrecision(Conversions.ToString(amount), Conversions.ToString(precision)); // Original Amount
+                        grid[i, 4] = BankingExtensions.GridPrecision(Conversions.ToString(reamount), Conversions.ToString(precision)); // Contra Amount
+                        grid[i, 5] = BankingExtensions.GridPrecision(Conversions.ToString(balance), Conversions.ToString(precision)); //Balance
+                        grid[i, 6] = Conversions.ToString(row.ItemArray[4]); // Opening Date
+                        grid[i, 7] = Conversions.ToString(row.ItemArray[5]); // Tran No
+                        grid[i, 8] = Conversions.ToString(row.ItemArray[6]); // Batch No
+                        grid[i, 9] = Conversions.ToString(row.ItemArray[7]); // Application Date
+                    }
+                }
+                else if (rsscr.Rows.Count == 0)
+                {
+                    grid[1, 0] = "No records Found";
+                }
+            }
+
+            BankingExtensions.ReleaseMemory(rsscr);
+            BankingExtensions.ReleaseMemory(rsdtls);
+
+            return grid;
+        }
+
+        public async Task GenParameters(string searchString = "")
+        {
+            string[] strVal = searchString.Split("~");
+
+            string mode = strVal[0];
+            string modId = strVal[1];
+            string glCode = strVal[2];
+            string TranDate = strVal[3];
+            string curCode = strVal[4];
+            string brCode = strVal[5];
+            string userID = strVal[6];
+            string machineID = strVal[7];
+            string accNo = "", catCode = "";
+
+            if (mode == "CHQACCYESNO")
+                accNo = strVal[8];
+
+            DataTable dataTable = null!;
+            string strMODParam = string.Empty, strGLParam = "No Parameters";
+
+            // Dim strMod,strVal,mode,batNo
+            // dim strMODParam,strGLParam,strAccParam
+            // recGL = server.CreateObject("adodb.recordset")
+            // objGL = server.CreateObject("GeneralTranQueries.TransParameters")
+
+            switch (mode)
+            {
+                case "CHQYESNO":
+                    dataTable = await _databaseFactory.SingleRecordSet("GENMODULEMST", "nvl(chequebookyn,'N')", "upper(moduleid)='" + 
+                        modId.Trim().ToUpper() + "'");
+                    if (dataTable.Rows.Count > 0)
+                        strMODParam = mode + "~" + Conversions.ToString(dataTable.Rows[0].ItemArray[0]);
+                    BankingExtensions.ReleaseMemory(dataTable);
+                    break;
+                case "CHQACCYESNO":
+                    dataTable = await _databaseFactory.SingleRecordSet(modId + "MST", "nvl(CHEQUEBOOK,'N')", "upper(glcode)='" + glCode + "' and accno='" +
+                        accNo + "' and branchcode = '" + brCode + "'");
+                    if (dataTable.Rows.Count > 0)
+                        strMODParam = mode + "~" + Conversions.ToString(dataTable.Rows[0].ItemArray[0]);
+                    BankingExtensions.ReleaseMemory(dataTable);
+                    break;
+                case "GL":
+                    dataTable = await _databaseFactory.GLTransactionParameters(modId, glCode, TranDate, curCode, brCode, userID, machineID);
+
+                    if (dataTable.Rows.Count > 0)
+                    {
+                        DataRow row = dataTable.Rows.Count > 0 ? dataTable.Rows[0] : null!;
+
+                        // For SB or CA module Parameters 
+                        // Numbers left side of the code indicates array index used for java script code, Index starts with 0 to 18
+                        if (modId.ToUpper() == "SB" || modId.ToUpper() == "CA" || modId.ToUpper() == "MISC")
+                            strGLParam = modId.ToUpper() + "~" + row["INTDEBITGLCODE"] + "~" + row["INTCREDITGLCODE"] + "~" + 
+                                row["INTACCRUEDGLCODE"] + "~" + row["OVERDUEGLCODE"] + "~" + row["MISCACCNO"] + "~" + 
+                                row["INSURLINKEDYN"] + "~" + row["PREMIUMPPERACCT"] + "~" + row["PREMIUMFREQ"] + "~" + 
+                                row["MONTHLYMINBALDAY"] + "~" + row["MONMINBALCUTOFFDAY"] + "~" + row["DORMITORYPERIOD"] + "~" + 
+                                row["TRTOUNCLAIMEDPERIOD"] + "~" + row["ACCTSTATUSPERID"] + "~" + row["INOPERATIVEQUALMONTHS"] + "~" + 
+                                row["INOPERATIVEQUALYEARS"] + "~" + row["UNCLAIMEDQUALMONTHS"] + "~" + row["UNCLAIMEDQUALYEARS"] + "~" + 
+                                row["ACCTPERLEDGER"] + "~" + row["PERIODICITY"];
+                        else if (modId.ToUpper() == "DEP")
+                            // Numbers left side of the code indicates array index used for java script code, Index starts with 0 to 26
+                            strGLParam = modId.ToUpper() + "~" + row["INTDEBITGLCODE"] + "~" + row["INTCREDITGLCODE"] + "~" + 
+                                row["INTACCRUEDGLCODE"] + "~" + row["OVERDUEGLCODE"] + "~" + row["INTPAYMETHOD"] + "~" + 
+                                row["FIXEDDAYOFMON"] + "~" + row["RENODDAMOUNTSYN"] + "~" + row["INTCOMPOUNDYN"] + "~" + 
+                                row["INTPAYPERIODICALLYYN"] + "~" + row["INTPERIODICITYPYMNT"] + "~" + row["INSTSYN"] + "~" + 
+                                row["LATEFEECHARGESYN"] + "~" + row["INSTPERIODICITY"] + "~" + row["INSTTYPE"] + "~" + 
+                                row["RETROSPECTIVEYN"] + "~" + row["RETROSYEAR"] + "~" + row["RETROSMON"] + "~" + 
+                                row["RETROSDAYS"] + "~" + row["UNITSYN"] + "~" + row["UNITVALUE"] + "~" + row["PREMATWDYN"] + "~" + 
+                                row["TDSYN"] + "~" + row["INTROUNDOFFTO"] + "~" + row["MATDATEHOLIDAYPAID"] + "~" + 
+                                row["PNLINTFORPREMATCLOSUREYN"] + "~" + row["LOANONDEPOSITYN"];
+                        else if (modId.ToUpper() == "LOAN" || modId.ToUpper() == "CC")
+                            strGLParam = modId.ToUpper() + "~" + row["INTDEBITGLCODE"] + "~" + row["INTCREDITGLCODE"] + "~" + 
+                                row["INTACCRUEDGLCODE"] + "~" + row["MISCACCNO"] + "~" + row["LOANINTEREST"] + "~" + 
+                                row["PRODUCTMETHOD"] + "~" + row["LOANAPPLICABLE"] + "~" + row["INTERESTTYPE"] + "~" + 
+                                row["INTCOMPOUND"] + "~" + row["INTERESTAPPLIED"] + "~" + row["NPACLASSIFIABLEYN"] + "~" + 
+                                row["EMIYN"] + "~" + row["LOANNATURE"] + "~" + row["INTCHARGEDUPTO"];
+
+                        // Numbers left side of the code indicates array index used for java script code - Index starts with 0 to 14
+                        strGLParam = modId.ToUpper() + "~" + row["INTDEBITGLCODE "] + "~" + row["INTCREDITGLCODE"] + "~" + 
+                            row["INTACCRUEDGLCODE"] + "~" + row["MISCACCNO"] + "~" + row["LOANINTEREST"] + "~" + 
+                            row["PRODUCTMETHOD"] + "~" + row["LOANAPPLICABLE"] + "~" + row["INTERESTTYPE"] + "~" + 
+                            row["INTCOMPOUND"] + "~" + row["INTERESTAPPLIED"] + "~" + row["NPACLASSIFIABLEYN"] + "~" + 
+                            row["EMIYN"] + "~" + row["LOANNATURE"] + "~" + row["INTCHARGEDUPTO"];
+
+                        strGLParam = strGLParam + "~" + row["CASHDRYN"] + "~" + row["CASHCRYN"] + "~" + row["TRANSFERDRYN"] + "~" + 
+                            row["TRANSFERCRYN"] + "~" + row["CLEARINGDRYN"] + "~" + row["CLEARINGCRYN"] + "~" + row["DISCINTYN"];
+                    }
+                    break;
+                case "ACCOUNT":
+                    string accOrCat = strVal[9];
+                    if (accOrCat.ToUpper() == "ACCNO")
+                    {
+                        accNo = strVal[8];
+                        if (modId.ToUpper().Substring(0, 2) == "FX")
+                            dataTable = await _databaseFactory.FXTransactionParameters(brCode, modId, glCode, TranDate, curCode, accNo, "", "",
+                                userID, machineID);
+                        else
+                            dataTable = await _databaseFactory.AccNoTransactionParameters(brCode, modId, glCode, TranDate, curCode, accNo, "", "", 
+                                null!, "", userID, machineID);
+                    }
+                    else if (accOrCat == "CATCODE")
+                    {
+                        catCode = strVal[8];
+                        accNo = strVal[8];
+                        if (modId == "FXDEP")
+                            dataTable = await _databaseFactory.FXTransactionParameters(brCode, modId, glCode, TranDate, curCode, "", catCode, "", 
+                                userID, machineID);
+                        else
+                            dataTable = await _databaseFactory.AccNoTransactionParameters(brCode, modId, glCode, TranDate, curCode, "", catCode, "N", 
+                                null!, "", userID, machineID);
+                    }
+                    else if (accOrCat.ToUpper() == "CHKBOOKYES")
+                    {
+                        catCode = strVal[8];
+                        dataTable = await _databaseFactory.AccNoTransactionParameters(brCode, modId, glCode, TranDate, curCode, "", catCode, "Y", 
+                            null!, "", userID, machineID);
+                    }
+
+                    if (dataTable.Rows.Count > 0)
+                    { 
+                    }
+
+
+
+                    //        if objGL.ConnError = "Parameters not specified for this Component" then
+                    //            strAccParam = "No Parameters"
+                    //        else
+                    //        if recGL.RecordCount > 0 then
+                    //        if left(ucase(modid), 2) = "FX" then
+                    //        strAccParam = recGL("MINAMOUNT").value & "~" & recGL("MAXAMOUNT").value & "~"
+                    //        if recGL("MINTERM").value = "M" then
+                    //            minprdmonths = recGL("MINPERIOD").value
+                    //        else
+                    //                    minprdmonths = 0
+                    //        end if
+                    //        if recGL("MINTERM").value = "Y" then
+                    //            minprdyears = recGL("MINPERIOD").value
+                    //        else
+                    //                        minprdyears = 0
+                    //        end if
+                    //        if recGL("MINTERM").value = "D" then
+                    //            minprddays = recGL("MINPERIOD").value
+                    //        else
+                    //                        minprddays = 0
+                    //        end if
+                    //        if recGL("MAXTERM").value = "M" then
+                    //            maxprdmonths = recGL("MAXPERIOD").value
+                    //        else
+                    //                        maxprdmonths = 0
+                    //        end if
+                    //        if recGL("MAXTERM").value = "Y" then
+                    //            maxprdyears = recGL("MAXPERIOD").value
+                    //        else
+                    //                        maxprdyears = 0
+                    //        end if
+                    //        if recGL("MAXTERM").value = "D" then
+                    //            maxprddays = recGL("MAXPERIOD").value
+                    //        else
+                    //                        maxprddays = 0
+                    //        end if
+                    //        strAccParam = strAccParam & minprdyers & "~" & minprdmonths & "~" & minprddays & "~" & _
+                    //                maxprdyears & "~" & maxprdmonths & "~" & maxprddays & "~" & "0" & "~" & "1"
+                    //        Response.Write(strAccParam)
+                    //    else
+                    //                    strAccParam = recGL("MINAMOUNT").value & "~" & recGL("MAXAMOUNT").value & "~" & _
+                    //                    recGL("MINPERIODYEARS").value & "~" & recGL("MINPERIODMON").value & "~" & _
+                    //                    recGL("MINPERIODDAYS").value & "~" & recGL("MAXPERIODYEARS").value & "~" & _
+                    //                    recGL("MAXPERIODMON").value & "~" & recGL("MAXPERIODDAYS").value & "~" & recGL("TDS").value & "~" & _
+                    //                    recGL("OUTRTNCHARGES").value & "~" & recGL("OUTRTNFREQ").value & "~" & _
+                    //                    recGL("OUTRTNCHARGEEXEMPT").value & "~" & recGL("OUTRTNGLCODE").value & "~" & _
+                    //                    recGL("INWRTNCHARGES").value & "~" & recGL("INWRTNFREQ").value & "~" & _
+                    //                    recGL("INWRTNCHARGESEXEMPT").value & "~" & recGL("INWRTNGLCODE").value & "~" & _
+                    //                    recGL("STOPPAYCHARGES").value & "~" & recGL("STOPPAYFREQ").value & "~" & _
+                    //                    recGL("STOPPAYCHARGESEXEMPT").value & "~" & recGL("STOPPAYGLCODE").value & "~" & _
+                    //                    recGL("ACCTCLOSCHARGES").value & "~" & recGL("ACCOUNTCLOSFREQ").value & "~" & _
+                    //                    recGL("ACCTCLOSCHARGESEXEMPT").value & "~" & recGL("ACCTCLOSGLCODE").value & "~" & _
+                    //                    recGL("MINTODCHARGES").value & "~" & recGL("MINTODFREQ").value & "~" & _
+                    //                    recGL("MINTODGLCODE").value & "~" & recGL("CHQISSUECHARGES").value & "~" & _
+                    //                    recGL("CHQISSUEFREQ").value & "~" & recGL("CHQISSUECHARGESEXEMPT").value & "~" & _
+                    //                    recGL("CHQISSUEGLCODE").value & "~" & recGL("STATEMENTCHARGES").value & "~" & _
+                    //                    recGL("STATEMENTCHRGFREQ").value & "~" & recGL("STATEMENTCHARGESEXEMPT").value & "~" & _
+                    //                    recGL("STATEMENTCHRGGLCODE").value & "~" & recGL("DUPSTATEMENTCHARGES").value & "~" & _
+                    //                    recGL("DUPSTATEMENTCHRGFREQ").value & "~" & recGL("DUPSTATEMENTCHARGESEXEMPT").value & "~" & _
+                    //                    recGL("DUPSTATEMENTGLCODE").value & "~" & recGL("CHARGESPERFOLIO").value & "~" & _
+                    //                    recGL("FOLIOCHARGESFREQ").value & "~" & recGL("ENTRIESPERFOLIO").value & "~" & _
+                    //                    recGL("FOLIOCHARGESGLCODE").value & "~" & recGL("EXEMPTEDFOLIOS").value & "~" & _
+                    //                    recGL("MINTODCHARGESEXEMPT").value & "~" & recGL("CHQVALIDPERIOD").value & "~" & _
+                    //                    recGL("OUTRTNCHARGEEXEMPTUNIT").value & "~" & recGL("INWRTNCHARGESEXEMPTUNIT").value & "~" & _
+                    //                    recGL("STOPPAYCHARGESEXEMPTUNIT").value & "~" & recGL("ACCTCLOSCHARGESEXEMPTUNIT").value & "~" & _
+                    //                    recGL("CHQISSUECHARGESEXEMPTUNIT").value & "~" & recGL("STATEMENTCHARGESEXEMPTUNIT").value & "~" & _
+                    //                    recGL("DUPSTATEMENTCHARGESEXEMPTUNIT").value & "~" & recGL("MINTODCHARGESEXEMPTUNIT").value & "~" & _
+                    //                    recGL("INWRTNFREQUNITS").value & "~" & recGL("OUTRTNFREQUNITS").value & "~" & _
+                    //                    recGL("STOPPAYFREQUNITS").value & "~" & recGL("ACCOUNTCLOSFREQUNITS").value & "~" & _
+                    //                    recGL("MINTODFREQUNITS").value & "~" & recGL("CHQISSUEFREQUNITS").value & "~" & _
+                    //                    recGL("STATEMENTCHRGFREQUNITS").value & "~" & recGL("DUPSTATEMENTCHRGFREQUNITS").value & "~" & _
+                    //                    recGL("FOLIOCHARGESFREQUNITS").value & "~" & recGL("OUTRTNINITIAL").value & "~" & _
+                    //                    recGL("OUTRTNINITIALUNITS").value & "~" & recGL("INWRTNINITIAL").value & "~" & _
+                    //                    recGL("INWRTNINITIALUNITS").value & "~" & recGL("STOPPAYINITIAL").value & "~" & _
+                    //                    recGL("STOPPAYINITIALUNITS").value & "~" & recGL("ACCOUNTCLOSINITIAL").value & "~" & _
+                    //                    recGL("ACCOUNTCLOSINITIALUNITS").value & "~" & recGL("MINTODINITIAL").value & "~" & _
+                    //                    recGL("MINTODINITIALUNITS").value & "~" & recGL("CHQISSUEINITIAL").value & "~" & _
+                    //                    recGL("CHQISSUEINITIALUNITS").value & "~" & recGL("STATEMENTINITIAL").value & "~" & _
+                    //                    recGL("STATEMENTINITIALUNITS").value & "~" & recGL("DUPSTATEMENTINITIAL").value & "~" & _
+                    //                    recGL("DUPSTATEMENTINITIALUNITS").value & "~" & recGL("FOLIOINITIAL").value & "~" & _
+                    //                    recGL("FOLIOINITIALUNITS").value & "~" & recGL("EXEMPTEDFOLIOSUNITS").value & "~" & _
+                    //                    recGL("MULTIPLESOF").value
+                    //        end if
+                    //    ' Numbers left side of the code indicates array index used for java script code              
+                    //    ' 0 1  strAccParam=recGL("MINAMOUNT")&"~"&recGL("MAXAMOUNT")&"~"&_     
+                    //    ' 2 3            recGL("MINPERIODYEARS")&"~"&recGL("MINPERIODMON")&"~"&_         
+                    //    ' 4 5            recGL("MINPERIODDAYS")&"~"&recGL("MAXPERIODYEARS")&"~"&_        
+                    //    ' 6 7 8          recGL("MAXPERIODMON")&"~"&recGL("MAXPERIODDAYS")&"~"&recGL("TDS")&"~"&_         
+                    //    ' 9 10            recGL("OUTRTNCHARGES")&"~"&recGL("OUTRTNFREQ")&"~"&_            
+                    //    ' 11 12          recGL("OUTRTNCHARGEEXEMPT")&"~"&recGL("OUTRTNGLCODE")&"~"&_     
+                    //    ' 13 14          recGL("INWRTNCHARGES")&"~"&recGL("INWRTNFREQ")&"~"&_            
+                    //    ' 15 16          recGL("INWRTNCHARGESEXEMPT")&"~"&recGL("INWRTNGLCODE")&"~"&_    
+                    //    ' 17 18          recGL("STOPPAYCHARGES")&"~"&recGL("STOPPAYFREQ")&"~"&_          
+                    //    ' 19 20          recGL("STOPPAYCHARGESEXEMPT")&"~"&recGL("STOPPAYGLCODE")&"~"&_  
+                    //    ' 21 22          recGL("ACCTCLOSCHARGES")&"~"&recGL("ACCOUNTCLOSFREQ")&"~"&_     
+                    //    ' 23 24          recGL("ACCTCLOSCHARGESEXEMPT")&"~"&recGL("ACCTCLOSGLCODE")&"~"&_
+                    //    ' 25 26          recGL("MINTODCHARGES")&"~"&recGL("MINTODFREQ")&"~"&_            
+                    //    ' 27 28          recGL("MINTODGLCODE")&"~"&recGL("CHQISSUECHARGES")&"~"&_        
+                    //    ' 29 30          recGL("CHQISSUEFREQ")&"~"&recGL("CHQISSUECHARGESEXEMPT")&"~"&_  
+                    //    ' 31 32          recGL("CHQISSUEGLCODE")&"~"&recGL("STATEMENTCHARGES")&"~"&_     
+                    //    ' 33 34          recGL("STATEMENTCHRGFREQ")&"~"&recGL("STATEMENTCHARGESEXEMPT")&"~"&_
+                    //    ' 35 36          recGL("STATEMENTCHRGGLCODE")&"~"&recGL("DUPSTATEMENTCHARGES")&"~"&_ 
+                    //    ' 37 38          recGL("DUPSTATEMENTCHRGFREQ")&"~"&recGL("DUPSTATEMENTCHARGESEXEMPT")&"~"&_ 
+                    //    ' 39 40          recGL("DUPSTATEMENTGLCODE")&"~"&recGL("CHARGESPERFOLIO")&"~"&_   
+                    //    ' 41 42          recGL("FOLIOCHARGESFREQ")&"~"&recGL("ENTRIESPERFOLIO")&"~"&_     
+                    //    ' 43 44          recGL("FOLIOCHARGESGLCODE")&"~"&recGL("EXEMPTEDFOLIOS")&"~"&_    
+                    //    ' 45 46          recGL("MINTODCHARGESEXEMPT")&"~"&recGL("CHQVALIDPERIOD")&"~"&_   
+                    //    ' 47 48          recGL("OUTRTNCHARGEEXEMPTUNIT")&"~"&recGL("INWRTNCHARGESEXEMPTUNIT")&"~"&_
+                    //    ' 49 50          recGL("STOPPAYCHARGESEXEMPTUNIT")&"~"&recGL("ACCTCLOSCHARGESEXEMPTUNIT")&"~"&_ 
+                    //    ' 51 52          recGL("CHQISSUECHARGESEXEMPTUNIT")&"~"&recGL("STATEMENTCHARGESEXEMPTUNIT")&"~"&_ 
+                    //    ' 53 54          recGL("DUPSTATEMENTCHARGESEXEMPTUNIT")&"~"&recGL("MINTODCHARGESEXEMPTUNIT")&"~"&_ 
+                    //    ' 55 56          recGL("INWRTNFREQUNITS")&"~"&recGL("OUTRTNFREQUNITS")&"~"&_       
+                    //    ' 57 58          recGL("STOPPAYFREQUNITS")&"~"&recGL("ACCOUNTCLOSFREQUNITS")&"~"&_  
+                    //    ' 59 60	        recGL("MINTODFREQUNITS")&"~"&recGL("CHQISSUEFREQUNITS")&"~"&_      
+                    //    ' 61	62          recGL("STATEMENTCHRGFREQUNITS")&"~"&recGL("DUPSTATEMENTCHRGFREQUNITS")&"~"&_ 
+                    //    ' 63 64          recGL("FOLIOCHARGESFREQUNITS")&"~"&recGL("OUTRTNINITIAL")&"~"&_   
+                    //    ' 65 66          recGL("OUTRTNINITIALUNITS")&"~"&recGL("INWRTNINITIAL")&"~"&_      
+                    //    ' 67 68          recGL("INWRTNINITIALUNITS")&"~"&recGL("STOPPAYINITIAL")&"~"&_     
+                    //    ' 69 70          recGL("STOPPAYINITIALUNITS")&"~"&recGL("ACCOUNTCLOSINITIAL")&"~"&_
+                    //    ' 71 72          recGL("ACCOUNTCLOSINITIALUNITS")&"~"&recGL("MINTODINITIAL")&"~"&_ 
+                    //    ' 73 74	        recGL("MINTODINITIALUNITS")&"~"&recGL("CHQISSUEINITIAL")&"~"&_    
+                    //    ' 75 76          recGL("CHQISSUEINITIALUNITS")&"~"&recGL("STATEMENTINITIAL")&"~"&_ 
+                    //    ' 77 78          recGL("STATEMENTINITIALUNITS")&"~"&recGL("DUPSTATEMENTINITIAL")&"~"&_
+                    //    ' 79 80          recGL("DUPSTATEMENTINITIALUNITS")&"~"&recGL("FOLIOINITIAL")&"~"&_ 
+                    //    ' 81 82          recGL("FOLIOINITIALUNITS")&"~"&recGL("EXEMPTEDFOLIOSUNITS")&"~"&_ 
+                    //    ' 83             recGL("MULTIPLESOF")
+                    //        end if
+                    //        end if
+                    break;
+            }
         }
 
         public void GetDetails1()

@@ -401,8 +401,8 @@ namespace Banking.Services
             else
                 model.ApplicationDate = session.GetString(SessionConstants.ApplicationDate);
 
-            model.CashierId = session.GetString("userid");
-            model.Hidden_Precision = session.GetString("precision");
+            model.CashierId = session.GetString(SessionConstants.UserId);
+            model.Hidden_Precision = session.GetString(SessionConstants.Precision);
 
             model.BranchCode = session.GetString(SessionConstants.BranchCode);
             model.CurrencyCode = session.GetString(SessionConstants.CurrencyCode);

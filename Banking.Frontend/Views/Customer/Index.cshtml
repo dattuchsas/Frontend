@@ -462,4 +462,102 @@
 
 </form>
 
+<!-- Customer List Modal -->
+<div class="modal fade" id="CustomerListBackdrop" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h1 class="modal-title fs-5" id="staticBackdropLabel">Customer List</h1>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="fw-bold">
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" name="search_type" id="radio_account" checked
+                               value="account">
+                        <label class="form-check-label" for="radio_account">Account Wise</label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" name="search_type" id="radio_name" value="name">
+                        <label class="form-check-label" for="radio_name">Name Wise</label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" name="search_type" id="radio_pan" value="pan">
+                        <label class="form-check-label" for="radio_pan">Panno</label>
+                    </div>
+                </div>
+                <hr class="my-3" />
+                <!-- Account wise fields -->
+                <div id="search_account" class="search-section">
+                    <div class="row align-items-end gx-3 gy-2">
+                        <div class="col-xl-12">
+                            <label for="Cust-Type" class="form-label">Branch Code</label>
+                            <select class="form-select">
+                                <option selected="">Main Branch - 100</option>
+                                <option selected="">Dwarakanagar - 101</option>
+                            </select>
+                        </div>
+                        <div class="col-xl-12">
+                            <label for="Cust-Type" class="form-label">Module ID</label>
+                            <select class="form-select">
+                                <option selected="">Saving Bank - SB</option>
+                            </select>
+                        </div>
+                        <div class="col-xl-12">
+                            <label for="Cust-Type" class="form-label">GL Code</label>
+                            <select class="form-select">
+                                <option selected="">Savings Account - 102020</option>
+                            </select>
+                        </div>
+                        <div class="col-xl-12">
+                            <label for="Cust-Type" class="form-label">Acc. No.</label>
+                            <select class="form-select">
+                                <option selected="">Ganta Vishwera Rao - 106</option>
+                            </select>
+                        </div>
+                        <div class="col-xl-12">
+                            <label for="Cust-Type" class="form-label">Cust. ID</label>
+                            <input type="text" class="form-control">
+                        </div>
+                    </div>
+                </div>
+                <!-- Name wise fields -->
+                <div id="search_name" class="search-section d-none">
+                    <div class="row align-items-end gx-3 gy-2">
+                        <div class="col-xl-12">
+                            <label for="Cust-Type" class="form-label">Name</label>
+                            <input type="text" class="form-control">
+                        </div>
+                        <div class="col-xl-12">
+                            <label for="Cust-Type" class="form-label">Cust. ID</label>
+                            <select class="form-select">
+                                <option selected="">Ganta Vishwera Rao - 1010020631</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <!-- PAN wise fields -->
+                <div id="search_pan" class="search-section d-none">
+                    <div class="row align-items-end gx-3 gy-2">
+                        <div class="col-xl-12">
+                            <label for="Cust-Type" class="form-label">Panno</label>
+                            <input type="text" class="form-control">
+                        </div>
+                        <div class="col-xl-12">
+                            <label for="Cust-Type" class="form-label">Cust. ID</label>
+                            <select class="form-select">
+                                <option selected="">Manthena Muralikrishna - 1010020631</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer justify-content-center">
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Ok</button>
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script asp-append-version="true" src="~/js/app/customer.js"></script>

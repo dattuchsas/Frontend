@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Humanizer;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Newtonsoft.Json.Linq;
 using System.Data;
 using System.Globalization;
@@ -153,6 +155,73 @@ namespace Banking.Framework
                 return Convert.ToDateTime(toDate).Year - Convert.ToDateTime(fromDate).Year;
             else //if (type.ToUpper().Equals('M'))
                 return Convert.ToDateTime(toDate).Month - Convert.ToDateTime(fromDate).Month;
+        }
+
+        public static List<SelectListItem> ReturnKeyValuePair(DataTable dataTable, string type = "", bool isSelectRequired = true)
+        {
+            List<string> list = new List<string>
+            {
+                "Branch", "Category", "Service", "Module"
+            };
+            var result = new List<SelectListItem>();
+            if (isSelectRequired)
+                result.Add(new SelectListItem { Value = "", Text = "Select" });
+            foreach (DataRow row in dataTable.Rows)
+            {
+                var keyValuePair = new SelectListItem();
+                if (list.Contains(type))
+                    keyValuePair.Text = string.Concat(Conversions.ToString(row.ItemArray[0]), " - ", Conversions.ToString(row.ItemArray[1]).ToLower().Humanize(LetterCasing.Title));
+                else
+                    keyValuePair.Text = Conversions.ToString(row.ItemArray[1]).ToLower().Humanize(LetterCasing.Title);
+                keyValuePair.Value = Conversions.ToString(row.ItemArray[0]);
+                result.Add(keyValuePair);
+            }
+            return result;
+        }
+
+        public static string GridPrecision(string number, string precision)
+        {
+            int p = precision.Length == 0 ? 2 :Convert.ToInt32(precision);
+
+            string j = "";
+
+            var textvalue = number;
+
+            if (string.IsNullOrWhiteSpace(textvalue))
+                return "0.00";
+
+            for (int i = 1; i < p; i++)
+                j = j + "0";
+
+            string m = "." + j;
+
+            if (textvalue != "")
+            {
+                var dotindex = textvalue.IndexOf('.');
+
+                if (dotindex == -1)
+                    return textvalue + m;
+                else if (dotindex > -1)
+                {
+                    var dotafterchars = textvalue.Substring(dotindex + 1);
+
+                    int k = dotafterchars.Length;
+                    string n = "";
+        
+                    if (k < p)
+                    {
+                        var t = p - k;
+
+                        for (int i = 0; i < t - 1; i++)
+                            n = n + "0";
+                        
+                        return textvalue + n;
+                    }
+                    else
+                        return textvalue.Substring(0, dotindex) + textvalue.Substring(dotindex, p + 1);
+                }
+            }
+            return "0.00";
         }
 
         private static int CharToNumber(string str)

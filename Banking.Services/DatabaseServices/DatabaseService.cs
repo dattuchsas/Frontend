@@ -41,6 +41,42 @@ namespace Banking.Services
             return await _databaseFactory.GetModuleId(branchCode, AllModulesYN, UserID, VouchingYN, ModuleCondition);
         }
 
+        public async Task<DataTable> GetBranchCodes(string userId)
+        {
+            return await _databaseFactory.GetBranchCodes(userId);
+        }
+
+        public async Task<DataTable> GetGLCodes(string BRCode, string ModuleCode, string GLCategory = "")
+        {
+            return await _databaseFactory.GetGLCodes(BRCode, ModuleCode, GLCategory);
+        }
+
+        public async Task<DataTable> GetAccountNumbers(string BRCode, string ModuleCode = "", string GLcode = "", string CurrencyCode = "", string AccStatus = "",
+            string TableName = "", string RemType = "", string accSearch = "")
+        {
+            return await _databaseFactory.GetAccountNumbers(BRCode, ModuleCode, GLcode, CurrencyCode, AccStatus, TableName, RemType, accSearch);
+        }
+
+        public async Task<DataTable> GLTransactionParameters(string ModuleCode, string GLcode, string TransactionDate, string CurrencyCode = "", string userBranchcode = "",
+            string UserID = "", string machineid = "")
+        {
+            return await _databaseFactory.GLTransactionParameters(ModuleCode, GLcode, TransactionDate, CurrencyCode, userBranchcode, UserID, machineid);
+        }
+
+        public async Task<DataTable> FXTransactionParameters(string Branchcode, string ModuleCode, string GLcode, string TransactionDate, string FCurrencyCode = "", string Accno = "",
+            string CategoryCode = "", string userBranchcode = "", string UserID = "", string machineid = "")
+        {
+            return await _databaseFactory.FXTransactionParameters(Branchcode, ModuleCode, GLcode, TransactionDate, FCurrencyCode, Accno, CategoryCode, userBranchcode, 
+                UserID, machineid);
+        }
+
+        public async Task<DataTable> AccNoTransactionParameters(string Branchcode, string ModuleCode, string GLcode, string TransactionDate, string CurrencyCode = "", string Accno = "",
+            string CategoryCode = "", string ChqBookYN = "", string[] ModuleConditions = null!, string userBranchcode = "", string UserID = "", string machineid = "")
+        {
+            return await _databaseFactory.AccNoTransactionParameters(Branchcode, ModuleCode, GLcode, TransactionDate, CurrencyCode, Accno, CategoryCode, ChqBookYN, 
+                ModuleConditions, userBranchcode, UserID, machineid);
+        }
+
         //public async Task<string> ModifyQueriedTrans(string TableName, string FldNames, string[] ArrValues, string wherecondition = "", string BranchCode = "",
         //    string UserCode = "", string MachineID = "")
         //{
