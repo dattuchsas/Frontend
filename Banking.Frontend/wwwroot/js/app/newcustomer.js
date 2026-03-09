@@ -2,7 +2,7 @@
 // Initialize the form when DOM is loaded
 $(function () {
 
-  $("#MembershipNumber, #memberNoLabel").hide();
+  $("#MembershipNumber, #memberNoLabel").prop('readonly', true);
   $("#MembershipName, #memberNameLabel").hide();
 
   let documents = [];

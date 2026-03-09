@@ -426,3 +426,7 @@ async function FetchData(url) {
     console.error(err);
   }
 }
+
+function AjaxGet(url, data, callback) {
+
+}

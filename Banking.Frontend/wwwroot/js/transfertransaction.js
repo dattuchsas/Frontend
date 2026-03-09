@@ -95,13 +95,13 @@ function modeChng(bdt) {
 
 
 // Making visible true or false based on service id selected.
-function ServiceCode(kstr) {
-  var strSer
-  strSer = kstr.split("-----")
-  window.document.frmTrans.txtServiceId.value = strSer[1]
-  window.document.frmTrans.txtServiceName.value = strSer[0]
-  ServiceIdDivs()
-}
+//function ServiceCode(kstr) {
+//  var strSer
+//  strSer = kstr.split("-----")
+//  window.document.frmTrans.txtServiceId.value = strSer[1]
+//  window.document.frmTrans.txtServiceName.value = strSer[0]
+//  ServiceIdDivs()
+//}
 
 // This function was written to send parameters values to List form to get various modules and it displays modules only when Mfgpaydt(flexgrid) rows <2 or if the mode is MODIFY.
 
@@ -110,13 +110,6 @@ function ServiceCode(kstr) {
 
 
 
-function cashGlCode() {
-  var kstr = "";
-  if (window.document.frmTrans.txtbranchcode.value.length > 0) {
-    strpm = "CASHGL" + "~" + window.document.frmTrans.txtbranchcode.value
-    // window.document.all['iCommon'].src = '<%="http://" & session("moduledir")& "/GEN/"%>' + "minBalChk.aspx?strparam=" + strpm
-  }
-}
 
 function RecPayLmt() {
   var kstr = "";
@@ -220,20 +213,20 @@ function hdnFldClear() {
 }
 
 //function is used to clear deposits div fields
-function Depdivclear() {
-  window.document.frmTrans.txtDOpAmt.value = ""
-  window.document.frmTrans.txtDCurrAmt.value = ""
-  window.document.frmTrans.txtDMatAmt.value = ""
-  window.document.frmTrans.txtDCustId.value = ""
-  window.document.frmTrans.txtDOpDate.value = ""
-  window.document.frmTrans.txtDEffDt.value = ""
-  window.document.frmTrans.txtDMatDt.value = ""
-  window.document.frmTrans.txtDOpBy.value = ""
-  window.document.frmTrans.txtDROI.value = ""
-  window.document.frmTrans.txtDOpInstr.value = ""
-  window.document.frmTrans.txtDIntAcc.value = ""
-  window.document.frmTrans.txtDPaidupto.value = ""
-}
+//function Depdivclear() {
+//  window.document.frmTrans.txtDOpAmt.value = ""
+//  window.document.frmTrans.txtDCurrAmt.value = ""
+//  window.document.frmTrans.txtDMatAmt.value = ""
+//  window.document.frmTrans.txtDCustId.value = ""
+//  window.document.frmTrans.txtDOpDate.value = ""
+//  window.document.frmTrans.txtDEffDt.value = ""
+//  window.document.frmTrans.txtDMatDt.value = ""
+//  window.document.frmTrans.txtDOpBy.value = ""
+//  window.document.frmTrans.txtDROI.value = ""
+//  window.document.frmTrans.txtDOpInstr.value = ""
+//  window.document.frmTrans.txtDIntAcc.value = ""
+//  window.document.frmTrans.txtDPaidupto.value = ""
+//}
 
 
 //----------------------------------------------------------------------------------
@@ -566,43 +559,6 @@ function LnkModuleCode(kstr) {
   LnkGLClear()
 }
 //----------------------------------------------------------------------------------
-//This function is used to send parameters to List form to display various Glcodes avialabe
-//It displays Glcodes based on branchcode and module id.  
-function Glcode() {
-
-  if (window.document.frmTrans.txtbranchcode.value == "") {
-    alert("Please select Branchcode.")
-    window.document.frmTrans.txtbranchcode.focus()
-    return;
-  }
-  if (window.document.frmTrans.txtModId.value == "") {
-    alert("Please select Module Id.")
-    window.document.frmTrans.txtModId.focus()
-    return;
-  }
-
-  document.getElementById("divPhSign").style.display = 'none';
-  /*telgl="Tellerglcode";
-  brcode=window.document.frmTrans.txtbranchcode.value.toUpperCase();
-  modid=window.document.frmTrans.txtModId.value.toUpperCase();
-  kstr=telgl+"|"+brcode+"|"+modid
-  if(modid!="")
-  {
-    window.showModalDialog('<%="http://" & session("moduledir")& "/GEN/"%>'+"TranList.aspx" + "?"+"st="+kstr,window,"status:no;"+
- "DialogWidth:470px;DialogHeight:170px;DialogLeft:200px;DialogTop:200px")
-  } */
-
-  telgl = "TellGlaccno"
-  brcode = window.document.frmTrans.txtbranchcode.value.toUpperCase();
-  modid = window.document.frmTrans.txtModId.value.toUpperCase();
-  kstr = telgl + "|" + modid + "|" + brcode
-
-  if (modid != "") {
-    window.showModalDialog("../gensbca/ListGlQuery.aspx?st=" + kstr, window, "status:no;" +
-      "DialogWidth:500px;DialogHeight:200px;DialogLeft:190px;DialogTop:200px")
-
-  }
-}
 //----------------------------------------------------------------------------------
 //This function is used to send parameters to List form to display various Glcodes avialabe
 //It displays Glcodes based on branchcode and module id.  
@@ -628,52 +584,52 @@ function lnkGlcodeid(kstr) {
 
 
 //----------------------------------------------------------------------------------
-function ServiceIdDivs() {
-  //for clearing outward returns
-  //alert("hi")
-  window.document.frmTrans.cmdModId.disabled = false
-  byBranch.innerHTML = "Issued by Branch"
-  byBank.innerHTML = "Issued by Bank"
+//function ServiceIdDivs() {
+//  //for clearing outward returns
+//  //alert("hi")
+//  window.document.frmTrans.cmdModId.disabled = false
+//  byBranch.innerHTML = "Issued by Branch"
+//  byBank.innerHTML = "Issued by Bank"
 
-  if (eval(window.document.frmTrans.txtServiceId.value) == "8") {
-    CLGClearDiv()
-    paramAcc()
-  }
-  else if (eval(window.document.frmTrans.txtServiceId.value) == "9") {
+//  if (eval(window.document.frmTrans.txtServiceId.value) == "8") {
+//    CLGClearDiv()
+//    paramAcc()
+//  }
+//  else if (eval(window.document.frmTrans.txtServiceId.value) == "9") {
 
-    window.document.frmTrans.cmdModId.disabled = true
-    window.document.frmTrans.txtModId.value = "REM"
-    //if(window.document.frmTrans.tranmode(0).checked==true)
-    cntrlOnblur('txtModId')
-    divsDisplay("remdr", "M")
-    window.document.all.divaccno.style.display = "none"
-    byBranch.innerHTML = "Issued on Branch"
-    byBank.innerHTML = "Issued on Bank"
-    window.document.frmTrans.Mfgpaydt.FormatString = ">Batch No     |>Tran No     |<GL Code       |<GL Description                       |>Acc No             |<Name                               |>Amount                     |>Entered Time Bal    |^Application Date   |<Cust ID                      |<Mode of Tran |<Mode of Tran Desc   |^ABB Application Date|<Tran Status  |>Currency Code   |<Entered By                    |<Entered M/C                  |<Module ID         |<Branch Code            |>Token No         |<Remarks                                  |<Cheque Series   |>Cheque No                 |^Cheque Date         |<Cheque Favouring              |<Sys Gen YN |<Module Description      |^ Effective Date        |<CLG Rate Type                |>Rate                   |<F Currency Code |>F Amount                   |<Link Module ID       |<Link Module Desc         |<Link GL Code   |<Link GL Desc            |>Link Account Type |>Link Account No |<Link Acc Name                   |>Service ID |<Service Desc  |<Resp Branch Code |<Resp Branch Desc          |<Resp Section Code |<Resp Section Desc        |<ABB Branch Code          |<Branch Desc                    |>Disposal Batch No |>Disposal Tran No  |<Acc Chk YN|Exception YN|Exception Codes|>Resp Bank Code|<Resp Bank Desc|<SI YN|>Counter No.|<Cashier Id               |>Scroll No.      |<Rate Ref Code     |<Rate Ref Desc     |>Issued by Branch Code |< Issued by Branch Desc|< Favouring        |>Instrument No    |>Advice Recceived|>Advice No.   |^Advice Rec Date|^Instrument Date|<Instrument Type|<Native Y/N"
-
-
-    // RemCanc for DD and BC		
-    var st = "REMCANCCHARGES"
-    window.document.all['iGetDtls'].src = "../GEN/getDtls.aspx?st=" + st
+//    window.document.frmTrans.cmdModId.disabled = true
+//    window.document.frmTrans.txtModId.value = "REM"
+//    //if(window.document.frmTrans.tranmode(0).checked==true)
+//    cntrlOnblur('txtModId')
+//    divsDisplay("remdr", "M")
+//    window.document.all.divaccno.style.display = "none"
+//    byBranch.innerHTML = "Issued on Branch"
+//    byBank.innerHTML = "Issued on Bank"
+//    window.document.frmTrans.Mfgpaydt.FormatString = ">Batch No     |>Tran No     |<GL Code       |<GL Description                       |>Acc No             |<Name                               |>Amount                     |>Entered Time Bal    |^Application Date   |<Cust ID                      |<Mode of Tran |<Mode of Tran Desc   |^ABB Application Date|<Tran Status  |>Currency Code   |<Entered By                    |<Entered M/C                  |<Module ID         |<Branch Code            |>Token No         |<Remarks                                  |<Cheque Series   |>Cheque No                 |^Cheque Date         |<Cheque Favouring              |<Sys Gen YN |<Module Description      |^ Effective Date        |<CLG Rate Type                |>Rate                   |<F Currency Code |>F Amount                   |<Link Module ID       |<Link Module Desc         |<Link GL Code   |<Link GL Desc            |>Link Account Type |>Link Account No |<Link Acc Name                   |>Service ID |<Service Desc  |<Resp Branch Code |<Resp Branch Desc          |<Resp Section Code |<Resp Section Desc        |<ABB Branch Code          |<Branch Desc                    |>Disposal Batch No |>Disposal Tran No  |<Acc Chk YN|Exception YN|Exception Codes|>Resp Bank Code|<Resp Bank Desc|<SI YN|>Counter No.|<Cashier Id               |>Scroll No.      |<Rate Ref Code     |<Rate Ref Desc     |>Issued by Branch Code |< Issued by Branch Desc|< Favouring        |>Instrument No    |>Advice Recceived|>Advice No.   |^Advice Rec Date|^Instrument Date|<Instrument Type|<Native Y/N"
 
 
-  }
-  else if (eval(window.document.frmTrans.txtServiceId.value) != "2" &&
-    window.document.frmTrans.txtModId.value != "SCR") {
-    window.document.all.divaccno.style.display = "block"
-    window.document.all['divAppName'].style.display = "none";
-    window.document.all['divAccCat'].style.display = "none"
-
-  }
-  else if (eval(window.document.frmTrans.txtServiceId.value) == "2") {
-    window.document.all['divaccno'].style.display = "none";
-    window.document.all['divAppName'].style.display = "block";
-    window.document.all['divAccCat'].style.display = "block"
-    Depdivclear()
-  }
+//    // RemCanc for DD and BC		
+//    var st = "REMCANCCHARGES"
+//    window.document.all['iGetDtls'].src = "../GEN/getDtls.aspx?st=" + st
 
 
-}
+//  }
+//  else if (eval(window.document.frmTrans.txtServiceId.value) != "2" &&
+//    window.document.frmTrans.txtModId.value != "SCR") {
+//    window.document.all.divaccno.style.display = "block"
+//    window.document.all['divAppName'].style.display = "none";
+//    window.document.all['divAccCat'].style.display = "none"
+
+//  }
+//  else if (eval(window.document.frmTrans.txtServiceId.value) == "2") {
+//    window.document.all['divaccno'].style.display = "none";
+//    window.document.all['divAppName'].style.display = "block";
+//    window.document.all['divAccCat'].style.display = "block"
+//    Depdivclear()
+//  }
+
+
+//}
 
 function round(number, precision) {
   var pair = (number + 'e').split('e')
@@ -790,56 +746,7 @@ function getRemCancGST() {
 
 //}
 //----------------------------------------------------------------------------------
-//This function is used to show forms based on conditions
-function suspencereturn(kstr) {
-  //alert("kstr="+kstr)
-  var catdtls, Brcode, GlCd, Curr, Accno
-  var scrAmt = 0
-  var prec = window.document.frmTrans.hpr.value
-  var strDisp = ""
 
-  Brcode = window.document.frmTrans.txtbranchcode.value.toUpperCase();
-  GlCd = window.document.frmTrans.txtGLcode.value.toUpperCase();
-  Curr = window.document.frmTrans.txtcurrencycode.value.toUpperCase();
-  Accno = window.document.frmTrans.txtAccNo.value.toUpperCase();
-  scrstr = kstr
-  window.document.frmTrans.hidscr.value = ""
-
-  TranMode()
-
-  if (ModId == "SCR") {
-    if (window.document.frmTrans.chkDispAccNo.checked == true) {
-      var strDisp = "Disposals"
-      scrAmt = window.document.frmTrans.txtAmt.value
-    }
-    else {
-      var strDisp = ""
-      scrAmt = ""
-    }
-
-    //if((kstr=="DR") && (trnMode=="4"))
-    if (((kstr == "DR") && (trnMode == "4")) ||
-      ((kstr == "DR") && (trnMode == "2"))) {
-      catdtls = GlCd + "~!~" + prec + "~!~" + Brcode + "~!~" + Curr + "~!~" + Accno + "~!~" + strDisp + "~!~" + scrAmt
-      scrgridYN = "YES"
-      window.showModalDialog('<%="http://" & session("moduledir")& "/GEN/"%>' +
-        "scrflex.aspx" + "?" + "catdtls=" + catdtls, window, "status:no;DialogWidth:745px;DialogHeight:210px;DialogLeft:60px;DialogTop:150px")
-      return;
-    }
-    else if (((kstr == "CR") && (trnMode == "3")) ||
-      ((kstr == "CR") && (trnMode == "1"))) {
-
-      catdtls = GlCd + "~!~" + prec + "~!~" + Brcode + "~!~" + Curr + "~!~" + Accno + "~!~" + strDisp + "~!~" + scrAmt
-      //// This is not a fly page.. It is a window
-      scrgridYN = "YES"
-      //alert("scrflexcatdtls=" + catdtls)
-      window.showModalDialog('<%="http://" & session("moduledir")& "/GEN/"%>' +
-        "scrflex.aspx" + "?" + "catdtls=" + catdtls, window, "status:no;DialogWidth:745px;DialogHeight:210px;DialogLeft:60px;DialogTop:150px")
-      return;
-    }
-
-  }
-}
 //----------------------------------------------------------------------------------
 //This function is used to store category details
 function categorycode(kstr) {
@@ -977,47 +884,47 @@ function CatCodeRtn(results) {
 //-------------------------------------------------------------------------------------
 //function is used to populate account no name in list based on module id,glcode
 //and makes visible true or flase of different divs based on conditions
-function AccCode() {
-  //alert("AccCode()")
-  window.document.all['divunits'].style.display = "none"
-  window.document.frmTrans.txtUnits.value = ""
+//function AccCode() {
+//  //alert("AccCode()")
+//  window.document.all['divunits'].style.display = "none"
+//  window.document.frmTrans.txtUnits.value = ""
 
-  if (window.document.frmTrans.chkDispAccNo.checked == false) {
+//  if (window.document.frmTrans.chkDispAccNo.checked == false) {
 
-    if ((window.document.frmTrans.txtServiceId.value == "3") ||
-      (window.document.frmTrans.txtServiceId.value == "4")) {
-      if (window.document.frmTrans.Mfgpaydt.Rows > 1) {
-        alert("Post or Cancel already entered data...")
-        return
-      }
-      if ((window.document.frmTrans.txtModId.value.toUpperCase() == "SB") || (window.document.frmTrans.txtModId.value.toUpperCase() == "CA")) {
-        stacc = "Telleraccno";
-      }
-      else {
-        stacc = "DepRenCloseAccno";
-      }
-    }
-    else {
-      stacc = "Telleraccno";
-    }
-  }
-  else {
-    stacc = "DispAccNo"
-  }
+//    if ((window.document.frmTrans.txtServiceId.value == "3") ||
+//      (window.document.frmTrans.txtServiceId.value == "4")) {
+//      if (window.document.frmTrans.Mfgpaydt.Rows > 1) {
+//        alert("Post or Cancel already entered data...")
+//        return
+//      }
+//      if ((window.document.frmTrans.txtModId.value.toUpperCase() == "SB") || (window.document.frmTrans.txtModId.value.toUpperCase() == "CA")) {
+//        stacc = "Telleraccno";
+//      }
+//      else {
+//        stacc = "DepRenCloseAccno";
+//      }
+//    }
+//    else {
+//      stacc = "Telleraccno";
+//    }
+//  }
+//  else {
+//    stacc = "DispAccNo"
+//  }
 
 
-  brchCd = window.document.frmTrans.txtbranchcode.value.toUpperCase();
-  ModId = window.document.frmTrans.txtModId.value.toUpperCase();
-  GlCd = window.document.frmTrans.txtGLcode.value.toUpperCase();
-  crCd = window.document.frmTrans.txtcurrencycode.value.toUpperCase();
-  serId = window.document.frmTrans.txtServiceId.value
-  kstr = stacc + "|" + brchCd + "|" + ModId + "|" + GlCd + "|" + crCd + "|" + serId
-  //alert(kstr)
-  if ((brchCd.length > 0) && (GlCd.length > 0) && (ModId.length > 0) && (crCd.length > 0))
-    window.showModalDialog('<%="http://" & session("moduledir")& "/GEN/"%>' + "TranList.aspx" + "?" + "st=" + kstr, window, "status:no;" +
-      "DialogWidth:470px;DialogHeight:200px;DialogLeft:140px;DialogTop:120px")
+//  brchCd = window.document.frmTrans.txtbranchcode.value.toUpperCase();
+//  ModId = window.document.frmTrans.txtModId.value.toUpperCase();
+//  GlCd = window.document.frmTrans.txtGLcode.value.toUpperCase();
+//  crCd = window.document.frmTrans.txtcurrencycode.value.toUpperCase();
+//  serId = window.document.frmTrans.txtServiceId.value
+//  kstr = stacc + "|" + brchCd + "|" + ModId + "|" + GlCd + "|" + crCd + "|" + serId
+//  //alert(kstr)
+//  if ((brchCd.length > 0) && (GlCd.length > 0) && (ModId.length > 0) && (crCd.length > 0))
+//    window.showModalDialog('<%="http://" & session("moduledir")& "/GEN/"%>' + "TranList.aspx" + "?" + "st=" + kstr, window, "status:no;" +
+//      "DialogWidth:470px;DialogHeight:200px;DialogLeft:140px;DialogTop:120px")
 
-}
+//}
 //--------------------------------------------------------------------
 //This function is used to populate account numbers and names based on module id, glcode.
 function lnkAccCode() {
@@ -2372,31 +2279,27 @@ function divsDisplay(visibleDiv, MainOrAddtional) {
   }
 
 }
+
 //----------------------------------------------------------------------------------
 function divsstring() {
   strDivs = "trnsfer" + "~" + "divDepDtls" + "~" + "selloantrans" + "~" + "loanintdtls" + "~" +
     "divLnkMod" + "~" + "loandtls" + "~" + "remdr" + "~" + "remcr" + "~" + "divCLG" + "~" +
     "divAccCat" + "~" + "divDenom"
-
 }
+
 //----------------------------------------------------------------------------------
 function divsstringAdd() {
   strDivs = "divTempTrans" + "~" + "divDisp" + "~" + "divFxRate"
 }
+
 //----------------------------------------------------------------------------------
 function DenomDtls() {
-  /*if(CashDenom=='N')
-  {   window.document.frmTrans.chkDenomDtls.checked=false; 
-    return; 
-  }*/
-
   if (vMode == "REC") {
     if (window.document.frmTrans.chkDenomDtls.checked == true) {
       divsDisplay('divDenom', 'M')
       window.document.all.divTempTrans.style.display = "none"
       window.document.all.divDisp.style.display = "none"
       window.document.all.divFxRate.style.display = "none"
-
     }
     else if (window.document.frmTrans.txtModId.value.toUpperCase() == "REM") {
       divsDisplay('remcr', 'M')
@@ -2427,11 +2330,8 @@ function DenomDtls() {
       else {
         window.document.all['divDenom'].style.display = "none";
       }
-
     }
   }
-
-
 }
 
 function ClearTranFields() {
@@ -3694,39 +3594,39 @@ function CLGChqValid(Clearcheque) {
 
 }
 
-// account details
-function AccDetails() {
-  var strData
+//// account details
+//function AccDetails() {
+//  var strData
 
-  if (window.document.frmTrans.txtbranchcode.value == "") {
-    alert("Enter Branch Code")
-    return
-  }
+//  if (window.document.frmTrans.txtbranchcode.value == "") {
+//    alert("Enter Branch Code")
+//    return
+//  }
 
-  if (window.document.frmTrans.txtModId.value == "") {
-    alert("Enter ModId Code")
-    return
-  }
+//  if (window.document.frmTrans.txtModId.value == "") {
+//    alert("Enter ModId Code")
+//    return
+//  }
 
-  if (window.document.frmTrans.txtGLcode.value == "") {
-    alert("Enter GLcode Code")
-    return
-  }
-  if (window.document.frmTrans.txtAccNo.value == "") {
-    alert("Enter AccNo Code")
-    return
-  }
+//  if (window.document.frmTrans.txtGLcode.value == "") {
+//    alert("Enter GLcode Code")
+//    return
+//  }
+//  if (window.document.frmTrans.txtAccNo.value == "") {
+//    alert("Enter AccNo Code")
+//    return
+//  }
 
-  //Prepare A/C details data
+//  //Prepare A/C details data
 
-  strData = window.document.frmTrans.txtbranchcode.value + "|" + window.document.frmTrans.txtbranchdesc.value + "|" +
-    window.document.frmTrans.txtcurrencycode.value + "|" + window.document.frmTrans.txtcurrencydesc.value + "|" +
-    window.document.frmTrans.txtGLcode.value + "|" + window.document.frmTrans.txtGLDesc.value + "|" + window.document.frmTrans.txtModId.value + "|" + "" + "|" +
-    window.document.frmTrans.txtAccNo.value + "|" + window.document.frmTrans.txtAccNm.value
+//  strData = window.document.frmTrans.txtbranchcode.value + "|" + window.document.frmTrans.txtbranchdesc.value + "|" +
+//    window.document.frmTrans.txtcurrencycode.value + "|" + window.document.frmTrans.txtcurrencydesc.value + "|" +
+//    window.document.frmTrans.txtGLcode.value + "|" + window.document.frmTrans.txtGLDesc.value + "|" + window.document.frmTrans.txtModId.value + "|" + "" + "|" +
+//    window.document.frmTrans.txtAccNo.value + "|" + window.document.frmTrans.txtAccNm.value
 
-  window.open('<%="http://" & session("moduledir")& "/GenSBCA/"%>' + "accountdetails.aspx?strData=" + strData, "SB", "width=750%,height=600%,top=0,left=0,scrollbars=yes")
+//  window.open('<%="http://" & session("moduledir")& "/GenSBCA/"%>' + "accountdetails.aspx?strData=" + strData, "SB", "width=750%,height=600%,top=0,left=0,scrollbars=yes")
 
-} //end of AccDetails() method
+//} //end of AccDetails() method
 
 // account details
 function AccDetails1() {
@@ -11584,47 +11484,47 @@ function cntrlOnblurret(txtName) {
 
 //}
 
-function ReturnedBack(str) {
-  if (str == "txtServiceId") {
-    if (window.document.frmTrans.txtServiceName.value != "") {
-      window.document.frmTrans.txtModId.focus()
-    }
-  }
-  else if (str == "txtModId") {
-    if (window.document.frmTrans.txtModDesc.value != "") {
-      window.document.frmTrans.txtGLcode.focus()
-    }
-  }
-  else if (str == "txtGLcode") {
-    if (window.document.frmTrans.tranmode[2].checked == true) {
-      if (window.document.frmTrans.txtModId.value == "REM") {
-        window.document.frmTrans.txtinstrno.focus()
-      }
-    }
-    else {
-      if (window.document.frmTrans.txtModId.value == "REM") {
-        if (window.document.frmTrans.txtGLDesc.value != "") {
-          window.document.frmTrans.txtAmt.focus()
-          window.document.frmTrans.txtAmt.value = "0.00"
-          window.document.frmTrans.txtAmt.select()
-        }
-      }
-      else {
-        if (window.document.frmTrans.txtGLDesc.value != "") {
-          window.document.frmTrans.txtAccNo.focus()
-        }
-      }
-    }
+//function ReturnedBack(str) {
+//  if (str == "txtServiceId") {
+//    if (window.document.frmTrans.txtServiceName.value != "") {
+//      window.document.frmTrans.txtModId.focus()
+//    }
+//  }
+//  else if (str == "txtModId") {
+//    if (window.document.frmTrans.txtModDesc.value != "") {
+//      window.document.frmTrans.txtGLcode.focus()
+//    }
+//  }
+//  else if (str == "txtGLcode") {
+//    if (window.document.frmTrans.tranmode[2].checked == true) {
+//      if (window.document.frmTrans.txtModId.value == "REM") {
+//        window.document.frmTrans.txtinstrno.focus()
+//      }
+//    }
+//    else {
+//      if (window.document.frmTrans.txtModId.value == "REM") {
+//        if (window.document.frmTrans.txtGLDesc.value != "") {
+//          window.document.frmTrans.txtAmt.focus()
+//          window.document.frmTrans.txtAmt.value = "0.00"
+//          window.document.frmTrans.txtAmt.select()
+//        }
+//      }
+//      else {
+//        if (window.document.frmTrans.txtGLDesc.value != "") {
+//          window.document.frmTrans.txtAccNo.focus()
+//        }
+//      }
+//    }
 
-  }
-  else if (str == "txtAccNo") {
-    if (window.document.frmTrans.txtAccNm.value != "") {
-      window.document.frmTrans.txtAmt.focus()
-      window.document.frmTrans.txtAmt.value = "0.00"
-      window.document.frmTrans.txtAmt.select()
-    }
-  }
-}
+//  }
+//  else if (str == "txtAccNo") {
+//    if (window.document.frmTrans.txtAccNm.value != "") {
+//      window.document.frmTrans.txtAmt.focus()
+//      window.document.frmTrans.txtAmt.value = "0.00"
+//      window.document.frmTrans.txtAmt.select()
+//    }
+//  }
+//}
 
 //----------------------------------------------------------------------------------
 function dispDetails() {
@@ -12665,9 +12565,8 @@ function sumDrCr(flxRowCnt1, AddorDel1) {
 
 }
 
-function genLimitValidation() {
-
-}
+//function genLimitValidation() {
+//}
 
 
 function remLimitValidation() {

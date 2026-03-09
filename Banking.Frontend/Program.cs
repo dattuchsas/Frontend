@@ -1,6 +1,7 @@
 using Banking.Interfaces;
 using Banking.Models;
 using Banking.Services;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Serilog;
 using System.Net;
@@ -40,12 +41,24 @@ builder.Services.AddHttpContextAccessor();
 // Add distributed memory cache for session management
 builder.Services.AddDistributedMemoryCache(); // Required to store session data
 
+//builder.Services.AddStackExchangeRedisCache(options =>
+//{
+//    options.Configuration = "localhost:6379";
+//});
+
 // Configure session options
 builder.Services.AddSession(options =>
 {
     options.IdleTimeout = TimeSpan.FromMinutes(20); // Set session timeout
-    options.Cookie.HttpOnly = true; // Make the session cookie inaccessible to client-side script
+
     options.Cookie.IsEssential = true; // Make the session cookie essential
+    options.Cookie.SameSite = SameSiteMode.Lax;
+
+    // IMPORTANT
+    options.Cookie.MaxAge = TimeSpan.FromMinutes(20);
+    options.Cookie.HttpOnly = true; // Make the session cookie inaccessible to client-side script
+
+    // In production:
     options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
 });
 
@@ -55,7 +68,9 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
     options.LoginPath = "/Login/Index";
     options.LogoutPath = "/Login/Logout";
     options.AccessDeniedPath = "/Login/AccessDenied";
+    // TODO: Change to 30 in Prod
     options.ExpireTimeSpan = TimeSpan.FromMinutes(5);
+    // TODO: Change to false in Prod
     options.SlidingExpiration = false; // IMPORTANT for banking
 });
 
@@ -87,7 +102,8 @@ var app = builder.Build();
 // Define allowed IP addresses
 var allowedIps = new HashSet<IPAddress>
 {
-    IPAddress.Parse("::1")
+    IPAddress.Parse("::1"),
+    IPAddress.Parse("127.0.0.1")
 };
 
 // Middleware to restrict access based on IP address
@@ -117,18 +133,18 @@ app.UseHttpsRedirection();
 // Serve static files (e.g., CSS, JavaScript, images)
 app.UseStaticFiles();
 
+// Enable forwarded headers to correctly identify client IPs when behind a reverse proxy
+app.UseForwardedHeaders();
+
 // Enable routing
 app.UseRouting();
+
+// Enable session middleware
+app.UseSession();
 
 // Enable authentication and authorization
 app.UseAuthentication();
 app.UseAuthorization();
-
-// Enable forwarded headers to correctly identify client IPs when behind a reverse proxy
-app.UseForwardedHeaders();
-
-// Enable session middleware
-app.UseSession();
 
 // Define the default route for controllers
 app.MapControllerRoute(

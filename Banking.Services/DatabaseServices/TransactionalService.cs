@@ -30,29 +30,7 @@ namespace Banking.Services
 
             DataTable dataTable = await _databaseFactory.ProcessQueryAsync(strQuery);
 
-            return ReturnKeyValuePair(dataTable, "Branch");
+            return BankingExtensions.ReturnKeyValuePair(dataTable, "Branch");
         }
-
-        private List<SelectListItem> ReturnKeyValuePair(DataTable dataTable, string type = "")
-        {
-            List<string> list = new List<string>
-            {
-                "Branch", "Category"
-            };
-            var result = new List<SelectListItem>();
-            result.Add(new SelectListItem { Value = "", Text = "Select" });
-            foreach (DataRow row in dataTable.Rows)
-            {
-                var keyValuePair = new SelectListItem();
-                if (list.Contains(type))
-                    keyValuePair.Text = string.Concat(Conversions.ToString(row.ItemArray[0]), " - ", Conversions.ToString(row.ItemArray[1]).ToLower().Humanize(LetterCasing.Title));
-                else
-                    keyValuePair.Text = Conversions.ToString(row.ItemArray[1]).ToLower().Humanize(LetterCasing.Title);
-                keyValuePair.Value = Conversions.ToString(row.ItemArray[0]);
-                result.Add(keyValuePair);
-            }
-            return result;
-        }
-
     }
 }

@@ -9,6 +9,7 @@
         public const string GetDetails = "GetDetails";
         public const string TransferTransaction = "TransferTransaction";
         public const string Common = "Common";
+        public const string List = "List";
     }
 
     public class ActionNames
@@ -55,6 +56,8 @@
         public const string QueryString = "QueryString";
         public const string ReferrerController = "ReferrerController";
         public const string ReferrerAction = "ReferrerAction";
+
+        public const string Precision = "Precision";
     }
 
     public class BankingConstants

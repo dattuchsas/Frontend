@@ -21,8 +21,14 @@ namespace Banking.Models
         public string? ServiceCode { get; set; }
         public List<SelectListItem>? ServiceList { get; set; }
 
-        public string? Module { get; set; }
+        public string? ModuleCode { get; set; }
         public List<SelectListItem>? ModuleList { get; set; }
+
+        public string? GLCode { get; set; }
+        public List<SelectListItem>? GLCodeList { get; set; }
+
+        public string? CategoryCode { get; set; }
+        public List<SelectListItem>? CategoryList { get; set; }
 
         public string? AccountType { get; set; }
         public string? ApplicationName { get; set; }
@@ -39,7 +45,8 @@ namespace Banking.Models
 
         public string? DebitTransactions { get; set; }
         public string? CreditTransactions { get; set; }
-        public string? Total { get; set; }
+        public string? DebitTotal { get; set; }
+        public string? CreditTotal { get; set; }
         public string? Difference { get; set; }
 
         public string? CounterNo { get; set; }
@@ -51,11 +58,14 @@ namespace Banking.Models
         public string? MachineId { get; set; }
 
         public string? ABBUser { get; set; }
+        public string? SelectedModule { get; set; }
+
 
 
         #region Hidden Fields
 
         public string? Hidden_194NModId { get; set; }
+        public string? Hidden_194NCustomerId { get; set; }
         public string? Hidden_194NGLCode { get; set; }
         public string? Hidden_194NAccNo { get; set; }
 
@@ -91,6 +101,11 @@ namespace Banking.Models
 
         public string? Hidden_CustomerId { get; set; }
         public string? Hidden_ReceipientName { get; set; }
+
+        public string? Hidden_ChequeValidPeriod { get; set; }
+        public string? Hidden_ChequeLength { get; set; }
+
+        public string? Hidden_Precision { get; set; }
 
         #endregion
 
@@ -144,8 +159,7 @@ namespace Banking.Models
     public enum TransactionModes
     {
         Debit,
-        Credit,
-        Clearing
+        Credit
     }
 
     public class TransferTransactionComponents

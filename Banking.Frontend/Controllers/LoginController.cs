@@ -107,10 +107,7 @@ namespace Banking.Frontend.Controllers
 
                 var principal = new ClaimsPrincipal(identity);
 
-                await HttpContext.SignInAsync(
-                    CookieAuthenticationDefaults.AuthenticationScheme,
-                    principal
-                );
+                Console.WriteLine("IsPersistent TRUE");
 
                 string remoteHost = HttpContext.Connection.RemoteIpAddress?.ToString() ?? string.Empty;
 
@@ -120,6 +117,15 @@ namespace Banking.Frontend.Controllers
 
                 RedirectModel commDict = await _loginService.LoginCheckProcess(HttpContext.Session, loginModel.Username, loginModel.Password1,
                     loginModel.Password2, loginModel.HdnDayBegin, loginModel.Status, remoteHost, serverName);
+
+                await HttpContext.SignInAsync(
+                    CookieAuthenticationDefaults.AuthenticationScheme,
+                    principal, new AuthenticationProperties
+                    {
+                        IsPersistent = true,
+                        ExpiresUtc = DateTime.UtcNow.AddMinutes(5),
+                        AllowRefresh = false,
+                    });
 
                 if (commDict != null)
                 {
