@@ -1,27 +1,7 @@
 ﻿using Banking.Framework;
 using Banking.Interfaces;
 using Banking.Models;
-using Humanizer;
-using Microsoft.Extensions.Options;
-using Newtonsoft.Json.Linq;
-using System;
-using System.Buffers.Text;
-using System.Collections.Generic;
 using System.Data;
-using System.Data.Common;
-using System.Diagnostics.Eventing.Reader;
-using System.Dynamic;
-using System.Reflection;
-using System.Reflection.Emit;
-using System.Reflection.Metadata;
-using System.Reflection.PortableExecutable;
-using System.Runtime.InteropServices;
-using System.Security.Cryptography;
-using System.Security.Principal;
-using System.Xml.Linq;
-using static System.Net.Mime.MediaTypeNames;
-using static System.Runtime.CompilerServices.RuntimeHelpers;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace Banking.Backend
 {
@@ -1116,240 +1096,171 @@ namespace Banking.Backend
         public async Task<DataTable> FXTransactionParameters(string Branchcode, string ModuleCode, string GLcode, string TransactionDate, string FCurrencyCode = "",
             string Accno = "", string CategoryCode = "", string userBranchcode = "", string UserID = "", string machineid = "")
         {
+            DataTable RsGLParam = null!, Rstemp = null!, RSModule = null!;
+            string StrFxMinMAxTab = "", strFxMinMaxFlds, strFxNotinalCat;
 
-            //Dim RsGLParam As ADODB.Recordset
-            //Dim StrFxMinMAxTab As String
-            //Dim strFxMinMaxFlds As String
-            //Dim strFxNotinalCat As String
-            //On Error GoTo errhand
-            //Set RsGLParam = CreateObject("adodb.recordset")
-            //strDelimiter = "~"
-            //Call DBConnection
-            //If ConnError<> "Connected" Then GoTo errhand
+            string strTabName = "", strQuery = "", strParamFlds = "", strParamVals = "";
 
-            //StrQuery = ""
-            //StrModuleCode = UCase(Trim(ModuleCode))
-            //strGLCode = UCase(Trim(GLcode))
-            //TrannDate = Format(TransactionDate, "dd-Mmm-yyyy")
-            //StrCurCode = UCase(Trim(FCurrencyCode))
-            //strBranchCode = UCase(Trim(Branchcode))
-            //strAccno = IIf(IsNull(Trim(Accno)), "", Trim(Accno))
-            //CatCode = IIf(IsNull(Trim(CategoryCode)), "", UCase(Trim(CategoryCode)))
-            //'TrannDate = Format(TrannDate, "dd-Mmm-yyyy")
+            string strDelimiter = "~";
 
-            //StrQuery = ""
-            //Set Rstemp = CreateObject("ADODB.Recordset")
+            string StrModuleCode = ModuleCode.Trim().ToUpper();
+            string strGLCode = GLcode.Trim().ToUpper();
+            string TrannDate = string.Format("dd-Mmm-yyyy", TransactionDate);
+            string StrCurCode = FCurrencyCode.Trim().ToUpper();
+            string strBranchCode = Branchcode.Trim().ToUpper();
+            string strAccno = string.IsNullOrWhiteSpace(Accno) ? "" : Accno.Trim();
+            string CatCode = string.IsNullOrWhiteSpace(CategoryCode) ? "" : CategoryCode.Trim().ToUpper();
 
-            //If strAccno<> "" Then
-            //''''''''''retrieving the account category code based on moduleid
+            // Retrieving the account category code based on moduleid
+            if (strAccno != "")
+            {
+                strQuery = "Select CATEGORYCODE from " + StrModuleCode + "MST" + _dataLink + " where branchcode='" + strBranchCode + "' and accno='" + strAccno + 
+                    "' and glcode='" + strGLCode + "'";
 
+                Rstemp = await ProcessQueryAsync(strQuery);
 
-            //        StrQuery = "Select CATEGORYCODE from " & StrModuleCode & "MST" _
-            //        & DbLink & " where branchcode='" & strBranchCode & "' and accno='" & strAccno _
-            //        & "' and glcode='" & strGLCode & "'"
+                CatCode = Conversions.ToString(Rstemp.Rows[0]["CategoryCode"]);
+            }
 
+            // Aquiring the parameter table name  for the given module.
+            strQuery = "select MasterTable,PMTTABLE from genmodulemst" + _dataLink + "  where moduleid ='" + StrModuleCode + "'";
 
-            //        Set Rstemp = AdoConnObj.Execute(StrQuery)
+            strQuery = strQuery.ToUpper();
 
+            Rstemp = await ProcessQueryAsync(strQuery);
 
-            //   If Rstemp.RecordCount < 1 Then
-            //        ConnError = "Parameters not avilable for this Module : " & StrModuleCode
-            //        GoTo errhand
+            if (Rstemp.Rows.Count > 0)
+                strTabName = Conversions.ToString(Rstemp.Rows[0]["pmttable"]).Trim().ToUpper();
 
+            // Parameter table name retrieved, calling private function for Gl Parameters from the Moduleparameter table based on the effective date.
 
-            //    End If
-            //        CatCode = Format(Rstemp!CategoryCode)
+            await ModuleParameterRecord(strTabName);
 
+            string[] skipColumns = { "BRANCHCODE","CURRENCYCODE","MODULEID","GLCODE","EFFECTIVEDATE","STATUS","APPLICATIONDATE","USERID","MACHINEID","VERIFIEDBY",
+                "VERIFIEDMACHINE","APPROVEDBY","APPROVEDMACHINE","TRANSTATUS", "SYSTEMDATE", "FCURRENCYCODE" };
 
+            DataRow row = RSModule.Rows.Count > 0 ? RSModule.Rows[0] : null!;
 
-            //End If
+            for (int i = 0; i < RSModule.Columns.Count; i++)
+            {
+                string colName = RSModule.Columns[i].ColumnName.ToUpper();
+                if (!skipColumns.Contains(colName))
+                {
+                    strParamFlds += RSModule.Columns[i].ColumnName + ",";
+                    if (row != null)
+                    {
+                        var val = row[i] == DBNull.Value ? "" : row[i].ToString();
+                        strParamVals += val + strDelimiter;
+                    }
+                    else
+                        strParamVals += "" + strDelimiter;
+                }
+            }
 
+            string strParamTabs = strTabName;
 
+            // Retrieving data from GENTRANTYPEMST parameter table
+            strQuery = "CASHDRYN, CASHCRYN, TRANSFERDRYN, TRANSFERCRYN, CLEARINGDRYN, CLEARINGCRYN";
+            string strCondition = " currencycode='" + StrCurCode + "'";
 
-            //'''''''' Aquiring the parameter table name  for the given module. ''''''''''''''
-            //StrQuery = "select MasterTable,PMTTABLE from genmodulemst" & DbLink _
-            //        & "  where moduleid ='" & StrModuleCode & "'"
+            await ParameterRecord("GENTRANTYPEMST", strQuery, "GENTRANTYPEMSTHIST", strCondition);
 
+            strParamTabs = strParamTabs + ",GENTRANTYPEMST";
 
-            //        StrQuery = UCase(StrQuery)
-            //        Set Rstemp = AdoConnObj.Execute(StrQuery)
-            //        If Rstemp.State = 0 Then
-            //            ConnError = "Parameters Not Specified !"
-            //            GoTo errhand
-            //        End If
-            //        If Rstemp.RecordCount = 0 Or _
-            //            (Rstemp.RecordCount = 1 And IsNull(Rstemp!pmttable)) Then
-            //                ConnError = "Parameters Not Specified for this Module !"
-            //                GoTo errhand
-            //        Else
-            //            strTabName = UCase(Trim(Rstemp!pmttable))
-            //        End If
-            //   Rstemp.Close
+            // Parameters for minmaxbalance based on forex moduleid
+            if (StrModuleCode == "FXDEP")
+                StrFxMinMAxTab = "FXDEPMINMAXDTLS";
+            else if (StrModuleCode == "FXLOAN")
+                StrFxMinMAxTab = "FXLOANMINMAXDTLS";
 
+            strQuery = "Select MINTERM, MINPERIOD, MAXTERM, MAXPERIOD, MINAMOUNT, MAXAMOUNT, TDSYN from " + StrFxMinMAxTab + " where glcode='" + strGLCode + "' and EFFECTIVEDATE = " +
+                "(select max(EFFECTIVEDATE) from " + StrFxMinMAxTab + " where glcode='" + strGLCode + "' and EFFECTIVEDATE<='" + TrannDate + "' and FCurrencycode='" + StrCurCode + 
+                "' and (categorycode='" + CatCode + "' or categorycode='99')) and (categorycode='" + CatCode + "'  or categorycode='99') and FCurrencycode='" + StrCurCode + "'";
 
+            Rstemp = await ProcessQueryAsync(strQuery);
 
+            // If no records at master table for that effective date then query history table
+            if (Rstemp.Rows.Count < 1)
+                strQuery = "Select MINTERM, MINPERIOD, MAXTERM, MAXPERIOD, MINAMOUNT, MAXAMOUNT ,TDSYN from " + StrFxMinMAxTab + "HIST where glcode='" + strGLCode + "' and EFFECTIVEDATE " +
+                    "= (select max(EFFECTIVEDATE) from " + StrFxMinMAxTab + " where glcode='" + strGLCode + "' and EFFECTIVEDATE<='" + TrannDate + "' and FCurrencycode='" + StrCurCode + 
+                    "' and (categorycode='" + CatCode + "' or categorycode='99')) and FCurrencycode='" + StrCurCode + "' and (categorycode='" + CatCode + "'  or categorycode='99')";
 
-            //'''''''''''''' parameter table name retrieved ''''''''''''''''''''''''''
+            Rstemp = await ProcessQueryAsync(strQuery);
 
-            //''''''''''calling private function for Gl Parameters from the Moduleparameter table based
-            //''''''''''on the effective date.
-            //Set RSModule = CreateObject("ADODB.Recordset")
-            //ConnError = ModuleParameterRecord(strTabName)
+            strParamTabs = strParamTabs + "," + StrFxMinMAxTab;
 
-            //        For Icount = 0 To RSModule.Fields.Count - 1
-            //            If UCase(RSModule.Fields(Icount).Name) <> "BRANCHCODE" _
-            //                And UCase(RSModule.Fields(Icount).Name) <> "CURRENCYCODE" _
-            //                And UCase(RSModule.Fields(Icount).Name) <> "MODULEID" _
-            //                And UCase(RSModule.Fields(Icount).Name) <> "GLCODE" _
-            //                And UCase(RSModule.Fields(Icount).Name) <> "EFFECTIVEDATE" _
-            //                And UCase(RSModule.Fields(Icount).Name) <> "STATUS" _
-            //                And UCase(RSModule.Fields(Icount).Name) <> "APPLICATIONDATE" _
-            //                And UCase(RSModule.Fields(Icount).Name) <> "USERID" _
-            //                And UCase(RSModule.Fields(Icount).Name) <> "MACHINEID" _
-            //                And UCase(RSModule.Fields(Icount).Name) <> "VERIFIEDBY" _
-            //                And UCase(RSModule.Fields(Icount).Name) <> "VERIFIEDMACHINE" _
-            //                And UCase(RSModule.Fields(Icount).Name) <> "APPROVEDBY" _
-            //                And UCase(RSModule.Fields(Icount).Name) <> "APPROVEDMACHINE" _
-            //                 And UCase(RSModule.Fields(Icount).Name) <> "TRANSTATUS" _
-            //                And UCase(RSModule.Fields(Icount).Name) <> "SYSTEMDATE" _
-            //                And UCase(RSModule.Fields(Icount).Name) <> "FCURRENCYCODE" Then
-            //                strParamFlds = strParamFlds & RSModule.Fields(Icount).Name & ","
+            row = RSModule.Rows.Count > 0 ? RSModule.Rows[0] : null!;
 
+            for (int i = 0; i < Rstemp.Columns.Count; i++)
+            {
+                strParamFlds = strParamFlds + RSModule.Columns[i].ColumnName + ",";
+                if (Rstemp.Rows.Count > 0)
+                {
+                    var val = row[i] == DBNull.Value ? "" : row[i].ToString();
+                    strParamVals += val + strDelimiter;
+                }
+                else
+                    strParamVals = strParamVals + "" + strDelimiter;
+            }
 
-            //                If RSModule.RecordCount > 0 Then
-            //                    strParamVals = strParamVals _
-            //                    & IIf(IsNull(RSModule.Fields(Icount).Value), "", _
-            //                    RSModule.Fields(Icount).Value) & strDelimiter
-            //                Else
-            //                    strParamVals = strParamVals & "" & strDelimiter
-            //                End If
-            //            End If
-            //        Next Icount
+            if (StrModuleCode == "FXDEP")
+            {
+                strQuery = "Select PERCENTAGE from FXDEPPENALINTDTLS where glcode='" + strGLCode + "' and EFFECTIVEDATE= (select max(EFFECTIVEDATE) from FXDEPPENALINTDTLS where glcode='" + 
+                    strGLCode + "' and " + "EFFECTIVEDATE<='" + TrannDate + "' and FCurrencycode='" + StrCurCode + "' and (categorycode='" + CatCode + "' or categorycode='99')) and " +
+                    "(categorycode='" + CatCode + "' or categorycode='99') and FCurrencycode='" + StrCurCode + "'";
 
-            //    strParamTabs = strTabName
+                Rstemp = await ProcessQueryAsync(strQuery);
 
-            //'''retrieving data from GENTRANTYPEMST parameter table
-            //StrQuery = "CASHDRYN, CASHCRYN, TRANSFERDRYN, TRANSFERCRYN, CLEARINGDRYN, CLEARINGCRYN"
-            //StrCondition = " currencycode='" & StrCurCode & "'"
-            //ConnError = ParameterRecord("GENTRANTYPEMST", StrQuery, "GENTRANTYPEMSTHIST", StrCondition)
+                // If no records at master table for that effective date then query history table
 
-            //If ConnError<> "Connected" Then GoTo errhand
+                if (Rstemp.Rows.Count < 1)
+                {
+                    strQuery = "Select PERCENTAGE from FXDEPPENALINTDTLSHIST where glcode='" + strGLCode + "' and EFFECTIVEDATE= (select max(EFFECTIVEDATE) from FXDEPPENALINTDTLSHIST " +
+                        "where glcode='" + strGLCode + "' and " + "EFFECTIVEDATE<='" + TrannDate + "' and FCurrencycode='" + StrCurCode + "' and (categorycode='" + CatCode + 
+                        "' or categorycode='99')) and FCurrencycode='" + StrCurCode + "' and (categorycode='" + CatCode + "' or categorycode='99')";
 
+                    Rstemp = await ProcessQueryAsync(strQuery);
+                }
 
-            //    strParamTabs = strParamTabs & ",GENTRANTYPEMST"
+                strParamTabs = strParamTabs + ",FXDEPPENALINTDTLS";
 
-            //        If ConnError <> "Connected" Then GoTo errhand
+                row = RSModule.Rows.Count > 0 ? RSModule.Rows[0] : null!;
 
-            //''''''''''' parameters for minmaxbalance based on forex moduleid
+                for (int i = 0; i < Rstemp.Columns.Count; i++)
+                {
+                    strParamFlds = strParamFlds + RSModule.Columns[i].ColumnName + ",";
+                    if (Rstemp.Rows.Count > 0)
+                    {
+                        var val = row[i] == DBNull.Value ? "" : row[i].ToString();
+                        strParamVals += val + strDelimiter;
+                    }
+                    else
+                        strParamVals = strParamVals + "" + strDelimiter;
+                }
+            }
 
-            //If StrModuleCode = "FXDEP" Then
-            //   StrFxMinMAxTab = "FXDEPMINMAXDTLS"
-            //ElseIf StrModuleCode = "FXLOAN" Then
-            //    StrFxMinMAxTab = "FXLOANMINMAXDTLS"
-            //End If
-            //    StrQuery = "Select MINTERM, MINPERIOD, MAXTERM, MAXPERIOD, MINAMOUNT, MAXAMOUNT, TDSYN from " _
-            //    & StrFxMinMAxTab & " where glcode='" & strGLCode _
-            //    & "' and EFFECTIVEDATE= (select max(EFFECTIVEDATE) from " & StrFxMinMAxTab _
-            //    & " where glcode='" & strGLCode & "' and " _
-            //    & "EFFECTIVEDATE<='" & TrannDate & "' and FCurrencycode='" _
-            //    & StrCurCode & "' and (categorycode='" & CatCode & "' or categorycode='99') ) " _
-            //    & " and (categorycode='" & CatCode & "'  or categorycode='99') and FCurrencycode='" _
-            //    & StrCurCode & "'"
+            strParamFlds = strParamFlds.Substring(0, strParamFlds.Length - 1);
+            strParamVals = strParamVals.Substring(0, strParamVals.Length - 1);
 
+            strQuery = " select " + strParamFlds + " from " + strParamTabs + " where 1=2";
 
-            //If Rstemp.State = 1 Then Rstemp.Close
-            //    Set Rstemp = AdoConnObj.Execute(StrQuery)
+            await ProcessQueryAsync(strQuery);
 
+            // Entering the parameter data into the dummy recordset.
+            string[] arrParamFlds = strParamFlds.Split(",");
+            string[] arrParamVals = strParamVals.Split(strDelimiter);
 
-            //If Rstemp.RecordCount< 1 Then
-            //'''''if no records at master table for that effective date then query history table
-            //     StrQuery = "Select MINTERM, MINPERIOD, MAXTERM, MAXPERIOD, MINAMOUNT, MAXAMOUNT ,TDSYN from " _
-            //    & StrFxMinMAxTab & "HIST where glcode='" & strGLCode _
-            //    & "' and EFFECTIVEDATE= (select max(EFFECTIVEDATE) from " & StrFxMinMAxTab _
-            //    & " where glcode='" & strGLCode & "' and " _
-            //    & "EFFECTIVEDATE<='" & TrannDate & "' and FCurrencycode='" _
-            //    & StrCurCode & "' and (categorycode='" & CatCode & "' or categorycode='99') ) " _
-            //    & "and FCurrencycode='" & StrCurCode & "' and (categorycode='" _
-            //    & CatCode & "'  or categorycode='99')"
-            //    If Rstemp.State = 1 Then Rstemp.Close
-            //    Set Rstemp = AdoConnObj.Execute(StrQuery)
-            //End If
-            //    strParamTabs = strParamTabs & "," & StrFxMinMAxTab
-            //    For Icount = 0 To Rstemp.Fields.Count - 1
-            //            strParamFlds = strParamFlds & Rstemp.Fields(Icount).Name & ","
-            //            If Rstemp.RecordCount > 0 Then
-            //                strParamVals = strParamVals _
-            //                & IIf(IsNull(Rstemp.Fields(Icount).Value), "", Rstemp.Fields(Icount).Value) _
-            //                & strDelimiter
-            //            Else
-            //                strParamVals = strParamVals & "" & strDelimiter
-            //            End If
-            //    Next Icount
+            DataRow newRow = RsGLParam.NewRow();
 
-            //If StrModuleCode = "FXDEP" Then
-            //    StrQuery = "Select PERCENTAGE from FXDEPPENALINTDTLS where glcode='" & strGLCode _
-            //    & "' and EFFECTIVEDATE= (select max(EFFECTIVEDATE) from FXDEPPENALINTDTLS " _
-            //    & " where glcode='" & strGLCode & "' and " _
-            //    & "EFFECTIVEDATE<='" & TrannDate & "' and FCurrencycode='" _
-            //    & StrCurCode & "' and (categorycode='" & CatCode & "' or categorycode='99') ) " _
-            //    & " and (categorycode='" & CatCode & "'  or categorycode='99') and FCurrencycode='" _
-            //    & StrCurCode & "'"
+            for (int i = 0; i < arrParamFlds.Length; i++)
+            {
+                string value = Conversions.ToString(arrParamVals[i]).Trim();
+                newRow[arrParamFlds[i]] = string.IsNullOrEmpty(value) ? DBNull.Value : value;
+            }
 
-            //    If Rstemp.State = 1 Then Rstemp.Close
-            //    Set Rstemp = AdoConnObj.Execute(StrQuery)
+            RsGLParam.Rows.Add(newRow);
 
-
-            //    If Rstemp.RecordCount< 1 Then
-            //    '''''if no records at master table for that effective date then query history table
-            //         StrQuery = "Select PERCENTAGE from FXDEPPENALINTDTLSHIST where glcode='" & strGLCode _
-            //        & "' and EFFECTIVEDATE= (select max(EFFECTIVEDATE) from FXDEPPENALINTDTLSHIST " _
-            //        & " where glcode='" & strGLCode & "' and " _
-            //        & "EFFECTIVEDATE<='" & TrannDate & "' and FCurrencycode='" _
-            //        & StrCurCode & "' and (categorycode='" & CatCode & "' or categorycode='99') ) " _
-            //        & "and FCurrencycode='" & StrCurCode & "' and (categorycode='" _
-            //        & CatCode & "'  or categorycode='99')"
-            //        If Rstemp.State = 1 Then Rstemp.Close
-            //        Set Rstemp = AdoConnObj.Execute(StrQuery)
-            //    End If
-            //    strParamTabs = strParamTabs & ",FXDEPPENALINTDTLS"
-            //    For Icount = 0 To Rstemp.Fields.Count - 1
-            //            strParamFlds = strParamFlds & Rstemp.Fields(Icount).Name & ","
-            //            If Rstemp.RecordCount > 0 Then
-            //                strParamVals = strParamVals _
-            //                & IIf(IsNull(Rstemp.Fields(Icount).Value), "", Rstemp.Fields(Icount).Value) _
-            //                & strDelimiter
-            //            Else
-            //                strParamVals = strParamVals & "" & strDelimiter
-            //            End If
-            //    Next Icount
-
-            //End If
-
-            //    strParamFlds = Left(strParamFlds, Len(strParamFlds) - 1)
-            //    strParamVals = Left(strParamVals, Len(strParamVals) - 1)
-
-
-
-            //StrQuery = " select " & strParamFlds & " from " & strParamTabs & " where 1=2"
-            //     '''''''''''''Dummy recordset
-
-            //RsGLParam.Open StrQuery, AdoConnObj, adOpenDynamic, adLockOptimistic
-
-            //'''''entering the parameter data into the dummy recordset.
-            //arrParamFlds = Split(strParamFlds, ",")
-            //arrParamVals = Split(strParamVals, strDelimiter)
-            //StrQuery = ""
-
-            //RsGLParam.AddNew
-            //For Icount = 0 To UBound(arrParamFlds)
-
-
-            //    RsGLParam(Icount) = IIf(Trim(arrParamVals(Icount)) = "", Null, _
-            //                        Trim(arrParamVals(Icount)))
-            //Next Icount
-
-
-            //Set FXTransactionParameters = RsGLParam
+            return RsGLParam;
 
             // errhand:
             //    objErrlog.LogError "GeneralTranQueries", "FXTransactionParameters", Err.Number, Err.Description
@@ -1358,177 +1269,140 @@ namespace Banking.Backend
         public async Task<DataTable> AccNoTransactionParameters(string Branchcode, string ModuleCode, string GLcode, string TransactionDate, string CurrencyCode = "", string Accno = "", 
             string CategoryCode = "", string ChqBookYN = "", string[] ModuleConditions = null!, string userBranchcode = "", string UserID = "", string machineid = "")
         {
-            //Dim arrModuleQuery As Variant
+            string[] arrModuleQuery;
 
-            //On Error GoTo errhand
-            //strDelimiter = "~"
-            //StrQuery = ""
-            //StrModuleCode = UCase(Trim(ModuleCode))
-            //strGLCode = UCase(Trim(GLcode))
-            //strBranchCode = UCase(Trim(Branchcode))
-            //StrCurCode = UCase(Trim(CurrencyCode))
-            //strAccno = IIf(IsNull(Trim(Accno)), "", Trim(Accno))
-            //CatCode = IIf(IsNull(Trim(CategoryCode)), "", UCase(Trim(CategoryCode)))
-            //ChqBkYN = IIf(IsNull(Trim(ChqBookYN)), "", UCase(Trim(ChqBookYN)))
-            //'TDSYN = IIf(IsNull(Trim(TDSYesNo)), "", UCase(Trim(TDSYesNo)))
-            //TrannDate = Format(TransactionDate, "dd-Mmm-yyyy")
-            //arrModCond = ModuleConditions
+            string strDelimiter = "~";
+            string strQuery = "", strBrCatCode = "", strParamFlds = "", strParamVals = "", TDSYN = "";
 
-            //Call DBConnection
-            //     If ConnError <> "Connected" Then
-            //            GoTo errhand
-            //    End If
-            //Set Rstemp = CreateObject("ADODB.Recordset")
-            //Set RSModule = CreateObject("ADODB.Recordset")
-            //Set RsAccParam = CreateObject("ADODB.Recordset")
+            string StrModuleCode = ModuleCode.Trim().ToUpper();
+            string strGLCode = GLcode.Trim().ToUpper();
+            string strBranchCode = Branchcode.Trim().ToUpper();
+            string strCurCode = CurrencyCode.Trim().ToUpper();
+            string strAccno = string.IsNullOrWhiteSpace(Accno) ? "" : Accno.Trim().ToUpper();
+            string CatCode = string.IsNullOrWhiteSpace(CategoryCode) ? "" : CategoryCode.Trim().ToUpper();
+            string ChqBkYN = string.IsNullOrWhiteSpace(ChqBookYN) ? "" : ChqBookYN.Trim().ToUpper();
+            string TrannDate = string.Format("dd-Mmm-yyyy", TransactionDate);
+            var arrModCond = ModuleConditions;
 
-            //If strAccno <> "" Then
-            //''''''''''retrieving the account category code based on moduleid
-            //    If StrModuleCode = "SB" Or StrModuleCode = "CA" Or StrModuleCode = "DEP" Then
-            //        StrQuery = "Select CHEQUEBOOK, TDSYN, CATEGORYCODE from " & StrModuleCode & "MST" _
-            //        & DbLink & " where branchcode='" & strBranchCode & "' and accno='" & strAccno _
-            //        & "' and glcode='" & strGLCode & "' and currencycode='" & StrCurCode & "'"
+            DataTable Rstemp = null!, RsAccParam = null!;
 
+            // Retrieving the account category code based on moduleid
+            if (!string.IsNullOrWhiteSpace(strAccno))
+            {
+                if (StrModuleCode == "SB" || StrModuleCode == "CA" || StrModuleCode == "DEP")
+                {
+                    strQuery = "Select CHEQUEBOOK, TDSYN, CATEGORYCODE from " + StrModuleCode + "MST" + _dataLink + " where branchcode='" + strBranchCode + "' and accno='" +
+                        strAccno + "' and glcode='" + strGLCode + "' and currencycode='" + strCurCode + "'";
 
-            //        Set Rstemp = AdoConnObj.Execute(StrQuery)
-            //        If Not Rstemp.EOF And Not Rstemp.BOF Then
-            //        TDSYN = IIf(IsNull(Rstemp!TDSYN), "", Format(Rstemp!TDSYN))
-            //        End If
-            //    ElseIf StrModuleCode = "LOAN" Then
-            //        StrQuery = "Select CHEQUEBOOK, CATEGORYCODE from " & StrModuleCode & "MST" _
-            //        & DbLink & " where branchcode='" & strBranchCode & "' and accno='" & strAccno _
-            //        & "' and glcode='" & strGLCode & "'"
+                    Rstemp = await ProcessQueryAsync(strQuery);
 
+                    if (Rstemp.Rows.Count > 0)
+                    {
+                        DataRow row = Rstemp.Rows[0];
+                        TDSYN = Convert.IsDBNull(row["TDSYN"]) ? "" : Conversions.ToString(row["TDSYN"]);
+                    }
+                }
+                else if (StrModuleCode == "LOAN")
+                {
+                    strQuery = "Select CHEQUEBOOK, CATEGORYCODE from " + StrModuleCode + "MST" + _dataLink + " where branchcode='" + strBranchCode + "' and accno='" + 
+                        strAccno + "' and glcode='" + strGLCode + "'";
 
-            //        Set Rstemp = AdoConnObj.Execute(StrQuery)
-            //        TDSYN = ""
-            //    Else
-            //        ConnError = "Parameters not avilable for this Module : " & StrModuleCode
-            //        GoTo errhand
+                    Rstemp = await ProcessQueryAsync(strQuery);
 
+                    TDSYN = "";
+                }
 
-            //    End If
-            //        If Not Rstemp.EOF And Not Rstemp.BOF Then
-            //        CatCode = IIf(IsNull(Rstemp!CategoryCode), "", Format(Rstemp!CategoryCode))
-            //        ChqBkYN = IIf(IsNull(Rstemp!CHEQUEBOOK), "", Format(Rstemp!CHEQUEBOOK))
-            //        End If
-            //End If
-            //    ''''''''''retrieving the branch category code
-            //If Rstemp.State = 1 Then Rstemp.Close
-            //Set Rstemp = AdoConnObj.Execute("Select BRANCHCATCODE from GENBANKBRANCHMST " _
-            //& " where branchcode='" & strBranchCode & "'")
-            //If Not Rstemp.EOF And Not Rstemp.BOF Then
-            //strBrCatCode = IIf(IsNull(Rstemp!BRANCHCATCODE), "", Rstemp!BRANCHCATCODE)
-            //End If
-            //Rstemp.Close
-            //''''''''-----------------------------------------------------------------------------------
-            //''''''''-----------------------------------------------------------------------------------
-            //strParamTabs = ""
+                if (Rstemp.Rows.Count > 0)
+                {
+                    DataRow row = Rstemp.Rows[0];
 
+                    CatCode = Convert.IsDBNull(row["CategoryCode"]) ? "" : Conversions.ToString(row["CategoryCode"]);
+                    ChqBkYN = Convert.IsDBNull(row["CHEQUEBOOK"]) ? "" : Conversions.ToString(row["CHEQUEBOOK"]);
+                }
+            }
 
-            //''''''''-----------------------------------------------------------------------------------
-            //''''''''-----------------------------------------------------------------------------------
-            //  If strBrCatCode = "99" Then
-            //    strBrCatCode = ""
-            //    End If
+            // Retrieving the branch category code
+            Rstemp = await ProcessQueryAsync("Select BRANCHCATCODE from GENBANKBRANCHMST where branchcode='" + strBranchCode + "'");
 
+            if (Rstemp.Rows.Count > 0)
+            {
+                DataRow row = Rstemp.Rows[0];
+                strBrCatCode = Convert.IsDBNull(row["BRANCHCATCODE"]) ? "" : Conversions.ToString(row["BRANCHCATCODE"]);
+            }
 
-            //    If CatCode = "99" Then
-            //        CatCode = ""
-            //    End If
+            BankingExtensions.ReleaseMemory(Rstemp);
 
-            //    '''retrieving data from GENMINMAXBALANCEMST parameter table
-            //StrQuery = "MINAMOUNT, MAXAMOUNT, MINPERIODYEARS, MINPERIODMON, MINPERIODDAYS, " _
-            //        & "MAXPERIODYEARS, MAXPERIODMON, MAXPERIODDAYS,TDS,MULTIPLESOF"
+            string strParamTabs = "";
 
-            //''StrCondition = " (CATEGORYCODE='" & CatCode & "' or CATEGORYCODE='99') and (BRANCHCATCODE='" & strBrCatCode _
-            //        & "' or BRANCHCATCODE='99') and CHEQUEBOOK='" & ChqBkYN & "' and currencycode='" & StrCurCode & "'"
+            if (strBrCatCode == "99")
+                strBrCatCode = "";
 
-            //StrCondition = " (CATEGORYCODE='" & CatCode & "' or CATEGORYCODE='99') and (BRANCHCATCODE='" & strBrCatCode _
-            //        & "' or BRANCHCATCODE='99')  and currencycode='" & StrCurCode & "'"
+            if (CatCode == "99")
+                CatCode = "";
 
-            //ConnError = ParameterRecord("GENMINMAXBALANCEMST", StrQuery, "GENMINMAXBALANCEMSTHIST", StrCondition)
-            //    If ConnError <> "Connected" Then GoTo errhand
+            // Retrieving data from GENMINMAXBALANCEMST parameter table
+            strQuery = "MINAMOUNT, MAXAMOUNT, MINPERIODYEARS, MINPERIODMON, MINPERIODDAYS, MAXPERIODYEARS, MAXPERIODMON, MAXPERIODDAYS,TDS,MULTIPLESOF";
 
-            //       strParamTabs = "GENMINMAXBALANCEMST,"
-            // ''''''''-----------------------------------------------------------------------------------
-            // ''''''''-----------------------------------------------------------------------------------
-            //  '''retrieving data from GENCHARGESMSTHIST parameter table
-            //StrQuery = "OUTRTNCHARGES, OUTRTNFREQ, OUTRTNCHARGEEXEMPT, OUTRTNGLCODE, INWRTNCHARGES, " _
-            //& "INWRTNFREQ, INWRTNCHARGESEXEMPT, INWRTNGLCODE, STOPPAYCHARGES, STOPPAYFREQ, " _
-            //& "STOPPAYCHARGESEXEMPT, STOPPAYGLCODE, ACCTCLOSCHARGES, ACCOUNTCLOSFREQ, " _
-            //& "ACCTCLOSCHARGESEXEMPT, ACCTCLOSGLCODE, MINTODCHARGES, MINTODFREQ, MINTODGLCODE, " _
-            //& "CHQISSUECHARGES, CHQISSUEFREQ, CHQISSUECHARGESEXEMPT, CHQISSUEGLCODE, STATEMENTCHARGES, " _
-            //& "STATEMENTCHRGFREQ, STATEMENTCHARGESEXEMPT, STATEMENTCHRGGLCODE, DUPSTATEMENTCHARGES," _
-            //& "DUPSTATEMENTCHRGFREQ, DUPSTATEMENTCHARGESEXEMPT, DUPSTATEMENTGLCODE, CHARGESPERFOLIO, " _
-            //& "FOLIOCHARGESFREQ, ENTRIESPERFOLIO, FOLIOCHARGESGLCODE, EXEMPTEDFOLIOS, MINTODCHARGESEXEMPT," _
-            //& "CHQVALIDPERIOD,OUTRTNCHARGEEXEMPTUNIT, INWRTNCHARGESEXEMPTUNIT, STOPPAYCHARGESEXEMPTUNIT," _
-            //& "ACCTCLOSCHARGESEXEMPTUNIT, CHQISSUECHARGESEXEMPTUNIT, STATEMENTCHARGESEXEMPTUNIT, " _
-            //& "DUPSTATEMENTCHARGESEXEMPTUNIT, MINTODCHARGESEXEMPTUNIT, INWRTNFREQUNITS, OUTRTNFREQUNITS," _
-            //& "STOPPAYFREQUNITS, ACCOUNTCLOSFREQUNITS, MINTODFREQUNITS, CHQISSUEFREQUNITS, " _
-            //& "STATEMENTCHRGFREQUNITS, DUPSTATEMENTCHRGFREQUNITS, FOLIOCHARGESFREQUNITS, OUTRTNINITIAL," _
-            //& "OUTRTNINITIALUNITS, INWRTNINITIAL, INWRTNINITIALUNITS, STOPPAYINITIAL, " _
-            //& "STOPPAYINITIALUNITS, ACCOUNTCLOSINITIAL, ACCOUNTCLOSINITIALUNITS, MINTODINITIAL, " _
-            //& "MINTODINITIALUNITS, CHQISSUEINITIAL, CHQISSUEINITIALUNITS, STATEMENTINITIAL, " _
-            //& "STATEMENTINITIALUNITS, DUPSTATEMENTINITIAL, DUPSTATEMENTINITIALUNITS, FOLIOINITIAL," _
-            //& "FOLIOINITIALUNITS, EXEMPTEDFOLIOSUNITS"
+            string strCondition = " (CATEGORYCODE='" + CatCode + "' or CATEGORYCODE='99') and (BRANCHCATCODE='" + strBrCatCode + "' or BRANCHCATCODE='99') and currencycode='" + 
+                strCurCode + "'";
 
+            await ParameterRecord("GENMINMAXBALANCEMST", strQuery, "GENMINMAXBALANCEMSTHIST", strCondition);
 
-            //StrCondition = " (CATEGORYCODE='" & CatCode & "' or CATEGORYCODE='99') and (BRANCHCATCODE='" _
-            //& strBrCatCode & "' or BRANCHCATCODE='99') and currencycode='" & StrCurCode & "'"
+            strParamTabs = "GENMINMAXBALANCEMST,";
 
+            // Retrieving data from GENCHARGESMSTHIST parameter table
+            strQuery = "OUTRTNCHARGES, OUTRTNFREQ, OUTRTNCHARGEEXEMPT, OUTRTNGLCODE, INWRTNCHARGES, INWRTNFREQ, INWRTNCHARGESEXEMPT, INWRTNGLCODE, STOPPAYCHARGES, STOPPAYFREQ, " +
+                "STOPPAYCHARGESEXEMPT, STOPPAYGLCODE, ACCTCLOSCHARGES, ACCOUNTCLOSFREQ, ACCTCLOSCHARGESEXEMPT, ACCTCLOSGLCODE, MINTODCHARGES, MINTODFREQ, MINTODGLCODE, " +
+                "CHQISSUECHARGES, CHQISSUEFREQ, CHQISSUECHARGESEXEMPT, CHQISSUEGLCODE, STATEMENTCHARGES, STATEMENTCHRGFREQ, STATEMENTCHARGESEXEMPT, STATEMENTCHRGGLCODE, " +
+                "DUPSTATEMENTCHARGES, DUPSTATEMENTCHRGFREQ, DUPSTATEMENTCHARGESEXEMPT, DUPSTATEMENTGLCODE, CHARGESPERFOLIO, FOLIOCHARGESFREQ, ENTRIESPERFOLIO, FOLIOCHARGESGLCODE, " +
+                "EXEMPTEDFOLIOS, MINTODCHARGESEXEMPT, CHQVALIDPERIOD,OUTRTNCHARGEEXEMPTUNIT, INWRTNCHARGESEXEMPTUNIT, STOPPAYCHARGESEXEMPTUNIT, ACCTCLOSCHARGESEXEMPTUNIT, " +
+                "CHQISSUECHARGESEXEMPTUNIT, STATEMENTCHARGESEXEMPTUNIT, DUPSTATEMENTCHARGESEXEMPTUNIT, MINTODCHARGESEXEMPTUNIT, INWRTNFREQUNITS, OUTRTNFREQUNITS, STOPPAYFREQUNITS, " +
+                "ACCOUNTCLOSFREQUNITS, MINTODFREQUNITS, CHQISSUEFREQUNITS, STATEMENTCHRGFREQUNITS, DUPSTATEMENTCHRGFREQUNITS, FOLIOCHARGESFREQUNITS, OUTRTNINITIAL, " +
+                "OUTRTNINITIALUNITS, INWRTNINITIAL, INWRTNINITIALUNITS, STOPPAYINITIAL, STOPPAYINITIALUNITS, ACCOUNTCLOSINITIAL, ACCOUNTCLOSINITIALUNITS, MINTODINITIAL, " +
+                "MINTODINITIALUNITS, CHQISSUEINITIAL, CHQISSUEINITIALUNITS, STATEMENTINITIAL, STATEMENTINITIALUNITS, DUPSTATEMENTINITIAL, DUPSTATEMENTINITIALUNITS, FOLIOINITIAL, " +
+                "FOLIOINITIALUNITS, EXEMPTEDFOLIOSUNITS";
 
-            //ConnError = ParameterRecord("GENCHARGESMST", StrQuery, "GENCHARGESMSTHIST", StrCondition)
+            strCondition = " (CATEGORYCODE='" + CatCode + "' or CATEGORYCODE='99') and (BRANCHCATCODE='" + strBrCatCode + "' or BRANCHCATCODE='99') and currencycode='" + strCurCode + "'";
 
+            await ParameterRecord("GENCHARGESMST", strQuery, "GENCHARGESMSTHIST", strCondition);
 
-            //    If ConnError <> "Connected" Then GoTo errhand
+            strParamTabs = strParamTabs + "GENCHARGESMST";
 
-            //    strParamTabs = strParamTabs & "GENCHARGESMST"
+            // strParamFlds = Left(strParamFlds, Len(strParamFlds) - 1);
 
-            //''''''''------------------------------------------------------------------------------------
-            //''''''''------------------------------------------------------------------------------------    strParamFlds = Left(strParamFlds, Len(strParamFlds) - 1)
+            // If moduleid is deposits than extra parameters from DEPPENALINTDTLS
+            if (StrModuleCode == "DEP")
+            {
+                strCondition = " (CATEGORYCODE='" + CatCode + "' or CATEGORYCODE='99') and currencycode='" + strCurCode + "'";
+                await ParameterRecord("DEPPENALINTDTLS", "PNLINTPCNT", "DEPPENALINTDTLSHIST", strCondition);
+                strParamTabs = strParamTabs + ",DEPPENALINTDTLS";
+            }
 
-            //''''''if moduleid is deposits than extra parameters from DEPPENALINTDTLS
-            //If StrModuleCode = "DEP" Then
-            //    StrCondition = " (CATEGORYCODE='" & CatCode & "' or CATEGORYCODE='99') and currencycode='" & StrCurCode & "'"
+            // Fields for Dummy recordset
+            strParamFlds = strParamFlds.Substring(0, strParamFlds.Length - 1);
+            strParamVals = strParamVals.Substring(0, strParamVals.Length - 1);
 
+            // Query for Dummy recordset of GENMINMAXBALANCEMST and GENCHARGESMST
+            strQuery = " select " + strParamFlds + " from " + strParamTabs + " where 1=2";
 
-            //        ConnError = ParameterRecord("DEPPENALINTDTLS", "PNLINTPCNT", "DEPPENALINTDTLSHIST", StrCondition)
-            //            If ConnError <> "Connected" Then GoTo errhand
-
-            //        strParamTabs = strParamTabs & ",DEPPENALINTDTLS"
-            //End If
-
-            //''''''''------------------------------------------------------------------------------------
-            //''''''''------------------------------------------------------------------------------------    strParamFlds = Left(strParamFlds, Len(strParamFlds) - 1)
-
-            //'''''''''''''fields for Dummy recordset
-            //    strParamFlds = Left(strParamFlds, Len(strParamFlds) - 1)
-            //    strParamVals = Left(strParamVals, Len(strParamVals) - 1)
-
-            //'''''''''''''query for Dummy recordset of GENMINMAXBALANCEMST and GENCHARGESMST
-            //StrQuery = " select " & strParamFlds & " from " & strParamTabs & " where 1=2"
-
-
-
-            //RsAccParam.Open StrQuery, AdoConnObj, adOpenDynamic, adLockOptimistic
+            RsAccParam = await ProcessQueryAsync(strQuery);
 
             // Entering the parameter data into the dummy recordset.
             string[] arrParamFlds = strParamFlds.Split(",");
             string[] arrParamVals = strParamVals.Split(strDelimiter);
-            //StrQuery = ""
 
-            // ''''''''''''''''adding record to dummy recordset
-            //RsAccParam.AddNew
+            // Adding record to dummy recordset
+            DataRow newRow = RsAccParam.NewRow();
 
-            //For Icount = 0 To UBound(arrParamFlds)
-            //    RsAccParam(Icount) = IIf(Trim(arrParamVals(Icount)) = "", Null, _
-            //                        Trim(arrParamVals(Icount)))
-            //Next Icount
+            for (int i = 0; i < arrParamFlds.Length; i++)
+            {
+                string value = Conversions.ToString(arrParamVals[i]).Trim();
+                newRow[arrParamFlds[i]] = string.IsNullOrEmpty(value) ? DBNull.Value : value;
+            }
 
+            RsAccParam.Rows.Add(newRow);
 
-            //ConnError = "Connected"
-            //Set AccNoTransactionParameters = RsAccParam
+            return RsAccParam;
 
             //errhand:
             //objErrlog.LogError "GeneralTranQueries", "DBConnection", Err.Number, Err.Description

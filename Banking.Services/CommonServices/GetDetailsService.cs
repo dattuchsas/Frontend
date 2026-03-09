@@ -13774,7 +13774,7 @@ namespace Banking.Services
             string brCode = strVal[5];
             string userID = strVal[6];
             string machineID = strVal[7];
-            string accNo = "", catCode = "";
+            string accNo = "", catCode = "", strAccParam = "";
 
             if (mode == "CHQACCYESNO")
                 accNo = strVal[8];
@@ -13879,141 +13879,70 @@ namespace Banking.Services
                             null!, "", userID, machineID);
                     }
 
+                    DataRow row = dataTable.Rows.Count > 0 ? dataTable.Rows[0] : null!;
+
                     if (dataTable.Rows.Count > 0)
-                    { 
+                    {
+                        int minprdmonths, minprdyears, minprddays, maxprdmonths, maxprdyears, maxprddays, minprdyers = 0;
+
+                        if (modId.Substring(0, 2) == "FX")
+                            strAccParam = row["MINAMOUNT"] + "~" + row["MAXAMOUNT"] + "~";
+
+                        if (Conversions.ToString(row["MINTERM"]) == "M")
+                            minprdmonths = Conversions.ToInt(row["MINPERIOD"]);
+                        else
+                            minprdmonths = 0;
+
+                        if (Conversions.ToString(row["MINTERM"]) == "Y")
+                            minprdyears = Conversions.ToInt(row["MINPERIOD"]);
+                        else
+                            minprdyears = 0;
+
+                        if (Conversions.ToString(row["MINTERM"]) == "D")
+                            minprddays = Conversions.ToInt(row["MINPERIOD"]);
+                        else
+                            minprddays = 0;
+
+                        if (Conversions.ToString(row["MAXTERM"]) == "M")
+                            maxprdmonths = Conversions.ToInt(row["MAXPERIOD"]);
+                        else
+                            maxprdmonths = 0;
+
+                        if (Conversions.ToString(row["MAXTERM"]) == "Y")
+                            maxprdyears = Conversions.ToInt(row["MAXPERIOD"]);
+                        else
+                            maxprdyears = 0;
+
+                        if (Conversions.ToString(row["MAXTERM"]) == "D")
+                            maxprddays = Conversions.ToInt(row["MAXPERIOD"]);
+                        else
+                            maxprddays = 0;
+
+                        //        if recGL.RecordCount > 0 then
+                        strAccParam = strAccParam + minprdyers + "~" + minprdmonths + "~" + minprddays + "~" + maxprdyears + "~" + maxprdmonths + "~" + maxprddays + "~" + "0" + "~" + "1";
                     }
-
-
-
-                    //        if objGL.ConnError = "Parameters not specified for this Component" then
-                    //            strAccParam = "No Parameters"
-                    //        else
-                    //        if recGL.RecordCount > 0 then
-                    //        if left(ucase(modid), 2) = "FX" then
-                    //        strAccParam = recGL("MINAMOUNT").value & "~" & recGL("MAXAMOUNT").value & "~"
-                    //        if recGL("MINTERM").value = "M" then
-                    //            minprdmonths = recGL("MINPERIOD").value
-                    //        else
-                    //                    minprdmonths = 0
-                    //        end if
-                    //        if recGL("MINTERM").value = "Y" then
-                    //            minprdyears = recGL("MINPERIOD").value
-                    //        else
-                    //                        minprdyears = 0
-                    //        end if
-                    //        if recGL("MINTERM").value = "D" then
-                    //            minprddays = recGL("MINPERIOD").value
-                    //        else
-                    //                        minprddays = 0
-                    //        end if
-                    //        if recGL("MAXTERM").value = "M" then
-                    //            maxprdmonths = recGL("MAXPERIOD").value
-                    //        else
-                    //                        maxprdmonths = 0
-                    //        end if
-                    //        if recGL("MAXTERM").value = "Y" then
-                    //            maxprdyears = recGL("MAXPERIOD").value
-                    //        else
-                    //                        maxprdyears = 0
-                    //        end if
-                    //        if recGL("MAXTERM").value = "D" then
-                    //            maxprddays = recGL("MAXPERIOD").value
-                    //        else
-                    //                        maxprddays = 0
-                    //        end if
-                    //        strAccParam = strAccParam & minprdyers & "~" & minprdmonths & "~" & minprddays & "~" & _
-                    //                maxprdyears & "~" & maxprdmonths & "~" & maxprddays & "~" & "0" & "~" & "1"
-                    //        Response.Write(strAccParam)
-                    //    else
-                    //                    strAccParam = recGL("MINAMOUNT").value & "~" & recGL("MAXAMOUNT").value & "~" & _
-                    //                    recGL("MINPERIODYEARS").value & "~" & recGL("MINPERIODMON").value & "~" & _
-                    //                    recGL("MINPERIODDAYS").value & "~" & recGL("MAXPERIODYEARS").value & "~" & _
-                    //                    recGL("MAXPERIODMON").value & "~" & recGL("MAXPERIODDAYS").value & "~" & recGL("TDS").value & "~" & _
-                    //                    recGL("OUTRTNCHARGES").value & "~" & recGL("OUTRTNFREQ").value & "~" & _
-                    //                    recGL("OUTRTNCHARGEEXEMPT").value & "~" & recGL("OUTRTNGLCODE").value & "~" & _
-                    //                    recGL("INWRTNCHARGES").value & "~" & recGL("INWRTNFREQ").value & "~" & _
-                    //                    recGL("INWRTNCHARGESEXEMPT").value & "~" & recGL("INWRTNGLCODE").value & "~" & _
-                    //                    recGL("STOPPAYCHARGES").value & "~" & recGL("STOPPAYFREQ").value & "~" & _
-                    //                    recGL("STOPPAYCHARGESEXEMPT").value & "~" & recGL("STOPPAYGLCODE").value & "~" & _
-                    //                    recGL("ACCTCLOSCHARGES").value & "~" & recGL("ACCOUNTCLOSFREQ").value & "~" & _
-                    //                    recGL("ACCTCLOSCHARGESEXEMPT").value & "~" & recGL("ACCTCLOSGLCODE").value & "~" & _
-                    //                    recGL("MINTODCHARGES").value & "~" & recGL("MINTODFREQ").value & "~" & _
-                    //                    recGL("MINTODGLCODE").value & "~" & recGL("CHQISSUECHARGES").value & "~" & _
-                    //                    recGL("CHQISSUEFREQ").value & "~" & recGL("CHQISSUECHARGESEXEMPT").value & "~" & _
-                    //                    recGL("CHQISSUEGLCODE").value & "~" & recGL("STATEMENTCHARGES").value & "~" & _
-                    //                    recGL("STATEMENTCHRGFREQ").value & "~" & recGL("STATEMENTCHARGESEXEMPT").value & "~" & _
-                    //                    recGL("STATEMENTCHRGGLCODE").value & "~" & recGL("DUPSTATEMENTCHARGES").value & "~" & _
-                    //                    recGL("DUPSTATEMENTCHRGFREQ").value & "~" & recGL("DUPSTATEMENTCHARGESEXEMPT").value & "~" & _
-                    //                    recGL("DUPSTATEMENTGLCODE").value & "~" & recGL("CHARGESPERFOLIO").value & "~" & _
-                    //                    recGL("FOLIOCHARGESFREQ").value & "~" & recGL("ENTRIESPERFOLIO").value & "~" & _
-                    //                    recGL("FOLIOCHARGESGLCODE").value & "~" & recGL("EXEMPTEDFOLIOS").value & "~" & _
-                    //                    recGL("MINTODCHARGESEXEMPT").value & "~" & recGL("CHQVALIDPERIOD").value & "~" & _
-                    //                    recGL("OUTRTNCHARGEEXEMPTUNIT").value & "~" & recGL("INWRTNCHARGESEXEMPTUNIT").value & "~" & _
-                    //                    recGL("STOPPAYCHARGESEXEMPTUNIT").value & "~" & recGL("ACCTCLOSCHARGESEXEMPTUNIT").value & "~" & _
-                    //                    recGL("CHQISSUECHARGESEXEMPTUNIT").value & "~" & recGL("STATEMENTCHARGESEXEMPTUNIT").value & "~" & _
-                    //                    recGL("DUPSTATEMENTCHARGESEXEMPTUNIT").value & "~" & recGL("MINTODCHARGESEXEMPTUNIT").value & "~" & _
-                    //                    recGL("INWRTNFREQUNITS").value & "~" & recGL("OUTRTNFREQUNITS").value & "~" & _
-                    //                    recGL("STOPPAYFREQUNITS").value & "~" & recGL("ACCOUNTCLOSFREQUNITS").value & "~" & _
-                    //                    recGL("MINTODFREQUNITS").value & "~" & recGL("CHQISSUEFREQUNITS").value & "~" & _
-                    //                    recGL("STATEMENTCHRGFREQUNITS").value & "~" & recGL("DUPSTATEMENTCHRGFREQUNITS").value & "~" & _
-                    //                    recGL("FOLIOCHARGESFREQUNITS").value & "~" & recGL("OUTRTNINITIAL").value & "~" & _
-                    //                    recGL("OUTRTNINITIALUNITS").value & "~" & recGL("INWRTNINITIAL").value & "~" & _
-                    //                    recGL("INWRTNINITIALUNITS").value & "~" & recGL("STOPPAYINITIAL").value & "~" & _
-                    //                    recGL("STOPPAYINITIALUNITS").value & "~" & recGL("ACCOUNTCLOSINITIAL").value & "~" & _
-                    //                    recGL("ACCOUNTCLOSINITIALUNITS").value & "~" & recGL("MINTODINITIAL").value & "~" & _
-                    //                    recGL("MINTODINITIALUNITS").value & "~" & recGL("CHQISSUEINITIAL").value & "~" & _
-                    //                    recGL("CHQISSUEINITIALUNITS").value & "~" & recGL("STATEMENTINITIAL").value & "~" & _
-                    //                    recGL("STATEMENTINITIALUNITS").value & "~" & recGL("DUPSTATEMENTINITIAL").value & "~" & _
-                    //                    recGL("DUPSTATEMENTINITIALUNITS").value & "~" & recGL("FOLIOINITIAL").value & "~" & _
-                    //                    recGL("FOLIOINITIALUNITS").value & "~" & recGL("EXEMPTEDFOLIOSUNITS").value & "~" & _
-                    //                    recGL("MULTIPLESOF").value
-                    //        end if
-                    //    ' Numbers left side of the code indicates array index used for java script code              
-                    //    ' 0 1  strAccParam=recGL("MINAMOUNT")&"~"&recGL("MAXAMOUNT")&"~"&_     
-                    //    ' 2 3            recGL("MINPERIODYEARS")&"~"&recGL("MINPERIODMON")&"~"&_         
-                    //    ' 4 5            recGL("MINPERIODDAYS")&"~"&recGL("MAXPERIODYEARS")&"~"&_        
-                    //    ' 6 7 8          recGL("MAXPERIODMON")&"~"&recGL("MAXPERIODDAYS")&"~"&recGL("TDS")&"~"&_         
-                    //    ' 9 10            recGL("OUTRTNCHARGES")&"~"&recGL("OUTRTNFREQ")&"~"&_            
-                    //    ' 11 12          recGL("OUTRTNCHARGEEXEMPT")&"~"&recGL("OUTRTNGLCODE")&"~"&_     
-                    //    ' 13 14          recGL("INWRTNCHARGES")&"~"&recGL("INWRTNFREQ")&"~"&_            
-                    //    ' 15 16          recGL("INWRTNCHARGESEXEMPT")&"~"&recGL("INWRTNGLCODE")&"~"&_    
-                    //    ' 17 18          recGL("STOPPAYCHARGES")&"~"&recGL("STOPPAYFREQ")&"~"&_          
-                    //    ' 19 20          recGL("STOPPAYCHARGESEXEMPT")&"~"&recGL("STOPPAYGLCODE")&"~"&_  
-                    //    ' 21 22          recGL("ACCTCLOSCHARGES")&"~"&recGL("ACCOUNTCLOSFREQ")&"~"&_     
-                    //    ' 23 24          recGL("ACCTCLOSCHARGESEXEMPT")&"~"&recGL("ACCTCLOSGLCODE")&"~"&_
-                    //    ' 25 26          recGL("MINTODCHARGES")&"~"&recGL("MINTODFREQ")&"~"&_            
-                    //    ' 27 28          recGL("MINTODGLCODE")&"~"&recGL("CHQISSUECHARGES")&"~"&_        
-                    //    ' 29 30          recGL("CHQISSUEFREQ")&"~"&recGL("CHQISSUECHARGESEXEMPT")&"~"&_  
-                    //    ' 31 32          recGL("CHQISSUEGLCODE")&"~"&recGL("STATEMENTCHARGES")&"~"&_     
-                    //    ' 33 34          recGL("STATEMENTCHRGFREQ")&"~"&recGL("STATEMENTCHARGESEXEMPT")&"~"&_
-                    //    ' 35 36          recGL("STATEMENTCHRGGLCODE")&"~"&recGL("DUPSTATEMENTCHARGES")&"~"&_ 
-                    //    ' 37 38          recGL("DUPSTATEMENTCHRGFREQ")&"~"&recGL("DUPSTATEMENTCHARGESEXEMPT")&"~"&_ 
-                    //    ' 39 40          recGL("DUPSTATEMENTGLCODE")&"~"&recGL("CHARGESPERFOLIO")&"~"&_   
-                    //    ' 41 42          recGL("FOLIOCHARGESFREQ")&"~"&recGL("ENTRIESPERFOLIO")&"~"&_     
-                    //    ' 43 44          recGL("FOLIOCHARGESGLCODE")&"~"&recGL("EXEMPTEDFOLIOS")&"~"&_    
-                    //    ' 45 46          recGL("MINTODCHARGESEXEMPT")&"~"&recGL("CHQVALIDPERIOD")&"~"&_   
-                    //    ' 47 48          recGL("OUTRTNCHARGEEXEMPTUNIT")&"~"&recGL("INWRTNCHARGESEXEMPTUNIT")&"~"&_
-                    //    ' 49 50          recGL("STOPPAYCHARGESEXEMPTUNIT")&"~"&recGL("ACCTCLOSCHARGESEXEMPTUNIT")&"~"&_ 
-                    //    ' 51 52          recGL("CHQISSUECHARGESEXEMPTUNIT")&"~"&recGL("STATEMENTCHARGESEXEMPTUNIT")&"~"&_ 
-                    //    ' 53 54          recGL("DUPSTATEMENTCHARGESEXEMPTUNIT")&"~"&recGL("MINTODCHARGESEXEMPTUNIT")&"~"&_ 
-                    //    ' 55 56          recGL("INWRTNFREQUNITS")&"~"&recGL("OUTRTNFREQUNITS")&"~"&_       
-                    //    ' 57 58          recGL("STOPPAYFREQUNITS")&"~"&recGL("ACCOUNTCLOSFREQUNITS")&"~"&_  
-                    //    ' 59 60	        recGL("MINTODFREQUNITS")&"~"&recGL("CHQISSUEFREQUNITS")&"~"&_      
-                    //    ' 61	62          recGL("STATEMENTCHRGFREQUNITS")&"~"&recGL("DUPSTATEMENTCHRGFREQUNITS")&"~"&_ 
-                    //    ' 63 64          recGL("FOLIOCHARGESFREQUNITS")&"~"&recGL("OUTRTNINITIAL")&"~"&_   
-                    //    ' 65 66          recGL("OUTRTNINITIALUNITS")&"~"&recGL("INWRTNINITIAL")&"~"&_      
-                    //    ' 67 68          recGL("INWRTNINITIALUNITS")&"~"&recGL("STOPPAYINITIAL")&"~"&_     
-                    //    ' 69 70          recGL("STOPPAYINITIALUNITS")&"~"&recGL("ACCOUNTCLOSINITIAL")&"~"&_
-                    //    ' 71 72          recGL("ACCOUNTCLOSINITIALUNITS")&"~"&recGL("MINTODINITIAL")&"~"&_ 
-                    //    ' 73 74	        recGL("MINTODINITIALUNITS")&"~"&recGL("CHQISSUEINITIAL")&"~"&_    
-                    //    ' 75 76          recGL("CHQISSUEINITIALUNITS")&"~"&recGL("STATEMENTINITIAL")&"~"&_ 
-                    //    ' 77 78          recGL("STATEMENTINITIALUNITS")&"~"&recGL("DUPSTATEMENTINITIAL")&"~"&_
-                    //    ' 79 80          recGL("DUPSTATEMENTINITIALUNITS")&"~"&recGL("FOLIOINITIAL")&"~"&_ 
-                    //    ' 81 82          recGL("FOLIOINITIALUNITS")&"~"&recGL("EXEMPTEDFOLIOSUNITS")&"~"&_ 
-                    //    ' 83             recGL("MULTIPLESOF")
-                    //        end if
-                    //        end if
-                    break;
+                    else  // Numbers left side of the code indicates array index used for java script code, Index starts at 0 till 83
+                        strAccParam = row["MINAMOUNT"] + "~" + row["MAXAMOUNT"] + "~" + row["MINPERIODYEARS"] + "~" + row["MINPERIODMON"] + "~" + row["MINPERIODDAYS"] + "~" + 
+                            row["MAXPERIODYEARS"] + "~" + row["MAXPERIODMON"] + "~" + row["MAXPERIODDAYS"] + "~" + row["TDS"] + "~" + row["OUTRTNCHARGES"] + "~" + 
+                            row["OUTRTNFREQ"] + "~" + row["OUTRTNCHARGEEXEMPT"] + "~" + row["OUTRTNGLCODE"] + "~" + row["INWRTNCHARGES"] + "~" + row["INWRTNFREQ"] + "~" + 
+                            row["INWRTNCHARGESEXEMPT"] + "~" + row["INWRTNGLCODE"] + "~" + row["STOPPAYCHARGES"] + "~" + row["STOPPAYFREQ"] + "~" + row["STOPPAYCHARGESEXEMPT"] + "~" + 
+                            row["STOPPAYGLCODE"] + "~" + row["ACCTCLOSCHARGES"] + "~" + row["ACCOUNTCLOSFREQ"] + "~" + row["ACCTCLOSCHARGESEXEMPT"] + "~" + row["ACCTCLOSGLCODE"] + "~" + 
+                            row["MINTODCHARGES"] + "~" + row["MINTODFREQ"] + "~" + row["MINTODGLCODE"] + "~" + row["CHQISSUECHARGES"] + "~" + row["CHQISSUEFREQ"] + "~" + 
+                            row["CHQISSUECHARGESEXEMPT"] + "~" + row["CHQISSUEGLCODE"] + "~" + row["STATEMENTCHARGES"] + "~" + row["STATEMENTCHRGFREQ"] + "~" + 
+                            row["STATEMENTCHARGESEXEMPT"] + "~" + row["STATEMENTCHRGGLCODE"] + "~" + row["DUPSTATEMENTCHARGES"] + "~" + row["DUPSTATEMENTCHRGFREQ"] + "~" + 
+                            row["DUPSTATEMENTCHARGESEXEMPT"] + "~" + row["DUPSTATEMENTGLCODE"] + "~" + row["CHARGESPERFOLIO"] + "~" + row["FOLIOCHARGESFREQ"] + "~" + 
+                            row["ENTRIESPERFOLIO"] + "~" + row["FOLIOCHARGESGLCODE"] + "~" + row["EXEMPTEDFOLIOS"] + "~" + row["MINTODCHARGESEXEMPT"] + "~" + row["CHQVALIDPERIOD"] + "~" + 
+                            row["OUTRTNCHARGEEXEMPTUNIT"] + "~" + row["INWRTNCHARGESEXEMPTUNIT"] + "~" + row["STOPPAYCHARGESEXEMPTUNIT"] + "~" + row["ACCTCLOSCHARGESEXEMPTUNIT"] + "~" + 
+                            row["CHQISSUECHARGESEXEMPTUNIT"] + "~" + row["STATEMENTCHARGESEXEMPTUNIT"] + "~" + row["DUPSTATEMENTCHARGESEXEMPTUNIT"] + "~" + 
+                            row["MINTODCHARGESEXEMPTUNIT"] + "~" + row["INWRTNFREQUNITS"] + "~" + row["OUTRTNFREQUNITS"] + "~" + row["STOPPAYFREQUNITS"] + "~" + 
+                            row["ACCOUNTCLOSFREQUNITS"] + "~" + row["MINTODFREQUNITS"] + "~" + row["CHQISSUEFREQUNITS"] + "~" + row["STATEMENTCHRGFREQUNITS"] + "~" + 
+                            row["DUPSTATEMENTCHRGFREQUNITS"] + "~" + row["FOLIOCHARGESFREQUNITS"] + "~" + row["OUTRTNINITIAL"] + "~" + row["OUTRTNINITIALUNITS"] + "~" + 
+                            row["INWRTNINITIAL"] + "~" + row["INWRTNINITIALUNITS"] + "~" + row["STOPPAYINITIAL"] + "~" + row["STOPPAYINITIALUNITS"] + "~" + 
+                            row["ACCOUNTCLOSINITIAL"] + "~" + row["ACCOUNTCLOSINITIALUNITS"] + "~" + row["MINTODINITIAL"] + "~" + row["MINTODINITIALUNITS"] + "~" + 
+                            row["CHQISSUEINITIAL"] + "~" + row["CHQISSUEINITIALUNITS"] + "~" + row["STATEMENTINITIAL"] + "~" + row["STATEMENTINITIALUNITS"] + "~" + 
+                            row["DUPSTATEMENTINITIAL"] + "~" + row["DUPSTATEMENTINITIALUNITS"] + "~" + row["FOLIOINITIAL"] + "~" + row["FOLIOINITIALUNITS"] + "~" + 
+                            row["EXEMPTEDFOLIOSUNITS"] + "~" + row["MULTIPLESOF"];
+                        break;
             }
         }
 
