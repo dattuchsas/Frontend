@@ -27,8 +27,8 @@ namespace Banking.Services
                 whereCond = "Code in ('1','3','4','7','8','9')";
             else if (search.Length > 1 && search[1] == TransactionModes.Credit.ToString())
                 whereCond = "Code in('1','2','3','4','7')";
-            else if (search.Length > 1 && search[1] == TransactionModes.Clearing.ToString())
-                whereCond = "Code in('1','8')";
+            //else if (search.Length > 1 && search[1] == TransactionModes.Clearing.ToString())
+            //    whereCond = "Code in('1','8')";
             else
                 whereCond = "";
 

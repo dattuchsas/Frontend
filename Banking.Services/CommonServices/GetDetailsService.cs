@@ -13775,6 +13775,7 @@ namespace Banking.Services
             string userID = strVal[6];
             string machineID = strVal[7];
             string accNo = "", catCode = "", strAccParam = "";
+            DataRow row = null!;
 
             if (mode == "CHQACCYESNO")
                 accNo = strVal[8];
@@ -13808,7 +13809,7 @@ namespace Banking.Services
 
                     if (dataTable.Rows.Count > 0)
                     {
-                        DataRow row = dataTable.Rows.Count > 0 ? dataTable.Rows[0] : null!;
+                        row = dataTable.Rows.Count > 0 ? dataTable.Rows[0] : null!;
 
                         // For SB or CA module Parameters 
                         // Numbers left side of the code indicates array index used for java script code, Index starts with 0 to 18
@@ -13879,7 +13880,7 @@ namespace Banking.Services
                             null!, "", userID, machineID);
                     }
 
-                    DataRow row = dataTable.Rows.Count > 0 ? dataTable.Rows[0] : null!;
+                    row = dataTable.Rows.Count > 0 ? dataTable.Rows[0] : null!;
 
                     if (dataTable.Rows.Count > 0)
                     {
