@@ -197,7 +197,7 @@ namespace Banking.Frontend.Controllers
                     "daybeginstatus,dayendstatus,PREDAYENDCHKYN",
                     "applicationdate='" + appDate + "' and branchcode='" + brcode + "'");
 
-                if (recdaybeg.Rows.Count > 0)
+                if (recdaybeg != null && recdaybeg.Rows.Count > 0)
                 {
                     string val = Conversions.ToString(recdaybeg.Rows[0].ItemArray[0]);
                     string val1 = Conversions.ToString(recdaybeg.Rows[0].ItemArray[1]);

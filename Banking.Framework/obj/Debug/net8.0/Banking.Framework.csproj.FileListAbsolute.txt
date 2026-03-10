@@ -37,3 +37,16 @@ C:\Vikram\Banking.Framework\obj\Debug\net8.0\Banking.Framework.dll
 C:\Vikram\Banking.Framework\obj\Debug\net8.0\refint\Banking.Framework.dll
 C:\Vikram\Banking.Framework\obj\Debug\net8.0\Banking.Framework.pdb
 C:\Vikram\Banking.Framework\obj\Debug\net8.0\ref\Banking.Framework.dll
+E:\dattuprojects\BankingFrontend\Banking.Framework\bin\Debug\net8.0\Banking.Framework.deps.json
+E:\dattuprojects\BankingFrontend\Banking.Framework\bin\Debug\net8.0\Banking.Framework.dll
+E:\dattuprojects\BankingFrontend\Banking.Framework\bin\Debug\net8.0\Banking.Framework.pdb
+E:\dattuprojects\BankingFrontend\Banking.Framework\obj\Debug\net8.0\Banking.Framework.csproj.AssemblyReference.cache
+E:\dattuprojects\BankingFrontend\Banking.Framework\obj\Debug\net8.0\Banking.Framework.GeneratedMSBuildEditorConfig.editorconfig
+E:\dattuprojects\BankingFrontend\Banking.Framework\obj\Debug\net8.0\Banking.Framework.AssemblyInfoInputs.cache
+E:\dattuprojects\BankingFrontend\Banking.Framework\obj\Debug\net8.0\Banking.Framework.AssemblyInfo.cs
+E:\dattuprojects\BankingFrontend\Banking.Framework\obj\Debug\net8.0\Banking.Framework.csproj.CoreCompileInputs.cache
+E:\dattuprojects\BankingFrontend\Banking.Framework\obj\Debug\net8.0\Banking.Framework.sourcelink.json
+E:\dattuprojects\BankingFrontend\Banking.Framework\obj\Debug\net8.0\Banking.Framework.dll
+E:\dattuprojects\BankingFrontend\Banking.Framework\obj\Debug\net8.0\refint\Banking.Framework.dll
+E:\dattuprojects\BankingFrontend\Banking.Framework\obj\Debug\net8.0\Banking.Framework.pdb
+E:\dattuprojects\BankingFrontend\Banking.Framework\obj\Debug\net8.0\ref\Banking.Framework.dll

@@ -1,0 +1,494 @@
+﻿@model Banking.Models.SBCAAccountOpeningModel 
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<script asp-append-version="true" src="~/js/app/newcustomer.js"></script>
+<form class="login-form" id="SBCAAccountOpening" novalidate asp-area="" asp-controller="SBCAAccountOpening" asp-action="NewAccountOpening" asp-antiforgery="true" method="post" enctype="multipart/form-data">
+    @Html.AntiForgeryToken()
+<div class="card mb-2">
+    <div class="card-header">
+        <div class="d-flex align-items-center flex-wrap">
+            <h3 class="mb-0 section-title me-auto">Saving Account Opening </h3>
+            <div class="ms-auto">
+                <!-- Button trigger modal -->
+                <div class="btn-group" role="group" aria-label="Basic outlined example">
+                    <a href="#" target="_self" class="btn btn-outline-primary">New</a>
+                    <a href="#" target="_self" class="btn btn-outline-primary">Modify</a>
+                    <button type="button" class="btn btn-outline-primary">View</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="card-body">
+        <div class="card mb-3">
+            <div class="card-body">
+                <div class="row align-items-end g-3">
+                    <div class="col-md-6 col-lg-4 col-xl-3">
+                      
+                        <label asp-for="Branch" class="form-label">Branch Code</label>
+                        <select asp-for="Branch" asp-items="@Model.BranchList" class="form-select"></select>
+                    </div>
+                    <div class="col-sm-6 col-lg-4 col-xl-3">
+                            <label asp-for="Module" class="form-label">Module ID</label>
+                            <select asp-for="Module" asp-items="@Model.ModuleList" class="form-select"></select>
+                    </div>
+                    <div class="col-sm-6 col-lg-4 col-xl-3">
+                            <label asp-for="AccountType" class="form-label">Acc. Type</label>
+                            <select asp-for="AccountType" asp-items="@Model.AccountTypeList" class="form-select"></select>
+                    </div>
+                    <div class="col-sm-6 col-lg-4 col-xl-3">
+                        <label class="form-label">Acc. No</label>
+                        <input type="text" class="form-control" readonly="">
+                    </div>
+                    <div class="col-sm-6 col-lg-4 col-xl-3">
+                        <label class="form-label">Tran No</label>
+                        <select class="form-select" id="serviceSelect">
+                            <option value="saving">Select</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="card">
+            <div class="card-body">
+                <div class="row align-items-end g-3">
+                    <div class="col-md-6 col-lg-5 col-xl-4 col-xxl-3">
+                            <label asp-for="CustomerId" class="form-label">Cust. ID</label>
+                     
+                            <div class="input-group">
+                                <input asp-for="CustomerId" type="text" class="form-control">
+                                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#CustomerListBackdrop">Search</button>
+                            </div>
+                    </div>
+                    <div class="col-md-6 col-lg-7 col-xl-4 col-xxl-5">
+                            <label asp-for="CustomerName" class="form-label">Name</label>
+                            <div class="input-group">
+                                <select asp-for="Salutation" asp-items="@Model.SalutationList" class="form-select flex-grow-0 flex-basis"></select>
+                                <input type="text" asp-for="CustomerName" class="form-control">
+                            </div>
+                    </div>
+                    <div class="col-sm-6 col-lg-3 col-xl-2">
+                            <label asp-for="CategoryType" class="form-label">Category</label>
+                            <select asp-for="CategoryType" asp-items="@Model.CategoryTypeList" class="form-select"></select>
+                    </div>
+                    <div class="col-sm-6 col-lg-3 col-xl-2">
+                            <label asp-for="OpeningDate" class="form-label">DOB</label>
+                            <div class="input-group date" data-provide="datepicker">
+                                <input asp-for="OpeningDate" type="text" class="form-control">
+                                <div class="input-group-addon input-group-text">
+                                    <img src="~/images/datepicker_icon.svg" width="24">
+                                </div>
+                            </div>
+                    </div>
+                    <div class="col-lg-6 col-xl-12">
+                        <div class="form-check form-check-inline mb-2">
+                                <input asp-for="CheckMinor" class="form-check-input" type="checkbox">
+                                <label asp-for="CheckMinor" class="form-check-label">
+                                    Minor (Y/N)
+                                </label>
+                        </div>
+                        <div class="form-check form-check-inline mb-2">
+                                <input asp-for="CheckBankStaff" class="form-check-input" type="checkbox">
+                                <label asp-for="CheckBankStaff" class="form-check-label">
+                                    Bank Staff
+                                </label>
+                        </div>
+                        <div class="form-check form-check-inline  mb-2">
+                           
+                                <input asp-for="CheckChequeBook" class="form-check-input" type="checkbox">
+                                <label asp-for="CheckChequeBook" class="form-check-label">
+                                    Cheque Book
+                                </label>
+                        </div>
+                    </div>
+                    <div class="col-md-6 col-lg-3 col-xl-2">
+                       
+                            <label asp-for="OperatingInstrs" class="form-label">Oper. Instrs.</label>
+                            <select asp-for="OperatingInstrs" asp-items="@Model.OperatingInstrsList" class="form-select"></select>
+                    </div>
+                    <div class="col-sm-6 col-lg-9 col-xl-4">
+                       
+                            <label asp-for="OperatedBy" class="form-label">Oper. by</label>
+                            <input asp-for="OperatedBy" type="text" class="form-control">
+                    </div>
+                    <div class="col-sm-6 col-lg-3 col-xl-2">
+                      
+                            <label asp-for="Status" class="form-label">Status</label>
+                            <input asp-for="Status" type="text" class="form-control">
+                    </div>
+                    <div class="col-md-6 col-lg-9 col-xl-4">
+                       
+                            <label asp-for="Remarks" class="form-label">Remarks</label>
+                            <input asp-for="Remarks" type="text" class="form-control">
+                    </div>
+                    <div class="col-md-12">
+                        <label class="form-label">TDS Options</label>
+                        <div>
+                            <div class="form-check form-check-inline">
+                    
+                                    <input asp-for="TDSOptions" class="form-check-input module-checkbox" type="radio" value="TDS">
+                                    <label asp-for="TDSOptions" class="form-check-label">TDS</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                               
+                                    <input asp-for="TDSOptions" class="form-check-input module-checkbox" type="radio" value="FORM15H">
+                                    <label asp-for="TDSOptions" class="form-check-label">FORM15H</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                              
+                                    <input asp-for="TDSOptions" class="form-check-input module-checkbox" type="radio" value="FORM15G">
+                                    <label asp-for="TDSOptions" class="form-check-label">FORM15G</label>
+                            </div>
+                            <div class="form-radio form-check-inline">
+                             
+                                    <input asp-for="TDSOptions" class="form-check-input module-checkbox" type="radio" value="NONTDS">
+                                    <label asp-for="TDSOptions" class="form-check-label">NONTDS</label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-6 col-lg-3 col-xl-2">
+                      
+                            <label asp-for="Panno" class="form-label">Pan No</label>
+                            <input asp-for="Panno" type="text" class="form-control">
+                    </div>
+                   @*  <div class="col-sm-6 col-lg-3 col-xl-2">
+                        <label class="form-label">Status</label>
+                        <input type="text" class="form-control" value="Active">
+                          
+                    </div> *@
+                    <div class="col-sm-6 col-lg-3 col-xl-2">
+                       
+                            <label asp-for="Regno" class="form-label">Reg. No</label>
+                            <input asp-for="Regno" type="text" class="form-control">
+                    </div>
+                    <div class="col-sm-6 col-lg-3 col-xl-4">
+                     
+                            <label asp-for="Regplace" class="form-label">Reg. Place</label>
+                            <input asp-for="Regplace" type="text" class="form-control">
+                    </div>
+                    <div class="col-sm-6 col-lg-3 col-xl-2">
+                           <label asp-for="dateofincorporation" class="form-label">Date of Incorporation</label>
+                            <div class="input-group date" data-provide="datepicker">
+                                <input asp-for="dateofincorporation" type="text" class="form-control">
+                                <div class="input-group-addon input-group-text">
+                                    <img src="~/images/datepicker_icon.svg" width="24">
+                                </div>
+                            </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="tabs mt-3">
+            <ul class="nav nav-tabs" id="maharajtab" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="Introducer-tab" data-bs-toggle="tab" data-bs-target="#Introducer-tab-pane" type="button" role="tab" aria-controls="Introducer-tab-pane" aria-selected="false" tabindex="-1">Introducer</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="JointHolder-tab" data-bs-toggle="tab" data-bs-target="#JointHolder-tab-pane" type="button" role="tab" aria-controls="JointHolder-tab-pane" aria-selected="true">
+                        Joint
+                        Holder
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="Guardian-tab" data-bs-toggle="tab" data-bs-target="#Guardian-tab-pane" type="button" role="tab" aria-controls="Guardian-tab-pane" aria-selected="false" tabindex="-1">Guardian</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="Nominee-tab" data-bs-toggle="tab" data-bs-target="#Nominee-tab-pane" type="button" role="tab" aria-controls="Nominee-tab-pane" aria-selected="false" tabindex="-1">Nominee</button>
+                </li>
+            </ul>
+            <div class="tab-content" id="myTabContent">
+                <div class="tab-pane fade" id="Introducer-tab-pane" role="tabpanel" aria-labelledby="Introducer-tab" tabindex="0">
+                    <div class="row align-items-end g-3">
+                        <div class="col-md-6 col-lg-4 col-xl-4">
+                                <label asp-for="IntroCustId" class="form-label">Cust. ID</label>
+                                <div class="input-group">
+                                    <input asp-for="IntroCustId" type="text" class="form-control">
+                                    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#CustomerListBackdrop">Search</button>
+                                </div>
+                        </div>
+                        <div class="col-md-6 col-lg-5 col-xl-5">
+                           
+                            <div class="input-group">
+                                <select class="form-select flex-grow-0 flex-basis">
+                                    <option selected="" value="mr">Mr.</option>
+                                    <option value="mrs">Mrs.</option>
+                                </select>
+                              
+                                    <label asp-for="IntroCustName" class="form-label">Intro Cust Name</label>
+                                    <input asp-for="IntroCustName" type="text" class="form-control">
+                                <a href="Customer-Master.html" target="_blank" class="btn btn-primary">N</a>
+                                <a href="Customer-Details.html" target="_blank" class="btn btn-primary">D</a>
+                            </div>
+                        </div>
+                        <div class="col-md-6 col-lg-3 col-xl-3">
+                           
+                                <label asp-for="Intro_Relation" class="form-label">Relation</label>
+                                <select asp-for="Intro_Relation" asp-items="@Model.Intro_RelationList" class="form-select"></select>
+                        </div>
+                        <div class="col-md-12">
+                            <div class="form-check mb-2">
+                               
+
+                                    <input asp-for="CheckIntroMinor" class="form-check-input" type="checkbox">
+                                    <label asp-for="CheckIntroMinor" class="form-check-label">
+                                        Minor (Y/N)
+                                    </label>
+                            </div>
+                        </div>
+                        <div class="col-md-12 pb-3 text-center">
+                            <a href="#" target="_self" class="btn btn-primary mb-2">Ok</a>
+                            <a href="#" target="_self" class="btn btn-primary mb-2">Clear</a>
+                        </div>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-bordered">
+                            <thead>
+                                <tr>
+                                    <th>Sno</th>
+                                    <th>Customer Id</th>
+                                    <th>Name</th>
+                                    <th>Minor Y/N</th>
+                                    <th>Minor DOB</th>
+                                    <th>Relation Id</th>
+                                </tr>
+                            </thead>
+                                <tbody id="IntroDetails">
+                                  <tr>
+                                    <td>1</td>
+                                    <td>10100053178</td>
+                                    <td>Shaik Abdul Gafoor</td>
+                                    <td>N</td>
+                                    <td></td>
+                                    <td>3</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="tab-pane fade active show" id="JointHolder-tab-pane" role="tabpanel" aria-labelledby="JointHolder-tab" tabindex="0">
+                    <div class="row align-items-end g-3">
+                        <div class="col-md-6 col-lg-4 col-xl-4">
+                                <label asp-for="JntCustId" class="form-label">Cust.ID</label>
+                                <div class="input-group">
+                                    <input asp-for="JntCustId" type="text" class="form-control">
+                                    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#CustomerListBackdrop">Search</button>
+                                </div>
+                        </div>
+                        <div class="col-md-6 col-lg-5 col-xl-5">
+                           
+                            <div class="input-group">
+                                <select class="form-select flex-grow-0 flex-basis">
+                                    <option selected="" value="mr">Mr.</option>
+                                    <option value="mrs">Mrs.</option>
+                                </select>
+                                    <label asp-for="JntCustName" class="form-label">Joint Cust Name</label>
+                                    <input asp-for="JntCustName" type="text" class="form-control">
+                                <a href="Customer-Master.html" target="_blank" class="btn btn-primary">N</a>
+                                <a href="Customer-Details.html" target="_blank" class="btn btn-primary">D</a>
+                            </div>
+                        </div>
+                        <div class="col-md-6 col-lg-3 col-xl-3">
+                                <label asp-for="Jnt_Relation" class="form-label">Relation</label>
+                                <select asp-for="Jnt_Relation" asp-items="@Model.Jnt_RelationList" class="form-select"></select>
+                        </div>
+                        <div class="col-md-12">
+                            <div class="form-check mb-2">
+                                    <input asp-for="CheckJntMinor" class="form-check-input" type="checkbox">
+                                    <label asp-for="CheckJntMinor" class="form-check-label">
+                                        Minor (Y/N)
+                                    </label>
+                            </div>
+                        </div>
+                        <div class="col-md-12 pb-3 text-center">
+                            <a href="#" target="_self" class="btn btn-primary mb-2">Ok</a>
+                            <a href="#" target="_self" class="btn btn-primary mb-2">Clear</a>
+                        </div>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-bordered">
+                            <thead>
+                                <tr>
+                                    <th>Sno</th>
+                                    <th>Customer Id</th>
+                                    <th>Name</th>
+                                    <th>Minor Y/N</th>
+                                    <th>Minor DOM</th>
+                                    <th>Relation Id</th>
+                                </tr>
+                            </thead>
+                            <tbody id="jntdetails">
+                                    @if (Model.JntAccdtls != null)
+                                    {
+                                        int i = 1;
+                                        foreach (var item in Model.JntAccdtls)
+                                        {
+                                            <tr>
+                                                <th scope="row">@(i++)</th>
+                                                <td>@item.JntCustId</td>
+                                                <td>@item.JntCustName </td>
+                                                <td>@item.CheckJntMinor </td>
+                                                <td>@item.Jnt_MinorDOB </td>
+                                                <td>@item.Jnt_Relation </td>
+                                            </tr>
+                                        }
+                                    }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="tab-pane fade" id="Guardian-tab-pane" role="tabpanel" aria-labelledby="Guardian-tab" tabindex="0">
+                    <div class="row align-items-end g-3">
+                        <div class="col-md-6 col-lg-4 col-xl-4">
+                                <label asp-for="GuardCustId" class="form-label">Cust. ID</label>
+                                <div class="input-group">
+                                    <input asp-for="GuardCustId" type="text" class="form-control">
+                                    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#CustomerListBackdrop">Search</button>
+                                </div>
+                        </div>
+                        <div class="col-md-6 col-lg-5 col-xl-5">
+                          
+                            <div class="input-group">
+                                <select class="form-select flex-grow-0 flex-basis">
+                                    <option selected="" value="mr">Mr.</option>
+                                    <option value="mrs">Mrs.</option>
+                                </select>
+                                    <label asp-for="GuardCustName" class="form-label">Guard Cust Name</label>
+                                    <input asp-for="GuardCustName" type="text" class="form-control">
+                                <a href="Customer-Master.html" target="_blank" class="btn btn-primary">N</a>
+                                <a href="Customer-Details.html" target="_blank" class="btn btn-primary">D</a>
+                            </div>
+                        </div>
+                        <div class="col-md-6 col-lg-3 col-xl-3">
+                   
+                                <label asp-for="Guard_Relation" class="form-label">Relation</label>
+                                <select asp-for="Guard_Relation" asp-items="@Model.Guard_RelationList" class="form-select"></select>
+                        </div>
+                        <div class="col-md-12">
+                            <div class="form-check mb-2">
+                                    <input asp-for="CheckGuardMinor" class="form-check-input" type="checkbox">
+                                    <label asp-for="CheckGuardMinor" class="form-check-label">
+                                        Minor (Y/N)
+                                    </label>
+                            </div>
+                        </div>
+                        <div class="col-md-12 pb-3 text-center">
+                            <a href="#" target="_self" class="btn btn-primary mb-2">Ok</a>
+                            <a href="#" target="_self" class="btn btn-primary mb-2">Clear</a>
+                        </div>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-bordered">
+                            <thead>
+                                <tr>
+                                    <th>Sno</th>
+                                    <th>Customer Id</th>
+                                    <th>Name</th>
+                                    <th>Minor Y/N</th>
+                                    <th>Minor DOM</th>
+                                    <th>Relation Id</th>
+                                </tr>
+                            </thead>
+                                <tbody id="guardiandetails">
+                                    @if (Model.Guardiandtls  != null)
+                                    {
+                                        int i = 1;
+                                        foreach (var item in Model.Guardiandtls)
+                                        {
+                                            <tr>
+                                                <th scope="row">@(i++)</th>
+                                                <td>@item.GuardCustId</td>
+                                                <td>@item.GuardCustName </td>
+                                                <td>@item.CheckGuardMinor </td>
+                                                <td> </td>
+                                                <td>@item.Guard_Relation </td>
+                                            </tr>
+                                        }
+                                    }
+                                  
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="tab-pane fade" id="Nominee-tab-pane" role="tabpanel" aria-labelledby="Nominee-tab" tabindex="0">
+                    <div class="row align-items-end g-3">
+                        <div class="col-md-6 col-lg-4 col-xl-4">
+                                <label asp-for="NomineeCustId" class="form-label">Cust. ID</label>
+                                <div class="input-group">
+                                    <input asp-for="NomineeCustId" type="text" class="form-control">
+                                    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#CustomerListBackdrop">Search</button>
+                                </div>
+                        </div>
+                        <div class="col-md-6 col-lg-5 col-xl-5">
+                            
+                            <div class="input-group">
+                                <select class="form-select flex-grow-0 flex-basis">
+                                    <option selected="" value="mr">Mr.</option>
+                                    <option value="mrs">Mrs.</option>
+                                </select>
+                                    <label asp-for="NomineeCustName" class="form-label">Nominee Cust Name</label>
+                                    <input asp-for="NomineeCustName" type="text" class="form-control">
+                                <a href="Customer-Master.html" target="_blank" class="btn btn-primary">N</a>
+                                <a href="Customer-Details.html" target="_blank" class="btn btn-primary">D</a>
+                            </div>
+                        </div>
+                        <div class="col-md-6 col-lg-3 col-xl-3">
+                                <label asp-for="Nominee_Relation" class="form-label">Relation</label>
+                                <select asp-for="Nominee_Relation" asp-items="@Model.Nominee_RelationList" class="form-select"></select>
+                        </div>
+                        <div class="col-md-12">
+                            <div class="form-check mb-2">
+                            
+                                    <input asp-for="CheckNomineeMinor" class="form-check-input" type="checkbox">
+                                    <label asp-for="CheckNomineeMinor" class="form-check-label">
+                                        Minor (Y/N)
+                                    </label>
+                            </div>
+                        </div>
+                        <div class="col-md-12 pb-3 text-center">
+                            <a href="#" target="_self" class="btn btn-primary mb-2">Ok</a>
+                            <a href="#" target="_self" class="btn btn-primary mb-2">Clear</a>
+                        </div>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-bordered">
+                            <thead>
+                                <tr>
+                                    <th>Sno</th>
+                                    <th>Customer Id</th>
+                                    <th>Name</th>
+                                    <th>Minor Y/N</th>
+                                    <th>Minor DOM</th>
+                                    <th>Relation Id</th>
+                                </tr>
+                            </thead>
+                            <tbody id="nomineedetails">
+                                    @if (Model.Nomineedtls != null)
+                                    {
+                                        int i = 1;
+                                        foreach (var item in Model.Nomineedtls)
+                                        {
+                                            <tr>
+                                                <th scope="row">@(i++)</th>
+                                                <td>@item.NomineeCustId</td>
+                                                <td>@item.NomineeCustName </td>
+                                                <td>@item.CheckNomineeMinor </td>
+                                                <td>@item.Nominee_MinorDOB </td>
+                                                <td>@item.Nominee_Relation </td>
+                                            </tr>
+                                        }
+                                    }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="text-center py-3">
+        <button type="button" class="btn btn-primary">Ok</button>
+        <button type="button" class="btn btn-primary">Cancel</button>
+        <button type="button" class="btn btn-primary">Exit</button>
+    </div>
+</div>
+</form>

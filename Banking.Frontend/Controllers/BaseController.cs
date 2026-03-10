@@ -24,7 +24,7 @@ namespace Banking.Frontend.Controllers
         protected IDashboardService _dashboardService;
         protected ICustomerService _customerService;
         protected ITransferTransactionService _transferTransactionService;
-
+        protected ISBCAAccountOpeningService _sbcaaccountopeningService;
         public BaseController(IConfiguration configuration, IHttpContextAccessor httpContextAccessor)
         {
             _configuration = configuration;

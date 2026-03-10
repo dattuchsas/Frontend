@@ -8,6 +8,7 @@
         public const string User = "User";
         public const string GetDetails = "GetDetails";
         public const string TransferTransaction = "TransferTransaction";
+        public const string SBCAAccountOpening = "SBCAAccountOpening";
     }
 
     public class ActionNames
@@ -16,6 +17,7 @@
         public const string UserModules = "UserModules";
         public const string SelectedModule = "SelectedModule";
         public const string New = "New";
+        public const string SBCAAccountOpening = "SBCAAccountOpening";
     }
 
     public class TransactionModes

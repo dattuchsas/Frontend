@@ -36,6 +36,8 @@ namespace Banking.Services
             return ReturnKeyValuePair(dataTable, "Relation");
         }
 
+       
+
         public async Task<List<SelectListItem>> GetReligionList()
         {
             using DataTable dataTable = await _databaseFactory.SingleRecordSet("GENRELIGIONMST", "CODE,DESCRIPTION", "");
@@ -83,7 +85,7 @@ namespace Banking.Services
                 new() { Text = "Married", Value = "Y" }
             ];
         }
-
+        
         public async Task<List<SelectListItem>> GetBranchList()
         {
             using DataTable dataTable = await _databaseFactory.SingleRecordSet("GENBANKBRANCHMST", "Branchcode,narration");
@@ -1042,5 +1044,36 @@ namespace Banking.Services
             }
             return result;
         }
+
+        public async Task<List<SelectListItem>> GetModuleList(string whereCondition = "")
+        {
+            // "status='R' order by code"
+            using DataTable dataTable = await _databaseFactory.SingleRecordSet("genmodulemst",
+                "moduleid,narration", !string.IsNullOrWhiteSpace(whereCondition) ? whereCondition : string.Empty);
+
+            return ReturnKeyValuePair(dataTable, "Module");
+        }
+
+        
+             public async Task<List<SelectListItem>> GetAccountTypeList(string whereCondition = "")
+        {
+           
+            using DataTable dataTable = await _databaseFactory.SingleRecordSet("genglmastmst",
+                "glcode,gldescription", !string.IsNullOrWhiteSpace(whereCondition) ? whereCondition : string.Empty);
+
+            return ReturnKeyValuePair(dataTable, "AccountType");
+        }
+
+        public async Task<List<SelectListItem>> GetOperatingInstrList()
+        {
+
+            using DataTable dataTable = await _databaseFactory.SingleRecordSet("GenOperInstMst","opercode,narration", "");
+            return ReturnKeyValuePair(dataTable, "OperInstMst");
+        }
+
+
+
+
+
     }
 }
