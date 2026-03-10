@@ -20,5 +20,12 @@ namespace Banking.Interfaces
         List<SelectListItem> GetGenderList();
         List<SelectListItem> GetMaritalStatusList();
         List<SelectListItem> GetRiskCategoryList();
+
+        // written by dattu 27 feb 2026
+        Task<List<SelectListItem>> GetModuleList(string whereCondition = "");
+        Task<List<SelectListItem>> GetAccountTypeList(string whereCondition = "");
+
+        Task<List<SelectListItem>> GetOperatingInstrList();
+        
     }
 }

@@ -10,6 +10,7 @@
         public const string TransferTransaction = "TransferTransaction";
         public const string Common = "Common";
         public const string List = "List";
+        public const string SBCAAccountOpening = "SBCAAccountOpening";
     }
 
     public class ActionNames
@@ -19,6 +20,7 @@
         public const string SelectedModule = "SelectedModule";
         public const string New = "New";
         public const string LandingPage = "LandingPage";
+        public const string SBCAAccountOpening = "SBCAAccountOpening";
     }
 
     public class SessionConstants

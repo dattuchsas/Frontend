@@ -13766,6 +13766,8 @@ namespace Banking.Services
         {
             string[] strVal = searchString.Split("~");
 
+            DataRow row = null!;
+
             string mode = strVal[0];
             string modId = strVal[1];
             string glCode = strVal[2];
