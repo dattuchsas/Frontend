@@ -1,6 +1,5 @@
 ﻿using Banking.Framework;
 using Banking.Interfaces;
-using Banking.Interfaces.IServices;
 using Banking.Models;
 using Humanizer;
 using Microsoft.AspNetCore.Http;
@@ -15,13 +14,14 @@ namespace Banking.Services
     {
         private readonly IDatabaseService _databaseFactory;
         private readonly ICommonService _commonService;
-        private readonly INameSearchService _nameSearchService;
+        private readonly ISearchService _searchService;
         private readonly IGeneralValidationService _generalValidationService;
+
         public SBCAAccountOpeningService(IOptions<DatabaseSettings> databaseSettings)
         {
             _databaseFactory = new DatabaseService(databaseSettings.Value);
             _commonService = new CommonService(databaseSettings);
-            _nameSearchService = new NameSearchService(databaseSettings);
+            _searchService = new SearchService(databaseSettings);
             _generalValidationService = new GeneralValidationService(databaseSettings);
         }
 
@@ -29,9 +29,9 @@ namespace Banking.Services
         {
             throw new NotImplementedException();
         }
-    
-        public async Task<SBCAAccountOpeningModel> GetSBCAAccountOpeningDetails(ISession session, string brcode = "",string moduleid = "", string glcode = "", string accno = "")
-        { 
+
+        public async Task<SBCAAccountOpeningModel> GetSBCAAccountOpeningDetails(ISession session, string brcode = "", string moduleid = "", string glcode = "", string accno = "")
+        {
             var sbcaaccountopening = new SBCAAccountOpeningModel();
             sbcaaccountopening.BranchList = await _commonService.GetBranchList();
 
@@ -40,21 +40,21 @@ namespace Banking.Services
             sbcaaccountopening.CategoryTypeList = await _commonService.GetCategoryList("CustType|View");
 
             sbcaaccountopening.Guard_RelationList = await _commonService.GetRelationList();
-            sbcaaccountopening.ModuleList  = await _commonService.GetModuleList("moduleid in ('SB')");
-            sbcaaccountopening.AccountTypeList  = await _commonService.GetAccountTypeList("moduleid in ('SB')");
-            sbcaaccountopening.OperatingInstrsList  = await _commonService.GetOperatingInstrList();
+            sbcaaccountopening.ModuleList = await _commonService.GetModuleList("moduleid in ('SB')");
+            sbcaaccountopening.AccountTypeList = await _commonService.GetAccountTypeList("moduleid in ('SB')");
+            sbcaaccountopening.OperatingInstrsList = await _commonService.GetOperatingInstrList();
             sbcaaccountopening.Intro_RelationList = await _commonService.GetRelationList();
             sbcaaccountopening.Jnt_RelationList = await _commonService.GetRelationList();
             sbcaaccountopening.Nominee_RelationList = await _commonService.GetRelationList();
             sbcaaccountopening.Guard_RelationList = await _commonService.GetRelationList();
 
-            if (string.IsNullOrWhiteSpace(accno) )
-                sbcaaccountopening = await GetDetails(brcode,moduleid,glcode,accno, sbcaaccountopening);
+            if (string.IsNullOrWhiteSpace(accno))
+                sbcaaccountopening = await GetDetails(brcode, moduleid, glcode, accno, sbcaaccountopening);
 
             return sbcaaccountopening;
         }
 
-        private async Task<SBCAAccountOpeningModel> GetDetails(string brcode ,string moduleid , string glcode , string accno , SBCAAccountOpeningModel sbcaaccountopeningmodel)
+        private async Task<SBCAAccountOpeningModel> GetDetails(string brcode, string moduleid, string glcode, string accno, SBCAAccountOpeningModel sbcaaccountopeningmodel)
         {
             DataTable rs = null!;
             if (brcode.Length > 0 && moduleid.Length > 0 && glcode.Length > 0 && accno.Length > 0)
@@ -77,7 +77,7 @@ namespace Banking.Services
                     sbcaaccountopeningmodel.OperatingInstrs = rs.Rows[0]["operatinginstr"].ToString();
                     sbcaaccountopeningmodel.CheckBankStaff = rs.Rows[0]["bankstaffyn"].ToString() == "Y" ? true : false;
                     sbcaaccountopeningmodel.Remarks = rs.Rows[0]["NARRATION"].ToString();
-                    sbcaaccountopeningmodel.Status  = rs.Rows[0]["TRANSTATUS"].ToString() == "P" ? "Pending" : "Approved";
+                    sbcaaccountopeningmodel.Status = rs.Rows[0]["TRANSTATUS"].ToString() == "P" ? "Pending" : "Approved";
                     sbcaaccountopeningmodel.CheckMinor = rs.Rows[0]["MINORYN"].ToString() == "Y" ? true : false;
                     sbcaaccountopeningmodel.Panno = rs.Rows[0]["PANNO"].ToString();
                     sbcaaccountopeningmodel.CategoryType = rs.Rows[0]["CATEGORYCODE"].ToString();
@@ -89,10 +89,10 @@ namespace Banking.Services
                 //introducer dtls
 
                 rs = await _databaseFactory.SingleRecordSet("GENCUSTINTRODUCERMST", "INTRCUSTOMERID,INTRNAME", "upper(trim(branchcode)) = '" + brcode + "' and upper(trim(currencycode))='INR' and upper(trim(glcode))= '" + glcode + "' and upper(trim(accno))='" + accno + "' and moduleid='" + moduleid + "'");
-                      if (rs.Rows.Count > 0)
+                if (rs.Rows.Count > 0)
                 {
                     sbcaaccountopeningmodel.IntroCustId = rs.Rows[0]["INTRCUSTOMERID"].ToString();
-                    sbcaaccountopeningmodel.IntroCustName = rs.Rows[0]["INTRNAME"].ToString();  
+                    sbcaaccountopeningmodel.IntroCustName = rs.Rows[0]["INTRNAME"].ToString();
                 }
                 //joint account details
                 rs = await _databaseFactory.SingleRecordSet("GENCUSTJOINTHOLDERMST", "SNO,JHCUSTOMERID,jointholdername,to_char(MINORDOB,'dd-Mon-yyyy') MINORDOB,MINORYN,RELATIONID", "upper(trim(branchcode)) = '" + brcode + "' and upper(trim(currencycode))='INR' and upper(trim(glcode))= '" + glcode + "' and upper(trim(accno))='" + accno + "' and moduleid='" + moduleid + "'");
@@ -103,26 +103,31 @@ namespace Banking.Services
                 {
                     JntAcc JntAcc1 = new JntAcc
                     {
-                       JntCustId  = Conversions.ToString(row["JHCUSTOMERID"]), JntCustName = Conversions.ToString(row["jointholdername"]), CheckJntMinor = Conversions.ToString(row["MINORYN"]) == "Y" ? true : false,
-                        Jnt_MinorDOB = Conversions.ToString(row["MINORDOB"]), Jnt_Relation = Conversions.ToString(row["RELATIONID"])
+                        JntCustId = Conversions.ToString(row["JHCUSTOMERID"]),
+                        JntCustName = Conversions.ToString(row["jointholdername"]),
+                        CheckJntMinor = Conversions.ToString(row["MINORYN"]) == "Y" ? true : false,
+                        Jnt_MinorDOB = Conversions.ToString(row["MINORDOB"]),
+                        Jnt_Relation = Conversions.ToString(row["RELATIONID"])
 
                     };
                     sbcaaccountopeningmodel.JntAccdtls.Add(JntAcc1);
 
-                   
+
                 }
 
                 //Guardian details
                 rs = await _databaseFactory.SingleRecordSet("GENCUSTGUARDIANMST", "GRDCUSTOMERID,GUARDIANNAME,RELATION", "upper(trim(branchcode)) = '" + brcode + "' and upper(trim(currencycode))='INR' and upper(trim(glcode))= '" + glcode + "' and upper(trim(accno))='" + accno + "' and moduleid='" + moduleid + "'");
 
-                sbcaaccountopeningmodel.Guardiandtls  = new List<Guardian>();
+                sbcaaccountopeningmodel.Guardiandtls = new List<Guardian>();
 
                 foreach (DataRow row in rs.Rows)
                 {
                     Guardian Guardian1 = new Guardian
                     {
-                         GuardCustId = Conversions.ToString(row["GRDCUSTOMERID"]), GuardCustName = Conversions.ToString(row["GUARDIANNAME"]), Guard_Relation = Conversions.ToString(row["RELATION"])    
-                       
+                        GuardCustId = Conversions.ToString(row["GRDCUSTOMERID"]),
+                        GuardCustName = Conversions.ToString(row["GUARDIANNAME"]),
+                        Guard_Relation = Conversions.ToString(row["RELATION"])
+
 
                     };
                     sbcaaccountopeningmodel.Guardiandtls.Add(Guardian1);
@@ -133,24 +138,24 @@ namespace Banking.Services
 
                 // nominee details
 
-                    rs = await _databaseFactory.SingleRecordSet("GENCUSTNOMINEEMST", "NOMCUSTOMERID,NOMINEENAME,MINORYN,to_char(MINNOMINEEDOB,'dd-Mon-yy') MINNOMINEEDOB,RELATION,RECEIVERNAME,ALLOCATION", "upper(trim(branchcode)) = '" + brcode + "' and upper(trim(currencycode))='INR' and upper(trim(glcode))= '" + glcode + "' and upper(trim(accno))='" + accno + "' and moduleid='" + moduleid + "'");
+                rs = await _databaseFactory.SingleRecordSet("GENCUSTNOMINEEMST", "NOMCUSTOMERID,NOMINEENAME,MINORYN,to_char(MINNOMINEEDOB,'dd-Mon-yy') MINNOMINEEDOB,RELATION,RECEIVERNAME,ALLOCATION", "upper(trim(branchcode)) = '" + brcode + "' and upper(trim(currencycode))='INR' and upper(trim(glcode))= '" + glcode + "' and upper(trim(accno))='" + accno + "' and moduleid='" + moduleid + "'");
 
                 sbcaaccountopeningmodel.Nomineedtls = new List<Nominee>();
 
                 foreach (DataRow row in rs.Rows)
                 {
-                    Nominee nominee1 = new Nominee 
+                    Nominee nominee1 = new Nominee
                     {
-                      NomineeCustId = Conversions.ToString(row["NOMCUSTOMERID"]),
-                      NomineeCustName = Conversions.ToString(row["NOMINEENAME"]),
-                      CheckNomineeMinor = Conversions.ToString(row["MINORYN"]) == "Y" ? true : false,  
-                      Nominee_MinorDOB = Conversions.ToString(row["MINNOMINEEDOB"]),
-                      Nominee_Relation = Conversions.ToString(row["RELATION"])
+                        NomineeCustId = Conversions.ToString(row["NOMCUSTOMERID"]),
+                        NomineeCustName = Conversions.ToString(row["NOMINEENAME"]),
+                        CheckNomineeMinor = Conversions.ToString(row["MINORYN"]) == "Y" ? true : false,
+                        Nominee_MinorDOB = Conversions.ToString(row["MINNOMINEEDOB"]),
+                        Nominee_Relation = Conversions.ToString(row["RELATION"])
                     };
                     sbcaaccountopeningmodel.Nomineedtls.Add(nominee1);
                 }
             }
             return sbcaaccountopeningmodel;
         }
-        }
+    }
 }

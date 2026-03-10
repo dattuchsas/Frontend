@@ -12,6 +12,7 @@ namespace Banking.Frontend.Controllers
             : base(configuration, httpContextAccessor)
         {
         }
+
         [HttpPost]
         public async Task<IActionResult> NewAccountOpening(SBCAAccountOpeningModel accountopeningmodel)
         {
@@ -23,9 +24,7 @@ namespace Banking.Frontend.Controllers
             // return View(accountopeningmodel);
 
             return View();
-        }
-
-       
+        }       
 
         public async Task<IActionResult> SBCAAccountOpening(string brcode = "101", string moduleid = "SB", string glcode = "102020", string accno = "4123")
         {

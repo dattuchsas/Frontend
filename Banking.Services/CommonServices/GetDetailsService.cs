@@ -13766,6 +13766,8 @@ namespace Banking.Services
         {
             string[] strVal = searchString.Split("~");
 
+            DataRow row = null!;
+
             string mode = strVal[0];
             string modId = strVal[1];
             string glCode = strVal[2];
@@ -13808,7 +13810,7 @@ namespace Banking.Services
 
                     if (dataTable.Rows.Count > 0)
                     {
-                        DataRow row = dataTable.Rows.Count > 0 ? dataTable.Rows[0] : null!;
+                        row = dataTable.Rows.Count > 0 ? dataTable.Rows[0] : null!;
 
                         // For SB or CA module Parameters 
                         // Numbers left side of the code indicates array index used for java script code, Index starts with 0 to 18
@@ -13879,7 +13881,7 @@ namespace Banking.Services
                             null!, "", userID, machineID);
                     }
 
-                    DataRow row = dataTable.Rows.Count > 0 ? dataTable.Rows[0] : null!;
+                    row = dataTable.Rows.Count > 0 ? dataTable.Rows[0] : null!;
 
                     if (dataTable.Rows.Count > 0)
                     {

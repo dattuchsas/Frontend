@@ -24,8 +24,8 @@ namespace Banking.Frontend.Controllers
         protected ICustomerService _customerService;
         protected ITransferTransactionService _transferTransactionService;
         protected IListService _listService;
-
         protected ISBCAAccountOpeningService _sbcaaccountopeningService;
+
         public BaseController(IConfiguration configuration, IHttpContextAccessor httpContextAccessor)
         {
             _configuration = configuration;
@@ -49,6 +49,7 @@ namespace Banking.Frontend.Controllers
             _customerService = _customerService ?? new CustomerService(_options);
             _transferTransactionService = _transferTransactionService ?? new TransferTransactionService(_options);
             _listService = _listService ?? new ListService(_options);
+            _sbcaaccountopeningService = _sbcaaccountopeningService ?? new SBCAAccountOpeningService(_options);
 
             _stopwatch = new Stopwatch();
             _loggerModel = new LoggerModel();
