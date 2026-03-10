@@ -24,7 +24,7 @@ namespace Banking.Services
         {
             using DataTable dataTable = await _databaseFactory.SingleRecordSet("GENSALUTATIONMST", "CODE,DESCRIPTION", "");
 
-            return ReturnKeyValuePair(dataTable, "Salutation");
+            return BankingExtensions.ReturnKeyValuePair(dataTable, "Salutation");
         }
 
         public async Task<List<SelectListItem>> GetRelationList(string whereCondition = "")
@@ -33,7 +33,7 @@ namespace Banking.Services
             using DataTable dataTable = await _databaseFactory.SingleRecordSet("GENRELATIONSMST", 
                 "CODE,NARRATION", !string.IsNullOrWhiteSpace(whereCondition) ? whereCondition : string.Empty);
 
-            return ReturnKeyValuePair(dataTable, "Relation");
+            return BankingExtensions.ReturnKeyValuePair(dataTable, "Relation");
         }
 
        
@@ -42,28 +42,28 @@ namespace Banking.Services
         {
             using DataTable dataTable = await _databaseFactory.SingleRecordSet("GENRELIGIONMST", "CODE,DESCRIPTION", "");
 
-            return ReturnKeyValuePair(dataTable, "Religion");
+            return BankingExtensions.ReturnKeyValuePair(dataTable, "Religion");
         }
 
         public async Task<List<SelectListItem>> GetOccupationList()
         {
             using DataTable dataTable = await _databaseFactory.SingleRecordSet("genoccupationmst", "code,narration", "status='R' order by code");
 
-            return ReturnKeyValuePair(dataTable, "Occupation");
+            return BankingExtensions.ReturnKeyValuePair(dataTable, "Occupation");
         }
 
         public async Task<List<SelectListItem>> GetEducationList()
         {
             using DataTable dataTable = await _databaseFactory.SingleRecordSet("genoccupationmst", "code,narration", "status='R' order by code");
 
-            return ReturnKeyValuePair(dataTable, "Education");
+            return BankingExtensions.ReturnKeyValuePair(dataTable, "Education");
         }
 
         public async Task<List<SelectListItem>> GetKYCList()
         {
             using DataTable dataTable = await _databaseFactory.SingleRecordSet("GENKYCMST", "CODE,DESCRIPTION", "code not in (2,12) ");
 
-            return ReturnKeyValuePair(dataTable, "KYC Type");
+            return BankingExtensions.ReturnKeyValuePair(dataTable, "KYC Type");
         }
 
         public List<SelectListItem> GetGenderList()
@@ -90,7 +90,7 @@ namespace Banking.Services
         {
             using DataTable dataTable = await _databaseFactory.SingleRecordSet("GENBANKBRANCHMST", "Branchcode,narration");
 
-            return ReturnKeyValuePair(dataTable, "Branch");
+            return BankingExtensions.ReturnKeyValuePair(dataTable, "Branch");
         }
 
         public async Task<List<SelectListItem>> GetCategoryList(string type = "")
@@ -108,7 +108,7 @@ namespace Banking.Services
             else
                 dataTable = await _databaseFactory.SingleRecordSet("gencategorymst", "CATEGORYCODE,NARRATION", "", "NARRATION");
 
-            return ReturnKeyValuePair(dataTable, "Category");
+            return BankingExtensions.ReturnKeyValuePair(dataTable, "Category");
         }
 
         public List<SelectListItem> GetRiskCategoryList()
@@ -1000,7 +1000,7 @@ namespace Banking.Services
             using DataTable dataTable = await _databaseFactory.SingleRecordSet("genqualificationmst", "code,narration,status",
                 arr.Length != 0 && arr[1].Equals("View") ? "" : "status='R' order by code");
 
-            return ReturnKeyValuePair(dataTable, "Qualification");
+            return BankingExtensions.ReturnKeyValuePair(dataTable, "Qualification");
         }
 
         public async Task<List<SelectListItem>> GetIncomeList(string type = "")
@@ -1010,7 +1010,7 @@ namespace Banking.Services
             using DataTable dataTable = await _databaseFactory.SingleRecordSet("genincomemst", "code,narration,status",
                 arr.Length != 0 && string.IsNullOrWhiteSpace(arr[1]) ? "" : "status='R' order by code");
 
-            return ReturnKeyValuePair(dataTable, "Income");
+            return BankingExtensions.ReturnKeyValuePair(dataTable, "Income");
         }
 
         public async Task<List<SelectListItem>> GetCardLength()
@@ -1021,28 +1021,7 @@ namespace Banking.Services
             //              if rs4.RecordCount > 0 then
             //               length = rs4(0).value
             //              end if
-            return ReturnKeyValuePair(dataTable, "Card Length");
-        }
-
-        private List<SelectListItem> ReturnKeyValuePair(DataTable dataTable, string type = "")
-        {
-            List<string> list = new List<string> 
-            { 
-                "Branch", "Category"
-            };
-            var result = new List<SelectListItem>();
-            result.Add(new SelectListItem { Value = "", Text = "Select" });
-            foreach (DataRow row in dataTable.Rows)
-            {
-                var keyValuePair = new SelectListItem();
-                if (list.Contains(type))
-                    keyValuePair.Text = string.Concat(Conversions.ToString(row.ItemArray[0]), " - ", Conversions.ToString(row.ItemArray[1]).ToLower().Humanize(LetterCasing.Title));
-                else
-                    keyValuePair.Text = Conversions.ToString(row.ItemArray[1]).ToLower().Humanize(LetterCasing.Title);
-                keyValuePair.Value = Conversions.ToString(row.ItemArray[0]);
-                result.Add(keyValuePair);
-            }
-            return result;
+            return BankingExtensions.ReturnKeyValuePair(dataTable, "Card Length");
         }
 
         public async Task<List<SelectListItem>> GetModuleList(string whereCondition = "")

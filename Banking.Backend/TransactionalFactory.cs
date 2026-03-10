@@ -5,7 +5,7 @@ using System.Data;
 
 namespace Banking.Backend
 {
-    public class TransactionalFactory : ITransactionalService
+    public class TransactionalFactory
     {
         private string dataLink = ""; // "@DBLINK"; // TODO: Move to settings if needed
         private string applicationDate = string.Empty;

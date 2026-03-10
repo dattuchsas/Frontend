@@ -13,14 +13,14 @@ namespace Banking.Services
     {
         private readonly IDatabaseService _databaseFactory;
         private readonly ICommonService _commonService;
-        private readonly INameSearchService _nameSearchService;
+        private readonly ISearchService _nameSearchService;
         private readonly IGeneralValidationService _generalValidationService;
 
         public CustomerService(IOptions<DatabaseSettings> databaseSettings)
         {
             _databaseFactory = new DatabaseService(databaseSettings.Value);
             _commonService = new CommonService(databaseSettings);
-            _nameSearchService = new NameSearchService(databaseSettings);
+            _nameSearchService = new SearchService(databaseSettings);
             _generalValidationService = new GeneralValidationService(databaseSettings);
         }
 

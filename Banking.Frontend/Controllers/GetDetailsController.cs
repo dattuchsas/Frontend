@@ -89,5 +89,31 @@ namespace Banking.Frontend.Controllers
 
             return string.Empty;
         }
+
+        public async Task<IActionResult> GetDetails(string searchString = "")
+        {
+            var item = await _getDetailsService.GetDetails(searchString);
+
+            return Content(item, "text/plain");
+        }
+
+        public async Task<IActionResult> GetQueryDisplay(string searchString = "")
+        {
+            var item = await _getDetailsService.GetQueryDisplay(searchString);
+
+            return Content(item, "text/plain");
+        }
+
+        public async Task<IActionResult> GetSCRFlex(string searchString = "", int precision = 0)
+        {
+            var item = await _getDetailsService.GetSCRFlex(searchString, session.GetInt32(SessionConstants.Precision) ?? 0);
+
+            return Json(item);
+        }
+
+        public async Task GenParameter()
+        {
+
+        }
     }
 }

@@ -1,7 +1,7 @@
-﻿using Banking.Models;
+﻿using Banking.Framework;
 using Banking.Interfaces;
+using Banking.Models;
 using System.Data;
-using Banking.Framework;
 
 namespace Banking.Backend
 {
@@ -174,9 +174,8 @@ namespace Banking.Backend
             return dataTable;
         }
 
-        public async Task<string> ProcessDataTransactions(string[,] TransDataArray, string BranchCode = "", string UserCode = "",
-            string MachineID = "", string ApplicationDate = "", string DayBeginEndStatusCheckYN = "",
-            string glcode = "", string moduleid = "")
+        public async Task<string> ProcessDataTransactions(string[,] TransDataArray, string BranchCode = "", string UserCode = "", string MachineID = "", 
+            string ApplicationDate = "", string DayBeginEndStatusCheckYN = "", string glcode = "", string moduleid = "")
         {
             string DataTransactionsRet = string.Empty;
 
@@ -457,6 +456,215 @@ namespace Banking.Backend
             }
 
             return DataTransactionsRet;
+        }
+
+        public async Task<DataTable> GetModuleId(string branchCode, string AllModulesYN = "", string UserID = "", string VouchingYN = "", string ModuleCondition = "")
+        {
+            string strVouchCondition, strQuery = "";
+
+            string strBrcode = branchCode.Trim().ToUpper();
+            string strUser = string.IsNullOrWhiteSpace(UserID) ? "" : UserID.Trim().ToUpper();
+            string strOptModCond = string.IsNullOrWhiteSpace(ModuleCondition) ? "" : ModuleCondition.Trim();
+
+            if (!string.IsNullOrWhiteSpace(strOptModCond))
+                strOptModCond = " and " + strOptModCond;
+
+            // Please do not change this piece of code it will effect the list of modules
+            if (VouchingYN.Trim() == "" || VouchingYN.Trim().ToUpper() == "Y")
+                strVouchCondition = " and gmm.VOUCHINGYN='Y'"; // returns modules with transaction facility
+            else
+                strVouchCondition = ""; //returns all modules
+
+            if (AllModulesYN.Trim() == "" || AllModulesYN.Trim() == "Y")
+                strQuery = "Select gmt.ModuleID ModuleID,gmt.Narration Narration,gmm.Mastertable Mastertable from GenModuleTypesMST" + _dataLink + " gmt, genmodulemst" + 
+                    _dataLink + " gmm where trim(gmt.BranchCode)='" + strBrcode.Trim() + "' and upper(gmt.IMPLEMENTEDYN)='Y' and gmt.ModuleID = gmm.ModuleID " + 
+                    strVouchCondition + strOptModCond + " order by gmt.ModuleID";
+            else
+                strQuery = "Select ModuleID,Narration from GenModuleTypesMST" + _dataLink + "  where trim(BranchCode)='" + strBrcode.Trim() + 
+                    "' and upper(IMPLEMENTEDYN)='Y' and ModuleID in (select gmm.moduleid from genmodulemst" + _dataLink + " gmm where trim(gmm.mastertable)is not null " + 
+                    strVouchCondition + strOptModCond + " )" + strOptModCond + " order by ModuleID";
+
+            return await ProcessQueryAsync(strQuery);
+        }
+
+        // For retrieving Branch Code based On UserID
+        public async Task<DataTable> GetBranchCodes(string userId)
+        {
+            string strUser = userId.Trim().ToUpper();
+
+            string strQuery = "select distinct(Branch.Branchcode) BranchCode,Branch.Narration Narration from genbankbranchmst" + _dataLink + 
+                " Branch, GenUserMst" + _dataLink + " GenUser, GENBRANCHPMT BrnchPmt where ((upper(trim(GenUser.userid))='" + strUser + 
+                "' and upper(trim(Genuser.ABBUSERYN))='Y') or Branch.branchcode = (select branchcode from genusermst" + _dataLink + 
+                " where upper(trim(userid))='" + strUser + "')) AND Branch.Branchcode=BrnchPmt.Branchcode order by BranchCode";
+
+            return await ProcessQueryAsync(strQuery);
+        }
+
+        public async Task<DataTable> GetGLCodes(string BRCode, string ModuleCode, string GLCategory = "")
+        {
+            string strGlCatCondition, strQuery = "";
+            string strBranchCode = BRCode.Trim();
+            string StrModuleCode = ModuleCode.Trim();
+
+            // Please do not change this piece of code it will effect the list of glcodes
+            if (string.IsNullOrWhiteSpace(GLCategory.Trim()) || GLCategory.Trim().ToUpper() == "A") 
+                //returns transactional glcodes
+                strGlCatCondition = " and glcode in (select glcode from GENGLMASTMST where moduleid='" + StrModuleCode + "' and GLCATEGORY='A')";
+            else
+                // returns other category glcodes based on the request
+                strGlCatCondition = " and glcode in (select glcode from GENGLMASTMST where moduleid='" + StrModuleCode + "' and GLCATEGORY='" + GLCategory + "')";
+            
+            // *********************************************************************************
+
+            if (StrModuleCode.Trim().ToUpper() == "GL")
+                strQuery = "select glcode,Narration from genglsheetmst" + _dataLink + " where (moduleid in (select moduleid " + " from genmoduletypesmst" + _dataLink + 
+                    " where upper(trim(implementedyn)) <> 'Y' and branchcode='" + strBranchCode + "') or trim(moduleid)='GL') and (trim(branchcode)='" + strBranchCode + 
+                    "') and (status='R') order by glcode";
+            else
+                strQuery = "select glcode,Narration from genglsheetmst" + _dataLink + "  where moduleid in (select moduleid from genmoduletypesmst" + _dataLink + 
+                    " where trim(moduleid)='" + StrModuleCode + "') " + " and trim(branchcode)='" + strBranchCode + "' and status='R' " + strGlCatCondition + 
+                    " order by glcode";
+
+            DataTable Rstemp = await ProcessQueryAsync(strQuery);
+
+            if (Rstemp.Rows.Count == 0)
+                throw new Exception("Glcodes have not created for this Module.");
+
+            return Rstemp;
+        }
+
+        public async Task<DataTable> GetAccountNumbers(string BRCode, string ModuleCode = "", string GLcode = "", string CurrencyCode = "", string AccStatus = "", 
+            string TableName = "", string RemType = "", string accSearch = "")
+        {
+            string status = "", TranStatus = "", strTabName;
+            string[] arrStatus;
+            string[] arrTrStatus;
+            bool blnGLcode = false;
+
+            if (string.IsNullOrWhiteSpace(ModuleCode))
+                throw new Exception("Module ID should not be empty");
+
+            DataTable Rstemp;
+
+            string strQuery = "";
+            string strBranchCode = BRCode.Trim().ToUpper();
+            string strModuleCode = ModuleCode.Trim().ToUpper();
+            string strGLCode = GLcode.Trim().ToUpper();
+            string strRemType = RemType.Trim().ToUpper();
+
+            if (string.IsNullOrWhiteSpace(AccStatus))
+            {
+                status = "'R'";
+                TranStatus = "'A'";
+            }
+            else
+            {
+                arrStatus = AccStatus.Split(",", StringSplitOptions.RemoveEmptyEntries);
+
+                if (arrStatus[0] == "A")
+                {
+                    status = "";
+                    TranStatus = "";
+                }
+                else
+                {
+                    arrTrStatus = arrStatus[0].Split("OR", StringSplitOptions.RemoveEmptyEntries);
+
+                    for (int i = 0; i < arrTrStatus.Length; i++)
+                        status += "'" + arrTrStatus[i].Trim().ToUpper() + "',";
+
+                    status = status.Substring(0, status.Length - 1);
+                    arrTrStatus = null!;
+
+                    arrTrStatus = arrStatus[1].Split(new[] { "OR" }, StringSplitOptions.None);
+
+                    for (int i = 0; i < arrTrStatus.Length; i++)
+                        TranStatus += "'" + arrTrStatus[i].Trim().ToUpper() + "',";
+
+                    // Remove trailing comma
+                    if (!string.IsNullOrEmpty(TranStatus) && TranStatus.Length > 0)
+                        TranStatus = TranStatus.Substring(0, TranStatus.Length - 1);
+                }
+            }
+
+            if (string.IsNullOrWhiteSpace(TableName))
+            {
+                strQuery = "select MasterTable,GLCODEYN from genmodulemst" + _dataLink + "  where moduleid ='" + strModuleCode + "'";
+
+                Rstemp = await ProcessQueryAsync(strQuery.ToUpper());
+
+                strTabName = Conversions.ToString(Rstemp.Rows[0]["MasterTable"]);
+
+                if (Conversions.ToString(Rstemp.Rows[0]["MasterTable"])?.ToUpper() == "Y")
+                    blnGLcode = true;
+
+                BankingExtensions.ReleaseMemory(Rstemp);
+
+                if (blnGLcode)
+                {
+                    if (string.IsNullOrWhiteSpace(CurrencyCode.Trim()))
+                    {
+                        if (string.IsNullOrWhiteSpace(status))
+                            strQuery = "select ACCNO,Name,CUSTOMERID,status from " + strTabName + _dataLink + " where upper(trim(branchcode))='" + strBranchCode + "' " +
+                                " and upper(trim(glcode))='" + strGLCode.Trim() + "' and upper(trim(status))='R' order by Name";
+                        else
+                            strQuery = "select ACCNO,Name,CUSTOMERID,status from " + strTabName + _dataLink + " where upper(trim(branchcode))='" + strBranchCode + "' " +
+                                " and upper(trim(glcode))='" + strGLCode.Trim() + "' and upper(trim(status)) in (" + status + ") and transtatus in (" + TranStatus + ") ";
+                    }
+                    else
+                    {
+                        if (strModuleCode.Equals("SCR"))
+                            strQuery = "select ACCNO,Name,Customerid,status from " + strTabName + _dataLink + " where  upper(trim(branchcode))='" + strBranchCode + "' " + 
+                                " and upper(trim(glcode))='" + strGLCode.Trim() + "' and upper(trim(status)) in (" + status + ") and transtatus in (" + TranStatus + 
+                                ") and upper(trim(currencycode))='" + CurrencyCode.Trim().ToUpper() + "' ";
+                        else if (string.IsNullOrWhiteSpace(status))
+                            strQuery = "select ACCNO,Name,Customerid,status from " + strTabName + _dataLink + " where upper(trim(branchcode))='" + strBranchCode + "' " + 
+                                " and upper(trim(glcode))='" + strGLCode.Trim() + "' and upper(trim(currencycode))='" + CurrencyCode.Trim().ToUpper() + "' ";
+                        else
+                            strQuery = "select ACCNO,Name,Customerid,status from " + strTabName + _dataLink + " where upper(trim(branchcode))='" + strBranchCode + "' " + 
+                                " and upper(trim(glcode))='" + strGLCode.Trim() + "' and upper(trim(status)) in (" + status + ") and transtatus in (" + TranStatus + 
+                                ") and upper(trim(currencycode))='" + CurrencyCode.Trim().ToUpper() + "' ";
+
+                        if (!string.IsNullOrWhiteSpace(accSearch))
+                        {
+                            string[] searchby = accSearch.ToUpper().Split("|");
+                            if (searchby[0] == "NAME")
+                                strQuery = strQuery + "AND upper(NAME) LIKE '%" + searchby[1] + "%'";
+                            else
+                                strQuery = strQuery + "AND ACCNO LIKE '" + searchby[1] + "%'";
+                        }
+                    }
+                }
+                else
+                {
+                    if (string.IsNullOrWhiteSpace(status))
+                        strQuery = "select ACCNO,Name,CUSTOMERID,status from " + strTabName + _dataLink + " where upper(trim(branchcode))='" + strBranchCode + "' " + 
+                            " and upper(trim(status))='R' order by Name";
+                    else
+                        strQuery = "select ACCNO,Name,CUSTOMERID,status from " + strTabName + _dataLink + " where upper(trim(branchcode))='" + strBranchCode + "' " + 
+                                " and upper(trim(status)) in (" + status + ") and transtatus in (" + TranStatus + ") ";
+                }
+            }
+            else
+            {
+                strTabName = TableName;
+                if (string.IsNullOrWhiteSpace(status))
+                    strQuery = "select ACCNO,Name,Customerid from " + strTabName + _dataLink + " where upper(trim(branchcode))='" + strBranchCode + "' " + 
+                        " and upper(trim(glcode))='" + strGLCode.Trim() + "' and upper(trim(moduleid))='" + ModuleCode.Trim().ToUpper() + "' ";
+                else
+                    strQuery = "select ACCNO,Name,Customerid from " + strTabName + _dataLink + " where upper(trim(branchcode))='" + strBranchCode + "' " + 
+                        " and upper(trim(glcode))='" + strGLCode.Trim() + "' and upper(trim(status)) in ( " + status + ") and transtatus in (" + TranStatus + 
+                        ") and upper(trim(moduleid))='" + ModuleCode.Trim().ToUpper() + "' ";
+            }
+
+            if (!string.IsNullOrWhiteSpace(strRemType))
+                strQuery = strQuery + " and MODEOFREMITTANCE='" + strRemType + "'";
+
+            strQuery = strQuery + " order by Accno";
+
+            strQuery = strQuery.ToUpper();
+
+            return await ProcessQueryAsync(strQuery);
         }
 
         //public async Task<string> ModifyQueriedTrans(string TableName, string FldNames, string[] ArrValues, string wherecondition = "", string BranchCode = "",
@@ -794,6 +1002,412 @@ namespace Banking.Backend
             return GetMaxAccountNoRet;
         }
 
+        public async Task<DataTable> GLTransactionParameters(string ModuleCode, string GLcode, string TransactionDate, string CurrencyCode = "", string userBranchcode = "", 
+            string UserID = "", string machineid = "")
+        {
+            DataTable RsGLParam = null!, Rstemp = null!, RSModule = null!;
+
+            string strDelimiter = "~";
+            string strTabName = "", strQuery = "", strParamFlds = "", strParamVals = "";
+
+            string strModuleCode = ModuleCode.Trim().ToUpper();
+            string strGLCode = GLcode.Trim().ToUpper();
+            string TrannDate = string.Format("dd-Mmm-yyyy", TransactionDate);
+            string StrCurCode = CurrencyCode.Trim().ToUpper();
+
+            // Aquiring the parameter table name for the given module
+            strQuery = "select MasterTable,PMTTABLE from genmodulemst" + _dataLink + " where moduleid ='" + strModuleCode + "'";
+            strQuery = strQuery.ToUpper();
+
+            Rstemp = await ProcessQueryAsync(strQuery);
+
+            if (Rstemp.Rows.Count == 0 || (Rstemp.Rows.Count == 1 && Rstemp.Rows[0]["pmttable"] == DBNull.Value))
+                throw new Exception("Parameters Not Specified for this Module !");
+            else
+                strTabName = Conversions.ToString(Rstemp.Rows[0]["pmttable"]).Trim().ToUpper(); // Parameter table name retrieved
+
+            // Calling private function for Gl Parameters from the Moduleparameter table based on the effective date.
+
+            await ModuleParameterRecord(strTabName);
+
+            string[] skipColumns = { "BRANCHCODE","CURRENCYCODE","MODULEID","GLCODE","EFFECTIVEDATE","STATUS","APPLICATIONDATE","USERID","MACHINEID","VERIFIEDBY",
+                "VERIFIEDMACHINE","APPROVEDBY","APPROVEDMACHINE","SYSTEMDATE" };
+
+            DataRow row = RSModule.Rows.Count > 0 ? RSModule.Rows[0] : null!;
+
+            for (int i = 0; i < RSModule.Columns.Count; i++)
+            {
+                string colName = RSModule.Columns[i].ColumnName.ToUpper();
+                if (!skipColumns.Contains(colName))
+                {
+                    strParamFlds += RSModule.Columns[i].ColumnName + ",";
+                    if (row != null)
+                    {
+                        var val = row[i] == DBNull.Value ? "" : row[i].ToString();
+                        strParamVals += val + strDelimiter;
+                    }
+                    else
+                        strParamVals += "" + strDelimiter;
+                }
+            }
+
+            string strParamTabs = strTabName;
+
+            // Retrieving data from GENTRANTYPEMST parameter table
+            strQuery = "CASHDRYN, CASHCRYN, TRANSFERDRYN, TRANSFERCRYN, CLEARINGDRYN, CLEARINGCRYN";
+            string strCondition = " currencycode='" + StrCurCode + "'";
+
+            await ParameterRecord("GENTRANTYPEMST", strQuery, "GENTRANTYPEMSTHIST", strCondition, strModuleCode, strGLCode, 
+                StrCurCode, TrannDate, strParamVals, strParamFlds, strDelimiter);
+
+            // If ConnError<> "Connected" Then GoTo errhand
+
+            strParamFlds = strParamFlds.Substring(0, strParamFlds.Length - 1);
+            strParamVals = strParamVals.Substring(0, strParamVals.Length - 1);
+            strParamTabs = strParamTabs + ",GENTRANTYPEMST";
+
+            // If ConnError <> "Connected" Then GoTo errhand
+
+            strQuery = " select " + strParamFlds + " from " + strParamTabs + " where 1=2";
+
+            // Dummy recordset
+
+            await ProcessQueryAsync(strQuery);
+
+            // Entering the parameter data into the dummy recordset.
+            string[] arrParamFlds = strParamFlds.Split(",");
+            string[] arrParamVals = strParamVals.Split(strDelimiter);
+
+            DataRow newRow = RsGLParam.NewRow();
+
+            for (int i = 0; i < arrParamFlds.Length; i++)
+            {
+                string value = Conversions.ToString(arrParamVals[i]).Trim();
+                newRow[arrParamFlds[i]] = string.IsNullOrEmpty(value) ? DBNull.Value : value;
+            }
+
+            RsGLParam.Rows.Add(newRow);
+
+            return RsGLParam;
+
+            //    objErrlog.LogError "GeneralTranQueries", "GLTransactionParameters", Err.Number, Err.Description
+        }
+
+        public async Task<DataTable> FXTransactionParameters(string Branchcode, string ModuleCode, string GLcode, string TransactionDate, string FCurrencyCode = "",
+            string Accno = "", string CategoryCode = "", string userBranchcode = "", string UserID = "", string machineid = "")
+        {
+            DataTable RsGLParam = null!, Rstemp = null!, RSModule = null!;
+            string StrFxMinMAxTab = "", strFxMinMaxFlds, strFxNotinalCat;
+
+            string strTabName = "", strQuery = "", strParamFlds = "", strParamVals = "";
+
+            string strDelimiter = "~";
+
+            string StrModuleCode = ModuleCode.Trim().ToUpper();
+            string strGLCode = GLcode.Trim().ToUpper();
+            string TrannDate = string.Format("dd-Mmm-yyyy", TransactionDate);
+            string StrCurCode = FCurrencyCode.Trim().ToUpper();
+            string strBranchCode = Branchcode.Trim().ToUpper();
+            string strAccno = string.IsNullOrWhiteSpace(Accno) ? "" : Accno.Trim();
+            string CatCode = string.IsNullOrWhiteSpace(CategoryCode) ? "" : CategoryCode.Trim().ToUpper();
+
+            // Retrieving the account category code based on moduleid
+            if (strAccno != "")
+            {
+                strQuery = "Select CATEGORYCODE from " + StrModuleCode + "MST" + _dataLink + " where branchcode='" + strBranchCode + "' and accno='" + strAccno + 
+                    "' and glcode='" + strGLCode + "'";
+
+                Rstemp = await ProcessQueryAsync(strQuery);
+
+                CatCode = Conversions.ToString(Rstemp.Rows[0]["CategoryCode"]);
+            }
+
+            // Aquiring the parameter table name  for the given module.
+            strQuery = "select MasterTable,PMTTABLE from genmodulemst" + _dataLink + "  where moduleid ='" + StrModuleCode + "'";
+
+            strQuery = strQuery.ToUpper();
+
+            Rstemp = await ProcessQueryAsync(strQuery);
+
+            if (Rstemp.Rows.Count > 0)
+                strTabName = Conversions.ToString(Rstemp.Rows[0]["pmttable"]).Trim().ToUpper();
+
+            // Parameter table name retrieved, calling private function for Gl Parameters from the Moduleparameter table based on the effective date.
+
+            await ModuleParameterRecord(strTabName);
+
+            string[] skipColumns = { "BRANCHCODE","CURRENCYCODE","MODULEID","GLCODE","EFFECTIVEDATE","STATUS","APPLICATIONDATE","USERID","MACHINEID","VERIFIEDBY",
+                "VERIFIEDMACHINE","APPROVEDBY","APPROVEDMACHINE","TRANSTATUS", "SYSTEMDATE", "FCURRENCYCODE" };
+
+            DataRow row = RSModule.Rows.Count > 0 ? RSModule.Rows[0] : null!;
+
+            for (int i = 0; i < RSModule.Columns.Count; i++)
+            {
+                string colName = RSModule.Columns[i].ColumnName.ToUpper();
+                if (!skipColumns.Contains(colName))
+                {
+                    strParamFlds += RSModule.Columns[i].ColumnName + ",";
+                    if (row != null)
+                    {
+                        var val = row[i] == DBNull.Value ? "" : row[i].ToString();
+                        strParamVals += val + strDelimiter;
+                    }
+                    else
+                        strParamVals += "" + strDelimiter;
+                }
+            }
+
+            string strParamTabs = strTabName;
+
+            // Retrieving data from GENTRANTYPEMST parameter table
+            strQuery = "CASHDRYN, CASHCRYN, TRANSFERDRYN, TRANSFERCRYN, CLEARINGDRYN, CLEARINGCRYN";
+            string strCondition = " currencycode='" + StrCurCode + "'";
+
+            await ParameterRecord("GENTRANTYPEMST", strQuery, "GENTRANTYPEMSTHIST", strCondition);
+
+            strParamTabs = strParamTabs + ",GENTRANTYPEMST";
+
+            // Parameters for minmaxbalance based on forex moduleid
+            if (StrModuleCode == "FXDEP")
+                StrFxMinMAxTab = "FXDEPMINMAXDTLS";
+            else if (StrModuleCode == "FXLOAN")
+                StrFxMinMAxTab = "FXLOANMINMAXDTLS";
+
+            strQuery = "Select MINTERM, MINPERIOD, MAXTERM, MAXPERIOD, MINAMOUNT, MAXAMOUNT, TDSYN from " + StrFxMinMAxTab + " where glcode='" + strGLCode + "' and EFFECTIVEDATE = " +
+                "(select max(EFFECTIVEDATE) from " + StrFxMinMAxTab + " where glcode='" + strGLCode + "' and EFFECTIVEDATE<='" + TrannDate + "' and FCurrencycode='" + StrCurCode + 
+                "' and (categorycode='" + CatCode + "' or categorycode='99')) and (categorycode='" + CatCode + "'  or categorycode='99') and FCurrencycode='" + StrCurCode + "'";
+
+            Rstemp = await ProcessQueryAsync(strQuery);
+
+            // If no records at master table for that effective date then query history table
+            if (Rstemp.Rows.Count < 1)
+                strQuery = "Select MINTERM, MINPERIOD, MAXTERM, MAXPERIOD, MINAMOUNT, MAXAMOUNT ,TDSYN from " + StrFxMinMAxTab + "HIST where glcode='" + strGLCode + "' and EFFECTIVEDATE " +
+                    "= (select max(EFFECTIVEDATE) from " + StrFxMinMAxTab + " where glcode='" + strGLCode + "' and EFFECTIVEDATE<='" + TrannDate + "' and FCurrencycode='" + StrCurCode + 
+                    "' and (categorycode='" + CatCode + "' or categorycode='99')) and FCurrencycode='" + StrCurCode + "' and (categorycode='" + CatCode + "'  or categorycode='99')";
+
+            Rstemp = await ProcessQueryAsync(strQuery);
+
+            strParamTabs = strParamTabs + "," + StrFxMinMAxTab;
+
+            row = RSModule.Rows.Count > 0 ? RSModule.Rows[0] : null!;
+
+            for (int i = 0; i < Rstemp.Columns.Count; i++)
+            {
+                strParamFlds = strParamFlds + RSModule.Columns[i].ColumnName + ",";
+                if (Rstemp.Rows.Count > 0)
+                {
+                    var val = row[i] == DBNull.Value ? "" : row[i].ToString();
+                    strParamVals += val + strDelimiter;
+                }
+                else
+                    strParamVals = strParamVals + "" + strDelimiter;
+            }
+
+            if (StrModuleCode == "FXDEP")
+            {
+                strQuery = "Select PERCENTAGE from FXDEPPENALINTDTLS where glcode='" + strGLCode + "' and EFFECTIVEDATE= (select max(EFFECTIVEDATE) from FXDEPPENALINTDTLS where glcode='" + 
+                    strGLCode + "' and " + "EFFECTIVEDATE<='" + TrannDate + "' and FCurrencycode='" + StrCurCode + "' and (categorycode='" + CatCode + "' or categorycode='99')) and " +
+                    "(categorycode='" + CatCode + "' or categorycode='99') and FCurrencycode='" + StrCurCode + "'";
+
+                Rstemp = await ProcessQueryAsync(strQuery);
+
+                // If no records at master table for that effective date then query history table
+
+                if (Rstemp.Rows.Count < 1)
+                {
+                    strQuery = "Select PERCENTAGE from FXDEPPENALINTDTLSHIST where glcode='" + strGLCode + "' and EFFECTIVEDATE= (select max(EFFECTIVEDATE) from FXDEPPENALINTDTLSHIST " +
+                        "where glcode='" + strGLCode + "' and " + "EFFECTIVEDATE<='" + TrannDate + "' and FCurrencycode='" + StrCurCode + "' and (categorycode='" + CatCode + 
+                        "' or categorycode='99')) and FCurrencycode='" + StrCurCode + "' and (categorycode='" + CatCode + "' or categorycode='99')";
+
+                    Rstemp = await ProcessQueryAsync(strQuery);
+                }
+
+                strParamTabs = strParamTabs + ",FXDEPPENALINTDTLS";
+
+                row = RSModule.Rows.Count > 0 ? RSModule.Rows[0] : null!;
+
+                for (int i = 0; i < Rstemp.Columns.Count; i++)
+                {
+                    strParamFlds = strParamFlds + RSModule.Columns[i].ColumnName + ",";
+                    if (Rstemp.Rows.Count > 0)
+                    {
+                        var val = row[i] == DBNull.Value ? "" : row[i].ToString();
+                        strParamVals += val + strDelimiter;
+                    }
+                    else
+                        strParamVals = strParamVals + "" + strDelimiter;
+                }
+            }
+
+            strParamFlds = strParamFlds.Substring(0, strParamFlds.Length - 1);
+            strParamVals = strParamVals.Substring(0, strParamVals.Length - 1);
+
+            strQuery = " select " + strParamFlds + " from " + strParamTabs + " where 1=2";
+
+            await ProcessQueryAsync(strQuery);
+
+            // Entering the parameter data into the dummy recordset.
+            string[] arrParamFlds = strParamFlds.Split(",");
+            string[] arrParamVals = strParamVals.Split(strDelimiter);
+
+            DataRow newRow = RsGLParam.NewRow();
+
+            for (int i = 0; i < arrParamFlds.Length; i++)
+            {
+                string value = Conversions.ToString(arrParamVals[i]).Trim();
+                newRow[arrParamFlds[i]] = string.IsNullOrEmpty(value) ? DBNull.Value : value;
+            }
+
+            RsGLParam.Rows.Add(newRow);
+
+            return RsGLParam;
+
+            // errhand:
+            //    objErrlog.LogError "GeneralTranQueries", "FXTransactionParameters", Err.Number, Err.Description
+        }
+
+        public async Task<DataTable> AccNoTransactionParameters(string Branchcode, string ModuleCode, string GLcode, string TransactionDate, string CurrencyCode = "", string Accno = "", 
+            string CategoryCode = "", string ChqBookYN = "", string[] ModuleConditions = null!, string userBranchcode = "", string UserID = "", string machineid = "")
+        {
+            string[] arrModuleQuery;
+
+            string strDelimiter = "~";
+            string strQuery = "", strBrCatCode = "", strParamFlds = "", strParamVals = "", TDSYN = "";
+
+            string StrModuleCode = ModuleCode.Trim().ToUpper();
+            string strGLCode = GLcode.Trim().ToUpper();
+            string strBranchCode = Branchcode.Trim().ToUpper();
+            string strCurCode = CurrencyCode.Trim().ToUpper();
+            string strAccno = string.IsNullOrWhiteSpace(Accno) ? "" : Accno.Trim().ToUpper();
+            string CatCode = string.IsNullOrWhiteSpace(CategoryCode) ? "" : CategoryCode.Trim().ToUpper();
+            string ChqBkYN = string.IsNullOrWhiteSpace(ChqBookYN) ? "" : ChqBookYN.Trim().ToUpper();
+            string TrannDate = string.Format("dd-Mmm-yyyy", TransactionDate);
+            var arrModCond = ModuleConditions;
+
+            DataTable Rstemp = null!, RsAccParam = null!;
+
+            // Retrieving the account category code based on moduleid
+            if (!string.IsNullOrWhiteSpace(strAccno))
+            {
+                if (StrModuleCode == "SB" || StrModuleCode == "CA" || StrModuleCode == "DEP")
+                {
+                    strQuery = "Select CHEQUEBOOK, TDSYN, CATEGORYCODE from " + StrModuleCode + "MST" + _dataLink + " where branchcode='" + strBranchCode + "' and accno='" +
+                        strAccno + "' and glcode='" + strGLCode + "' and currencycode='" + strCurCode + "'";
+
+                    Rstemp = await ProcessQueryAsync(strQuery);
+
+                    if (Rstemp.Rows.Count > 0)
+                    {
+                        DataRow row = Rstemp.Rows[0];
+                        TDSYN = Convert.IsDBNull(row["TDSYN"]) ? "" : Conversions.ToString(row["TDSYN"]);
+                    }
+                }
+                else if (StrModuleCode == "LOAN")
+                {
+                    strQuery = "Select CHEQUEBOOK, CATEGORYCODE from " + StrModuleCode + "MST" + _dataLink + " where branchcode='" + strBranchCode + "' and accno='" + 
+                        strAccno + "' and glcode='" + strGLCode + "'";
+
+                    Rstemp = await ProcessQueryAsync(strQuery);
+
+                    TDSYN = "";
+                }
+
+                if (Rstemp.Rows.Count > 0)
+                {
+                    DataRow row = Rstemp.Rows[0];
+
+                    CatCode = Convert.IsDBNull(row["CategoryCode"]) ? "" : Conversions.ToString(row["CategoryCode"]);
+                    ChqBkYN = Convert.IsDBNull(row["CHEQUEBOOK"]) ? "" : Conversions.ToString(row["CHEQUEBOOK"]);
+                }
+            }
+
+            // Retrieving the branch category code
+            Rstemp = await ProcessQueryAsync("Select BRANCHCATCODE from GENBANKBRANCHMST where branchcode='" + strBranchCode + "'");
+
+            if (Rstemp.Rows.Count > 0)
+            {
+                DataRow row = Rstemp.Rows[0];
+                strBrCatCode = Convert.IsDBNull(row["BRANCHCATCODE"]) ? "" : Conversions.ToString(row["BRANCHCATCODE"]);
+            }
+
+            BankingExtensions.ReleaseMemory(Rstemp);
+
+            string strParamTabs = "";
+
+            if (strBrCatCode == "99")
+                strBrCatCode = "";
+
+            if (CatCode == "99")
+                CatCode = "";
+
+            // Retrieving data from GENMINMAXBALANCEMST parameter table
+            strQuery = "MINAMOUNT, MAXAMOUNT, MINPERIODYEARS, MINPERIODMON, MINPERIODDAYS, MAXPERIODYEARS, MAXPERIODMON, MAXPERIODDAYS,TDS,MULTIPLESOF";
+
+            string strCondition = " (CATEGORYCODE='" + CatCode + "' or CATEGORYCODE='99') and (BRANCHCATCODE='" + strBrCatCode + "' or BRANCHCATCODE='99') and currencycode='" + 
+                strCurCode + "'";
+
+            await ParameterRecord("GENMINMAXBALANCEMST", strQuery, "GENMINMAXBALANCEMSTHIST", strCondition);
+
+            strParamTabs = "GENMINMAXBALANCEMST,";
+
+            // Retrieving data from GENCHARGESMSTHIST parameter table
+            strQuery = "OUTRTNCHARGES, OUTRTNFREQ, OUTRTNCHARGEEXEMPT, OUTRTNGLCODE, INWRTNCHARGES, INWRTNFREQ, INWRTNCHARGESEXEMPT, INWRTNGLCODE, STOPPAYCHARGES, STOPPAYFREQ, " +
+                "STOPPAYCHARGESEXEMPT, STOPPAYGLCODE, ACCTCLOSCHARGES, ACCOUNTCLOSFREQ, ACCTCLOSCHARGESEXEMPT, ACCTCLOSGLCODE, MINTODCHARGES, MINTODFREQ, MINTODGLCODE, " +
+                "CHQISSUECHARGES, CHQISSUEFREQ, CHQISSUECHARGESEXEMPT, CHQISSUEGLCODE, STATEMENTCHARGES, STATEMENTCHRGFREQ, STATEMENTCHARGESEXEMPT, STATEMENTCHRGGLCODE, " +
+                "DUPSTATEMENTCHARGES, DUPSTATEMENTCHRGFREQ, DUPSTATEMENTCHARGESEXEMPT, DUPSTATEMENTGLCODE, CHARGESPERFOLIO, FOLIOCHARGESFREQ, ENTRIESPERFOLIO, FOLIOCHARGESGLCODE, " +
+                "EXEMPTEDFOLIOS, MINTODCHARGESEXEMPT, CHQVALIDPERIOD,OUTRTNCHARGEEXEMPTUNIT, INWRTNCHARGESEXEMPTUNIT, STOPPAYCHARGESEXEMPTUNIT, ACCTCLOSCHARGESEXEMPTUNIT, " +
+                "CHQISSUECHARGESEXEMPTUNIT, STATEMENTCHARGESEXEMPTUNIT, DUPSTATEMENTCHARGESEXEMPTUNIT, MINTODCHARGESEXEMPTUNIT, INWRTNFREQUNITS, OUTRTNFREQUNITS, STOPPAYFREQUNITS, " +
+                "ACCOUNTCLOSFREQUNITS, MINTODFREQUNITS, CHQISSUEFREQUNITS, STATEMENTCHRGFREQUNITS, DUPSTATEMENTCHRGFREQUNITS, FOLIOCHARGESFREQUNITS, OUTRTNINITIAL, " +
+                "OUTRTNINITIALUNITS, INWRTNINITIAL, INWRTNINITIALUNITS, STOPPAYINITIAL, STOPPAYINITIALUNITS, ACCOUNTCLOSINITIAL, ACCOUNTCLOSINITIALUNITS, MINTODINITIAL, " +
+                "MINTODINITIALUNITS, CHQISSUEINITIAL, CHQISSUEINITIALUNITS, STATEMENTINITIAL, STATEMENTINITIALUNITS, DUPSTATEMENTINITIAL, DUPSTATEMENTINITIALUNITS, FOLIOINITIAL, " +
+                "FOLIOINITIALUNITS, EXEMPTEDFOLIOSUNITS";
+
+            strCondition = " (CATEGORYCODE='" + CatCode + "' or CATEGORYCODE='99') and (BRANCHCATCODE='" + strBrCatCode + "' or BRANCHCATCODE='99') and currencycode='" + strCurCode + "'";
+
+            await ParameterRecord("GENCHARGESMST", strQuery, "GENCHARGESMSTHIST", strCondition);
+
+            strParamTabs = strParamTabs + "GENCHARGESMST";
+
+            // strParamFlds = Left(strParamFlds, Len(strParamFlds) - 1);
+
+            // If moduleid is deposits than extra parameters from DEPPENALINTDTLS
+            if (StrModuleCode == "DEP")
+            {
+                strCondition = " (CATEGORYCODE='" + CatCode + "' or CATEGORYCODE='99') and currencycode='" + strCurCode + "'";
+                await ParameterRecord("DEPPENALINTDTLS", "PNLINTPCNT", "DEPPENALINTDTLSHIST", strCondition);
+                strParamTabs = strParamTabs + ",DEPPENALINTDTLS";
+            }
+
+            // Fields for Dummy recordset
+            strParamFlds = strParamFlds.Substring(0, strParamFlds.Length - 1);
+            strParamVals = strParamVals.Substring(0, strParamVals.Length - 1);
+
+            // Query for Dummy recordset of GENMINMAXBALANCEMST and GENCHARGESMST
+            strQuery = " select " + strParamFlds + " from " + strParamTabs + " where 1=2";
+
+            RsAccParam = await ProcessQueryAsync(strQuery);
+
+            // Entering the parameter data into the dummy recordset.
+            string[] arrParamFlds = strParamFlds.Split(",");
+            string[] arrParamVals = strParamVals.Split(strDelimiter);
+
+            // Adding record to dummy recordset
+            DataRow newRow = RsAccParam.NewRow();
+
+            for (int i = 0; i < arrParamFlds.Length; i++)
+            {
+                string value = Conversions.ToString(arrParamVals[i]).Trim();
+                newRow[arrParamFlds[i]] = string.IsNullOrEmpty(value) ? DBNull.Value : value;
+            }
+
+            RsAccParam.Rows.Add(newRow);
+
+            return RsAccParam;
+
+            //errhand:
+            //objErrlog.LogError "GeneralTranQueries", "DBConnection", Err.Number, Err.Description
+        }
+
         //public Variant RecordsetCollection(string[] ArrRecRS)
         //{
         //    Variant RecordsetCollectionRet = default;
@@ -835,5 +1449,91 @@ namespace Banking.Backend
 
         //    return RecordsetCollectionRet;
         //}
+
+        private async Task ModuleParameterRecord(string ModulePMTtable, string ModuleMSTtable = "", string Condition = "", string strGLCode = "", string tranDate = "",
+            string strAccNo = "", string strBranchCode = "")
+        {
+            string CatCode = "";
+
+            // Selecting the Gl Parameters from the Moduleparameter table based on the effective date.
+
+            string strModPmtTab = ModulePMTtable;
+
+            string strQuery = " Select * from " + strModPmtTab + _dataLink + " where glcode='" + strGLCode + "' and EFFECTIVEDATE= (select max(EFFECTIVEDATE) from " + 
+                strModPmtTab + _dataLink + " where glcode='" + strGLCode + "' and " + "EFFECTIVEDATE<='" + tranDate + "' " + Condition + ") " + Condition;
+
+            DataTable RSModule = await ProcessQueryAsync(strQuery);
+
+            // Selecting parameters from  module typemsthist table
+            if (RSModule.Rows.Count < 1)
+                RSModule = null!;
+
+            strQuery = " Select * from " + strModPmtTab + "HIST" + _dataLink + " where glcode='" + strGLCode + "' and EFFECTIVEDATE= (select max(EFFECTIVEDATE) from " +
+                strModPmtTab + "HIST" + _dataLink + " where glcode='" + strGLCode + "' and " + "EFFECTIVEDATE<='" + tranDate + "' " + Condition + ") " + Condition;
+
+            RSModule = await ProcessQueryAsync(strQuery);
+
+            if (RSModule.Rows.Count < 1)
+                throw new Exception("Parameters not specified for this Component");
+
+            if (ModuleMSTtable.Trim() != "" && strAccNo.Trim() != "")
+            {
+                strQuery = "Select CATEGORYCODE from " + ModuleMSTtable.Trim() + _dataLink + " where branchcode='" + strBranchCode + "' and glcode='" + strGLCode +
+                    "' and Accno='" + strAccNo + "'";
+
+                DataTable Rstemp = await ProcessQueryAsync(strQuery);
+
+                if (Rstemp.Rows.Count == 1)
+                    CatCode = Conversions.ToString(Rstemp.Rows[0]["CategoryCode"]);
+                else
+                    throw new Exception(" Account Holder's Category not specified.");
+            }
+
+            //ModuleParameterRecord = ConnError
+
+            //    objErrlog.LogError "GeneralTranQueries", "ModuleParameterRecord", Err.Number, Err.Description
+        }
+
+        private async Task ParameterRecord(string PmtDtlsTabName, string PmtFields, string PmtDtlsHistTabName, string Condition, string strModuleCode = "",
+            string strGLCode = "", string strCurCode = "", string tranDate = "", string strParamVals = "", string strParamFlds = "", string strDelimiter = "")
+        {
+            string strQuery = "";
+
+            strQuery = " Select " + PmtFields + " from " + PmtDtlsTabName + _dataLink + " where moduleid='" + strModuleCode + "' and glcode='" + strGLCode + 
+                "' and status='R' and EFFECTIVEDATE<=(select max(EFFECTIVEDATE) from " + PmtDtlsTabName + _dataLink + " where moduleid='" + strModuleCode + "' and glcode='" + 
+                strGLCode + "' and " + Condition + " and status='R' and currencycode='" + strCurCode + "' and EFFECTIVEDATE<='" + tranDate + "') And " + Condition;
+
+            if (PmtDtlsTabName == "DEPPENALINTDTLS")
+                strQuery = strQuery + " order by CATEGORYCODE ";
+
+            DataTable Rstemp = await ProcessQueryAsync(strQuery);
+
+            // Selecting parameters from  module typemsthist table
+            if (Rstemp.Rows.Count < 1)
+                Rstemp = null!;
+
+            strQuery = " Select " + PmtFields + " from " + PmtDtlsHistTabName + _dataLink + " where moduleid='" + strModuleCode + "' and glcode='" + strGLCode + "' and " + 
+                Condition + " and EFFECTIVEDATE= (select max(EFFECTIVEDATE) from " + PmtDtlsHistTabName + _dataLink + " where moduleid='" + strModuleCode + "' and glcode='" + 
+                strGLCode + "' and " + Condition + " and status='R' and currencycode='" + strCurCode + "' and EFFECTIVEDATE<='" + tranDate + "')";
+
+            if (PmtDtlsHistTabName == "DEPPENALINTDTLSHIST")
+                strQuery = strQuery + " order by CATEGORYCODE ";
+
+            Rstemp = await ProcessQueryAsync(strQuery);
+
+            DataRow row = Rstemp.Rows.Count > 0 ? Rstemp.Rows[0] : null!;
+
+            for (int i = 0; i < Rstemp.Columns.Count; i++)
+            {
+                strParamFlds += Rstemp.Columns[i].ColumnName + ",";
+
+                if (row != null)
+                    strParamVals += row[i] == DBNull.Value ? "" : row[i].ToString() + strDelimiter;
+                else
+                    strParamVals += "" + strDelimiter;
+            }
+
+            //    objErrlog.LogError "GeneralTranQueries", "ParameterRecord", Err.Number, Err.Description
+        }
     }
 }

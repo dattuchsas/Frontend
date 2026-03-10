@@ -48,42 +48,47 @@ namespace Banking.Services
         {
             try 
             {
-                string sqlQuery = $"SELECT DISTINCT a.menutitle,a.narration,a.forms,a.gendir,a.mainmenu,a.menuorder,a.FORMSORDER FROM genmoduleidformsmst a WHERE " +
-                    "(a.formsid IN (SELECT formsid FROM gengroupformsmst WHERE groupcode='" + groupCode + "' AND a.moduleid='" + moduleId + "' AND status='R') OR " +
-                    "a.formsid IN (SELECT formsid FROM genuseridformsmst WHERE  userid='" + userId + "' AND  a.moduleid='" + moduleId + "' AND status='R' AND " +
-                    "addoreliminate='A')) AND a.formsid NOT IN( SELECT formsid FROM genuseridformsmst WHERE moduleid='" + moduleId + "' AND status='R' AND " +
-                    "addoreliminate='E' AND userid='" + userId + "') ORDER BY a.menuorder,a.FORMSORDER";
+                string sqlQuery = $"SELECT DISTINCT a.menutitle,a.narration,a.formsid,a.menuorder,a.FORMSORDER,a.controllername,a.actionname FROM " +
+                    "genmoduleidformsmst a WHERE (a.formsid IN (SELECT formsid FROM gengroupformsmst WHERE groupcode='" + groupCode + "' AND a.moduleid='" + moduleId + 
+                    "' AND status='R') OR a.formsid IN (SELECT formsid FROM genuseridformsmst WHERE  userid='" + userId + "' AND  a.moduleid='" + moduleId + 
+                    "' AND status='R' AND addoreliminate='A')) AND a.formsid NOT IN( SELECT formsid FROM genuseridformsmst WHERE moduleid='" + moduleId + 
+                    "' AND status='R' AND addoreliminate='E' AND userid='" + userId + "') ORDER BY a.menuorder,a.FORMSORDER";
 
                 DataTable dataTable = await _databaseFactory.ProcessQueryAsync(sqlQuery);
 
                 Dictionary<string, List<string>> userMenu = [];
 
+                List<MenuModel> menuModels = new List<MenuModel>();
                 foreach (DataRow row in dataTable.Rows)
                 {
-                    string category = Conversions.ToString(row[0]);
-                    string subcategory = Conversions.ToString(row[1]);
-
-                    if (!userMenu.ContainsKey(category))
-                    {
-                        userMenu[category] = new List<string>();
-                    }
-
-                    userMenu[category].Add(subcategory);
+                    MenuModel menuModel = new MenuModel();
+                    menuModel.Menu = Conversions.ToString(row.ItemArray[0]);
+                    menuModel.SubMenu = Conversions.ToString(row.ItemArray[1]);
+                    menuModel.FormId = Conversions.ToInt(row.ItemArray[2]);
+                    menuModel.MenuOrder = Conversions.ToInt(row.ItemArray[3]);
+                    menuModel.FormOrder = Conversions.ToInt(row.ItemArray[4]);
+                    menuModel.ControllerName = Conversions.ToString(row.ItemArray[5]);
+                    menuModel.ActionName = Conversions.ToString(row.ItemArray[6]);
+                    menuModels.Add(menuModel);
                 }
 
                 List<Menu> menus = [];
-                foreach (var item in userMenu.Keys)
+                List<string?> list = menuModels.Select(x => x.Menu).Distinct().ToList();
+
+                foreach (var item in list)
                 {
                     Menu menu = new()
                     {
                         Text = item,
                         SubMenu = []
                     };
-                    foreach (var innerItem in userMenu[item].ToList())
+                    foreach (MenuModel innerItem in menuModels.Where(x => x.Menu!.Equals(item)).ToList())
                     {
                         Menu subMenu = new()
                         {
-                            Text = innerItem
+                            Text = innerItem.SubMenu,
+                            ControllerName = innerItem.ControllerName,
+                            ActionName = innerItem.ActionName,
                         };
                         menu.SubMenu.Add(subMenu);
                     }

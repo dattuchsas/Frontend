@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace Banking.Services
 {
-    public class NameSearchService : INameSearchService
+    public class SearchService : ISearchService
     {
         private string? strNameArr1;
         private string? strAllNames;
@@ -18,7 +18,7 @@ namespace Banking.Services
 
         private readonly IDatabaseService _databaseFactory;
 
-        public NameSearchService(IOptions<DatabaseSettings> databaseSettings)
+        public SearchService(IOptions<DatabaseSettings> databaseSettings)
         {
             _databaseFactory = new DatabaseService(databaseSettings.Value);
         }

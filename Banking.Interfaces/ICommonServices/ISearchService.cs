@@ -1,6 +1,6 @@
 ﻿namespace Banking.Interfaces
 {
-    public interface INameSearchService
+    public interface ISearchService
     {
         Task<string> GetCustomerListByName(string customerName);
     }

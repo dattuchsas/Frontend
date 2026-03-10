@@ -13,7 +13,7 @@
             $('#errorModal').modal('show');
         }
         $(".moduleClass").on('click', function () {
-            window.location.href= '@Url.Action("SelectedModule", "Dashboard")' + '?moduleId=' + $(this).attr('id');
+            window.location.href= '@Url.Action("Index", "Common")' + '?moduleId=' + $(this).attr('id');
         });
     });
 </script>

@@ -414,7 +414,7 @@ namespace Banking.Services
                             string precision = Conversions.ToString(rs1.Rows[0].ItemArray[2]);
                             session.SetString(SessionConstants.CurrencyCode, Conversions.ToString(rs1.Rows[0].ItemArray[0]));
                             session.SetString(SessionConstants.CurrencyNarration, Conversions.ToString(rs1.Rows[0].ItemArray[1]));
-                            session.SetInt32("PRECISION", precision.Length - 1);
+                            session.SetInt32(SessionConstants.Precision, precision.Length - 1);
 
                             // Cheque Validity Period
                             session.SetString(SessionConstants.ChequeValidPeriod, !string.IsNullOrWhiteSpace(Conversions.ToString(rs1.Rows[0].ItemArray[3])) ? Conversions.ToString(rs1.Rows[0].ItemArray[3]) : "");

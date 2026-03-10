@@ -54,7 +54,7 @@ var noOfDaysBDT = '<%=noOfDays%>'
 
 
 
-//This function was written to send values to list form for Branch details display, and used to store already selected brach code and description for later use. 
+//This function was written to send values to list form for Branch de[tails display, and used to store already selected brach code and description for later use. 
 function Tellerbranch() {
   brCode = window.document.frmTrans.txtbranchcode.value.toUpperCase()
   brDesc = window.document.frmTrans.txtbranchdesc.value
@@ -92,109 +92,24 @@ function modeChng(bdt) {
 }
 
 // This function is used to populate different service IDs and descriptions.
-function ServiceId() {
-  var DbCr
-  var modId
 
-  document.getElementById("divPhSign").style.display = 'none'
-  window.document.all['divPayeeDtls'].style.display = "none"
-
-  if (((vMode == "REC") || (vMode == "PAY")) && (window.document.frmTrans.Mfgpaydt.Rows > 1) && (mode != "MODIFY")) {
-
-    alert("Only one Cash Transaction allowed at a time." + "\n" +
-      "Post already entered data.")
-    return;
-  }
-
-  if (window.document.frmTrans.tranmode(0).checked == true) {
-    DbCr = "Dbt"
-  }
-  else if (window.document.frmTrans.tranmode(1).checked == true) {
-    DbCr = "Cdt"
-  }
-  else if (window.document.frmTrans.tranmode(2).checked == true) {
-    // Checking for clearingtype - selected or not 
-    if ((window.document.frmTrans.cmdcleartype.value == "Select") ||
-      (window.document.frmTrans.cmdcleartype.value == "")) {
-      alert("Select ClearingType")
-      return;
-    }
-    DbCr = "Clg"
-  }
-  modId = window.document.frmTrans.txtModId.value.toUpperCase()
-
-  st = "Service|" + DbCr + "|" + modId
-  // window.showModalDialog("/GEN/TranList.aspx" + "?" + "st=" + st)
-}
 
 // Making visible true or false based on service id selected.
-function ServiceCode(kstr) {
-  var strSer
-  strSer = kstr.split("-----")
-  window.document.frmTrans.txtServiceId.value = strSer[1]
-  window.document.frmTrans.txtServiceName.value = strSer[0]
-  ServiceIdDivs()
-}
+//function ServiceCode(kstr) {
+//  var strSer
+//  strSer = kstr.split("-----")
+//  window.document.frmTrans.txtServiceId.value = strSer[1]
+//  window.document.frmTrans.txtServiceName.value = strSer[0]
+//  ServiceIdDivs()
+//}
 
 // This function was written to send parameters values to List form to get various modules and it displays modules only when Mfgpaydt(flexgrid) rows <2 or if the mode is MODIFY.
-function Tellermodule() {
-  var bdt = $("#Hidden_BDT").val();
-  var selectedModule = $("#SelectedModule").val();
-  var transMode = $("#TransactionMode").val();
-
-  if (bdt.toUpperCase() == "TRUE")
-    return;
-
-  if ((selectedModule == 'CLG') && (transMode == 'Clearing')) {
-    if ((window.document.frmTrans.cmdcleartype.value == "Select") || (window.document.frmTrans.cmdcleartype.value == "")) {
-      bankingAlert("Please select Clearing Type.")
-      window.document.frmTrans.cmdcleartype.focus()
-      return;
-    }
-  }
-
-  if (((vMode == "REC") || (vMode == "PAY")) && (window.document.frmTrans.Mfgpaydt.Rows > 1) && (mode != "MODIFY")) {
-    bankingAlert("Only one Cash Transaction allowed at a time." + "\n" + "Post already entered data.")
-    return;
-  }
-
-  if ((window.document.frmTrans.txtbranchcode.value == "") || (window.document.frmTrans.txtcurrencycode.value == "")) {
-    return;
-  }
-
-  if (eval(window.document.frmTrans.txtServiceId.value) == "2") {
-    stmod = "TellermoduleID";
-    stbr = window.document.frmTrans.txtbranchcode.value.toUpperCase()
-    var strServiceId = window.document.frmTrans.txtServiceId.value
-    kstr = stmod + "|" + stbr + "|" + strServiceId
-
-    if (window.document.frmTrans.tranmode[2].checked == false) {
-      window.document.frmTrans.chkCheque.checked = false
-    }
-    window.showModalDialog('<%="http://" & session("moduledir")& "/DEPOSITS/"%>' + "List.aspx" + "?" + "st=" + kstr)
-  }
-  else {
-    stmod = "Tellermodule";
-    stbr = window.document.frmTrans.txtbranchcode.value.toUpperCase()
-    kstr = stmod + "|" + stbr
-    if (window.document.frmTrans.tranmode[2].checked == false) {
-      window.document.frmTrans.chkCheque.checked = false
-    }
-    window.showModalDialog('<%="http://" & session("moduledir")& "/GEN/"%>' + "TranList.aspx" + "?" + "st=" + kstr)
-  }
-}
 
 
 
 
 
-function cashGlCode() {
-  var kstr = "";
-  if (window.document.frmTrans.txtbranchcode.value.length > 0) {
-    strpm = "CASHGL" + "~" + window.document.frmTrans.txtbranchcode.value
-    // window.document.all['iCommon'].src = '<%="http://" & session("moduledir")& "/GEN/"%>' + "minBalChk.aspx?strparam=" + strpm
-  }
-}
+
 
 function RecPayLmt() {
   var kstr = "";
@@ -298,20 +213,20 @@ function hdnFldClear() {
 }
 
 //function is used to clear deposits div fields
-function Depdivclear() {
-  window.document.frmTrans.txtDOpAmt.value = ""
-  window.document.frmTrans.txtDCurrAmt.value = ""
-  window.document.frmTrans.txtDMatAmt.value = ""
-  window.document.frmTrans.txtDCustId.value = ""
-  window.document.frmTrans.txtDOpDate.value = ""
-  window.document.frmTrans.txtDEffDt.value = ""
-  window.document.frmTrans.txtDMatDt.value = ""
-  window.document.frmTrans.txtDOpBy.value = ""
-  window.document.frmTrans.txtDROI.value = ""
-  window.document.frmTrans.txtDOpInstr.value = ""
-  window.document.frmTrans.txtDIntAcc.value = ""
-  window.document.frmTrans.txtDPaidupto.value = ""
-}
+//function Depdivclear() {
+//  window.document.frmTrans.txtDOpAmt.value = ""
+//  window.document.frmTrans.txtDCurrAmt.value = ""
+//  window.document.frmTrans.txtDMatAmt.value = ""
+//  window.document.frmTrans.txtDCustId.value = ""
+//  window.document.frmTrans.txtDOpDate.value = ""
+//  window.document.frmTrans.txtDEffDt.value = ""
+//  window.document.frmTrans.txtDMatDt.value = ""
+//  window.document.frmTrans.txtDOpBy.value = ""
+//  window.document.frmTrans.txtDROI.value = ""
+//  window.document.frmTrans.txtDOpInstr.value = ""
+//  window.document.frmTrans.txtDIntAcc.value = ""
+//  window.document.frmTrans.txtDPaidupto.value = ""
+//}
 
 
 //----------------------------------------------------------------------------------
@@ -644,43 +559,6 @@ function LnkModuleCode(kstr) {
   LnkGLClear()
 }
 //----------------------------------------------------------------------------------
-//This function is used to send parameters to List form to display various Glcodes avialabe
-//It displays Glcodes based on branchcode and module id.  
-function Glcode() {
-
-  if (window.document.frmTrans.txtbranchcode.value == "") {
-    alert("Please select Branchcode.")
-    window.document.frmTrans.txtbranchcode.focus()
-    return;
-  }
-  if (window.document.frmTrans.txtModId.value == "") {
-    alert("Please select Module Id.")
-    window.document.frmTrans.txtModId.focus()
-    return;
-  }
-
-  document.getElementById("divPhSign").style.display = 'none';
-  /*telgl="Tellerglcode";
-  brcode=window.document.frmTrans.txtbranchcode.value.toUpperCase();
-  modid=window.document.frmTrans.txtModId.value.toUpperCase();
-  kstr=telgl+"|"+brcode+"|"+modid
-  if(modid!="")
-  {
-    window.showModalDialog('<%="http://" & session("moduledir")& "/GEN/"%>'+"TranList.aspx" + "?"+"st="+kstr,window,"status:no;"+
- "DialogWidth:470px;DialogHeight:170px;DialogLeft:200px;DialogTop:200px")
-  } */
-
-  telgl = "TellGlaccno"
-  brcode = window.document.frmTrans.txtbranchcode.value.toUpperCase();
-  modid = window.document.frmTrans.txtModId.value.toUpperCase();
-  kstr = telgl + "|" + modid + "|" + brcode
-
-  if (modid != "") {
-    window.showModalDialog("../gensbca/ListGlQuery.aspx?st=" + kstr, window, "status:no;" +
-      "DialogWidth:500px;DialogHeight:200px;DialogLeft:190px;DialogTop:200px")
-
-  }
-}
 //----------------------------------------------------------------------------------
 //This function is used to send parameters to List form to display various Glcodes avialabe
 //It displays Glcodes based on branchcode and module id.  
@@ -706,52 +584,52 @@ function lnkGlcodeid(kstr) {
 
 
 //----------------------------------------------------------------------------------
-function ServiceIdDivs() {
-  //for clearing outward returns
-  //alert("hi")
-  window.document.frmTrans.cmdModId.disabled = false
-  byBranch.innerHTML = "Issued by Branch"
-  byBank.innerHTML = "Issued by Bank"
+//function ServiceIdDivs() {
+//  //for clearing outward returns
+//  //alert("hi")
+//  window.document.frmTrans.cmdModId.disabled = false
+//  byBranch.innerHTML = "Issued by Branch"
+//  byBank.innerHTML = "Issued by Bank"
 
-  if (eval(window.document.frmTrans.txtServiceId.value) == "8") {
-    CLGClearDiv()
-    paramAcc()
-  }
-  else if (eval(window.document.frmTrans.txtServiceId.value) == "9") {
+//  if (eval(window.document.frmTrans.txtServiceId.value) == "8") {
+//    CLGClearDiv()
+//    paramAcc()
+//  }
+//  else if (eval(window.document.frmTrans.txtServiceId.value) == "9") {
 
-    window.document.frmTrans.cmdModId.disabled = true
-    window.document.frmTrans.txtModId.value = "REM"
-    //if(window.document.frmTrans.tranmode(0).checked==true)
-    cntrlOnblur('txtModId')
-    divsDisplay("remdr", "M")
-    window.document.all.divaccno.style.display = "none"
-    byBranch.innerHTML = "Issued on Branch"
-    byBank.innerHTML = "Issued on Bank"
-    window.document.frmTrans.Mfgpaydt.FormatString = ">Batch No     |>Tran No     |<GL Code       |<GL Description                       |>Acc No             |<Name                               |>Amount                     |>Entered Time Bal    |^Application Date   |<Cust ID                      |<Mode of Tran |<Mode of Tran Desc   |^ABB Application Date|<Tran Status  |>Currency Code   |<Entered By                    |<Entered M/C                  |<Module ID         |<Branch Code            |>Token No         |<Remarks                                  |<Cheque Series   |>Cheque No                 |^Cheque Date         |<Cheque Favouring              |<Sys Gen YN |<Module Description      |^ Effective Date        |<CLG Rate Type                |>Rate                   |<F Currency Code |>F Amount                   |<Link Module ID       |<Link Module Desc         |<Link GL Code   |<Link GL Desc            |>Link Account Type |>Link Account No |<Link Acc Name                   |>Service ID |<Service Desc  |<Resp Branch Code |<Resp Branch Desc          |<Resp Section Code |<Resp Section Desc        |<ABB Branch Code          |<Branch Desc                    |>Disposal Batch No |>Disposal Tran No  |<Acc Chk YN|Exception YN|Exception Codes|>Resp Bank Code|<Resp Bank Desc|<SI YN|>Counter No.|<Cashier Id               |>Scroll No.      |<Rate Ref Code     |<Rate Ref Desc     |>Issued by Branch Code |< Issued by Branch Desc|< Favouring        |>Instrument No    |>Advice Recceived|>Advice No.   |^Advice Rec Date|^Instrument Date|<Instrument Type|<Native Y/N"
-
-
-    // RemCanc for DD and BC		
-    var st = "REMCANCCHARGES"
-    window.document.all['iGetDtls'].src = "../GEN/getDtls.aspx?st=" + st
+//    window.document.frmTrans.cmdModId.disabled = true
+//    window.document.frmTrans.txtModId.value = "REM"
+//    //if(window.document.frmTrans.tranmode(0).checked==true)
+//    cntrlOnblur('txtModId')
+//    divsDisplay("remdr", "M")
+//    window.document.all.divaccno.style.display = "none"
+//    byBranch.innerHTML = "Issued on Branch"
+//    byBank.innerHTML = "Issued on Bank"
+//    window.document.frmTrans.Mfgpaydt.FormatString = ">Batch No     |>Tran No     |<GL Code       |<GL Description                       |>Acc No             |<Name                               |>Amount                     |>Entered Time Bal    |^Application Date   |<Cust ID                      |<Mode of Tran |<Mode of Tran Desc   |^ABB Application Date|<Tran Status  |>Currency Code   |<Entered By                    |<Entered M/C                  |<Module ID         |<Branch Code            |>Token No         |<Remarks                                  |<Cheque Series   |>Cheque No                 |^Cheque Date         |<Cheque Favouring              |<Sys Gen YN |<Module Description      |^ Effective Date        |<CLG Rate Type                |>Rate                   |<F Currency Code |>F Amount                   |<Link Module ID       |<Link Module Desc         |<Link GL Code   |<Link GL Desc            |>Link Account Type |>Link Account No |<Link Acc Name                   |>Service ID |<Service Desc  |<Resp Branch Code |<Resp Branch Desc          |<Resp Section Code |<Resp Section Desc        |<ABB Branch Code          |<Branch Desc                    |>Disposal Batch No |>Disposal Tran No  |<Acc Chk YN|Exception YN|Exception Codes|>Resp Bank Code|<Resp Bank Desc|<SI YN|>Counter No.|<Cashier Id               |>Scroll No.      |<Rate Ref Code     |<Rate Ref Desc     |>Issued by Branch Code |< Issued by Branch Desc|< Favouring        |>Instrument No    |>Advice Recceived|>Advice No.   |^Advice Rec Date|^Instrument Date|<Instrument Type|<Native Y/N"
 
 
-  }
-  else if (eval(window.document.frmTrans.txtServiceId.value) != "2" &&
-    window.document.frmTrans.txtModId.value != "SCR") {
-    window.document.all.divaccno.style.display = "block"
-    window.document.all['divAppName'].style.display = "none";
-    window.document.all['divAccCat'].style.display = "none"
-
-  }
-  else if (eval(window.document.frmTrans.txtServiceId.value) == "2") {
-    window.document.all['divaccno'].style.display = "none";
-    window.document.all['divAppName'].style.display = "block";
-    window.document.all['divAccCat'].style.display = "block"
-    Depdivclear()
-  }
+//    // RemCanc for DD and BC		
+//    var st = "REMCANCCHARGES"
+//    window.document.all['iGetDtls'].src = "../GEN/getDtls.aspx?st=" + st
 
 
-}
+//  }
+//  else if (eval(window.document.frmTrans.txtServiceId.value) != "2" &&
+//    window.document.frmTrans.txtModId.value != "SCR") {
+//    window.document.all.divaccno.style.display = "block"
+//    window.document.all['divAppName'].style.display = "none";
+//    window.document.all['divAccCat'].style.display = "none"
+
+//  }
+//  else if (eval(window.document.frmTrans.txtServiceId.value) == "2") {
+//    window.document.all['divaccno'].style.display = "none";
+//    window.document.all['divAppName'].style.display = "block";
+//    window.document.all['divAccCat'].style.display = "block"
+//    Depdivclear()
+//  }
+
+
+//}
 
 function round(number, precision) {
   var pair = (number + 'e').split('e')
@@ -832,92 +710,43 @@ function getRemCancGST() {
 
 }
 
+////----------------------------------------------------------------------------------
+////---------------------------------suspense start-------------------------------
+////This function is used to populate different category codes and descriptions for
+////suspense and sundry.
+//function SuspenseDtls() {
+
+//  var Modid, GlCd, prec, catdtls, kstr, Accno, strDisp, scrAmt
+//  ModId = window.document.frmTrans.txtModId.value.toUpperCase();
+//  GlCd = window.document.frmTrans.txtGLcode.value.toUpperCase();
+//  Brcode = window.document.frmTrans.txtbranchcode.value.toUpperCase()
+//  Curr = window.document.frmTrans.txtcurrencycode.value.toUpperCase()
+//  Accno = window.document.frmTrans.txtAccNo.value.toUpperCase();
+//  scrgridYN = ""
+//  prec = window.document.frmTrans.hpr.value
+//  //alert("vMode=" + vMode + ", Modid=" + ModId)
+//  if ((vMode == "TRANS") || (vMode == "PAY")) {
+//    if ((ModId == "SCR") && (GlCd != "") && (Brcode != "")) {
+
+//      kstr = "SUSPENCE"
+//      catdtls = kstr + "~!~" + ModId + "~!~" + GlCd + "~!~" + Brcode
+//      //alert("catdtls=" + catdtls)
+//      window.document.all['iDisp'].src = '<%="http://" & session("moduledir")& "/GEN/"%>' + "querydisplay.aspx?st=" + catdtls
+//    }
+
+//  }
+//  else if (vMode == "REC") {
+//    kstr = "SUSPENCE"
+//    catdtls = kstr + "~!~" + ModId + "~!~" + GlCd + "~!~" + Brcode
+//    //alert("catdtls=" + catdtls)
+//    window.document.all['iDisp'].src = '<%="http://" & session("moduledir")& "/GEN/"%>' + "querydisplay.aspx?st=" + catdtls
+
+
+//  }
+
+//}
 //----------------------------------------------------------------------------------
-//---------------------------------suspense start-------------------------------
-//This function is used to populate different category codes and descriptions for
-//suspense and sundry.
-function SuspenseDtls() {
 
-  var Modid, GlCd, prec, catdtls, kstr, Accno, strDisp, scrAmt
-  ModId = window.document.frmTrans.txtModId.value.toUpperCase();
-  GlCd = window.document.frmTrans.txtGLcode.value.toUpperCase();
-  Brcode = window.document.frmTrans.txtbranchcode.value.toUpperCase()
-  Curr = window.document.frmTrans.txtcurrencycode.value.toUpperCase()
-  Accno = window.document.frmTrans.txtAccNo.value.toUpperCase();
-  scrgridYN = ""
-  prec = window.document.frmTrans.hpr.value
-  //alert("vMode=" + vMode + ", Modid=" + ModId)
-  if ((vMode == "TRANS") || (vMode == "PAY")) {
-    if ((ModId == "SCR") && (GlCd != "") && (Brcode != "")) {
-
-      kstr = "SUSPENCE"
-      catdtls = kstr + "~!~" + ModId + "~!~" + GlCd + "~!~" + Brcode
-      //alert("catdtls=" + catdtls)
-      window.document.all['iDisp'].src = '<%="http://" & session("moduledir")& "/GEN/"%>' + "querydisplay.aspx?st=" + catdtls
-    }
-
-  }
-  else if (vMode == "REC") {
-    kstr = "SUSPENCE"
-    catdtls = kstr + "~!~" + ModId + "~!~" + GlCd + "~!~" + Brcode
-    //alert("catdtls=" + catdtls)
-    window.document.all['iDisp'].src = '<%="http://" & session("moduledir")& "/GEN/"%>' + "querydisplay.aspx?st=" + catdtls
-
-
-  }
-
-}
-//----------------------------------------------------------------------------------
-//This function is used to show forms based on conditions
-function suspencereturn(kstr) {
-  //alert("kstr="+kstr)
-  var catdtls, Brcode, GlCd, Curr, Accno
-  var scrAmt = 0
-  var prec = window.document.frmTrans.hpr.value
-  var strDisp = ""
-
-  Brcode = window.document.frmTrans.txtbranchcode.value.toUpperCase();
-  GlCd = window.document.frmTrans.txtGLcode.value.toUpperCase();
-  Curr = window.document.frmTrans.txtcurrencycode.value.toUpperCase();
-  Accno = window.document.frmTrans.txtAccNo.value.toUpperCase();
-  scrstr = kstr
-  window.document.frmTrans.hidscr.value = ""
-
-  TranMode()
-
-  if (ModId == "SCR") {
-    if (window.document.frmTrans.chkDispAccNo.checked == true) {
-      var strDisp = "Disposals"
-      scrAmt = window.document.frmTrans.txtAmt.value
-    }
-    else {
-      var strDisp = ""
-      scrAmt = ""
-    }
-
-    //if((kstr=="DR") && (trnMode=="4"))
-    if (((kstr == "DR") && (trnMode == "4")) ||
-      ((kstr == "DR") && (trnMode == "2"))) {
-      catdtls = GlCd + "~!~" + prec + "~!~" + Brcode + "~!~" + Curr + "~!~" + Accno + "~!~" + strDisp + "~!~" + scrAmt
-      scrgridYN = "YES"
-      window.showModalDialog('<%="http://" & session("moduledir")& "/GEN/"%>' +
-        "scrflex.aspx" + "?" + "catdtls=" + catdtls, window, "status:no;DialogWidth:745px;DialogHeight:210px;DialogLeft:60px;DialogTop:150px")
-      return;
-    }
-    else if (((kstr == "CR") && (trnMode == "3")) ||
-      ((kstr == "CR") && (trnMode == "1"))) {
-
-      catdtls = GlCd + "~!~" + prec + "~!~" + Brcode + "~!~" + Curr + "~!~" + Accno + "~!~" + strDisp + "~!~" + scrAmt
-      //// This is not a fly page.. It is a window
-      scrgridYN = "YES"
-      //alert("scrflexcatdtls=" + catdtls)
-      window.showModalDialog('<%="http://" & session("moduledir")& "/GEN/"%>' +
-        "scrflex.aspx" + "?" + "catdtls=" + catdtls, window, "status:no;DialogWidth:745px;DialogHeight:210px;DialogLeft:60px;DialogTop:150px")
-      return;
-    }
-
-  }
-}
 //----------------------------------------------------------------------------------
 //This function is used to store category details
 function categorycode(kstr) {
@@ -1038,14 +867,12 @@ function cashdrcrcheck() {
     }
   }
 }
-//------- Cash Debit Cash Credit ---------------------
+////------- Cash Debit Cash Credit ---------------------
+//function CatCode() {
+//  kstr = "catcode"
+//  window.showModalDialog('<%="http://" & session("moduledir")& "/GEN/"%>' + "TranList.aspx?st=" + kstr)
+//}
 
-function CatCode() {
-  kstr = "catcode"
-  window.showModalDialog('<%="http://" & session("moduledir")& "/GEN/"%>' + "TranList.aspx" + "?" + "st=" + kstr, window, "status:no;" +
-    "DialogWidth:270px;DialogHeight:170px;DialogLeft:90px;DialogTop:120px")
-
-}
 //-------------------------------------------------------------------------------------
 function CatCodeRtn(results) {
   var result = results.split("-----")
@@ -1057,47 +884,47 @@ function CatCodeRtn(results) {
 //-------------------------------------------------------------------------------------
 //function is used to populate account no name in list based on module id,glcode
 //and makes visible true or flase of different divs based on conditions
-function AccCode() {
-  //alert("AccCode()")
-  window.document.all['divunits'].style.display = "none"
-  window.document.frmTrans.txtUnits.value = ""
+//function AccCode() {
+//  //alert("AccCode()")
+//  window.document.all['divunits'].style.display = "none"
+//  window.document.frmTrans.txtUnits.value = ""
 
-  if (window.document.frmTrans.chkDispAccNo.checked == false) {
+//  if (window.document.frmTrans.chkDispAccNo.checked == false) {
 
-    if ((window.document.frmTrans.txtServiceId.value == "3") ||
-      (window.document.frmTrans.txtServiceId.value == "4")) {
-      if (window.document.frmTrans.Mfgpaydt.Rows > 1) {
-        alert("Post or Cancel already entered data...")
-        return
-      }
-      if ((window.document.frmTrans.txtModId.value.toUpperCase() == "SB") || (window.document.frmTrans.txtModId.value.toUpperCase() == "CA")) {
-        stacc = "Telleraccno";
-      }
-      else {
-        stacc = "DepRenCloseAccno";
-      }
-    }
-    else {
-      stacc = "Telleraccno";
-    }
-  }
-  else {
-    stacc = "DispAccNo"
-  }
+//    if ((window.document.frmTrans.txtServiceId.value == "3") ||
+//      (window.document.frmTrans.txtServiceId.value == "4")) {
+//      if (window.document.frmTrans.Mfgpaydt.Rows > 1) {
+//        alert("Post or Cancel already entered data...")
+//        return
+//      }
+//      if ((window.document.frmTrans.txtModId.value.toUpperCase() == "SB") || (window.document.frmTrans.txtModId.value.toUpperCase() == "CA")) {
+//        stacc = "Telleraccno";
+//      }
+//      else {
+//        stacc = "DepRenCloseAccno";
+//      }
+//    }
+//    else {
+//      stacc = "Telleraccno";
+//    }
+//  }
+//  else {
+//    stacc = "DispAccNo"
+//  }
 
 
-  brchCd = window.document.frmTrans.txtbranchcode.value.toUpperCase();
-  ModId = window.document.frmTrans.txtModId.value.toUpperCase();
-  GlCd = window.document.frmTrans.txtGLcode.value.toUpperCase();
-  crCd = window.document.frmTrans.txtcurrencycode.value.toUpperCase();
-  serId = window.document.frmTrans.txtServiceId.value
-  kstr = stacc + "|" + brchCd + "|" + ModId + "|" + GlCd + "|" + crCd + "|" + serId
-  //alert(kstr)
-  if ((brchCd.length > 0) && (GlCd.length > 0) && (ModId.length > 0) && (crCd.length > 0))
-    window.showModalDialog('<%="http://" & session("moduledir")& "/GEN/"%>' + "TranList.aspx" + "?" + "st=" + kstr, window, "status:no;" +
-      "DialogWidth:470px;DialogHeight:200px;DialogLeft:140px;DialogTop:120px")
+//  brchCd = window.document.frmTrans.txtbranchcode.value.toUpperCase();
+//  ModId = window.document.frmTrans.txtModId.value.toUpperCase();
+//  GlCd = window.document.frmTrans.txtGLcode.value.toUpperCase();
+//  crCd = window.document.frmTrans.txtcurrencycode.value.toUpperCase();
+//  serId = window.document.frmTrans.txtServiceId.value
+//  kstr = stacc + "|" + brchCd + "|" + ModId + "|" + GlCd + "|" + crCd + "|" + serId
+//  //alert(kstr)
+//  if ((brchCd.length > 0) && (GlCd.length > 0) && (ModId.length > 0) && (crCd.length > 0))
+//    window.showModalDialog('<%="http://" & session("moduledir")& "/GEN/"%>' + "TranList.aspx" + "?" + "st=" + kstr, window, "status:no;" +
+//      "DialogWidth:470px;DialogHeight:200px;DialogLeft:140px;DialogTop:120px")
 
-}
+//}
 //--------------------------------------------------------------------
 //This function is used to populate account numbers and names based on module id, glcode.
 function lnkAccCode() {
@@ -2452,31 +2279,27 @@ function divsDisplay(visibleDiv, MainOrAddtional) {
   }
 
 }
+
 //----------------------------------------------------------------------------------
 function divsstring() {
   strDivs = "trnsfer" + "~" + "divDepDtls" + "~" + "selloantrans" + "~" + "loanintdtls" + "~" +
     "divLnkMod" + "~" + "loandtls" + "~" + "remdr" + "~" + "remcr" + "~" + "divCLG" + "~" +
     "divAccCat" + "~" + "divDenom"
-
 }
+
 //----------------------------------------------------------------------------------
 function divsstringAdd() {
   strDivs = "divTempTrans" + "~" + "divDisp" + "~" + "divFxRate"
 }
+
 //----------------------------------------------------------------------------------
 function DenomDtls() {
-  /*if(CashDenom=='N')
-  {   window.document.frmTrans.chkDenomDtls.checked=false; 
-    return; 
-  }*/
-
   if (vMode == "REC") {
     if (window.document.frmTrans.chkDenomDtls.checked == true) {
       divsDisplay('divDenom', 'M')
       window.document.all.divTempTrans.style.display = "none"
       window.document.all.divDisp.style.display = "none"
       window.document.all.divFxRate.style.display = "none"
-
     }
     else if (window.document.frmTrans.txtModId.value.toUpperCase() == "REM") {
       divsDisplay('remcr', 'M')
@@ -2507,11 +2330,8 @@ function DenomDtls() {
       else {
         window.document.all['divDenom'].style.display = "none";
       }
-
     }
   }
-
-
 }
 
 function ClearTranFields() {
@@ -3774,39 +3594,39 @@ function CLGChqValid(Clearcheque) {
 
 }
 
-// account details
-function AccDetails() {
-  var strData
+//// account details
+//function AccDetails() {
+//  var strData
 
-  if (window.document.frmTrans.txtbranchcode.value == "") {
-    alert("Enter Branch Code")
-    return
-  }
+//  if (window.document.frmTrans.txtbranchcode.value == "") {
+//    alert("Enter Branch Code")
+//    return
+//  }
 
-  if (window.document.frmTrans.txtModId.value == "") {
-    alert("Enter ModId Code")
-    return
-  }
+//  if (window.document.frmTrans.txtModId.value == "") {
+//    alert("Enter ModId Code")
+//    return
+//  }
 
-  if (window.document.frmTrans.txtGLcode.value == "") {
-    alert("Enter GLcode Code")
-    return
-  }
-  if (window.document.frmTrans.txtAccNo.value == "") {
-    alert("Enter AccNo Code")
-    return
-  }
+//  if (window.document.frmTrans.txtGLcode.value == "") {
+//    alert("Enter GLcode Code")
+//    return
+//  }
+//  if (window.document.frmTrans.txtAccNo.value == "") {
+//    alert("Enter AccNo Code")
+//    return
+//  }
 
-  //Prepare A/C details data
+//  //Prepare A/C details data
 
-  strData = window.document.frmTrans.txtbranchcode.value + "|" + window.document.frmTrans.txtbranchdesc.value + "|" +
-    window.document.frmTrans.txtcurrencycode.value + "|" + window.document.frmTrans.txtcurrencydesc.value + "|" +
-    window.document.frmTrans.txtGLcode.value + "|" + window.document.frmTrans.txtGLDesc.value + "|" + window.document.frmTrans.txtModId.value + "|" + "" + "|" +
-    window.document.frmTrans.txtAccNo.value + "|" + window.document.frmTrans.txtAccNm.value
+//  strData = window.document.frmTrans.txtbranchcode.value + "|" + window.document.frmTrans.txtbranchdesc.value + "|" +
+//    window.document.frmTrans.txtcurrencycode.value + "|" + window.document.frmTrans.txtcurrencydesc.value + "|" +
+//    window.document.frmTrans.txtGLcode.value + "|" + window.document.frmTrans.txtGLDesc.value + "|" + window.document.frmTrans.txtModId.value + "|" + "" + "|" +
+//    window.document.frmTrans.txtAccNo.value + "|" + window.document.frmTrans.txtAccNm.value
 
-  window.open('<%="http://" & session("moduledir")& "/GenSBCA/"%>' + "accountdetails.aspx?strData=" + strData, "SB", "width=750%,height=600%,top=0,left=0,scrollbars=yes")
+//  window.open('<%="http://" & session("moduledir")& "/GenSBCA/"%>' + "accountdetails.aspx?strData=" + strData, "SB", "width=750%,height=600%,top=0,left=0,scrollbars=yes")
 
-} //end of AccDetails() method
+//} //end of AccDetails() method
 
 // account details
 function AccDetails1() {
@@ -8891,33 +8711,33 @@ function GetModDets() {
 
 }
 
-//code added by Radhika on 12 May 2008
-//Desc: To select CheckBook Check box, when accounts of modules CC,CA,SB in Debit Tran mode
-function GetAccDets() {
-  var kstr = "";
+////code added by Radhika on 12 May 2008
+////Desc: To select CheckBook Check box, when accounts of modules CC,CA,SB in Debit Tran mode
+//function GetAccDets() {
+//  var kstr = "";
 
-  if (eval(window.document.frmTrans.txtServiceId.value != "1")) {
-    return;
-  }
-  //if(vMode=="TRANS"){
-  if (window.document.frmTrans.tranmode(0).checked != true)
-    return;
+//  if (eval(window.document.frmTrans.txtServiceId.value != "1")) {
+//    return;
+//  }
+//  //if(vMode=="TRANS"){
+//  if (window.document.frmTrans.tranmode(0).checked != true)
+//    return;
 
-  if ((window.document.frmTrans.txtModId.value.toUpperCase() != 'SB') &&
-    (window.document.frmTrans.txtModId.value.toUpperCase() != 'CA') &&
-    (window.document.frmTrans.txtModId.value.toUpperCase() != 'CC')) {
-    return;
-  }
+//  if ((window.document.frmTrans.txtModId.value.toUpperCase() != 'SB') &&
+//    (window.document.frmTrans.txtModId.value.toUpperCase() != 'CA') &&
+//    (window.document.frmTrans.txtModId.value.toUpperCase() != 'CC')) {
+//    return;
+//  }
 
-  kstr = "CHQACCYESNO" + "~";
-  kstr = kstr + window.document.frmTrans.txtModId.value + "~" + window.document.frmTrans.txtGLcode.value + "~~";
-  kstr = kstr + window.document.frmTrans.txtcurrencycode.value + "~";
-  kstr = kstr + window.document.frmTrans.txtbranchcode.value + "~~~";
-  kstr = kstr + window.document.frmTrans.txtAccNo.value + "~";
-  //alert(kstr)
-  window.document.all['getAccDet'].src = '<%="http://" & session("moduledir")& "/GEN/"%>' + "genParameters.aspx?strparam=" + kstr
+//  kstr = "CHQACCYESNO" + "~";
+//  kstr = kstr + window.document.frmTrans.txtModId.value + "~" + window.document.frmTrans.txtGLcode.value + "~~";
+//  kstr = kstr + window.document.frmTrans.txtcurrencycode.value + "~";
+//  kstr = kstr + window.document.frmTrans.txtbranchcode.value + "~~~";
+//  kstr = kstr + window.document.frmTrans.txtAccNo.value + "~";
+//  //alert(kstr)
+//  window.document.all['getAccDet'].src = '<%="http://" & session("moduledir")& "/GEN/"%>' + "genParameters.aspx?strparam=" + kstr
 
-}
+//}
 
 function ModParamRtn(str) {	//alert("md param="+str)
   var vals = str.split("~")
@@ -8933,47 +8753,47 @@ function ModParamRtn(str) {	//alert("md param="+str)
 }
 
 //----------------------------------------------------------------------------------
-function balanceDet() {
+//function balanceDet() {
 
-  var kstr = "";
-  if (eval(window.document.frmTrans.txtServiceId.value != "8")) {
-    if (window.document.frmTrans.txtbranchcode.value.length > 0 &&
-      window.document.frmTrans.txtcurrencycode.value.length > 0 &&
-      window.document.frmTrans.txtModId.value.length > 0 &&
-      window.document.frmTrans.txtGLcode.value.length > 0 &&
-      window.document.frmTrans.txtAccNo.value.length > 0) {
+//  var kstr = "";
+//  if (eval(window.document.frmTrans.txtServiceId.value != "8")) {
+//    if (window.document.frmTrans.txtbranchcode.value.length > 0 &&
+//      window.document.frmTrans.txtcurrencycode.value.length > 0 &&
+//      window.document.frmTrans.txtModId.value.length > 0 &&
+//      window.document.frmTrans.txtGLcode.value.length > 0 &&
+//      window.document.frmTrans.txtAccNo.value.length > 0) {
 
-      kstr = window.document.frmTrans.txtbranchcode.value + "~";
-      kstr = kstr + window.document.frmTrans.txtcurrencycode.value + "~";
-      kstr = kstr + window.document.frmTrans.txtModId.value + "~";
-      kstr = kstr + window.document.frmTrans.txtGLcode.value + "~";
-      kstr = kstr + window.document.frmTrans.txtAccNo.value + "~";
+//      kstr = window.document.frmTrans.txtbranchcode.value + "~";
+//      kstr = kstr + window.document.frmTrans.txtcurrencycode.value + "~";
+//      kstr = kstr + window.document.frmTrans.txtModId.value + "~";
+//      kstr = kstr + window.document.frmTrans.txtGLcode.value + "~";
+//      kstr = kstr + window.document.frmTrans.txtAccNo.value + "~";
 
-      if (eval(window.document.frmTrans.txtServiceId.value != "2")) {
-        //alert("fir" + kstr)
-        window.document.all['iCommon'].src = '<%="http://" & session("moduledir")& "/GEN/"%>' + "balDetDisplay.aspx?kstr=" + kstr
-      }
-    }
-  }
+//      if (eval(window.document.frmTrans.txtServiceId.value != "2")) {
+//        //alert("fir" + kstr)
+//        window.document.all['iCommon'].src = '<%="http://" & session("moduledir")& "/GEN/"%>' + "balDetDisplay.aspx?kstr=" + kstr
+//      }
+//    }
+//  }
 
-  if (eval(window.document.frmTrans.txtServiceId.value == "8")) {
-    if (window.document.frmTrans.txtbranchcode.value.length > 0 &&
-      window.document.frmTrans.txtcurrencycode.value.length > 0 &&
-      window.document.frmTrans.txtCLGModId.value.length > 0 &&
-      window.document.frmTrans.txtCLGGLcode.value.length > 0 &&
-      window.document.frmTrans.txtCLGAccNo.value.length > 0) {
+//  if (eval(window.document.frmTrans.txtServiceId.value == "8")) {
+//    if (window.document.frmTrans.txtbranchcode.value.length > 0 &&
+//      window.document.frmTrans.txtcurrencycode.value.length > 0 &&
+//      window.document.frmTrans.txtCLGModId.value.length > 0 &&
+//      window.document.frmTrans.txtCLGGLcode.value.length > 0 &&
+//      window.document.frmTrans.txtCLGAccNo.value.length > 0) {
 
-      kstr = window.document.frmTrans.txtbranchcode.value + "~";
-      kstr = kstr + window.document.frmTrans.txtcurrencycode.value + "~";
-      kstr = kstr + window.document.frmTrans.txtCLGModId.value + "~";
-      kstr = kstr + window.document.frmTrans.txtCLGGLcode.value + "~";
-      kstr = kstr + window.document.frmTrans.txtCLGAccNo.value + "~";
-      //alert(kstr)
-      window.document.all['iCommon'].src = '<%="http://" & session("moduledir")& "/GEN/"%>' + "balDetDisplayret.aspx?kstr=" + kstr
-    }
-  }
+//      kstr = window.document.frmTrans.txtbranchcode.value + "~";
+//      kstr = kstr + window.document.frmTrans.txtcurrencycode.value + "~";
+//      kstr = kstr + window.document.frmTrans.txtCLGModId.value + "~";
+//      kstr = kstr + window.document.frmTrans.txtCLGGLcode.value + "~";
+//      kstr = kstr + window.document.frmTrans.txtCLGAccNo.value + "~";
+//      //alert(kstr)
+//      window.document.all['iCommon'].src = '<%="http://" & session("moduledir")& "/GEN/"%>' + "balDetDisplayret.aspx?kstr=" + kstr
+//    }
+//  }
 
-}
+//}
 
 //----------------------------------------------------------------------------------
 function MinBalCheck() {
@@ -10744,7 +10564,7 @@ function Flexrowdelete() {
     Rselect = window.document.frmTrans.Mfgpaydt.Rows - 1
   }
 }
-//---------------------------------------------------------------------------------- 
+
 function Flexrowdeleteid(st) {
 
   if (st == "Delete") {
@@ -10755,7 +10575,7 @@ function Flexrowdeleteid(st) {
   }
   balanceDet()
 }
-//----------------------------------------------------------------------------------
+
 function GLParameters() {
   var strPrm = "";
   var appDt = "<%=vAppdate%>"
@@ -10765,43 +10585,35 @@ function GLParameters() {
     (window.document.frmTrans.txtGLcode.value == "") || (strsessionflds[0] == "")) {
     return
   }
-
   strPrm = "GL" + "~" + window.document.frmTrans.txtModId.value + "~" +
     window.document.frmTrans.txtGLcode.value + "~" + appDt + "~" +
     window.document.frmTrans.txtcurrencycode.value + "~" +
     window.document.frmTrans.txtbranchcode.value + "~" + strsessionflds[0] + "~" +
     strsessionflds[8]
-
   window.document.all['iPrm'].src = '<%="http://" & session("moduledir")& "/GEN/"%>' + "genparameters.aspx?strparam=" + strPrm
-
 }
-//----------------------------------------------------------------------------------       
-function AccParameters(AccNoOrCatCode, AccOrCat) {
 
-  var strPrm = "";
-  var modId = window.document.frmTrans.txtModId.value.toUpperCase();
-  var appDt = "<%=vAppdate%>"
+//function AccParameters(AccNoOrCatCode, AccOrCat) {
+//  var strPrm = "";
+//  var modId = window.document.frmTrans.txtModId.value.toUpperCase();
+//  var appDt = "<%=vAppdate%>"
+//  if (modId != "SB" && modId != "CA" && modId != "DEP" && modId != "LOAN" && modId != "CC")
+//    return;
+//  if ((window.document.frmTrans.txtbranchcode.value == "") ||
+//    (window.document.frmTrans.txtcurrencycode.value == "") || (appDt == "") ||
+//    (window.document.frmTrans.txtModId.value == "") || (strsessionflds[8] == "") ||
+//    (window.document.frmTrans.txtGLcode.value == "") || (strsessionflds[0] == "") ||
+//    (AccNoOrCatCode == "")) {
+//    return
+//  }
+//  strPrm = "ACCOUNT" + "~" + window.document.frmTrans.txtModId.value + "~" +
+//    window.document.frmTrans.txtGLcode.value + "~" + appDt + "~" +
+//    window.document.frmTrans.txtcurrencycode.value + "~" +
+//    window.document.frmTrans.txtbranchcode.value + "~" + strsessionflds[0] + "~" +
+//    strsessionflds[8] + "~" + AccNoOrCatCode + "~" + AccOrCat
+//  window.document.all['iPrm'].src = '<%="http://" & session("moduledir")& "/GEN/"%>' + "genparameters.aspx?strparam=" + strPrm
+//}
 
-  if (modId != "SB" && modId != "CA" && modId != "DEP" && modId != "LOAN" && modId != "CC")
-    return;
-
-  if ((window.document.frmTrans.txtbranchcode.value == "") ||
-    (window.document.frmTrans.txtcurrencycode.value == "") || (appDt == "") ||
-    (window.document.frmTrans.txtModId.value == "") || (strsessionflds[8] == "") ||
-    (window.document.frmTrans.txtGLcode.value == "") || (strsessionflds[0] == "") ||
-    (AccNoOrCatCode == "")) {
-    return
-  }
-
-  strPrm = "ACCOUNT" + "~" + window.document.frmTrans.txtModId.value + "~" +
-    window.document.frmTrans.txtGLcode.value + "~" + appDt + "~" +
-    window.document.frmTrans.txtcurrencycode.value + "~" +
-    window.document.frmTrans.txtbranchcode.value + "~" + strsessionflds[0] + "~" +
-    strsessionflds[8] + "~" + AccNoOrCatCode + "~" + AccOrCat
-
-  window.document.all['iPrm'].src = '<%="http://" & session("moduledir")& "/GEN/"%>' + "genparameters.aspx?strparam=" + strPrm
-
-}
 //----------------------------------------------------------------------------------   
 function GLParamRtn(strRslt) {
 
@@ -11162,557 +10974,557 @@ function cntrlOnblurret(txtName) {
   }
 
 }
-//----------------------------------------------------------------------------------
-function cntrlOnblur(txtName) {
+////----------------------------------------------------------------------------------
+//function cntrlOnblur(txtName) {
 
-  var strVal
-  var vUserid = "<%=session("userid")%>"
-  var vBrCode = window.document.frmTrans.txtbranchcode.value.toUpperCase()
-  var strWhr = ""
-  if (window.document.frmTrans.item(txtName).value == "") {
-    return
-  }
+//  var strVal
+//  var vUserid = "<%=session("userid")%>"
+//  var vBrCode = window.document.frmTrans.txtbranchcode.value.toUpperCase()
+//  var strWhr = ""
+//  if (window.document.frmTrans.item(txtName).value == "") {
+//    return
+//  }
 
-  window.document.frmTrans.item(txtName).value =
-    window.document.frmTrans.item(txtName).value.toUpperCase()
-  strVal = ""
+//  window.document.frmTrans.item(txtName).value =
+//    window.document.frmTrans.item(txtName).value.toUpperCase()
+//  strVal = ""
 
-  //Lost Focus from Single recordset component
-  Dataarrange(window.document.frmTrans.item(txtName))
-  if (txtName == "txtcurrencycode") {
-    strWhr = "upper(currencycode)='" + window.document.frmTrans.txtcurrencycode.value.toUpperCase() + "'"
-    strVal = "GEN" + "~!~" + "txtcurrencydesc" + "~!~" + "GENCURRENCYTYPEMST" + "~!~" + "narration" + "~!~" + strWhr
-  }
-  else if (txtName == "txtServiceId") {
-    document.getElementById("divPhSign").style.display = 'none';
-    strWhr = "upper(code)='" + window.document.frmTrans.txtServiceId.value.toUpperCase() + "'"
-    strVal = "GEN" + "~!~" + "txtServiceName" + "~!~" + "GENSERVICETYPESPMT" + "~!~" + "narration" + "~!~" + strWhr
-    ServiceIdDivs()
-  }
-  else if (txtName == "txtCLGBankCode") {
-    vBankCode = window.document.frmTrans.txtCLGBankCode.value.toUpperCase();
+//  //Lost Focus from Single recordset component
+//  Dataarrange(window.document.frmTrans.item(txtName))
+//  if (txtName == "txtcurrencycode") {
+//    strWhr = "upper(currencycode)='" + window.document.frmTrans.txtcurrencycode.value.toUpperCase() + "'"
+//    strVal = "GEN" + "~!~" + "txtcurrencydesc" + "~!~" + "GENCURRENCYTYPEMST" + "~!~" + "narration" + "~!~" + strWhr
+//  }
+//  else if (txtName == "txtServiceId") {
+//    document.getElementById("divPhSign").style.display = 'none';
+//    strWhr = "upper(code)='" + window.document.frmTrans.txtServiceId.value.toUpperCase() + "'"
+//    strVal = "GEN" + "~!~" + "txtServiceName" + "~!~" + "GENSERVICETYPESPMT" + "~!~" + "narration" + "~!~" + strWhr
+//    ServiceIdDivs()
+//  }
+//  else if (txtName == "txtCLGBankCode") {
+//    vBankCode = window.document.frmTrans.txtCLGBankCode.value.toUpperCase();
 
-    if (vBankCode != "") {
-      if (window.document.frmTrans.txtCLGReasoncode.value == "") {
-        alert("Enter Reason Code")
-        window.document.frmTrans.txtCLGBankCode.value = ""
-        return;
-      }
-      strWhr = "upper(trim(BANKCODE))='" + vBankCode + "'"
-      strVal = "GEN" + "~!~" + "hdnClg" + "~!~" + "GENOTHERBANKMST" + "~!~" + "BANKNAME" + "~!~" + strWhr
+//    if (vBankCode != "") {
+//      if (window.document.frmTrans.txtCLGReasoncode.value == "") {
+//        alert("Enter Reason Code")
+//        window.document.frmTrans.txtCLGBankCode.value = ""
+//        return;
+//      }
+//      strWhr = "upper(trim(BANKCODE))='" + vBankCode + "'"
+//      strVal = "GEN" + "~!~" + "hdnClg" + "~!~" + "GENOTHERBANKMST" + "~!~" + "BANKNAME" + "~!~" + strWhr
 
-    }
-  }
-  else if (txtName == "txtCLGBranch") {
-    vBankCode = window.document.frmTrans.txtCLGBankCode.value.toUpperCase();
-    vBranchCode = window.document.frmTrans.txtCLGBranch.value.toUpperCase();
-    if (window.document.frmTrans.txtCLGBankCode.value == "") {
-      alert("Enter Bank Code")
-      window.document.frmTrans.txtCLGBranch.value = ""
-      return;
-    }
-    strWhr = "upper(trim(BANKCODE))='" + vBankCode + "' and " +
-      "upper(trim(branchcode))='" + vBranchCode + "'"
-    strVal = "GEN" + "~!~" + "hdnClg" + "~!~" + "GENOTHERBRANCHMST" + "~!~" + "BRANCHNAME" + "~!~" + strWhr
+//    }
+//  }
+//  else if (txtName == "txtCLGBranch") {
+//    vBankCode = window.document.frmTrans.txtCLGBankCode.value.toUpperCase();
+//    vBranchCode = window.document.frmTrans.txtCLGBranch.value.toUpperCase();
+//    if (window.document.frmTrans.txtCLGBankCode.value == "") {
+//      alert("Enter Bank Code")
+//      window.document.frmTrans.txtCLGBranch.value = ""
+//      return;
+//    }
+//    strWhr = "upper(trim(BANKCODE))='" + vBankCode + "' and " +
+//      "upper(trim(branchcode))='" + vBranchCode + "'"
+//    strVal = "GEN" + "~!~" + "hdnClg" + "~!~" + "GENOTHERBRANCHMST" + "~!~" + "BRANCHNAME" + "~!~" + strWhr
 
 
-  }
-  else if (txtName == "txtCLGReason") {
-    vCode = window.document.frmTrans.txtCLGReason.value.toUpperCase();
+//  }
+//  else if (txtName == "txtCLGReason") {
+//    vCode = window.document.frmTrans.txtCLGReason.value.toUpperCase();
 
-    strWhr = "upper(trim(CODE))='" + vCode + "'"
-    strVal = "GEN" + "~!~" + "txtCLGReasoncode" + "~!~" + "CLGRETURNREASONMST" + "~!~" + "DESCRIPTION" + "~!~" + strWhr
-  }
-  else if (txtName == "txtAccCatCode") {
-    vCode = window.document.frmTrans.txtAccCatCode.value.toUpperCase();
-    strWhr = "upper(trim(CATEGORYCODE))='" + vCode + "' and CATEGORYCODE<>'99'"
-    strVal = "GEN" + "~!~" + "txtAccCatDesc" + "~!~" + "GENCATEGORYMST" + "~!~" + "NARRATION" + "~!~" + strWhr
-  }
-  //for Remittance Issue by Bank
+//    strWhr = "upper(trim(CODE))='" + vCode + "'"
+//    strVal = "GEN" + "~!~" + "txtCLGReasoncode" + "~!~" + "CLGRETURNREASONMST" + "~!~" + "DESCRIPTION" + "~!~" + strWhr
+//  }
+//  else if (txtName == "txtAccCatCode") {
+//    vCode = window.document.frmTrans.txtAccCatCode.value.toUpperCase();
+//    strWhr = "upper(trim(CATEGORYCODE))='" + vCode + "' and CATEGORYCODE<>'99'"
+//    strVal = "GEN" + "~!~" + "txtAccCatDesc" + "~!~" + "GENCATEGORYMST" + "~!~" + "NARRATION" + "~!~" + strWhr
+//  }
+//  //for Remittance Issue by Bank
 
-  else if (txtName == "txtbybnkcode") {
-    vCode = window.document.frmTrans.txtbybnkcode.value.toUpperCase();
-    //old code commented on 26-sep-2007
-    //Reason: Wrong branch codes are showing to the user    
+//  else if (txtName == "txtbybnkcode") {
+//    vCode = window.document.frmTrans.txtbybnkcode.value.toUpperCase();
+//    //old code commented on 26-sep-2007
+//    //Reason: Wrong branch codes are showing to the user    
 
-    // New code written on 26-sep-2007
-    BranchCd = window.document.frmTrans.txtbranchcode.value.toUpperCase()
-    CurCd = window.document.frmTrans.txtcurrencycode.value.toUpperCase()
-    //RemType=window.document.frmTrans.txtGLcode.value.toUpperCase()
-    //alert("rem type=" + remtype)
-    if ((remtype == "ADD") || (remtype == "TC")) {
+//    // New code written on 26-sep-2007
+//    BranchCd = window.document.frmTrans.txtbranchcode.value.toUpperCase()
+//    CurCd = window.document.frmTrans.txtcurrencycode.value.toUpperCase()
+//    //RemType=window.document.frmTrans.txtGLcode.value.toUpperCase()
+//    //alert("rem type=" + remtype)
+//    if ((remtype == "ADD") || (remtype == "TC")) {
 
-      //CODE COMMENTED BY RADHIKA ON 14 MAY 2008
-      //REASON: FOR AGENCY DD, WE SHOULD SHOW BANK CODES FROM CORRESPONDING BANKS
+//      //CODE COMMENTED BY RADHIKA ON 14 MAY 2008
+//      //REASON: FOR AGENCY DD, WE SHOULD SHOW BANK CODES FROM CORRESPONDING BANKS
 
-      /*strWhr="upper(trim(OURBRANCHCODE))=trim('" + BranchCd + "') AND status='R' " +
-        " AND bankcode IN (SELECT DISTINCT OTHERBANKCODE  FROM REMISSUEBANKMST " +
-        " WHERE upper(trim(BRANCHCODE))=trim('" + BranchCd + "') AND  " +
-        " upper(trim(CURRENCYCODE))=trim('" + CurCd +  "') " +
-        " AND upper(trim(REMTYPE))=trim('" + remtype + "') " +
-        " AND upper(trim(OTHERBANKCODE))=trim('" + vCode + "') " +
-        " AND status='R')"        
+//      /*strWhr="upper(trim(OURBRANCHCODE))=trim('" + BranchCd + "') AND status='R' " +
+//        " AND bankcode IN (SELECT DISTINCT OTHERBANKCODE  FROM REMISSUEBANKMST " +
+//        " WHERE upper(trim(BRANCHCODE))=trim('" + BranchCd + "') AND  " +
+//        " upper(trim(CURRENCYCODE))=trim('" + CurCd +  "') " +
+//        " AND upper(trim(REMTYPE))=trim('" + remtype + "') " +
+//        " AND upper(trim(OTHERBANKCODE))=trim('" + vCode + "') " +
+//        " AND status='R')"        
     
-      strVal="GEN"+"~!~"+"txtbybnkdesc"+"~!~"+"GENOTHERBANKMST"+"~!~"+
-      "BANKNAME"+"~!~"+strWhr
-      */
+//      strVal="GEN"+"~!~"+"txtbybnkdesc"+"~!~"+"GENOTHERBANKMST"+"~!~"+
+//      "BANKNAME"+"~!~"+strWhr
+//      */
 
-      //NEW CODE WRITTEN ON 14 MAY 2008
-      strWhr = "status='R' AND bankcode IN (SELECT DISTINCT OTHERBANKCODE" +
-        " FROM REMISSUEBANKMST WHERE UPPER(trim(CURRENCYCODE))='" +
-        CurCd + "' AND UPPER(trim(REMTYPE))='" +
-        remtype + "' AND status='R')" +
-        " and bankcode='" + vCode + "'"
+//      //NEW CODE WRITTEN ON 14 MAY 2008
+//      strWhr = "status='R' AND bankcode IN (SELECT DISTINCT OTHERBANKCODE" +
+//        " FROM REMISSUEBANKMST WHERE UPPER(trim(CURRENCYCODE))='" +
+//        CurCd + "' AND UPPER(trim(REMTYPE))='" +
+//        remtype + "' AND status='R')" +
+//        " and bankcode='" + vCode + "'"
 
-      strVal = "GEN" + "~!~" + "txtbybnkdesc" + "~!~" + "GENCORRESPBANKSMST" + "~!~" +
-        "BANKNAME" + "~!~" + strWhr
+//      strVal = "GEN" + "~!~" + "txtbybnkdesc" + "~!~" + "GENCORRESPBANKSMST" + "~!~" +
+//        "BANKNAME" + "~!~" + strWhr
 
-    }
-    else if ((remtype == "DD") || (remtype == "TT") || (remtype == "MT") ||
-      (remtype == "BC") || (remtype == "GC") || (remtype == "PO")) {
+//    }
+//    else if ((remtype == "DD") || (remtype == "TT") || (remtype == "MT") ||
+//      (remtype == "BC") || (remtype == "GC") || (remtype == "PO")) {
 
-      strWhr = "upper(trim(BANKCODE))='" + vCode + "'"
-      strVal = "GEN" + "~!~" + "txtbybnkdesc" + "~!~" + "GENBANKPARM" + "~!~" + "bankname" + "~!~" + strWhr
-    }
-    else {
-      strWhr = "upper(trim(BANKCODE))='" + vCode + "'"
-      strVal = "GEN" + "~!~" + "txtbybnkdesc" + "~!~" + "GENBANKPARM" + "~!~" + "bankname" + "~!~" + strWhr
-    }
+//      strWhr = "upper(trim(BANKCODE))='" + vCode + "'"
+//      strVal = "GEN" + "~!~" + "txtbybnkdesc" + "~!~" + "GENBANKPARM" + "~!~" + "bankname" + "~!~" + strWhr
+//    }
+//    else {
+//      strWhr = "upper(trim(BANKCODE))='" + vCode + "'"
+//      strVal = "GEN" + "~!~" + "txtbybnkdesc" + "~!~" + "GENBANKPARM" + "~!~" + "bankname" + "~!~" + strWhr
+//    }
 
-  }
+//  }
 
-  //
-  else if (txtName == "txtissbnkcode") {
-    vCode = window.document.frmTrans.txtissbnkcode.value.toUpperCase();
-    //old code commented on 26-sep-2007
-    //Reason: Wrong branch codes are showing to the user
-    /*if(window.document.frmTrans.txtGLcode.value.toUpperCase()=="ADD"){
-      strWhr="upper(trim(Bankcode))='"+vCode+"' and upper(status)='R'"
-       strVal="GEN"+"~!~"+"txtissbnkdesc"+"~!~"+"GENOTHERBANKMST"+"~!~"+"BANKNAME"+"~!~"+strWhr
-      }
-      else{
-      glcd=window.document.frmTrans.txtGLcode.value.toUpperCase()
-      strWhr="upper(trim(ISSUEDONBANKCODE))='"+vCode+"' and upper(REMGLCODE)='"+glcd+"' and upper(status)='R'" 
-       strVal="GEN"+"~!~"+"txtissbnkdesc"+"~!~"+"REMTYPEMST"+"~!~"+"ISSUEDONBANKDESC"+"~!~"+strWhr
+//  //
+//  else if (txtName == "txtissbnkcode") {
+//    vCode = window.document.frmTrans.txtissbnkcode.value.toUpperCase();
+//    //old code commented on 26-sep-2007
+//    //Reason: Wrong branch codes are showing to the user
+//    /*if(window.document.frmTrans.txtGLcode.value.toUpperCase()=="ADD"){
+//      strWhr="upper(trim(Bankcode))='"+vCode+"' and upper(status)='R'"
+//       strVal="GEN"+"~!~"+"txtissbnkdesc"+"~!~"+"GENOTHERBANKMST"+"~!~"+"BANKNAME"+"~!~"+strWhr
+//      }
+//      else{
+//      glcd=window.document.frmTrans.txtGLcode.value.toUpperCase()
+//      strWhr="upper(trim(ISSUEDONBANKCODE))='"+vCode+"' and upper(REMGLCODE)='"+glcd+"' and upper(status)='R'" 
+//       strVal="GEN"+"~!~"+"txtissbnkdesc"+"~!~"+"REMTYPEMST"+"~!~"+"ISSUEDONBANKDESC"+"~!~"+strWhr
      
-      }	*/
+//      }	*/
 
 
-    // New code written on 26-sep-2007
-    BranchCd = window.document.frmTrans.txtbranchcode.value.toUpperCase()
-    CurCd = window.document.frmTrans.txtcurrencycode.value.toUpperCase()
+//    // New code written on 26-sep-2007
+//    BranchCd = window.document.frmTrans.txtbranchcode.value.toUpperCase()
+//    CurCd = window.document.frmTrans.txtcurrencycode.value.toUpperCase()
 
-    //alert("rem type=" + remtype)
-    if ((remtype == "ADD") || (remtype == "TC")) {
-      //CODE COMMENTED BY RADHIKA ON 14 MAY 2008
-      //REASON: FOR AGENCY DD, WE SHOULD SHOW BANK CODES FROM CORRESPONDING BANKS
-      /*strWhr="upper(trim(OURBRANCHCODE))=trim('" + BranchCd + "') AND status='R' " +
-        " AND bankcode IN (SELECT DISTINCT OTHERBANKCODE  FROM REMISSUEBANKMST " +
-        " WHERE upper(trim(BRANCHCODE))=trim('" + BranchCd + "') AND  " +
-        " upper(trim(CURRENCYCODE))=trim('" + CurCd +  "') " +
-        " AND upper(trim(REMTYPE))=trim('" + remtype + "') " +
-        " AND upper(trim(OTHERBANKCODE))=trim('" + vCode + "') " +
-        " AND status='R')"    
+//    //alert("rem type=" + remtype)
+//    if ((remtype == "ADD") || (remtype == "TC")) {
+//      //CODE COMMENTED BY RADHIKA ON 14 MAY 2008
+//      //REASON: FOR AGENCY DD, WE SHOULD SHOW BANK CODES FROM CORRESPONDING BANKS
+//      /*strWhr="upper(trim(OURBRANCHCODE))=trim('" + BranchCd + "') AND status='R' " +
+//        " AND bankcode IN (SELECT DISTINCT OTHERBANKCODE  FROM REMISSUEBANKMST " +
+//        " WHERE upper(trim(BRANCHCODE))=trim('" + BranchCd + "') AND  " +
+//        " upper(trim(CURRENCYCODE))=trim('" + CurCd +  "') " +
+//        " AND upper(trim(REMTYPE))=trim('" + remtype + "') " +
+//        " AND upper(trim(OTHERBANKCODE))=trim('" + vCode + "') " +
+//        " AND status='R')"    
     
     
-      strVal="GEN"+"~!~"+"txtissbnkdesc"+"~!~"+"GENOTHERBANKMST"+"~!~"+"BANKNAME"+
-      "~!~"+strWhr*/
+//      strVal="GEN"+"~!~"+"txtissbnkdesc"+"~!~"+"GENOTHERBANKMST"+"~!~"+"BANKNAME"+
+//      "~!~"+strWhr*/
 
-      //NEW CODE WRITTEN ON 14 MAY 2008
-      strWhr = "status='R' AND bankcode IN (SELECT DISTINCT OTHERBANKCODE" +
-        " FROM REMISSUEBANKMST WHERE UPPER(trim(CURRENCYCODE))='" +
-        CurCd + "' AND UPPER(trim(REMTYPE))='" +
-        remtype + "' AND status='R')" +
-        " and bankcode='" + vCode + "'"
+//      //NEW CODE WRITTEN ON 14 MAY 2008
+//      strWhr = "status='R' AND bankcode IN (SELECT DISTINCT OTHERBANKCODE" +
+//        " FROM REMISSUEBANKMST WHERE UPPER(trim(CURRENCYCODE))='" +
+//        CurCd + "' AND UPPER(trim(REMTYPE))='" +
+//        remtype + "' AND status='R')" +
+//        " and bankcode='" + vCode + "'"
 
-      strVal = "GEN" + "~!~" + "txtissbnkdesc" + "~!~" + "GENCORRESPBANKSMST" + "~!~" + "BANKNAME" +
-        "~!~" + strWhr
+//      strVal = "GEN" + "~!~" + "txtissbnkdesc" + "~!~" + "GENCORRESPBANKSMST" + "~!~" + "BANKNAME" +
+//        "~!~" + strWhr
 
-    }
-    else if ((remtype == "DD") || (remtype == "TT") || (remtype == "MT") ||
-      (remtype == "BC") || (remtype == "GC") || (remtype == "PO")) {
+//    }
+//    else if ((remtype == "DD") || (remtype == "TT") || (remtype == "MT") ||
+//      (remtype == "BC") || (remtype == "GC") || (remtype == "PO")) {
 
-      strWhr = "upper(trim(BANKCODE))='" + vCode + "'"
-      strVal = "GEN" + "~!~" + "txtissbnkdesc" + "~!~" + "GENBANKPARM" + "~!~" + "bankname" + "~!~" + strWhr
-    }
-    else {
-      strWhr = "upper(trim(BANKCODE))='" + vCode + "'"
-      strVal = "GEN" + "~!~" + "txtissbnkdesc" + "~!~" + "GENBANKPARM" + "~!~" + "bankname" + "~!~" + strWhr
-    }
+//      strWhr = "upper(trim(BANKCODE))='" + vCode + "'"
+//      strVal = "GEN" + "~!~" + "txtissbnkdesc" + "~!~" + "GENBANKPARM" + "~!~" + "bankname" + "~!~" + strWhr
+//    }
+//    else {
+//      strWhr = "upper(trim(BANKCODE))='" + vCode + "'"
+//      strVal = "GEN" + "~!~" + "txtissbnkdesc" + "~!~" + "GENBANKPARM" + "~!~" + "bankname" + "~!~" + strWhr
+//    }
 
-  }
+//  }
 
-  //Issue by Branch
-  else if (txtName == "txtbybrcode") {
-    var vCode = window.document.frmTrans.txtbybnkcode.value.toUpperCase();
-    var othBrCode = window.document.frmTrans.txtbybrcode.value.toUpperCase();
+//  //Issue by Branch
+//  else if (txtName == "txtbybrcode") {
+//    var vCode = window.document.frmTrans.txtbybnkcode.value.toUpperCase();
+//    var othBrCode = window.document.frmTrans.txtbybrcode.value.toUpperCase();
 
-    //alert("remtype=" + remtype)
-    if (othBrCode != "") {
+//    //alert("remtype=" + remtype)
+//    if (othBrCode != "") {
 
 
-      BranchCd = window.document.frmTrans.txtbranchcode.value.toUpperCase()
-      CurCd = window.document.frmTrans.txtcurrencycode.value.toUpperCase()
+//      BranchCd = window.document.frmTrans.txtbranchcode.value.toUpperCase()
+//      CurCd = window.document.frmTrans.txtcurrencycode.value.toUpperCase()
 
-      if ((remtype.toUpperCase() == "DD") || (remtype.toUpperCase() == "MT") ||
-        (remtype.toUpperCase() == "TT")) {
-        if (BranchCd == othBrCode) {
-          alert("Can't be respond to the Instrument of the same Branch")
-          window.document.frmTrans.txtbybrcode.value = ""
-          window.document.frmTrans.txtbybrcode.value = ""
-          window.document.frmTrans.txtbybrcode.focus()
-          return
-        }
-      }
+//      if ((remtype.toUpperCase() == "DD") || (remtype.toUpperCase() == "MT") ||
+//        (remtype.toUpperCase() == "TT")) {
+//        if (BranchCd == othBrCode) {
+//          alert("Can't be respond to the Instrument of the same Branch")
+//          window.document.frmTrans.txtbybrcode.value = ""
+//          window.document.frmTrans.txtbybrcode.value = ""
+//          window.document.frmTrans.txtbybrcode.focus()
+//          return
+//        }
+//      }
 
-      if ((remtype == "DD") || (remtype == "TT") || (remtype == "MT")) {
+//      if ((remtype == "DD") || (remtype == "TT") || (remtype == "MT")) {
 
-        strWhr = "upper(trim(BANKCODE))='" + vCode + "' and upper(trim(BranchCODE))='"
-          + othBrCode + "'"
-        strVal = "GEN" + "~!~" + "txtbybrdesc" + "~!~" + "GENBANKBRANCHMST" + "~!~" + "BRANCHNAME" +
-          "~!~" + strWhr
+//        strWhr = "upper(trim(BANKCODE))='" + vCode + "' and upper(trim(BranchCODE))='"
+//          + othBrCode + "'"
+//        strVal = "GEN" + "~!~" + "txtbybrdesc" + "~!~" + "GENBANKBRANCHMST" + "~!~" + "BRANCHNAME" +
+//          "~!~" + strWhr
 
-      }
-      else if ((remtype == "ADD") || (remtype == "TC")) {
+//      }
+//      else if ((remtype == "ADD") || (remtype == "TC")) {
 
-        //CODE COMMENTED BY RADHIKA ON 14 MAY 2008
-        //REASON: FOR AGENCY DD, WE SHOULD SHOW Branches of CORRESPONDING BANKS
+//        //CODE COMMENTED BY RADHIKA ON 14 MAY 2008
+//        //REASON: FOR AGENCY DD, WE SHOULD SHOW Branches of CORRESPONDING BANKS
 
-        /*strWhr="upper(trim(OURBRANCHCODE))=trim('" + BranchCd + "') AND status='R' " +
-            " AND upper(trim(BANKCODE))=trim('" + vCode + "')" +
-            " AND upper(trim(BRANCHCODE))=trim('" + othBrCode + "')" +
-            " AND BRANCHCODE IN (SELECT DISTINCT OTHERBRANCHCODE FROM REMISSUEBANKMST "+
-            " WHERE upper(trim(BRANCHCODE))=trim('" + BranchCd + "') AND  " +
-            " upper(trim(CURRENCYCODE))=trim('" + CurCd + "') " +
-            " AND upper(trim(REMTYPE))='" + remtype + "'" +
-            " AND upper(trim(OTHERBANKCODE))=trim('" + vCode + "')" +
-            " AND upper(trim(OTHERBRANCHCODE))=trim('" + othBrCode + "')" +
-            " AND status='R')"		
+//        /*strWhr="upper(trim(OURBRANCHCODE))=trim('" + BranchCd + "') AND status='R' " +
+//            " AND upper(trim(BANKCODE))=trim('" + vCode + "')" +
+//            " AND upper(trim(BRANCHCODE))=trim('" + othBrCode + "')" +
+//            " AND BRANCHCODE IN (SELECT DISTINCT OTHERBRANCHCODE FROM REMISSUEBANKMST "+
+//            " WHERE upper(trim(BRANCHCODE))=trim('" + BranchCd + "') AND  " +
+//            " upper(trim(CURRENCYCODE))=trim('" + CurCd + "') " +
+//            " AND upper(trim(REMTYPE))='" + remtype + "'" +
+//            " AND upper(trim(OTHERBANKCODE))=trim('" + vCode + "')" +
+//            " AND upper(trim(OTHERBRANCHCODE))=trim('" + othBrCode + "')" +
+//            " AND status='R')"		
         
           
-          strVal="GEN"+"~!~"+"txtbybrdesc"+"~!~"+"GENOTHERBRANCHMST"+"~!~"+"BRANCHNAME"+
-          "~!~"+strWhr*/
+//          strVal="GEN"+"~!~"+"txtbybrdesc"+"~!~"+"GENOTHERBRANCHMST"+"~!~"+"BRANCHNAME"+
+//          "~!~"+strWhr*/
 
-        //new code written on 14 may 2008
-        strWhr = "status='R' AND upper(trim(BANKCODE))='" + vCode + "'" +
-          " and BRANCHCODE='" + othBrCode + "'"
+//        //new code written on 14 may 2008
+//        strWhr = "status='R' AND upper(trim(BANKCODE))='" + vCode + "'" +
+//          " and BRANCHCODE='" + othBrCode + "'"
 
-        strVal = "GEN" + "~!~" + "txtbybrdesc" + "~!~" + "GENCORRESPBANKBRANCHESMST" +
-          "~!~" + "BRANCHNAME" + "~!~" + strWhr
+//        strVal = "GEN" + "~!~" + "txtbybrdesc" + "~!~" + "GENCORRESPBANKBRANCHESMST" +
+//          "~!~" + "BRANCHNAME" + "~!~" + strWhr
 
-      }
-    }
+//      }
+//    }
 
-  }
-  //  window.document.frmTrans.txtissbrdesc 
-  //------
-  else if (txtName == "txtissbrcode") {
-    var vCode = window.document.frmTrans.txtissbnkcode.value.toUpperCase();
-    var othBrCode = window.document.frmTrans.txtissbrcode.value.toUpperCase();
+//  }
+//  //  window.document.frmTrans.txtissbrdesc 
+//  //------
+//  else if (txtName == "txtissbrcode") {
+//    var vCode = window.document.frmTrans.txtissbnkcode.value.toUpperCase();
+//    var othBrCode = window.document.frmTrans.txtissbrcode.value.toUpperCase();
 
-    if ((remtype.toUpperCase() == "DD") || (remtype.toUpperCase() == "MT") || (remtype.toUpperCase() == "TT")) {
-      if (vBrCode == othBrCode) {
-        alert("Instrument can't be issued on the same Branch")
-        window.document.frmTrans.txtissbrcode.value = ""
-        window.document.frmTrans.txtissbrdesc.value = ""
-        window.document.frmTrans.txtissbrcode.focus()
-        return
-      }
-    }
+//    if ((remtype.toUpperCase() == "DD") || (remtype.toUpperCase() == "MT") || (remtype.toUpperCase() == "TT")) {
+//      if (vBrCode == othBrCode) {
+//        alert("Instrument can't be issued on the same Branch")
+//        window.document.frmTrans.txtissbrcode.value = ""
+//        window.document.frmTrans.txtissbrdesc.value = ""
+//        window.document.frmTrans.txtissbrcode.focus()
+//        return
+//      }
+//    }
 
-    if ((vCode != "") && (othBrCode != "")) {
-      BranchCd = window.document.frmTrans.txtbranchcode.value.toUpperCase()
-      CurCd = window.document.frmTrans.txtcurrencycode.value.toUpperCase()
+//    if ((vCode != "") && (othBrCode != "")) {
+//      BranchCd = window.document.frmTrans.txtbranchcode.value.toUpperCase()
+//      CurCd = window.document.frmTrans.txtcurrencycode.value.toUpperCase()
 
-      if ((remtype == "DD") || (remtype == "TT") || (remtype == "MT")) {
+//      if ((remtype == "DD") || (remtype == "TT") || (remtype == "MT")) {
 
-        strWhr = "upper(trim(BANKCODE))='" + vCode + "' and upper(trim(BranchCODE))='"
-          + othBrCode + "'"
-        strVal = "GEN" + "~!~" + "txtissbrdesc" + "~!~" + "GENBANKBRANCHMST" + "~!~" + "BRANCHNAME" +
-          "~!~" + strWhr
+//        strWhr = "upper(trim(BANKCODE))='" + vCode + "' and upper(trim(BranchCODE))='"
+//          + othBrCode + "'"
+//        strVal = "GEN" + "~!~" + "txtissbrdesc" + "~!~" + "GENBANKBRANCHMST" + "~!~" + "BRANCHNAME" +
+//          "~!~" + strWhr
 
-      }
-      else if ((remtype == "ADD") || (remtype == "TC")) {
+//      }
+//      else if ((remtype == "ADD") || (remtype == "TC")) {
 
-        //CODE COMMENTED BY RADHIKA ON 14 MAY 2008
-        //REASON: FOR AGENCY DD, WE SHOULD SHOW Branches of CORRESPONDING BANKS
-        /*
-        strWhr="upper(trim(OURBRANCHCODE))=trim('" + BranchCd + "') AND status='R' " +
-            " AND upper(trim(BANKCODE))=trim('" + vCode + "')" +
-            " AND upper(trim(BRANCHCODE))=trim('" + othBrCode + "')" +
-            " AND BRANCHCODE IN (SELECT DISTINCT OTHERBRANCHCODE FROM REMISSUEBANKMST "+
-            " WHERE upper(trim(BRANCHCODE))=trim('" + BranchCd + "') AND  " +
-            " upper(trim(CURRENCYCODE))=trim('" + CurCd + "') " +
-            " AND upper(trim(REMTYPE))='" + remtype + "'" +
-            " AND upper(trim(OTHERBANKCODE))=trim('" + vCode + "')" +
-            " AND upper(trim(OTHERBRANCHCODE))=trim('" + othBrCode + "')" +
-            " AND status='R')"		
+//        //CODE COMMENTED BY RADHIKA ON 14 MAY 2008
+//        //REASON: FOR AGENCY DD, WE SHOULD SHOW Branches of CORRESPONDING BANKS
+//        /*
+//        strWhr="upper(trim(OURBRANCHCODE))=trim('" + BranchCd + "') AND status='R' " +
+//            " AND upper(trim(BANKCODE))=trim('" + vCode + "')" +
+//            " AND upper(trim(BRANCHCODE))=trim('" + othBrCode + "')" +
+//            " AND BRANCHCODE IN (SELECT DISTINCT OTHERBRANCHCODE FROM REMISSUEBANKMST "+
+//            " WHERE upper(trim(BRANCHCODE))=trim('" + BranchCd + "') AND  " +
+//            " upper(trim(CURRENCYCODE))=trim('" + CurCd + "') " +
+//            " AND upper(trim(REMTYPE))='" + remtype + "'" +
+//            " AND upper(trim(OTHERBANKCODE))=trim('" + vCode + "')" +
+//            " AND upper(trim(OTHERBRANCHCODE))=trim('" + othBrCode + "')" +
+//            " AND status='R')"		
         
           
-          strVal="GEN"+"~!~"+"txtissbrdesc"+"~!~"+"GENOTHERBRANCHMST"+"~!~"+"BRANCHNAME"+
-          "~!~"+strWhr */
+//          strVal="GEN"+"~!~"+"txtissbrdesc"+"~!~"+"GENOTHERBRANCHMST"+"~!~"+"BRANCHNAME"+
+//          "~!~"+strWhr */
 
-        //new code written on 14 may 2008
-        strWhr = "status='R' AND upper(trim(BANKCODE))='" + vCode + "'" +
-          " and BRANCHCODE='" + othBrCode + "'"
+//        //new code written on 14 may 2008
+//        strWhr = "status='R' AND upper(trim(BANKCODE))='" + vCode + "'" +
+//          " and BRANCHCODE='" + othBrCode + "'"
 
-        strVal = "GEN" + "~!~" + "txtissbrdesc" + "~!~" + "GENCORRESPBANKBRANCHESMST" +
-          "~!~" + "BRANCHNAME" + "~!~" + strWhr
+//        strVal = "GEN" + "~!~" + "txtissbrdesc" + "~!~" + "GENCORRESPBANKBRANCHESMST" +
+//          "~!~" + "BRANCHNAME" + "~!~" + strWhr
 
-      }
-    }
-  }
-
-
-  //------
-  else if (txtName == "txtFRateRefCode") {
-
-    var RateType = window.document.frmTrans.cmbFRateType.options
-    [window.document.frmTrans.cmbFRateType.selectedIndex].value
-
-    if (RateType == "") {
-      window.document.frmTrans.txtFRateRefCode.value = ""
-      return
-    }
-    var vCode = window.document.frmTrans.txtFRateRefCode.value.toUpperCase()
-
-    strWhr = "upper(CODE)='" + vCode + "' and upper(status)='R'"
-    if (RateType == "C") {
-      strVal = "GEN" + "~!~" + "txtFRateRefDesc" + "~!~" + "FXGENCARDRATECATEGORIESPMT" + "~!~" + "NARRATION" + "~!~" + strWhr
-    }
-    else if (RateType == "D") {
-      strVal = "GEN" + "~!~" + "txtFRateRefDesc" + "~!~" + "FXDEALINGROOMMST" + "~!~" + "NARRATION" + "~!~" + strWhr
-    }
-    else if (RateType == "N") {
-      strWhr = "upper(CATEGORY)='" + vCode + "' and upper(status)='R'"
-      strVal = "GEN" + "~!~" + "txtFRateRefDesc" + "~!~" + "FXGENRATECATEGORIESPMT" + "~!~" + "NARRATION" + "~!~" + strWhr
-    }
-    else if (RateType == "F") {
-      strWhr = "upper(ACCNO)='" + vCode + "' and upper(status)='R' and upper(transtatus)='A'"
-      strVal = "GEN" + "~!~" + "txtFRateRefDesc" + "~!~" + "FXFCMST" + "~!~" + "NAME" + "~!~" + strWhr
-    }
-  }
+//      }
+//    }
+//  }
 
 
-  //Lost focus from Component
+//  //------
+//  else if (txtName == "txtFRateRefCode") {
+
+//    var RateType = window.document.frmTrans.cmbFRateType.options
+//    [window.document.frmTrans.cmbFRateType.selectedIndex].value
+
+//    if (RateType == "") {
+//      window.document.frmTrans.txtFRateRefCode.value = ""
+//      return
+//    }
+//    var vCode = window.document.frmTrans.txtFRateRefCode.value.toUpperCase()
+
+//    strWhr = "upper(CODE)='" + vCode + "' and upper(status)='R'"
+//    if (RateType == "C") {
+//      strVal = "GEN" + "~!~" + "txtFRateRefDesc" + "~!~" + "FXGENCARDRATECATEGORIESPMT" + "~!~" + "NARRATION" + "~!~" + strWhr
+//    }
+//    else if (RateType == "D") {
+//      strVal = "GEN" + "~!~" + "txtFRateRefDesc" + "~!~" + "FXDEALINGROOMMST" + "~!~" + "NARRATION" + "~!~" + strWhr
+//    }
+//    else if (RateType == "N") {
+//      strWhr = "upper(CATEGORY)='" + vCode + "' and upper(status)='R'"
+//      strVal = "GEN" + "~!~" + "txtFRateRefDesc" + "~!~" + "FXGENRATECATEGORIESPMT" + "~!~" + "NARRATION" + "~!~" + strWhr
+//    }
+//    else if (RateType == "F") {
+//      strWhr = "upper(ACCNO)='" + vCode + "' and upper(status)='R' and upper(transtatus)='A'"
+//      strVal = "GEN" + "~!~" + "txtFRateRefDesc" + "~!~" + "FXFCMST" + "~!~" + "NAME" + "~!~" + strWhr
+//    }
+//  }
 
 
-  if (txtName == "txtbranchcode") {
-    vUserid = "<%=session("userid")%>"
-    if (vUserid != "" && vBrCode != "") {
-      strVal = "COMP" + "~!~" + "txtbranchdesc" + "~!~" + vBrCode + "~!~" + vUserid
-    }
-    var aBrCode
-    aBrCode = "<%=session("branchcode")%>"
-    if ((window.document.frmTrans.txtbranchcode.value.toUpperCase() !=
-      aBrCode.toUpperCase()) && (window.document.frmTrans.Mfgpaydt.Rows == 1)) {
-      window.document.frmTrans.chkABB.checked = true
-      window.document.frmTrans.chkDispAccNo.disabled = true
-    }
-    else if ((window.document.frmTrans.txtbranchcode.value.toUpperCase() ==
-      aBrCode.toUpperCase()) && (window.document.frmTrans.Mfgpaydt.Rows == 1)) {
-      window.document.frmTrans.chkABB.checked = false
-      window.document.frmTrans.chkDispAccNo.disabled = true
-    }
-    //AbbApplDt()      
-    AbbApplDtBr()
-  }
+//  //Lost focus from Component
 
 
-  else if (txtName == "txtModId") {
-    //alert("fs")
-    document.getElementById("divPhSign").style.display = 'none';
-    window.document.frmTrans.txtModId.value = window.document.frmTrans.txtModId.value.toUpperCase()
-    var vModId = window.document.frmTrans.txtModId.value.toUpperCase()
+//  if (txtName == "txtbranchcode") {
+//    vUserid = "<%=session("userid")%>"
+//    if (vUserid != "" && vBrCode != "") {
+//      strVal = "COMP" + "~!~" + "txtbranchdesc" + "~!~" + vBrCode + "~!~" + vUserid
+//    }
+//    var aBrCode
+//    aBrCode = "<%=session("branchcode")%>"
+//    if ((window.document.frmTrans.txtbranchcode.value.toUpperCase() !=
+//      aBrCode.toUpperCase()) && (window.document.frmTrans.Mfgpaydt.Rows == 1)) {
+//      window.document.frmTrans.chkABB.checked = true
+//      window.document.frmTrans.chkDispAccNo.disabled = true
+//    }
+//    else if ((window.document.frmTrans.txtbranchcode.value.toUpperCase() ==
+//      aBrCode.toUpperCase()) && (window.document.frmTrans.Mfgpaydt.Rows == 1)) {
+//      window.document.frmTrans.chkABB.checked = false
+//      window.document.frmTrans.chkDispAccNo.disabled = true
+//    }
+//    //AbbApplDt()      
+//    AbbApplDtBr()
+//  }
 
-    if (vBrCode != "" && vModId != "") {
-      strVal = "COMP" + "~!~" + "txtModDesc" + "~!~" + vBrCode + "~!~" + vModId
 
-      parm = window.document.frmTrans.txtModDesc.value +
-        "-----" + window.document.frmTrans.txtModId.value.toUpperCase()
-      if ((vModId == "REM") && ((window.document.frmTrans.tranmode(0).checked == true) ||
-        (window.document.frmTrans.tranmode(2).checked == true))) {
-        divsDisplay("remdr", "M")
-        divsDisplay("remdr", "M")
-        window.document.frmTrans.Mfgpaydt.FormatString = ">Batch No     |>Tran No     |<GL Code       |<GL Description                       |>Acc No             |<Name                               |>Amount                     |>Entered Time Bal    |^Application Date   |<Cust ID                      |<Mode of Tran |<Mode of Tran Desc   |^ABB Application Date|<Tran Status  |>Currency Code   |<Entered By                    |<Entered M/C                  |<Module ID         |<Branch Code            |>Token No         |<Remarks                                  |<Cheque Series   |>Cheque No                 |^Cheque Date         |<Cheque Favouring              |<Sys Gen YN |<Module Description      |^ Effective Date        |<CLG Rate Type                |>Rate                   |<F Currency Code |>F Amount                   |<Link Module ID       |<Link Module Desc         |<Link GL Code   |<Link GL Desc            |>Link Account Type |>Link Account No |<Link Acc Name                   |>Service ID |<Service Desc  |<Resp Branch Code |<Resp Branch Desc          |<Resp Section Code |<Resp Section Desc        |<ABB Branch Code          |<Branch Desc                    |>Disposal Batch No |>Disposal Tran No  |<Acc Chk YN|Exception YN|Exception Codes|>Resp Bank Code|<Resp Bank Desc|<SI YN|>Counter No.|<Cashier Id               |>Scroll No.      |<Rate Ref Code     |<Rate Ref Desc     |>Issued by Branch Code |< Issued by Branch Desc|< Favouring        |>Instrument No    |>Advice Recceived|>Advice No.   |^Advice Rec Date|^Instrument Date|<Instrument Type|<Native Y/N"
-      }
-      else if ((vModId == "REM") && (window.document.frmTrans.tranmode(1).checked == true)) {
-        divsDisplay("remcr", "M")
-        window.document.all.divComm.style.display = "block";
-        window.document.all['divfxRem'].style.display = "block";
-        window.document.all['divrembank'].style.display = "block";
-      }
+//  else if (txtName == "txtModId") {
+//    //alert("fs")
+//    document.getElementById("divPhSign").style.display = 'none';
+//    window.document.frmTrans.txtModId.value = window.document.frmTrans.txtModId.value.toUpperCase()
+//    var vModId = window.document.frmTrans.txtModId.value.toUpperCase()
 
-      window.document.all.divaccno.style.display = "none"
-    }
+//    if (vBrCode != "" && vModId != "") {
+//      strVal = "COMP" + "~!~" + "txtModDesc" + "~!~" + vBrCode + "~!~" + vModId
 
-    if (window.document.frmTrans.tranmode(2).checked == true) {
-      if (vModId == "REM") {
-        window.document.frmTrans.chkCheque.checked = false;
-      }
-      else {
-        window.document.frmTrans.chkCheque.checked = true;
-      }
-      Cheque()
-    }
+//      parm = window.document.frmTrans.txtModDesc.value +
+//        "-----" + window.document.frmTrans.txtModId.value.toUpperCase()
+//      if ((vModId == "REM") && ((window.document.frmTrans.tranmode(0).checked == true) ||
+//        (window.document.frmTrans.tranmode(2).checked == true))) {
+//        divsDisplay("remdr", "M")
+//        divsDisplay("remdr", "M")
+//        window.document.frmTrans.Mfgpaydt.FormatString = ">Batch No     |>Tran No     |<GL Code       |<GL Description                       |>Acc No             |<Name                               |>Amount                     |>Entered Time Bal    |^Application Date   |<Cust ID                      |<Mode of Tran |<Mode of Tran Desc   |^ABB Application Date|<Tran Status  |>Currency Code   |<Entered By                    |<Entered M/C                  |<Module ID         |<Branch Code            |>Token No         |<Remarks                                  |<Cheque Series   |>Cheque No                 |^Cheque Date         |<Cheque Favouring              |<Sys Gen YN |<Module Description      |^ Effective Date        |<CLG Rate Type                |>Rate                   |<F Currency Code |>F Amount                   |<Link Module ID       |<Link Module Desc         |<Link GL Code   |<Link GL Desc            |>Link Account Type |>Link Account No |<Link Acc Name                   |>Service ID |<Service Desc  |<Resp Branch Code |<Resp Branch Desc          |<Resp Section Code |<Resp Section Desc        |<ABB Branch Code          |<Branch Desc                    |>Disposal Batch No |>Disposal Tran No  |<Acc Chk YN|Exception YN|Exception Codes|>Resp Bank Code|<Resp Bank Desc|<SI YN|>Counter No.|<Cashier Id               |>Scroll No.      |<Rate Ref Code     |<Rate Ref Desc     |>Issued by Branch Code |< Issued by Branch Desc|< Favouring        |>Instrument No    |>Advice Recceived|>Advice No.   |^Advice Rec Date|^Instrument Date|<Instrument Type|<Native Y/N"
+//      }
+//      else if ((vModId == "REM") && (window.document.frmTrans.tranmode(1).checked == true)) {
+//        divsDisplay("remcr", "M")
+//        window.document.all.divComm.style.display = "block";
+//        window.document.all['divfxRem'].style.display = "block";
+//        window.document.all['divrembank'].style.display = "block";
+//      }
 
-  }
+//      window.document.all.divaccno.style.display = "none"
+//    }
 
-  else if (txtName == "txtGLcode") {
-    document.getElementById("divPhSign").style.display = 'none';
-    window.document.frmTrans.txtGLcode.value = window.document.frmTrans.txtGLcode.value.toUpperCase()
-    vModId = window.document.frmTrans.txtModId.value.toUpperCase()
-    vGLCode = window.document.frmTrans.txtGLcode.value.toUpperCase()
+//    if (window.document.frmTrans.tranmode(2).checked == true) {
+//      if (vModId == "REM") {
+//        window.document.frmTrans.chkCheque.checked = false;
+//      }
+//      else {
+//        window.document.frmTrans.chkCheque.checked = true;
+//      }
+//      Cheque()
+//    }
 
-    if (vBrCode != "" && vModId != "" && vGLCode != "") {
-      strVal = "COMP" + "~!~" + "txtGLDesc" + "~!~" + vBrCode + "~!~" + vModId + "~!~" + vGLCode
-      /*if((window.document.frmTrans.txtModId.value=="REM")||(window.document.frmTrans.txtModId.value=="FXREM")){
-       Remclear()
-       getremtype()
+//  }
+
+//  else if (txtName == "txtGLcode") {
+//    document.getElementById("divPhSign").style.display = 'none';
+//    window.document.frmTrans.txtGLcode.value = window.document.frmTrans.txtGLcode.value.toUpperCase()
+//    vModId = window.document.frmTrans.txtModId.value.toUpperCase()
+//    vGLCode = window.document.frmTrans.txtGLcode.value.toUpperCase()
+
+//    if (vBrCode != "" && vModId != "" && vGLCode != "") {
+//      strVal = "COMP" + "~!~" + "txtGLDesc" + "~!~" + vBrCode + "~!~" + vModId + "~!~" + vGLCode
+//      /*if((window.document.frmTrans.txtModId.value=="REM")||(window.document.frmTrans.txtModId.value=="FXREM")){
+//       Remclear()
+//       getremtype()
         
-      } */
-      parm = window.document.frmTrans.txtGLDesc.value + "-----" +
-        window.document.frmTrans.txtGLcode.value
+//      } */
+//      parm = window.document.frmTrans.txtGLDesc.value + "-----" +
+//        window.document.frmTrans.txtGLcode.value
 
-    }
-  }
-  else if (txtName == "txtAccNo") {
-    document.getElementById("divPhotoSignature").style.display = 'none';
-    window.document.frmTrans.txtAccNo.value = window.document.frmTrans.txtAccNo.value.toUpperCase()
-    vModId = window.document.frmTrans.txtModId.value.toUpperCase()
-    vGLCode = window.document.frmTrans.txtGLcode.value.toUpperCase()
-    vAccNo = window.document.frmTrans.txtAccNo.value.toUpperCase()
-    vCurCode = window.document.frmTrans.txtcurrencycode.value.toUpperCase()
+//    }
+//  }
+//  else if (txtName == "txtAccNo") {
+//    document.getElementById("divPhotoSignature").style.display = 'none';
+//    window.document.frmTrans.txtAccNo.value = window.document.frmTrans.txtAccNo.value.toUpperCase()
+//    vModId = window.document.frmTrans.txtModId.value.toUpperCase()
+//    vGLCode = window.document.frmTrans.txtGLcode.value.toUpperCase()
+//    vAccNo = window.document.frmTrans.txtAccNo.value.toUpperCase()
+//    vCurCode = window.document.frmTrans.txtcurrencycode.value.toUpperCase()
 
-    if (vBrCode != "" && vModId != "" && vGLCode != "" && vAccNo != "") {
-      strVal = "COMP" + "~!~" + "txtAccNm" + "~!~" + vBrCode + "~!~" + vModId + "~!~" + vGLCode + "~!~" + vAccNo
+//    if (vBrCode != "" && vModId != "" && vGLCode != "" && vAccNo != "") {
+//      strVal = "COMP" + "~!~" + "txtAccNm" + "~!~" + vBrCode + "~!~" + vModId + "~!~" + vGLCode + "~!~" + vAccNo
 
-      if (vModId == 'SCR')
-        strVal = strVal + "~!~" + vCurCode
+//      if (vModId == 'SCR')
+//        strVal = strVal + "~!~" + vCurCode
 
-    }
-    if (vModId == "SCR") {
-      SuspenseDtls()
-    }
-    // checking for chequebookYN
-    if (vModId == "SB" || vModId == "CA" || vModId == "CC") {
-      GetAccDets()
-    }
-  }
+//    }
+//    if (vModId == "SCR") {
+//      SuspenseDtls()
+//    }
+//    // checking for chequebookYN
+//    if (vModId == "SB" || vModId == "CA" || vModId == "CC") {
+//      GetAccDets()
+//    }
+//  }
 
-  //for Link details
-  else if (txtName == "txtLnkModId") {
-    if (vBrCode != "") {
-      var vModId = window.document.frmTrans.txtLnkModId.value.toUpperCase()
+//  //for Link details
+//  else if (txtName == "txtLnkModId") {
+//    if (vBrCode != "") {
+//      var vModId = window.document.frmTrans.txtLnkModId.value.toUpperCase()
 
-      if (vBrCode != "" && vModId != "") {
-        strVal = "COMP" + "~!~" + "txtLnkModDesc" + "~!~" + vBrCode + "~!~" + vModId
-      }
-    }
-  }
-  else if (txtName == "txtLnkGLCode") {
-    vModId = window.document.frmTrans.txtLnkModId.value.toUpperCase()
-    vGLCode = window.document.frmTrans.txtLnkGLCode.value.toUpperCase()
+//      if (vBrCode != "" && vModId != "") {
+//        strVal = "COMP" + "~!~" + "txtLnkModDesc" + "~!~" + vBrCode + "~!~" + vModId
+//      }
+//    }
+//  }
+//  else if (txtName == "txtLnkGLCode") {
+//    vModId = window.document.frmTrans.txtLnkModId.value.toUpperCase()
+//    vGLCode = window.document.frmTrans.txtLnkGLCode.value.toUpperCase()
 
-    if (vBrCode != "" && vModId != "" && vGLCode != "") {
-      strVal = "COMP" + "~!~" + "txtLnkGLname" + "~!~" + vBrCode + "~!~" + vModId + "~!~" + vGLCode
-    }
+//    if (vBrCode != "" && vModId != "" && vGLCode != "") {
+//      strVal = "COMP" + "~!~" + "txtLnkGLname" + "~!~" + vBrCode + "~!~" + vModId + "~!~" + vGLCode
+//    }
 
-  }
-  else if (txtName == "txtLnkAccNo") {
-    vModId = window.document.frmTrans.txtLnkModId.value.toUpperCase()
-    vGLCode = window.document.frmTrans.txtLnkGLCode.value.toUpperCase()
-    vAccNo = window.document.frmTrans.txtLnkAccNo.value.toUpperCase()
-    if (vBrCode != "" && vModId != "" && vGLCode != "" && vAccNo != "") {
-      strVal = "COMP" + "~!~" + "txtLnkAccNm" + "~!~" + vBrCode + "~!~" + vModId + "~!~" + vGLCode + "~!~" + vAccNo
+//  }
+//  else if (txtName == "txtLnkAccNo") {
+//    vModId = window.document.frmTrans.txtLnkModId.value.toUpperCase()
+//    vGLCode = window.document.frmTrans.txtLnkGLCode.value.toUpperCase()
+//    vAccNo = window.document.frmTrans.txtLnkAccNo.value.toUpperCase()
+//    if (vBrCode != "" && vModId != "" && vGLCode != "" && vAccNo != "") {
+//      strVal = "COMP" + "~!~" + "txtLnkAccNm" + "~!~" + vBrCode + "~!~" + vModId + "~!~" + vGLCode + "~!~" + vAccNo
 
-    }
-  }
-
-
-  //for Clearing details
-
-  else if (txtName == "txtCLGModId") {
-    document.getElementById("divPhotoSignature").style.display = 'none';
-    if (vBrCode != "") {
-      var vModId = window.document.frmTrans.txtCLGModId.value.toUpperCase()
-
-      if (vBrCode != "" && vModId != "") {
-        strVal = "COMP" + "~!~" + "txtCLGModDesc" + "~!~" + vBrCode + "~!~" + vModId
-      }
-    }
-
-  }
-  else if (txtName == "txtCLGGLcode") {
-    document.getElementById("divPhotoSignature").style.display = 'none';
-    vModId = window.document.frmTrans.txtCLGModId.value.toUpperCase()
-    vGLCode = window.document.frmTrans.txtCLGGLcode.value.toUpperCase()
-
-    if (vBrCode != "" && vModId != "" && vGLCode != "") {
-      strVal = "COMP" + "~!~" + "txtCLGGLName" + "~!~" + vBrCode + "~!~" + vModId + "~!~" + vGLCode
-    }
-
-  }
-  else if (txtName == "txtCLGAccNo") {
-    vModId = window.document.frmTrans.txtCLGModId.value.toUpperCase()
-    vGLCode = window.document.frmTrans.txtCLGGLcode.value.toUpperCase()
-    vAccNo = window.document.frmTrans.txtCLGAccNo.value.toUpperCase()
-    if (vBrCode != "" && vModId != "" && vGLCode != "" && vAccNo != "") {
-      strVal = "COMP" + "~!~" + "txtCLGAccNm" + "~!~" + vBrCode + "~!~" + vModId + "~!~" + vGLCode + "~!~" + vAccNo
-
-    }
-  }
-  //for Suspense details 
-  if (strVal != "") {
-    strVal = txtName + "~!~" + strVal
-    //alert(strVal)
-    window.document.all['iGeneral'].src = '<%="http://" & session("moduledir")& "/GEN/"%>' + "genonblur.aspx?strParam=" + strVal
-  }
+//    }
+//  }
 
 
-}
+//  //for Clearing details
 
-function ReturnedBack(str) {
-  if (str == "txtServiceId") {
-    if (window.document.frmTrans.txtServiceName.value != "") {
-      window.document.frmTrans.txtModId.focus()
-    }
-  }
-  else if (str == "txtModId") {
-    if (window.document.frmTrans.txtModDesc.value != "") {
-      window.document.frmTrans.txtGLcode.focus()
-    }
-  }
-  else if (str == "txtGLcode") {
-    if (window.document.frmTrans.tranmode[2].checked == true) {
-      if (window.document.frmTrans.txtModId.value == "REM") {
-        window.document.frmTrans.txtinstrno.focus()
-      }
-    }
-    else {
-      if (window.document.frmTrans.txtModId.value == "REM") {
-        if (window.document.frmTrans.txtGLDesc.value != "") {
-          window.document.frmTrans.txtAmt.focus()
-          window.document.frmTrans.txtAmt.value = "0.00"
-          window.document.frmTrans.txtAmt.select()
-        }
-      }
-      else {
-        if (window.document.frmTrans.txtGLDesc.value != "") {
-          window.document.frmTrans.txtAccNo.focus()
-        }
-      }
-    }
+//  else if (txtName == "txtCLGModId") {
+//    document.getElementById("divPhotoSignature").style.display = 'none';
+//    if (vBrCode != "") {
+//      var vModId = window.document.frmTrans.txtCLGModId.value.toUpperCase()
 
-  }
-  else if (str == "txtAccNo") {
-    if (window.document.frmTrans.txtAccNm.value != "") {
-      window.document.frmTrans.txtAmt.focus()
-      window.document.frmTrans.txtAmt.value = "0.00"
-      window.document.frmTrans.txtAmt.select()
-    }
-  }
-}
+//      if (vBrCode != "" && vModId != "") {
+//        strVal = "COMP" + "~!~" + "txtCLGModDesc" + "~!~" + vBrCode + "~!~" + vModId
+//      }
+//    }
+
+//  }
+//  else if (txtName == "txtCLGGLcode") {
+//    document.getElementById("divPhotoSignature").style.display = 'none';
+//    vModId = window.document.frmTrans.txtCLGModId.value.toUpperCase()
+//    vGLCode = window.document.frmTrans.txtCLGGLcode.value.toUpperCase()
+
+//    if (vBrCode != "" && vModId != "" && vGLCode != "") {
+//      strVal = "COMP" + "~!~" + "txtCLGGLName" + "~!~" + vBrCode + "~!~" + vModId + "~!~" + vGLCode
+//    }
+
+//  }
+//  else if (txtName == "txtCLGAccNo") {
+//    vModId = window.document.frmTrans.txtCLGModId.value.toUpperCase()
+//    vGLCode = window.document.frmTrans.txtCLGGLcode.value.toUpperCase()
+//    vAccNo = window.document.frmTrans.txtCLGAccNo.value.toUpperCase()
+//    if (vBrCode != "" && vModId != "" && vGLCode != "" && vAccNo != "") {
+//      strVal = "COMP" + "~!~" + "txtCLGAccNm" + "~!~" + vBrCode + "~!~" + vModId + "~!~" + vGLCode + "~!~" + vAccNo
+
+//    }
+//  }
+//  //for Suspense details 
+//  if (strVal != "") {
+//    strVal = txtName + "~!~" + strVal
+//    //alert(strVal)
+//    window.document.all['iGeneral'].src = '<%="http://" & session("moduledir")& "/GEN/"%>' + "genonblur.aspx?strParam=" + strVal
+//  }
+
+
+//}
+
+//function ReturnedBack(str) {
+//  if (str == "txtServiceId") {
+//    if (window.document.frmTrans.txtServiceName.value != "") {
+//      window.document.frmTrans.txtModId.focus()
+//    }
+//  }
+//  else if (str == "txtModId") {
+//    if (window.document.frmTrans.txtModDesc.value != "") {
+//      window.document.frmTrans.txtGLcode.focus()
+//    }
+//  }
+//  else if (str == "txtGLcode") {
+//    if (window.document.frmTrans.tranmode[2].checked == true) {
+//      if (window.document.frmTrans.txtModId.value == "REM") {
+//        window.document.frmTrans.txtinstrno.focus()
+//      }
+//    }
+//    else {
+//      if (window.document.frmTrans.txtModId.value == "REM") {
+//        if (window.document.frmTrans.txtGLDesc.value != "") {
+//          window.document.frmTrans.txtAmt.focus()
+//          window.document.frmTrans.txtAmt.value = "0.00"
+//          window.document.frmTrans.txtAmt.select()
+//        }
+//      }
+//      else {
+//        if (window.document.frmTrans.txtGLDesc.value != "") {
+//          window.document.frmTrans.txtAccNo.focus()
+//        }
+//      }
+//    }
+
+//  }
+//  else if (str == "txtAccNo") {
+//    if (window.document.frmTrans.txtAccNm.value != "") {
+//      window.document.frmTrans.txtAmt.focus()
+//      window.document.frmTrans.txtAmt.value = "0.00"
+//      window.document.frmTrans.txtAmt.select()
+//    }
+//  }
+//}
 
 //----------------------------------------------------------------------------------
 function dispDetails() {
@@ -12753,9 +12565,8 @@ function sumDrCr(flxRowCnt1, AddorDel1) {
 
 }
 
-function genLimitValidation() {
-
-}
+//function genLimitValidation() {
+//}
 
 
 function remLimitValidation() {
@@ -12766,29 +12577,29 @@ function remLimitValidation() {
 }
 
 
-function getPendInt() {
-  if ((window.document.frmTrans.txtModId.value == "LOAN") && (window.document.frmTrans.tranmode[1].checked == true)) {
-    st = window.document.frmTrans.txtbranchcode.value + "|" +
-      window.document.frmTrans.txtcurrencycode.value + "|LOAN|" +
-      window.document.frmTrans.txtGLcode.value + "|" +
-      window.document.frmTrans.txtAccNo.value
+//function getPendInt() {
+//  if ((window.document.frmTrans.txtModId.value == "LOAN") && (window.document.frmTrans.tranmode[1].checked == true)) {
+//    st = window.document.frmTrans.txtbranchcode.value + "|" +
+//      window.document.frmTrans.txtcurrencycode.value + "|LOAN|" +
+//      window.document.frmTrans.txtGLcode.value + "|" +
+//      window.document.frmTrans.txtAccNo.value
 
-    window.document.all['idetails'].src = '<%="http://" & session("moduledir")& "/Loan/"%>' + "loanrenewintcalc.aspx?st=" + st;
-  }
-}
+//    window.document.all['idetails'].src = '<%="http://" & session("moduledir")& "/Loan/"%>' + "loanrenewintcalc.aspx?st=" + st;
+//  }
+//}
 
-function JointHolderValidation() {
+//function JointHolderValidation() {
 
-  if (window.document.frmTrans.tranmode(0).checked == true) {
-    var st = "GETJOINTHOLDER|" + window.document.frmTrans.txtbranchcode.value + "|" +
-      window.document.frmTrans.txtcurrencycode.value + "|" +
-      window.document.frmTrans.txtGLcode.value + "|" +
-      window.document.frmTrans.txtAccNo.value + "|" +
-      window.document.frmTrans.txtModId.value
-    //alert(st)
-    window.document.all['iGetDtls'].src = "getDtls.aspx?st=" + st
-  }
-}
+//  if (window.document.frmTrans.tranmode(0).checked == true) {
+//    var st = "GETJOINTHOLDER|" + window.document.frmTrans.txtbranchcode.value + "|" +
+//      window.document.frmTrans.txtcurrencycode.value + "|" +
+//      window.document.frmTrans.txtGLcode.value + "|" +
+//      window.document.frmTrans.txtAccNo.value + "|" +
+//      window.document.frmTrans.txtModId.value
+//    //alert(st)
+//    window.document.all['iGetDtls'].src = "getDtls.aspx?st=" + st
+//  }
+//}
 
 
 function GetJointHolderVal(str) {
@@ -13005,25 +12816,25 @@ function GetThreshHoldLimit(str) {
     window.document.frmTrans.hdnchkthreshlmt.value = "false"
   }
 }
-function SetCCDrCrLienYN() {
-  var strAppDate1 = "<%= session("applicationdate")%>"
-  var strModeDrCr
+//function SetCCDrCrLienYN() {
+//  var strAppDate1 = "<%= session("applicationdate")%>"
+//  var strModeDrCr
 
 
-  var strmodid1 = window.document.frmTrans.txtModId.value.toUpperCase()
+//  var strmodid1 = window.document.frmTrans.txtModId.value.toUpperCase()
 
-  if ((strmodid1 == "CC")) {
-  }
-  else {
-    return
-  }
+//  if ((strmodid1 == "CC")) {
+//  }
+//  else {
+//    return
+//  }
 
-  var st = "GETCCDRCRLIENYN|" + window.document.frmTrans.txtbranchcode.value + "|" + window.document.frmTrans.txtcurrencycode.value + "|" + strmodid1 + "|" +
-    window.document.frmTrans.txtGLcode.value + "|" + window.document.frmTrans.txtAccNo.value + "|" + strAppDate1
+//  var st = "GETCCDRCRLIENYN|" + window.document.frmTrans.txtbranchcode.value + "|" + window.document.frmTrans.txtcurrencycode.value + "|" + strmodid1 + "|" +
+//    window.document.frmTrans.txtGLcode.value + "|" + window.document.frmTrans.txtAccNo.value + "|" + strAppDate1
 
-  //alert(st)
-  window.document.all['iGetDtls'].src = "getDtls.aspx?st=" + st
-}
+//  //alert(st)
+//  window.document.all['iGetDtls'].src = "getDtls.aspx?st=" + st
+//}
 
 function GETCCDRCRLIENYN1(str) {
   var kStr = str.split("|")
@@ -13155,27 +12966,27 @@ function GETDRCRLIENAMT1(str) {
   }
 }
 
-function getATMCardDetails() {
+//function getATMCardDetails() {
 
-  if (window.document.frmTrans.tranmode(0).checked == true) {
+//  if (window.document.frmTrans.tranmode(0).checked == true) {
 
-    if (window.document.frmTrans.txtServiceId.value == 4) {
-      var strmodid1 = window.document.frmTrans.txtModId.value.toUpperCase()
+//    if (window.document.frmTrans.txtServiceId.value == 4) {
+//      var strmodid1 = window.document.frmTrans.txtModId.value.toUpperCase()
 
-      if ((strmodid1 == "SB") || (strmodid1 == "CA")) {
+//      if ((strmodid1 == "SB") || (strmodid1 == "CA")) {
 
-        var brcode = window.document.frmTrans.txtbranchcode.value.toUpperCase();
-        var glcode = window.document.frmTrans.txtGLcode.value.toUpperCase();
-        var accno = window.document.frmTrans.txtAccNo.value.toUpperCase();
-        var st = ""
+//        var brcode = window.document.frmTrans.txtbranchcode.value.toUpperCase();
+//        var glcode = window.document.frmTrans.txtGLcode.value.toUpperCase();
+//        var accno = window.document.frmTrans.txtAccNo.value.toUpperCase();
+//        var st = ""
 
-        st = "ATMCardDet|" + brcode + "|" + glcode + "|" + accno
-        window.document.all['iGetDtls'].src = "../GENSBCA/GetAccDetails.aspx?st=" + st
+//        st = "ATMCardDet|" + brcode + "|" + glcode + "|" + accno
+//        window.document.all['iGetDtls'].src = "../GENSBCA/GetAccDetails.aspx?st=" + st
 
-      }		//((strmodid1 == "SB") || (strmodid1 == "CA") )
-    }		//(window.document.frmTrans.txtServiceId.value == 4)						
-  }  //(window.document.frmTrans.tranmode(0).checked==true)
-}  //getATMCardDetails()
+//      }		//((strmodid1 == "SB") || (strmodid1 == "CA") )
+//    }		//(window.document.frmTrans.txtServiceId.value == 4)						
+//  }  //(window.document.frmTrans.tranmode(0).checked==true)
+//}  //getATMCardDetails()
 
 function DisplayATMCardDetails(kstr) {
   //alert("hi")
@@ -13568,18 +13379,18 @@ function PPSDetails() {
 }
 
 
-function Check206AA206AB() {
-  var sBr, sMod, sGL, sAccno, sCur, st
+//function Check206AA206AB() {
+//  var sBr, sMod, sGL, sAccno, sCur, st
 
-  sBr = window.document.frmTrans.txtbranchcode.value.toUpperCase()
-  sMod = window.document.frmTrans.txtModId.value.toUpperCase()
-  sGL = window.document.frmTrans.txtGLcode.value.toUpperCase()
-  sAccno = window.document.frmTrans.txtAccNo.value.toUpperCase()
-  sCur = window.document.frmTrans.txtcurrencycode.value.toUpperCase()
-  st = "Check206AA206AB" + "|" + sBr + "|" + sMod + "|" + sGL + "|" + sAccno + "|" + sCur
+//  sBr = window.document.frmTrans.txtbranchcode.value.toUpperCase()
+//  sMod = window.document.frmTrans.txtModId.value.toUpperCase()
+//  sGL = window.document.frmTrans.txtGLcode.value.toUpperCase()
+//  sAccno = window.document.frmTrans.txtAccNo.value.toUpperCase()
+//  sCur = window.document.frmTrans.txtcurrencycode.value.toUpperCase()
+//  st = "Check206AA206AB" + "|" + sBr + "|" + sMod + "|" + sGL + "|" + sAccno + "|" + sCur
 
-  window.document.all["iBatch"].src = "../GENSBCA/querydisplay.aspx?st=" + st
-}
+//  window.document.all["iBatch"].src = "../GENSBCA/querydisplay.aspx?st=" + st
+//}
 
 function GetCheck206AA206AB(kstr) {
   var kstr1

@@ -1,6 +1,5 @@
 ﻿using Banking.Framework;
 using Banking.Interfaces;
-using Banking.Interfaces.IServices;
 using Banking.Models;
 using Banking.Services;
 using Microsoft.AspNetCore.Mvc;
@@ -24,6 +23,8 @@ namespace Banking.Frontend.Controllers
         protected IDashboardService _dashboardService;
         protected ICustomerService _customerService;
         protected ITransferTransactionService _transferTransactionService;
+        protected IListService _listService;
+
         protected ISBCAAccountOpeningService _sbcaaccountopeningService;
         public BaseController(IConfiguration configuration, IHttpContextAccessor httpContextAccessor)
         {
@@ -35,8 +36,10 @@ namespace Banking.Frontend.Controllers
             _options = Options.Create(_configuration.GetSection("OracleSettings").Get<DatabaseSettings>() ?? new DatabaseSettings());
 
             var controllerName = Conversions.ToString(httpContextAccessor.HttpContext?.Request.RouteValues["controller"]);
+            var actionName = Conversions.ToString(httpContextAccessor.HttpContext?.Request.RouteValues["controller"]);
 
             session.SetString(SessionConstants.ControllerName, controllerName);
+            session.SetString(SessionConstants.ActionName, actionName);
 
             session.SetString(SessionConstants.CurrencyCode, "INR");
 
@@ -45,6 +48,7 @@ namespace Banking.Frontend.Controllers
             _dashboardService = _dashboardService ?? new DashboardService(_options);
             _customerService = _customerService ?? new CustomerService(_options);
             _transferTransactionService = _transferTransactionService ?? new TransferTransactionService(_options);
+            _listService = _listService ?? new ListService(_options);
 
             _stopwatch = new Stopwatch();
             _loggerModel = new LoggerModel();

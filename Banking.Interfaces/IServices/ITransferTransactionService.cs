@@ -1,7 +1,7 @@
 ﻿using Banking.Models;
 using Microsoft.AspNetCore.Http;
 
-namespace Banking.Interfaces.IServices
+namespace Banking.Interfaces
 {
     public interface ITransferTransactionService
     {

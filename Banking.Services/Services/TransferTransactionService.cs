@@ -1,6 +1,5 @@
 ﻿using Banking.Framework;
 using Banking.Interfaces;
-using Banking.Interfaces.IServices;
 using Banking.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
@@ -13,34 +12,38 @@ namespace Banking.Services
         private readonly IDatabaseService _databaseFactory;
         private readonly ICommonService _commonService;
         private readonly IListService _listService;
+        private ITransactionalService _transactionalService;
 
         public TransferTransactionService(IOptions<DatabaseSettings> databaseSettings)
         {
             _databaseFactory = new DatabaseService(databaseSettings.Value);
             _commonService = new CommonService(databaseSettings);
             _listService = new ListService(databaseSettings);
+            _transactionalService = new TransactionalService(databaseSettings);
         }
 
         public async Task<TransferTransactionModel> Get(ISession session)
         {
-            TransferTransactionModel model = new TransferTransactionModel()
+            TransferTransactionModel model = new()
             {
                 Branch = session.GetString(SessionConstants.BranchCode),
-                BranchList = await _commonService.GetBranchList(),
-
-                ServiceList = await _listService.GetServiceList(),
-                // ModuleList = await _listService.GetModuleList(),
-
-                TransactionMode = TransactionModes.Debit,
-
-                CheckABB = false,
-                CheckCheque = false,
-                CheckLinkModule = false,
-                CheckTransDetails = false,
-                CheckDenoms = false,
-                CheckRateDetails = false,
-                CheckDenomsTally = false
+                BranchList = await _transactionalService.GetBranchCodesByUserId(session.GetString(SessionConstants.UserId))
             };
+
+            if (string.IsNullOrWhiteSpace(model.TransactionMode.ToString()))
+                model.TransactionMode = TransactionModes.Debit;
+
+            string serviceCode = string.Concat("Service|", model.TransactionMode.ToString());
+
+            model.ServiceList = await _listService.GetServiceList(serviceCode);
+
+            model.CheckABB = false;
+            model.CheckCheque = false;
+            model.CheckLinkModule = false;
+            model.CheckTransDetails = false;
+            model.CheckDenoms = false;
+            model.CheckRateDetails = false;
+            model.CheckDenomsTally = false;
 
             return model;
         }
@@ -398,18 +401,19 @@ namespace Banking.Services
             else
                 model.ApplicationDate = session.GetString(SessionConstants.ApplicationDate);
 
-            model.CashierId = session.GetString("userid");
-            vPrec = session.GetString("precision");
+            model.CashierId = session.GetString(SessionConstants.UserId);
+            model.Hidden_Precision = session.GetString(SessionConstants.Precision);
 
-            model.BranchCode = session.GetString("branchcode");
-            model.CurrencyCode = session.GetString("currencycode");
-            model.BranchNarration = session.GetString("branchnarration");
-            model.CurrencyNarration = session.GetString("currencynarration");
-            model.MachineId = session.GetString("machineid");
-            model.ABBUser = session.GetString("abbuser");
-            vModDir = session.GetString("moddir");
+            model.BranchCode = session.GetString(SessionConstants.BranchCode);
+            model.CurrencyCode = session.GetString(SessionConstants.CurrencyCode);
+            model.BranchNarration = session.GetString(SessionConstants.BranchNarration);
+            model.CurrencyNarration = session.GetString(SessionConstants.CurrencyNarration);
+            model.MachineId = session.GetString(SessionConstants.MachineId);
+            model.ABBUser = session.GetString(SessionConstants.ABBUser);
 
-            if (vModDir.ToUpper().Equals("CASH"))
+            vModDir = session.GetString(SessionConstants.SelectedModule);
+
+            if (!string.IsNullOrWhiteSpace(vModDir) && vModDir.ToUpper().Equals("CASH"))
             {
                 Rfldnms = "TELLERVERIFYREQYN";
 
@@ -524,6 +528,10 @@ namespace Banking.Services
 
             if (session.GetString(SessionConstants.SelectedModule) == "CLG")
                 model.Hidden_Title = "Clearing Inward Entry";
+
+            model.Hidden_ChequeValidPeriod = session.GetString(SessionConstants.ChequeValidPeriod);
+            model.Hidden_ChequeLength = session.GetString(SessionConstants.ChequeLength);
+            model.SelectedModule = session.GetString(SessionConstants.SelectedModule);
 
             return model;
         }

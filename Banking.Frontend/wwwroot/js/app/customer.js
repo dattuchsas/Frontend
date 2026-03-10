@@ -16,7 +16,7 @@ $(function () {
   //  $("input[type='submit']").prop('disabled', false);
   //});
 
-  $("#MembershipNumber, #memberNoLabel").hide();
+  $("#MembershipNumber, #memberNoLabel").prop('readonly', true);
   $("#MembershipName, #memberNameLabel").hide();
 
   $("#CustomerId").on('change', function () {
@@ -26,7 +26,7 @@ $(function () {
       st = st + "|Main" + "|" + stcond
     }
     $("#hiddenCustId").val(st);
-    window.location.href = '/Customer/Index?custId=' + encodeURIComponent(EncodeInput(st));
+    window.location.href = '/TransferTransaction/Index?accountNumber=' + encodeURIComponent(EncodeInput(st));
   });
 
   $("#Personal_PANNo").on('blur', function () {
@@ -132,7 +132,6 @@ $(function () {
     debugger;
     if ($("#MemberId").is(':checked') == false) {
       bankingAlert("Member Id should be checked.");
-      $("#MembershipNumber").trigger('focus');
       return;
     }
     if ($("#MemberId").is(':checked') == true && $(this).val() == "") {
@@ -307,7 +306,6 @@ function PANCheck() {
                   var stCus = stVal[0].split("~");
                   bankingAlert("This Pan card have already Customerid :" + stCus[0] + " and Name :" + stCus[1]);
                   $("#Personal_PANNo").val('');
-                  $("#Personal_PANNo").trigger('focus');
                   return;
                 }
               }
@@ -320,14 +318,12 @@ function PANCheck() {
         else {
           bankingAlert("Not a valid PAN Number")
           $("#Personal_PANNo").val('');
-          $("#Personal_PANNo").trigger('focus');
           return;
         }
       }
       else {
         bankingAlert("Not a valid PAN Number")
         $("#Personal_PANNo").val('');
-        $("#Personal_PANNo").trigger('focus');
         return;
       }
     }

@@ -17,4 +17,15 @@
         public string? ActionName { get; set; }
         public List<Menu>? SubMenu { get; set; }
     }
+
+    public class MenuModel
+    {
+        public string? Menu { get; set; }
+        public string? SubMenu { get; set; }
+        public int FormId { get; set; }
+        public int MenuOrder { get; set; }
+        public int FormOrder { get; set; }
+        public string? ControllerName { get; set; }
+        public string? ActionName { get; set; }
+    }
 }
