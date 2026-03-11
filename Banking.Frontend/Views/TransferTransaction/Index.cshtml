@@ -152,53 +152,53 @@
         <!--Search Selections Details-->
         <div class="service-box mt-2" id="saving">
             <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3  row-cols-lg-4 row-cols-xl-5 gx-3 gy-2">
-                <div class="col">
-                    <label class="form-label">Clear Bal</label>
-                    <div>9173.09</div>
+                <div class="col d-none ClearBalance">
+                    <label class="form-label">Clear Balance</label>
+                    <div id="ClearBalance">@Model.ClearBalance</div>
                 </div>
-                <div class="col">
-                    <label class="form-label">Unclear Bal</label>
-                    <div>9173.09</div>
+                <div class="col d-none UnclearBalance">
+                    <label class="form-label">Unclear Balance</label>
+                    <div id="UnclearBalance">@Model.UnclearBalance</div>
                 </div>
-                <div class="col">
-                    <label class="form-label">Acc Bal</label>
-                    <div>9173.09</div>
+                <div class="col d-none AccountBalance">
+                    <label class="form-label">Account Balance</label>
+                    <div id="AccountBalance">@Model.AccountBalance</div>
                 </div>
-                <div class="col">
-                    <label class="form-label">Oper. Instr</label>
-                    <div>Self</div>
+                <div class="col d-none OperationInstruction">
+                    <label class="form-label">Oper. Instr.</label>
+                    <div id="OperationInstruction">@Model.OperationInstruction</div>
                 </div>
-                <div class="col">
-                    <label class="form-label">Oper. by</label>
-                    <div>Manthena Muralikrishna</div>
+                <div class="col d-none OperatedBy">
+                    <label class="form-label">Oper. By</label>
+                    <div id="OperatedBy">@Model.OperatedBy</div>
                 </div>
-                <div class="col">
-                    <label class="form-label">Pend Bal.</label>
-                    <div>0.00</div>
+                <div class="col d-none PendingBalance">
+                    <label class="form-label">Pending Balance</label>
+                    <div id="PendingBalance">@Model.PendingBalance</div>
                 </div>
-                <div class="col">
+                <div class="col d-none CustomerId">
                     <label class="form-label">Customer Id</label>
-                    <div>1010003770</div>
+                    <div id="CustomerId">@Model.CustomerId</div>
                 </div>
-                <div class="col">
-                    <label class="form-label">Limit Amt.</label>
-                    <div></div>
+                <div class="col d-none LimitAmount">
+                    <label class="form-label">Limit Amount</label>
+                    <div id="LimitAmount">@Model.LimitAmount</div>
                 </div>
-                <div class="col">
-                    <label class="form-label">TotCashDr</label>
-                    <div>165000.00</div>
+                <div class="col d-none TotalCashDebited">
+                    <label class="form-label">Total Cash Dr.</label>
+                    <div id="TotalCashDebited">@Model.TotalCashDebited</div>
                 </div>
-                <div class="col">
-                    <label class="form-label">TotCashCr</label>
-                    <div>850000.00</div>
+                <div class="col d-none TotalCashCredited">
+                    <label class="form-label">Total Cash Cr.</label>
+                    <div id="TotalCashCredited">@Model.TotalCashCredited</div>
                 </div>
-                <div class="col">
-                    <label class="form-label">LmtExpDt</label>
-                    <div></div>
+                <div class="col d-none LimitExpiryDate">
+                    <label class="form-label">Limit Exp. Dt.</label>
+                    <div id="LimitExpiryDate">@Model.LimitExpiryDate</div>
                 </div>
-                <div class="col">
+                <div class="col d-none GSTIN">
                     <label class="form-label">GSTIN</label>
-                    <div></div>
+                    <div id="GSTIN">@Model.GSTIN</div>
                 </div>
             </div>
         </div>
@@ -210,36 +210,12 @@
                     <div>68000.00</div>
                 </div>
                 <div class="col">
-                    <label class="form-label">Acc Bal</label>
-                    <div>-79982.09</div>
-                </div>
-                <div class="col">
                     <label class="form-label">Disbursed Amt</label>
                     <div>68000.00</div>
                 </div>
                 <div class="col">
-                    <label class="form-label">Clear Bal</label>
-                    <div>9173.09</div>
-                </div>
-                <div class="col">
-                    <label class="form-label">Unclear Bal</label>
-                    <div>0.00</div>
-                </div>
-                <div class="col">
                     <label class="form-label">Available</label>
                     <div>0.00</div>
-                </div>
-                <div class="col">
-                    <label class="form-label">Oper. by</label>
-                    <div>Manthena Muralikrishna</div>
-                </div>
-                <div class="col">
-                    <label class="form-label">Pend Bal.</label>
-                    <div>0.00</div>
-                </div>
-                <div class="col">
-                    <label class="form-label">Customer Id</label>
-                    <div>1010003770</div>
                 </div>
                 <div class="col">
                     <label class="form-label">Pend Int Amt.</label>
@@ -441,15 +417,15 @@
 <input type="hidden" asp-for="CurrencyCode" />
 <input type="hidden" asp-for="CurrencyNarration" />
 <input type="hidden" asp-for="MachineId" />
+<input type="hidden" asp-for="SelectedModule" />
 
 <input type="hidden" asp-for="Hidden_194NCustomerId" />
-
 <input type="hidden" asp-for="Hidden_Mode" />
 <input type="hidden" asp-for="Hidden_SubMode" />
 <input type="hidden" asp-for="Hidden_ChequeValidPeriod" />
 <input type="hidden" asp-for="Hidden_ChequeLength" />
 <input type="hidden" asp-for="Hidden_Precision" />
-<input type="hidden" asp-for="SelectedModule" />
+<input type="hidden" asp-for="Hidden_MaxAmount" />
 
 <!-- Customer List Modal -->
 <div class="modal fade" id="GLCodeListPopup" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-hidden="true">

@@ -1,16 +1,9 @@
 ﻿using Banking.Framework;
 using Banking.Interfaces;
 using Banking.Models;
-using Humanizer;
 using Microsoft.Extensions.Options;
-using System;
 using System.Data;
-using System.Diagnostics.Contracts;
 using System.Diagnostics.Eventing.Reader;
-using System.Reflection;
-using System.Security.Principal;
-using System.Xml.Linq;
-using static System.Net.Mime.MediaTypeNames;
 
 namespace Banking.Services
 {
@@ -18,11 +11,13 @@ namespace Banking.Services
     {
         private readonly IDatabaseService _databaseFactory;
         private readonly IListService _listService;
+        private readonly IGeneralValidationService _generalValidationService;
 
         public GetDetailsService(IOptions<DatabaseSettings> databaseSettings)
         {
             _databaseFactory = new DatabaseService(databaseSettings.Value);
             _listService = new ListService(databaseSettings);
+            _generalValidationService = new GeneralValidationService(databaseSettings);
         }
 
         // GETAADHARUIDTLS
@@ -210,6 +205,12 @@ namespace Banking.Services
                 if (dataTable.Rows.Count > 0)
                     strResult = Conversions.ToString(dataTable.Rows[0].ItemArray[0]);
             }
+            else if (strArr[0].Equals("GETDRCRLIENYN", StringComparison.OrdinalIgnoreCase) || 
+                strArr[0].Equals("GETDRCRLIENAMT", StringComparison.OrdinalIgnoreCase))
+            {
+                strResult = await _generalValidationService.GetSBCADrCrLienYN(strArr[1], strArr[2], strArr[3], strArr[4], strArr[5], strArr[6],
+                    Convert.ToDouble(strArr[7]), Convert.ToDateTime(strArr[8]));
+            }
 
             return strResult;
 
@@ -226,7 +227,7 @@ namespace Banking.Services
             //dim objctr
             //dim strNFTSCONVYN
             //dim strerrMessage
-            //rs = Server.CreateObject("adodb.recordset")
+            //dataTable = Server.CreateObject("adodb.recordset")
             //rscheck = Server.CreateObject("adodb.recordset")
             //rsthresh = Server.CreateObject("adodb.recordset")
             //objctr = server.CreateObject("queryrecordsets.fetchrecordsets")
@@ -255,12 +256,12 @@ namespace Banking.Services
 
             //         obj = server.CreateObject("ReportPurposeOnly.Reportonly")
             //         sqlStr = "SELECT IMPYN FROM GENCONFIGMST WHERE CODE='GSTR'"
-            //         rs = obj.SingleSelectStat(sqlStr)
+            //         dataTable = obj.SingleSelectStat(sqlStr)
 
             //         if obj.ConnError = "Connected" then
-            //             if not rs.BOF and not rs.EOF then
+            //             if not dataTable.BOF and not dataTable.EOF then
 
-            //                 if rs(0).value = "Y" then
+            //                 if dataTable(0).value = "Y" then
             //                    sqlStr = ""
 
             //                    rsq = Server.CreateObject("adodb.recordset")
@@ -348,7 +349,7 @@ namespace Banking.Services
 
             //        end if
 
-            //        rs = nothing
+            //        dataTable = nothing
 
 
             //    elseif strArr(0)= "getpendintcashaccname" then
@@ -356,14 +357,14 @@ namespace Banking.Services
             //    obj = Server.CreateObject("queryrecordsets.fetchrecordsets")
 
 
-            //    rs = obj.singlerecordset("DEPMST m ,DEPINTPAYCASHDTLS d ", "m.NAME", "d.branchcode='" & strArr(1) & "' and d.currencycode = '" & strArr(2) & "' and d.GLCODE='" & strArr(3) & "' and d.accno='" & strArr(4) & "' and m.accno = d.accno and m.glcode = d.glcode and m.branchcode = d.branchcode and d.status = 'R' and d.PAIDDATE IS NULL AND d.PAIDBATCHNO IS NULL")
+            //    dataTable = obj.singlerecordset("DEPMST m ,DEPINTPAYCASHDTLS d ", "m.NAME", "d.branchcode='" & strArr(1) & "' and d.currencycode = '" & strArr(2) & "' and d.GLCODE='" & strArr(3) & "' and d.accno='" & strArr(4) & "' and m.accno = d.accno and m.glcode = d.glcode and m.branchcode = d.branchcode and d.status = 'R' and d.PAIDDATE IS NULL AND d.PAIDBATCHNO IS NULL")
 
 
             //        if obj.ConnError = "Connected" then
 
-            //            if not rs.BOF and not rs.EOF then
+            //            if not dataTable.BOF and not dataTable.EOF then
 
-            //                strResult = rs(0).value
+            //                strResult = dataTable(0).value
 
             //                else
             //                strResult = "No Record"
@@ -372,7 +373,7 @@ namespace Banking.Services
 
             //        end if
 
-            //        rs = nothing
+            //        dataTable = nothing
 
 
 
@@ -380,14 +381,14 @@ namespace Banking.Services
             //    obj = Server.CreateObject("queryrecordsets.fetchrecordsets")
 
 
-            //    rs = obj.singlerecordset("GENGLSHEETMST a , deptypemst b", "a.NARRATION,b.DEPSUBNATURE", "a.glcode = '" & strArr(3) & "' AND a.moduleid = '" & strArr(2) & "' AND a.branchcode = '" & strArr(1) & "' AND a.STATUS = 'R' AND a.glcode =  b.GLCODE")
+            //    dataTable = obj.singlerecordset("GENGLSHEETMST a , deptypemst b", "a.NARRATION,b.DEPSUBNATURE", "a.glcode = '" & strArr(3) & "' AND a.moduleid = '" & strArr(2) & "' AND a.branchcode = '" & strArr(1) & "' AND a.STATUS = 'R' AND a.glcode =  b.GLCODE")
 
 
             //        if obj.ConnError = "Connected" then
 
-            //            if not rs.BOF and not rs.EOF then
+            //            if not dataTable.BOF and not dataTable.EOF then
 
-            //                strResult = rs(0).value & ">>" & rs(1).value
+            //                strResult = dataTable(0).value & ">>" & dataTable(1).value
 
             //                else
             //                strResult = "No Record>>No Record"
@@ -396,7 +397,7 @@ namespace Banking.Services
 
             //        end if
 
-            //        rs = nothing
+            //        dataTable = nothing
 
             //    elseif strArr(0)= "GETBATCHTRANNO" then
             //        strResult = ""
@@ -428,59 +429,59 @@ namespace Banking.Services
 
             //        strIndvVal = split(strArr(1), "*")
 
-            //        rs = obj.singlerecordset("GENOTHERBANKMST", "BANKNAME", "BANKCODE=" & _
+            //        dataTable = obj.singlerecordset("GENOTHERBANKMST", "BANKNAME", "BANKCODE=" & _
 
             //        "'" & strIndvVal(1) & "' AND BRANCHCODE='" & strIndvVal(0) & "' AND STATUS='R'")
 
             //        if obj.ConnError = "Connected" then
 
-            //            if not rs.BOF and not rs.EOF then
+            //            if not dataTable.BOF and not dataTable.EOF then
 
-            //                strResult = rs(0).value
+            //                strResult = dataTable(0).value
 
             //            end if
 
             //        end if
 
-            //        rs = nothing
+            //        dataTable = nothing
 
             //    elseif strArr(0)= "GETCUSTOMERID" then
             //        obj = server.CreateObject("ReportPurposeOnly.Reportonly")
 
             //        sqlStr = "SELECT A.NAME, A.CUSTOMERID, (SELECT V.CUSTMOBILE FROM GENCUSTINFOMST V WHERE V.CUSTOMERID=A.CUSTOMERID AND V.BRANCHCODE=A.BRANCHCODE) MOBILE, (SELECT K.NARRATION FROM GENRELATIONSMST K WHERE K.CODE=(SELECT G.RELATIONID FROM GENCUSTINFOMST G WHERE G.CUSTOMERID=A.CUSTOMERID AND G.BRANCHCODE=A.BRANCHCODE)) RELATION, (SELECT G.FATHERNAME FROM GENCUSTINFOMST G WHERE G.CUSTOMERID=A.CUSTOMERID AND G.BRANCHCODE=A.BRANCHCODE) FNAME,(SELECT G.PANNO FROM GENCUSTINFOMST G WHERE G.CUSTOMERID=A.CUSTOMERID AND G.BRANCHCODE=A.BRANCHCODE AND KYCID='2') PANNO FROM " & strArr(3) & "MST A WHERE A.ACCNO='" & strArr(5) & "' AND A.GLCODE='" & strArr(4) & "' AND A.BRANCHCODE='" & strArr(1) & "'"
 
-            //        rs = obj.SingleSelectStat(sqlStr)
+            //        dataTable = obj.SingleSelectStat(sqlStr)
 
             //        if obj.ConnError = "Connected" then
 
-            //            if not rs.BOF and not rs.EOF then
+            //            if not dataTable.BOF and not dataTable.EOF then
 
-            //                strResult = rs(0).value & "|" & rs(1).value & "|" & rs(2).value & "|" & rs(3).value & "|" & rs(4).value & "|" & rs(5).value
+            //                strResult = dataTable(0).value & "|" & dataTable(1).value & "|" & dataTable(2).value & "|" & dataTable(3).value & "|" & dataTable(4).value & "|" & dataTable(5).value
 
             //            end if
 
             //        end if
 
-            //        rs = nothing
+            //        dataTable = nothing
 
             //    elseif strArr(0)= "GETCUSTOMERID2" then
             //        obj = server.CreateObject("ReportPurposeOnly.Reportonly")
 
             //        sqlStr = "SELECT A.NAME, A.CUSTOMERID, (SELECT V.CUSTMOBILE FROM GENCUSTINFOMST V WHERE V.CUSTOMERID=A.CUSTOMERID AND V.BRANCHCODE=A.BRANCHCODE) MOBILE, (SELECT K.NARRATION FROM GENRELATIONSMST K WHERE K.CODE=(SELECT G.RELATIONID FROM GENCUSTINFOMST G WHERE G.CUSTOMERID=A.CUSTOMERID AND G.BRANCHCODE=A.BRANCHCODE)) RELATION, (SELECT G.FATHERNAME FROM GENCUSTINFOMST G WHERE G.CUSTOMERID=A.CUSTOMERID AND G.BRANCHCODE=A.BRANCHCODE) FNAME,(SELECT G.PANNO FROM GENCUSTINFOMST G WHERE G.CUSTOMERID=A.CUSTOMERID AND G.BRANCHCODE=A.BRANCHCODE AND KYCID='2') PANNO FROM " & strArr(3) & "MST A WHERE A.ACCNO='" & strArr(5) & "' AND A.GLCODE='" & strArr(4) & "' AND A.BRANCHCODE='" & strArr(1) & "'"
 
-            //        rs = obj.SingleSelectStat(sqlStr)
+            //        dataTable = obj.SingleSelectStat(sqlStr)
 
             //        if obj.ConnError = "Connected" then
 
-            //            if not rs.BOF and not rs.EOF then
+            //            if not dataTable.BOF and not dataTable.EOF then
 
-            //                strResult = rs(0).value & "|" & rs(1).value & "|" & rs(2).value & "|" & rs(3).value & "|" & rs(4).value & "|" & rs(5).value
+            //                strResult = dataTable(0).value & "|" & dataTable(1).value & "|" & dataTable(2).value & "|" & dataTable(3).value & "|" & dataTable(4).value & "|" & dataTable(5).value
 
             //            end if
 
             //        end if
 
-            //        rs = nothing
+            //        dataTable = nothing
 
 
             //    elseif strArr(0)= "GETCUSTOMERID3" then
@@ -488,60 +489,60 @@ namespace Banking.Services
 
             //        sqlStr = "SELECT a.name, a.customerid, a.custmobile, K.NARRATION RELATION, a.FATHERNAME, a.panno FROM gencustinfomst a,GENRELATIONSMST K WHERE a.customerid = '" & strArr(1) & "' AND K.CODE = a.RELATIONID"
 
-            //        rs = obj.SingleSelectStat(sqlStr)
+            //        dataTable = obj.SingleSelectStat(sqlStr)
 
             //        if obj.ConnError = "Connected" then
 
-            //            if not rs.BOF and not rs.EOF then
+            //            if not dataTable.BOF and not dataTable.EOF then
 
-            //                strResult = rs(0).value & "|" & rs(1).value & "|" & rs(2).value & "|" & rs(3).value & "|" & rs(4).value & "|" & rs(5).value
+            //                strResult = dataTable(0).value & "|" & dataTable(1).value & "|" & dataTable(2).value & "|" & dataTable(3).value & "|" & dataTable(4).value & "|" & dataTable(5).value
 
             //            end if
 
             //        end if
 
-            //        rs = nothing
+            //        dataTable = nothing
 
             //    elseif strArr(0)= "GETBRANCHDESC" then
             //        obj = Server.CreateObject("queryrecordsets.fetchrecordsets")
 
             //        strIndvVal = split(strArr(1), "*")
 
-            //        rs = obj.singlerecordset("GENOTHERBRANCHMST", "BRANCHNAME", "BANKCODE=" & _
+            //        dataTable = obj.singlerecordset("GENOTHERBRANCHMST", "BRANCHNAME", "BANKCODE=" & _
 
             //        "'" & strIndvVal(0) & "' AND BRANCHCODE='" & strIndvVal(1) & "' AND STATUS='R'")
 
             //        if obj.ConnError = "Connected" then
 
-            //            if not rs.BOF and not rs.EOF then
+            //            if not dataTable.BOF and not dataTable.EOF then
 
-            //                strResult = rs(0).value
+            //                strResult = dataTable(0).value
 
             //            end if
 
             //        end if
 
-            //        rs = nothing
+            //        dataTable = nothing
 
             //    elseif strArr(0)= "GETMEMBER" then
             //        obj = Server.CreateObject("queryrecordsets.fetchrecordsets")
 
 
-            //        rs = obj.singlerecordset("GENCUSTINFOMST", "CUSTMEMBERSHIPNO", "CUSTOMERID='" & strArr(1) & "' " & _
+            //        dataTable = obj.singlerecordset("GENCUSTINFOMST", "CUSTMEMBERSHIPNO", "CUSTOMERID='" & strArr(1) & "' " & _
 
             //            "AND BRANCHCODE='" & strArr(2) & "'")
 
             //        if obj.ConnError = "Connected" then
 
-            //            if not rs.BOF and not rs.EOF then
+            //            if not dataTable.BOF and not dataTable.EOF then
 
-            //                strResult = rs(0).value
+            //                strResult = dataTable(0).value
 
             //            end if
 
             //        end if
 
-            //        rs = nothing
+            //        dataTable = nothing
 
             //    elseif strArr(0)= "LEAFCHARGE" then
             //        obj = Server.CreateObject("queryrecordsets.fetchrecordsets")
@@ -553,7 +554,7 @@ namespace Banking.Services
             //        dim dblcessper
 
 
-            //    '	rs =obj.singlerecordset(strArr(2) & "TYPEMST","NVL(CHARGEPERLEAF,0), (SELECT NVL(SRVSTAXPERCENT,0) " & _
+            //    '	dataTable =obj.singlerecordset(strArr(2) & "TYPEMST","NVL(CHARGEPERLEAF,0), (SELECT NVL(SRVSTAXPERCENT,0) " & _
 
             //    '		"FROM GENCHARGESPMT WHERE CHARGESID='CIC')","MODULEID=" & _
 
@@ -565,16 +566,16 @@ namespace Banking.Services
 
             //    dblcessper = 0
 
-            //    rs = obj.singlerecordset(strArr(2) & "TYPEMST", "NVL(CHARGEPERLEAF,0)", "MODULEID=" & _
+            //    dataTable = obj.singlerecordset(strArr(2) & "TYPEMST", "NVL(CHARGEPERLEAF,0)", "MODULEID=" & _
 
             //            "'" & strArr(2) & "' AND GLCODE='" & strArr(3) & "'")
 
 
             //        if obj.ConnError = "Connected" then
 
-            //            if not rs.BOF and not rs.EOF then
+            //            if not dataTable.BOF and not dataTable.EOF then
 
-            //                dblleafchrgs = rs(0).value
+            //                dblleafchrgs = dataTable(0).value
 
 
             //                obj1 = server.CreateObject("ReportPurposeOnly.Reportonly")
@@ -655,7 +656,7 @@ namespace Banking.Services
 
             //        strResult = dblleafchrgs & "|" & dblgstper & "|" & dblcessper
 
-            //        rs = nothing
+            //        dataTable = nothing
 
             //elseif strArr(0)= "NEFTRTGSCOMMCHRGS" then
             //        obj1 = server.CreateObject("ReportPurposeOnly.Reportonly")
@@ -678,18 +679,18 @@ namespace Banking.Services
 
             //    sqlStr = "SELECT exchange FROM neftrtgscommchrgs WHERE frmamt <= " & dblneftrtgsamt & " AND toamt >=  " & dblneftrtgsamt & " AND EFFDATE = (SELECT MAX(effdate) FROM  neftrtgscommchrgs WHERE effdate <= '" & strappdate & "' and  frmamt <= " & dblneftrtgsamt & " AND toamt >=  " & dblneftrtgsamt & ")"
 
-            //    rs = obj1.SingleSelectStat(sqlStr)
+            //    dataTable = obj1.SingleSelectStat(sqlStr)
 
 
             //    if obj1.ConnError = "Connected" then
 
-            //            if not rs.BOF and not rs.EOF then
+            //            if not dataTable.BOF and not dataTable.EOF then
 
-            //            if isdbnull(rs(0).value) then
+            //            if isdbnull(dataTable(0).value) then
             //            dblcommchrgs = 0
 
             //            else
-            //                dblcommchrgs = iif(isdbnull(rs(0).value), 0, rs(0).value)
+            //                dblcommchrgs = iif(isdbnull(dataTable(0).value), 0, dataTable(0).value)
 
             //            end if
 
@@ -769,7 +770,7 @@ namespace Banking.Services
 
             //        strResult = dblcommchrgs & "|" & dblgstper & "|" & dblcessper
 
-            //        rs = nothing
+            //        dataTable = nothing
 
             //elseif strArr(0)= "NEFTRTGSCOMMCHRGSTRANS" then
             //        obj1 = server.CreateObject("ReportPurposeOnly.Reportonly")
@@ -820,18 +821,18 @@ namespace Banking.Services
             //    if strNEFTRTGSChrgsYN = "Y" then
             //    sqlStr = "SELECT exchange FROM neftrtgscommchrgs WHERE frmamt <= " & dblneftrtgsamt & " AND toamt >=  " & dblneftrtgsamt & " AND EFFDATE = (SELECT MAX(effdate) FROM  neftrtgscommchrgs WHERE effdate <= '" & strappdate & "' and  frmamt <= " & dblneftrtgsamt & " AND toamt >=  " & dblneftrtgsamt & ")"
 
-            //    rs = obj1.SingleSelectStat(sqlStr)
+            //    dataTable = obj1.SingleSelectStat(sqlStr)
 
 
             //        if obj1.ConnError = "Connected" then
 
-            //                    if not rs.BOF and not rs.EOF then
+            //                    if not dataTable.BOF and not dataTable.EOF then
 
-            //                        if isdbnull(rs(0).value) then
+            //                        if isdbnull(dataTable(0).value) then
             //                        dblcommchrgs = 0
 
             //                        else
-            //                dblcommchrgs = iif(isdbnull(rs(0).value), 0, rs(0).value)
+            //                dblcommchrgs = iif(isdbnull(dataTable(0).value), 0, dataTable(0).value)
 
             //                        end if
 
@@ -918,7 +919,7 @@ namespace Banking.Services
 
             //        strResult = dblcommchrgs & "|" & dblgstper & "|" & dblcessper
 
-            //        rs = nothing
+            //        dataTable = nothing
 
 
             //    elseif strArr(0)= "CHARGE" then
@@ -940,18 +941,18 @@ namespace Banking.Services
             //    dblcessper = 0
 
 
-            //    rs = obj.singlerecordset("GENCHARGESPMT", "NVL(commamt,0)", "chargesid = '" & strArr(1) & "'")
+            //    dataTable = obj.singlerecordset("GENCHARGESPMT", "NVL(commamt,0)", "chargesid = '" & strArr(1) & "'")
 
 
             //        if obj.ConnError = "Connected" then
 
-            //            if not rs.BOF and not rs.EOF then
+            //            if not dataTable.BOF and not dataTable.EOF then
 
-            //            if isdbnull(rs(0).value) then
+            //            if isdbnull(dataTable(0).value) then
             //            dblinopchrgs = 0
 
             //            else
-            //                dblinopchrgs = rs(0).value
+            //                dblinopchrgs = dataTable(0).value
 
             //            end if
 
@@ -1033,7 +1034,7 @@ namespace Banking.Services
 
             //        strResult = dblinopchrgs & "|" & dblgstper & "|" & dblcessper
 
-            //        rs = nothing
+            //        dataTable = nothing
 
 
             //    elseif strArr(0)= "GetGSTCharges" then
@@ -1121,31 +1122,31 @@ namespace Banking.Services
 
             //    sqlStr = "SELECT nvl(AUTOPOSTCHRGSYN,'N') AUTOPOSTCHRGSYN, nvl(COMMISSIONYN,'N') COMMISSIONYN, COMMAMT, NVL(SERVICETAXYN,'N')SERVICETAXYN,NVL(flag,'F') flag  FROM GENCHARGESPMT WHERE chargesid = '" & strgstaccwisechrgs & "'"
 
-            //    rs = obj1.SingleSelectStat(sqlStr)
+            //    dataTable = obj1.SingleSelectStat(sqlStr)
 
             //        if obj1.ConnError = "Connected" then
 
-            //            if not rs.BOF and not rs.EOF then
+            //            if not dataTable.BOF and not dataTable.EOF then
 
-            //            strAutoYN = iif(isdbnull(rs(0).value), "N", rs(0).value)
+            //            strAutoYN = iif(isdbnull(dataTable(0).value), "N", dataTable(0).value)
 
-            //            strCommYN = iif(isdbnull(rs(1).value), "N", rs(1).value)
+            //            strCommYN = iif(isdbnull(dataTable(1).value), "N", dataTable(1).value)
 
-            //            strSerYN = iif(isdbnull(rs(3).value), "N", rs(3).value)
+            //            strSerYN = iif(isdbnull(dataTable(3).value), "N", dataTable(3).value)
 
-            //            strflag = rs(4).value
+            //            strflag = dataTable(4).value
 
 
-            //            if rs(0).value = "Y" and rs(1).value = "Y" then
+            //            if dataTable(0).value = "Y" and dataTable(1).value = "Y" then
 
-            //                if isdbnull(rs(2).value) then
+            //                if isdbnull(dataTable(2).value) then
             //                    dblcommchrgs = 0
 
             //                else
             //                    if strgstmodcode = "LOAN" and strloanopyn = "Y" then
 
             //                            if strflag = "F" then
-            //                                dblcommchrgs = rs(2).value
+            //                                dblcommchrgs = dataTable(2).value
 
             //                            else if strflag = "P" then
             //                            sqlStr = "SELECT nvl(sanctionedamt,0) sanctionedamt FROM loanmst where branchcode = '" & strgstbrcode & "' and currencycode = '" & strgstcurrcode & "' and glcode ='" & strgstglcode & "'  and accno ='" & strgstaccno & "'"
@@ -1156,7 +1157,7 @@ namespace Banking.Services
 
             //                                    if not rsloan.BOF and not rsloan.EOF then
 
-            //                                        dblcommchrgs = ((rsloan(0).value * rs(2).value) / 100)
+            //                                        dblcommchrgs = ((rsloan(0).value * dataTable(2).value) / 100)
 
             //                                        else
             //                dblcommchrgs = 0
@@ -1168,7 +1169,7 @@ namespace Banking.Services
             //                            end if
 
             //                    else
-            //                            dblcommchrgs = rs(2).value
+            //                            dblcommchrgs = dataTable(2).value
 
             //                    end if
 
@@ -1261,7 +1262,7 @@ namespace Banking.Services
             //        strResult = dblcommchrgs & "|" & dblgstper & "|" & dblcessper & "|" & strAutoYN & "|" & strCommYN & "|" & strGSTYN & "|" & strCessYN & "|" & strSerYN
 
 
-            //        rs = nothing
+            //        dataTable = nothing
 
             //        rs1 = nothing
 
@@ -1289,18 +1290,18 @@ namespace Banking.Services
             //    dblcessper = 0
 
 
-            //    rs = obj.singlerecordset("GENCHARGESPMT", "NVL(commamt,0)", "chargesid = 'CANC'")
+            //    dataTable = obj.singlerecordset("GENCHARGESPMT", "NVL(commamt,0)", "chargesid = 'CANC'")
 
 
             //        if obj.ConnError = "Connected" then
 
-            //            if not rs.BOF and not rs.EOF then
+            //            if not dataTable.BOF and not dataTable.EOF then
 
-            //            if isdbnull(rs(0).value) then
+            //            if isdbnull(dataTable(0).value) then
             //            dblremcancchrgs = 0
 
             //            else
-            //                dblremcancchrgs = rs(0).value
+            //                dblremcancchrgs = dataTable(0).value
 
             //            end if
 
@@ -1382,26 +1383,26 @@ namespace Banking.Services
 
             //        strResult = dblremcancchrgs & "|" & dblgstper & "|" & dblcessper
 
-            //        rs = nothing
+            //        dataTable = nothing
 
 
 
             //    elseif strArr(0)= "ISSUEBANK" then
             //        obj = Server.CreateObject("queryrecordsets.fetchrecordsets")
 
-            //        rs = obj.singlerecordset("REMTYPEMST", "ISSUEDONBANKCODE, ISSUEDONBANKDESC", "REMTYPE='" & strArr(1) & "'")
+            //        dataTable = obj.singlerecordset("REMTYPEMST", "ISSUEDONBANKCODE, ISSUEDONBANKDESC", "REMTYPE='" & strArr(1) & "'")
 
             //        if obj.ConnError = "Connected" then
 
-            //            if not rs.BOF and not rs.EOF then
+            //            if not dataTable.BOF and not dataTable.EOF then
 
             //                strResult = ""
 
-            //                do until rs.EOF
+            //                do until dataTable.EOF
 
-            //                    strResult = strResult & rs(0).value & "~" & rs(1).value & "|"
+            //                    strResult = strResult & dataTable(0).value & "~" & dataTable(1).value & "|"
 
-            //                    rs.moveNext()
+            //                    dataTable.moveNext()
 
             //                loop
             //                strResult = mid(strResult, 1, strResult.length - 1)
@@ -1410,26 +1411,26 @@ namespace Banking.Services
 
             //        end if
 
-            //        rs = nothing
+            //        dataTable = nothing
 
             //    elseif strArr(0)= "GETACCNAME" then
             //        strResult = ""
 
             //        obj = Server.CreateObject("queryrecordsets.fetchrecordsets")
 
-            //        rs = obj.singlerecordset(strArr(1), "DISTINCT NAME", "GLCODE='" & strArr(3) & "' AND ACCNO='" & strArr(4) & "'")
+            //        dataTable = obj.singlerecordset(strArr(1), "DISTINCT NAME", "GLCODE='" & strArr(3) & "' AND ACCNO='" & strArr(4) & "'")
 
             //        if obj.ConnError = "Connected" then
 
-            //            if not rs.BOF and not rs.EOF then
+            //            if not dataTable.BOF and not dataTable.EOF then
 
-            //                strResult = rs(0).value
+            //                strResult = dataTable(0).value
 
             //            end if
 
             //        end if
 
-            //        rs = nothing
+            //        dataTable = nothing
 
             //    elseif strArr(0)= "POSTINTEREST" then
             //        dim arrTran(2, 4)
@@ -1452,12 +1453,12 @@ namespace Banking.Services
 
             //               "INTDEBITACCNO FROM LOANTYPEMST WHERE GLCODE='" & strArr(4) & "') A"
 
-            //        rs = obj.SingleSelectStat(sqlStr)
+            //        dataTable = obj.SingleSelectStat(sqlStr)
 
 
             //        if obj.ConnError = "Connected" then
 
-            //            if not rs.BOF and not rs.EOF then
+            //            if not dataTable.BOF and not dataTable.EOF then
 
             //                dim strBatch, strBatchDup, strTran1, strTran2, strTran3, strTran4
 
@@ -1488,13 +1489,13 @@ namespace Banking.Services
             //                end if
 
 
-            //                strResult = rs(0).value & "|" & rs(1).value & "|" & rs(2).value & "|" & rs(3).value & "|" & rs(4).value & "|" & rs(5).value & "|" & strBatch & "|" & strTran1 & "|" & strTran2 & "|" & strTran3 & "|" & strTran4
+            //                strResult = dataTable(0).value & "|" & dataTable(1).value & "|" & dataTable(2).value & "|" & dataTable(3).value & "|" & dataTable(4).value & "|" & dataTable(5).value & "|" & strBatch & "|" & strTran1 & "|" & strTran2 & "|" & strTran3 & "|" & strTran4
 
             //            end if
 
             //        end if
 
-            //        rs = nothing
+            //        dataTable = nothing
 
 
             //    elseif strArr(0)= "GETCERTIFICATES" then
@@ -1506,17 +1507,17 @@ namespace Banking.Services
 
             //               "AND SHARETYPE='" & strArr(2) & "' AND BRANCHCODE='" & strArr(1) & "' ORDER BY CERTIFICATENO"
 
-            //        rs = obj.SingleSelectStat(sqlStr)
+            //        dataTable = obj.SingleSelectStat(sqlStr)
 
             //        if obj.ConnError = "Connected" then
 
-            //            if not rs.BOF and not rs.EOF then
+            //            if not dataTable.BOF and not dataTable.EOF then
 
-            //                do until rs.EOF
+            //                do until dataTable.EOF
 
-            //                    strResult = strResult & rs(0).value & "|"
+            //                    strResult = strResult & dataTable(0).value & "|"
 
-            //                    rs.movenext()
+            //                    dataTable.movenext()
 
             //                loop
             //                strResult = mid(strResult, 1, strResult.length - 1)
@@ -1525,7 +1526,7 @@ namespace Banking.Services
 
             //        end if
 
-            //        rs = nothing
+            //        dataTable = nothing
 
             //    elseif strArr(0)= "GETSHARENAME" then
             //        strResult = ""
@@ -1534,19 +1535,19 @@ namespace Banking.Services
 
             //        sqlStr = "SELECT NAME,status FROM " & strArr(3) & "MST WHERE ACCNO='" & strArr(1) & "' and GLCODE='" & strArr(2) & "' AND BRANCHCODE='" & strArr(4) & "'"
 
-            //        rs = obj.SingleSelectStat(sqlStr)
+            //        dataTable = obj.SingleSelectStat(sqlStr)
 
             //        if obj.ConnError = "Connected" then
 
-            //            if not rs.BOF and not rs.EOF then
+            //            if not dataTable.BOF and not dataTable.EOF then
 
-            //                strResult = rs(0).value & "|" & rs(1).value
+            //                strResult = dataTable(0).value & "|" & dataTable(1).value
 
             //            end if
 
             //        end if
 
-            //        rs = nothing
+            //        dataTable = nothing
 
 
             //    elseif strArr(0)= "GETSHARENAME1" then
@@ -1556,19 +1557,19 @@ namespace Banking.Services
 
             //        sqlStr = "SELECT NAME FROM " & strArr(3) & "MST WHERE ACCNO='" & strArr(1) & "' and GLCODE='" & strArr(2) & "' AND BRANCHCODE='" & strArr(4) & "'"
 
-            //        rs = obj.SingleSelectStat(sqlStr)
+            //        dataTable = obj.SingleSelectStat(sqlStr)
 
             //        if obj.ConnError = "Connected" then
 
-            //            if not rs.BOF and not rs.EOF then
+            //            if not dataTable.BOF and not dataTable.EOF then
 
-            //                strResult = rs(0).value
+            //                strResult = dataTable(0).value
 
             //            end if
 
             //        end if
 
-            //        rs = nothing
+            //        dataTable = nothing
 
             //    elseif strArr(0)= "GETINSTRUMENT" then
             //        strResult = ""
@@ -1584,19 +1585,19 @@ namespace Banking.Services
             //        sqlStr = "SELECT INSTRTYPE, (SELECT DECODE(UPPER(BANKNAME),'A.P. STATE CO-OPERATIVE BANK','APCOOPERATIVE','ANDHRA BANK','AndhraBank','H.D.F.C .BANK LTD','HDFC','ING VYSYA BANK LTD','INGVYSYA','INDUSIND BANK LTD','INDUS','VIJAYA BANK','VIJAYA','CORPORATION BANK','CORPORATION','STATE BANK OF INDIA','SBI','I.C.I.C.I BANK LTD','ICICIBANK','AXIS BANK LTD','AXIS','PUNJAB NATIONAL BANK','PNB','IDBI BANK LTD','IDBI',BANKNAME) FROM GENOTHERBANKMST A WHERE A.BANKCODE=ISSONBANKCODE), UPPER(F_AMOUNT_TO_WORDS(AMOUNT)), BRANCHCODE, CURRENCYCODE, APPLICATIONDATE, AMOUNT, UPPER(FVG) FROM REMITISSUEMST WHERE SERIALNO='" & strArr(4) & "' AND APPLICATIONDATE='" & strArr(2) & "' AND BRANCHCODE='" & strArr(1) & "' AND CURRENCYCODE='" & strArr(3) & "'"
 
 
-            //        rs = obj.SingleSelectStat(sqlStr)
+            //        dataTable = obj.SingleSelectStat(sqlStr)
 
             //        if obj.ConnError = "Connected" then
 
-            //            if not rs.BOF and not rs.EOF then
+            //            if not dataTable.BOF and not dataTable.EOF then
 
-            //                strResult = rs(0).value & "|" & rs(1).value & "|" & rs(2).value & "|" & rs(3).value & "|" & rs(4).value & "|" & rs(5).value & "|" & rs(6).value & "|" & rs(7).value
+            //                strResult = dataTable(0).value & "|" & dataTable(1).value & "|" & dataTable(2).value & "|" & dataTable(3).value & "|" & dataTable(4).value & "|" & dataTable(5).value & "|" & dataTable(6).value & "|" & dataTable(7).value
 
             //            end if
 
             //        end if
 
-            //        rs = nothing
+            //        dataTable = nothing
 
             //    elseif strArr(0)= "GETLIEN" then
             //        strResult = ""
@@ -1605,19 +1606,19 @@ namespace Banking.Services
 
             //        sqlStr = strArr(1)
 
-            //        rs = obj.SingleSelectStat(sqlStr)
+            //        dataTable = obj.SingleSelectStat(sqlStr)
 
             //        if obj.ConnError = "Connected" then
 
-            //            if not rs.BOF and not rs.EOF then
+            //            if not dataTable.BOF and not dataTable.EOF then
 
-            //                strResult = rs(0).value
+            //                strResult = dataTable(0).value
 
             //            end if
 
             //        end if
 
-            //        rs = nothing
+            //        dataTable = nothing
 
             //    elseif strArr(0) = "CheckThreshHoldLimit" then
             //    dim frmfinyr,tofinyr,frmyear,toyear,strmon,strAppdate1,dblAmount,dblTranAmt,dblThresHoldLmt
@@ -1656,13 +1657,13 @@ namespace Banking.Services
             //        sqlStr = "SELECT SUM(amount) FROM ( SELECT SUM(amount) amount FROM  " & strArr(5) & "tranday WHERE transtatus = 'A' AND modeoftran IN (2,4,6) AND branchcode = '" & strArr(1) & "' AND glcode = '" & strArr(3) & "' AND accno = '" & strArr(4) & "' AND applicationdate BETWEEN '" & frmfinyr & "' AND '" & tofinyr & "' UNION ALL SELECT SUM(amount) amount FROM  " & strArr(5) & "tran WHERE transtatus = 'A' AND modeoftran IN (2,4,6) AND branchcode = '" & strArr(1) & "' AND glcode = '" & strArr(3) & "' AND accno = '" & strArr(4) & "' AND applicationdate BETWEEN '" & frmfinyr & "' AND '" & tofinyr & "') a"
 
 
-            //        rs = obj.SingleSelectStat(sqlStr)
+            //        dataTable = obj.SingleSelectStat(sqlStr)
 
             //        if obj.ConnError = "Connected" then
 
-            //            if not rs.BOF and not rs.EOF then
+            //            if not dataTable.BOF and not dataTable.EOF then
 
-            //                dblTranAmt = iif(isdbnull(rs(0).value), 0, rs(0).value)
+            //                dblTranAmt = iif(isdbnull(dataTable(0).value), 0, dataTable(0).value)
 
             //                else
             //                dblTranAmt = 0
@@ -1681,14 +1682,14 @@ namespace Banking.Services
             //        sqlstr = "SELECT (SELECT NVL(upperlimit,0) * 3 FROM GenIncomeMst WHERE CODE = G.CUSTMONTHLYINCOME) threshholdlimit FROM gencustinfomst G WHERE CUSTOMERID = (SELECT customerid FROM " & strArr(2) & "mst WHERE ACCNO = '" & strArr(4) & "' AND GLCODE = '" & strArr(3) & "' AND BRANCHCODE = '" & strArr(1) & "')"
 
 
-            //        rs = obj.SingleSelectStat(sqlStr)
+            //        dataTable = obj.SingleSelectStat(sqlStr)
 
             //        if obj.ConnError = "Connected" then
 
 
-            //            if not rs.BOF and not rs.EOF then
+            //            if not dataTable.BOF and not dataTable.EOF then
 
-            //                dblThresHoldLmt = iif(isdbnull(rs(0).value), 0, rs(0).value)
+            //                dblThresHoldLmt = iif(isdbnull(dataTable(0).value), 0, dataTable(0).value)
 
             //                blnthresaccchk = true
 
@@ -1706,18 +1707,18 @@ namespace Banking.Services
 
             //        end if
 
-            //        rs = nothing
+            //        dataTable = nothing
 
             //        if blnthresaccchk = false then
             //        sqlstr = "SELECT NVL(upperlimit,0) * 3 FROM GenIncomeMst WHERE CODE = 1"
 
-            //        rs = obj.SingleSelectStat(sqlStr)
+            //        dataTable = obj.SingleSelectStat(sqlStr)
 
             //            if obj.ConnError = "Connected" then
 
-            //                if not rs.BOF and not rs.EOF then
+            //                if not dataTable.BOF and not dataTable.EOF then
 
-            //                dblThresHoldLmt = iif(isdbnull(rs(0).value), 0, rs(0).value)
+            //                dblThresHoldLmt = iif(isdbnull(dataTable(0).value), 0, dataTable(0).value)
 
             //                else
             //                dblThresHoldLmt = 0
@@ -1744,10 +1745,6 @@ namespace Banking.Services
             //        strResult = blnThresHoldCheck
 
 
-            //elseif strArr(0)= "GETDRCRLIENYN" or strArr(0)= "GETDRCRLIENAMT" then
-            //        strResult = ""
-
-            //        strResult = objGen.GetSBCADrCrLienYN(strArr(1), strArr(2), strArr(3), strArr(4), strArr(5), strArr(6), cdbl(strArr(7)), cdate(strArr(8)))
             //elseif strArr(0)= "GETCCDRCRLIENYN"  then
             //        strResult = ""
 
@@ -1766,13 +1763,13 @@ namespace Banking.Services
             //        sqlStr = "SELECT (SELECT APPLICATIONDATE FROM GENAPPLICATIONDATEMST WHERE BRANCHCODE='" & strArr(1) & "' AND ((DAYBEGINSTATUS='O' AND DAYENDSTATUS='N' AND HODAYBEGINSTATUS='O' AND HODAYENDSTATUS='N') OR (DAYBEGINSTATUS='O' AND DAYENDSTATUS='O' AND HODAYBEGINSTATUS='O' AND HODAYENDSTATUS='N')))-(SELECT ADD_MONTHS((SELECT SANCTIONEDDATE FROM LOANMST WHERE ACCNO='" & strArr(4) & "' AND GLCODE='" & strArr(3) & "' AND BRANCHCODE='" & strArr(1) & "'),(SELECT NVL(MINPERIODMON,0) FROM GENMINMAXBALANCEMST WHERE GLCODE='" & strArr(3) & "'))+(SELECT NVL(MINPERIODDAYS,0) FROM GENMINMAXBALANCEMST WHERE GLCODE='" & strArr(3) & "') REQDATE FROM DUAL) FROM DUAL"
 
 
-            //        rs = obj.SingleSelectStat(sqlStr)
+            //        dataTable = obj.SingleSelectStat(sqlStr)
 
             //        if obj.ConnError = "Connected" then
 
-            //            if not rs.BOF and not rs.EOF then
+            //            if not dataTable.BOF and not dataTable.EOF then
 
-            //                intMinDays = cDbl(rs(0).value)
+            //                intMinDays = cDbl(dataTable(0).value)
 
             //            end if
 
@@ -1782,13 +1779,13 @@ namespace Banking.Services
             //                        sqlStr = "SELECT TO_NUMBER((SELECT ADD_MONTHS(SYSDATE,(SELECT NVL(MINPERIODMON,0) FROM GENMINMAXBALANCEMST WHERE GLCODE='" & strArr(3) & "'))+(SELECT NVL(MINPERIODDAYS,0) FROM GENMINMAXBALANCEMST WHERE GLCODE='" & strArr(3) & "') REQDATE FROM DUAL)-SYSDATE)*(SELECT ROI FROM LOANMST WHERE ACCNO='" & strArr(4) & "' AND GLCODE='" & strArr(3) & "' AND BRANCHCODE='" & strArr(1) & "' AND CURRENCYCODE='" & strArr(2) & "')/36500 FROM DUAL"
 
 
-            //            rs = obj.SingleSelectStat(sqlStr)
+            //            dataTable = obj.SingleSelectStat(sqlStr)
 
             //            if obj.ConnError = "Connected" then
 
-            //                if not rs.BOF and not rs.EOF then
+            //                if not dataTable.BOF and not dataTable.EOF then
 
-            //                    strResult = intMinDays & "|" & rs(0).value
+            //                    strResult = intMinDays & "|" & dataTable(0).value
 
             //                end if
 
@@ -1799,7 +1796,7 @@ namespace Banking.Services
 
             //        end if
 
-            //        rs = nothing
+            //        dataTable = nothing
 
             //    elseif strArr(0)= "GETNEXTGL" then
             //        strResult = ""
@@ -1811,13 +1808,13 @@ namespace Banking.Services
 
             //        sqlStr = "SELECT MAX(TO_NUMBER(GLCODE))+1 NEXTGL FROM GENGLMASTMST WHERE MODULEID='" & strArr(2) & "' AND GLCATEGORY='A' AND GLCODE LIKE '" & strArr(3) & "%'"
 
-            //        rs = obj.SingleSelectStat(sqlStr)
+            //        dataTable = obj.SingleSelectStat(sqlStr)
 
             //        if obj.ConnError = "Connected" then
 
-            //            if not rs.BOF and not rs.EOF then
+            //            if not dataTable.BOF and not dataTable.EOF then
 
-            //                strResult = rs(0).value
+            //                strResult = dataTable(0).value
 
 
             //                if isdbnull(strResult) then
@@ -1834,13 +1831,13 @@ namespace Banking.Services
 
 
 
-            //                    rs = obj.SingleSelectStat(sqlStr)
+            //                    dataTable = obj.SingleSelectStat(sqlStr)
 
             //                    if obj.ConnError = "Connected" then
 
-            //                        if not rs.BOF and not rs.EOF then
+            //                        if not dataTable.BOF and not dataTable.EOF then
 
-            //                            strResult = rs(0).value
+            //                            strResult = dataTable(0).value
 
             //                        end if
 
@@ -1861,13 +1858,13 @@ namespace Banking.Services
             //                end if
 
 
-            //                rs = obj.SingleSelectStat(sqlStr)
+            //                dataTable = obj.SingleSelectStat(sqlStr)
 
             //                if obj.ConnError = "Connected" then
 
-            //                    if not rs.BOF and not rs.EOF then
+            //                    if not dataTable.BOF and not dataTable.EOF then
 
-            //                        strResult = rs(0).value
+            //                        strResult = dataTable(0).value
 
             //                    end if
 
@@ -1887,7 +1884,7 @@ namespace Banking.Services
             //        end if
 
 
-            //        rs = nothing
+            //        dataTable = nothing
 
             //    elseif strArr(0)= "GETMATDATE" then
             //        strResult = ""
@@ -1896,19 +1893,19 @@ namespace Banking.Services
 
             //        sqlStr = "SELECT TO_CHAR(ADD_MONTHS('" & strArr(1) & "'," & strArr(3) & ")+" & strArr(2) & ",'DD-Mon-YYYY') FROM DUAL"
 
-            //        rs = obj.SingleSelectStat(sqlStr)
+            //        dataTable = obj.SingleSelectStat(sqlStr)
 
             //        if obj.ConnError = "Connected" then
 
-            //            if not rs.BOF and not rs.EOF then
+            //            if not dataTable.BOF and not dataTable.EOF then
 
-            //                strResult = rs(0).value
+            //                strResult = dataTable(0).value
 
             //            end if
 
             //        end if
 
-            //        rs = nothing
+            //        dataTable = nothing
 
             //    elseif strArr(0)= "GETGROUPCODE" then
             //        strResult = ""
@@ -1917,17 +1914,17 @@ namespace Banking.Services
 
             //        sqlStr = "SELECT DISTINCT GROUPCODE, GROUPDESC FROM GENGROUPMST WHERE GLTYPE=" & strArr(1) & " ORDER BY GROUPCODE"
 
-            //        rs = obj.SingleSelectStat(sqlStr)
+            //        dataTable = obj.SingleSelectStat(sqlStr)
 
             //        if obj.ConnError = "Connected" then
 
-            //            if not rs.BOF and not rs.EOF then
+            //            if not dataTable.BOF and not dataTable.EOF then
 
-            //                do until rs.EOF
+            //                do until dataTable.EOF
 
-            //                    strResult = strResult & rs(0).value & "~" & rs(1).value & "|"
+            //                    strResult = strResult & dataTable(0).value & "~" & dataTable(1).value & "|"
 
-            //                    rs.movenext()
+            //                    dataTable.movenext()
 
             //                loop
             //                strResult = mid(strResult, 1, strResult.length - 1)
@@ -1936,7 +1933,7 @@ namespace Banking.Services
 
             //        end if
 
-            //        rs = nothing
+            //        dataTable = nothing
 
             //    elseif strArr(0)= "GETMAXSNO" then
             //        strResult = ""
@@ -1945,13 +1942,13 @@ namespace Banking.Services
 
             //        sqlStr = "SELECT NVL(MAX(SNO),0)+1 FROM GENGLMASTMST WHERE GROUPCODE=" & strArr(1)
 
-            //        rs = obj.SingleSelectStat(sqlStr)
+            //        dataTable = obj.SingleSelectStat(sqlStr)
 
             //        if obj.ConnError = "Connected" then
 
-            //            if not rs.BOF and not rs.EOF then
+            //            if not dataTable.BOF and not dataTable.EOF then
 
-            //                strResult = rs(0).value
+            //                strResult = dataTable(0).value
 
             //            end if
 
@@ -1963,7 +1960,7 @@ namespace Banking.Services
 
             //        end if
 
-            //        rs = nothing
+            //        dataTable = nothing
 
             //    elseif strArr(0)= "GETAGENTNAME" then
             //        strResult = ""
@@ -1972,19 +1969,19 @@ namespace Banking.Services
 
             //        sqlStr = "SELECT AGENTNAME FROM PIGMYAGENTMST WHERE AGENTCODE='" & strArr(4) & "' AND GLCODE='" & strArr(3) & "' AND MODULEID='" & strArr(2) & "' AND BRANCHCODE='" & strArr(1) & "'"
 
-            //        rs = obj.SingleSelectStat(sqlStr)
+            //        dataTable = obj.SingleSelectStat(sqlStr)
 
             //        if obj.ConnError = "Connected" then
 
-            //            if not rs.BOF and not rs.EOF then
+            //            if not dataTable.BOF and not dataTable.EOF then
 
-            //                strResult = rs(0).value
+            //                strResult = dataTable(0).value
 
             //            end if
 
             //        end if
 
-            //        rs = nothing
+            //        dataTable = nothing
 
             //    elseif strArr(0)= "GETAGENTACCNAME" then
             //        strResult = ""
@@ -1993,19 +1990,19 @@ namespace Banking.Services
 
             //        sqlStr = "SELECT NAME FROM PIGMYACCOUNTSMST WHERE ACCNO='" & strArr(5) & "' AND AGENTCODE='" & strArr(4) & "' AND GLCODE='" & strArr(3) & "' AND BRANCHCODE='" & strArr(1) & "'"
 
-            //        rs = obj.SingleSelectStat(sqlStr)
+            //        dataTable = obj.SingleSelectStat(sqlStr)
 
             //        if obj.ConnError = "Connected" then
 
-            //            if not rs.BOF and not rs.EOF then
+            //            if not dataTable.BOF and not dataTable.EOF then
 
-            //                strResult = rs(0).value
+            //                strResult = dataTable(0).value
 
             //            end if
 
             //        end if
 
-            //        rs = nothing
+            //        dataTable = nothing
 
             //    elseif strArr(0)= "GETGLACCTYPE" then
             //        strResult = ""
@@ -2014,19 +2011,19 @@ namespace Banking.Services
 
             //        sqlStr = "SELECT NVL(GLACCTYPE,0) FROM GENGLMASTMST WHERE UPPER(trim(glcategory))='" & strArr(3) & "' AND moduleid='" & strArr(2) & "' AND status='R'"
 
-            //        rs = obj.SingleSelectStat(sqlStr)
+            //        dataTable = obj.SingleSelectStat(sqlStr)
 
             //        if obj.ConnError = "Connected" then
 
-            //            if not rs.BOF and not rs.EOF then
+            //            if not dataTable.BOF and not dataTable.EOF then
 
-            //                strResult = rs(0).value
+            //                strResult = dataTable(0).value
 
             //            end if
 
             //        end if
 
-            //        rs = nothing
+            //        dataTable = nothing
 
             //    elseif strArr(0)= "GETPURPOSEDESC" then
             //        strResult = ""
@@ -2035,19 +2032,19 @@ namespace Banking.Services
 
             //        sqlStr = "SELECT NARRATION FROM LOANPURPOSEMST WHERE PURPOSECODE='" & strArr(1) & "'"
 
-            //        rs = obj.SingleSelectStat(sqlStr)
+            //        dataTable = obj.SingleSelectStat(sqlStr)
 
             //        if obj.ConnError = "Connected" then
 
-            //            if not rs.BOF and not rs.EOF then
+            //            if not dataTable.BOF and not dataTable.EOF then
 
-            //                strResult = rs(0).value
+            //                strResult = dataTable(0).value
 
             //            end if
 
             //        end if
 
-            //        rs = nothing
+            //        dataTable = nothing
 
             //    elseif strArr(0)= "GETNOMINEE" then
             //        strResult = ""
@@ -2056,13 +2053,13 @@ namespace Banking.Services
 
             //        sqlStr = "SELECT nvl(NOMCUSTOMERID,'0') FROM GENCUSTNOMINEEMST WHERE ACCNO='" & strArr(4) & "' AND GLCODE='" & strArr(3) & "' AND BRANCHCODE='" & strArr(1) & "'"
 
-            //        rs = obj.SingleSelectStat(sqlStr)
+            //        dataTable = obj.SingleSelectStat(sqlStr)
 
             //        if obj.ConnError = "Connected" then
 
-            //            if not rs.BOF and not rs.EOF then
+            //            if not dataTable.BOF and not dataTable.EOF then
 
-            //                strResult = rs(0).value
+            //                strResult = dataTable(0).value
 
             //            else
             //                strResult = "0"
@@ -2071,7 +2068,7 @@ namespace Banking.Services
 
             //        end if
 
-            //        rs = nothing
+            //        dataTable = nothing
 
             //    elseif strArr(0)= "GETUSERDTLS" then
             //        strResult = ""
@@ -2086,13 +2083,13 @@ namespace Banking.Services
 
             //               "FROM GENUSERMST A whERE USERID='" & strArr(1) & "'"
 
-            //        rs = obj.SingleSelectStat(sqlStr)
+            //        dataTable = obj.SingleSelectStat(sqlStr)
 
             //        if obj.ConnError = "Connected" then
 
-            //            if not rs.BOF and not rs.EOF then
+            //            if not dataTable.BOF and not dataTable.EOF then
 
-            //                strResult = rs(0).value & "|" & rs(1).value & "|" & rs(2).value & "|" & rs(3).value & "|" & rs(4).value
+            //                strResult = dataTable(0).value & "|" & dataTable(1).value & "|" & dataTable(2).value & "|" & dataTable(3).value & "|" & dataTable(4).value
 
             //            else
             //                strResult = "0"
@@ -2101,7 +2098,7 @@ namespace Banking.Services
 
             //        end if
 
-            //        rs = nothing
+            //        dataTable = nothing
 
             //    elseif strArr(0)= "GETSUBNATURE" then
             //        strResult = ""
@@ -2110,19 +2107,19 @@ namespace Banking.Services
 
             //        sqlStr = "SELECT LOANSUBNATURE FROM LOANTYPEMST WHERE GLCODE='" & strArr(1) & "'"
 
-            //        rs = obj.SingleSelectStat(sqlStr)
+            //        dataTable = obj.SingleSelectStat(sqlStr)
 
             //        if obj.ConnError = "Connected" then
 
-            //            if not rs.BOF and not rs.EOF then
+            //            if not dataTable.BOF and not dataTable.EOF then
 
-            //                strResult = rs(0).value
+            //                strResult = dataTable(0).value
 
             //            end if
 
             //        end if
 
-            //        rs = nothing
+            //        dataTable = nothing
 
             //    elseif strArr(0)= "INSERTUSERDATA" then
             //        obj = SERVER.CreateObject("GeneralTransactions.DBTransactions")
@@ -2162,13 +2159,13 @@ namespace Banking.Services
 
             //        sqlStr = "SELECT IMPYN, BRANCHCODE FROM GENCONFIGMST WHERE CODE='" & strArr(1) & "'"
 
-            //        rs = obj.SingleSelectStat(sqlStr)
+            //        dataTable = obj.SingleSelectStat(sqlStr)
 
             //        if obj.ConnError = "Connected" then
 
-            //            if not rs.BOF and not rs.EOF then
+            //            if not dataTable.BOF and not dataTable.EOF then
 
-            //                strResult = rs(0).value & "|" & rs(1).value
+            //                strResult = dataTable(0).value & "|" & dataTable(1).value
 
             //            else
             //                strResult = "0"
@@ -2177,7 +2174,7 @@ namespace Banking.Services
 
             //        end if
 
-            //        rs = nothing
+            //        dataTable = nothing
 
 
             //        'mahender
@@ -2189,22 +2186,22 @@ namespace Banking.Services
 
             //        sqlStr = "SELECT NAME, FATHERNAME, CUSTDOB, MAILADDRESS1, MAILADDRESS2, MAILADDRESS3, MAILADDRESS4,MAILADDRESS5,PHONE1, PHONE2, PHONE3, CUSTMOBILE, CUSTEMAIL, PANNO FROM GENCUSTINFOMST WHERE CUSTOMERID=(SELECT CUSTOMERID FROM " & strArr(3) & "MST WHERE ACCNO ='" & strArr(5) & "' AND GLCODE='" & strArr(4) & "' AND BRANCHCODE='" & strArr(1) & "') AND BRANCHCODE='" & strArr(1) & "'"
 
-            //        rs = obj.SingleSelectStat(sqlStr)
+            //        dataTable = obj.SingleSelectStat(sqlStr)
 
             //        if obj.ConnError = "Connected" then
 
-            //            if not rs.BOF and not rs.EOF then
+            //            if not dataTable.BOF and not dataTable.EOF then
 
-            //                strResult = rs(0).value & "|" & rs(1).value & "|" & rs(2).value & "|" & rs(3).value & "|" & rs(4).value & "|" & rs(5).value & "|" & rs(6).value & "|" & rs(7).value & "|" & rs(8).value & "|" & rs(9).value & "|" & rs(10).value & "|" & rs(11).value & "|" & rs(12).value & "|" & rs(13).value
+            //                strResult = dataTable(0).value & "|" & dataTable(1).value & "|" & dataTable(2).value & "|" & dataTable(3).value & "|" & dataTable(4).value & "|" & dataTable(5).value & "|" & dataTable(6).value & "|" & dataTable(7).value & "|" & dataTable(8).value & "|" & dataTable(9).value & "|" & dataTable(10).value & "|" & dataTable(11).value & "|" & dataTable(12).value & "|" & dataTable(13).value
 
             //            end if
 
             //        end if
 
-            //        rs = nothing
+            //        dataTable = nothing
 
 
-            //        rs = Server.CreateObject("adodb.recordset")
+            //        dataTable = Server.CreateObject("adodb.recordset")
 
             //        dim strgar as string
 
@@ -2214,19 +2211,19 @@ namespace Banking.Services
             //        sqlStr = "SELECT NAME, FATHERNAME, CUSTDOB, MAILADDRESS1, MAILADDRESS2, MAILADDRESS3, MAILADDRESS4,MAILADDRESS5,PHONE1, PHONE2, PHONE3, CUSTMOBILE, CUSTEMAIL, PANNO FROM GENCUSTINFOMST WHERE CUSTOMERID IN (SELECT GUARANTORID FROM GENGUARANTORLNK WHERE MODULEID='" & strArr(3) & "' AND GLCODE='" & strArr(4) & "' AND ACCNO='" & strArr(5) & "' AND BRANCHCODE='" & strArr(1) & "') AND BRANCHCODE='" & strArr(1) & "'"
 
 
-            //        rs = obj.SingleSelectStat(sqlStr)
+            //        dataTable = obj.SingleSelectStat(sqlStr)
 
 
             //        if obj.ConnError = "Connected" then
 
 
-            //            if not rs.BOF and not rs.EOF then
+            //            if not dataTable.BOF and not dataTable.EOF then
 
-            //                do until rs.EOF
+            //                do until dataTable.EOF
 
-            //                    strgar = strgar & rs(0).value & "|" & rs(1).value & "|" & rs(2).value & "|" & rs(3).value & "|" & rs(4).value & "|" & rs(5).value & "|" & rs(6).value & "|" & rs(7).value & "|" & rs(8).value & "|" & rs(9).value & "|" & rs(10).value & "|" & rs(11).value & "|" & rs(12).value & "|" & rs(13).value & "$"
+            //                    strgar = strgar & dataTable(0).value & "|" & dataTable(1).value & "|" & dataTable(2).value & "|" & dataTable(3).value & "|" & dataTable(4).value & "|" & dataTable(5).value & "|" & dataTable(6).value & "|" & dataTable(7).value & "|" & dataTable(8).value & "|" & dataTable(9).value & "|" & dataTable(10).value & "|" & dataTable(11).value & "|" & dataTable(12).value & "|" & dataTable(13).value & "$"
 
-            //                    rs.movenext()
+            //                    dataTable.movenext()
 
             //                loop
             //                strResult = strResult & "~" & strgar
@@ -2241,26 +2238,26 @@ namespace Banking.Services
             //        end if
 
 
-            //        rs = nothing
+            //        dataTable = nothing
 
 
 
 
             //        if  strArr(3) = "LOAN" then
 
-            //        rs = Server.CreateObject("adodb.recordset")
+            //        dataTable = Server.CreateObject("adodb.recordset")
 
 
             //        sqlStr = "SELECT ROI,INSTALMENTAMT,SANCTIONEDAMT,NOOFINSTALLMENT FROM " & strArr(3) & "MST WHERE GLCODE='" & strArr(4) & "' AND ACCNO ='" & strArr(5) & "' AND BRANCHCODE='" & strArr(1) & "' "
 
-            //        rs = obj.SingleSelectStat(sqlStr)
+            //        dataTable = obj.SingleSelectStat(sqlStr)
 
             //        if obj.ConnError = "Connected" then
 
-            //            if not rs.BOF and not rs.EOF then
+            //            if not dataTable.BOF and not dataTable.EOF then
 
 
-            //                strResult = strResult & "~" & rs(0).value & "|" & rs(1).value & "|" & rs(2).value & "|" & rs(3).value
+            //                strResult = strResult & "~" & dataTable(0).value & "|" & dataTable(1).value & "|" & dataTable(2).value & "|" & dataTable(3).value
 
 
             //            else
@@ -2271,7 +2268,7 @@ namespace Banking.Services
             //        end if
 
 
-            //        rs = nothing
+            //        dataTable = nothing
 
 
             //        else
@@ -2280,19 +2277,19 @@ namespace Banking.Services
             //        end if
 
 
-            //        rs = Server.CreateObject("adodb.recordset")
+            //        dataTable = Server.CreateObject("adodb.recordset")
 
 
             //        sqlStr = "SELECT NARRATION FROM LOANPURPOSEMST WHERE PURPOSECODE=(SELECT PURPOSECODE FROM " & strArr(3) & "MST WHERE ACCNO ='" & strArr(5) & "' AND GLCODE='" & strArr(4) & "' AND BRANCHCODE='" & strArr(1) & "')"
 
-            //        rs = obj.SingleSelectStat(sqlStr)
+            //        dataTable = obj.SingleSelectStat(sqlStr)
 
             //        if obj.ConnError = "Connected" then
 
-            //            if not rs.BOF and not rs.EOF then
+            //            if not dataTable.BOF and not dataTable.EOF then
 
 
-            //                strResult = strResult & "~" & rs(0).value
+            //                strResult = strResult & "~" & dataTable(0).value
 
 
             //            else
@@ -2303,22 +2300,22 @@ namespace Banking.Services
             //        end if
 
 
-            //        rs = nothing
+            //        dataTable = nothing
 
 
-            //        rs = Server.CreateObject("adodb.recordset")
+            //        dataTable = Server.CreateObject("adodb.recordset")
 
 
             //        sqlStr = "SELECT SECURITYDESC FROM GENSECURITYLNK WHERE  MODULEID='" & strArr(3) & "' AND GLCODE='" & strArr(4) & "' AND ACCNO='" & strArr(5) & "' AND BRANCHCODE='" & strArr(1) & "'"
 
-            //        rs = obj.SingleSelectStat(sqlStr)
+            //        dataTable = obj.SingleSelectStat(sqlStr)
 
             //        if obj.ConnError = "Connected" then
 
-            //            if not rs.BOF and not rs.EOF then
+            //            if not dataTable.BOF and not dataTable.EOF then
 
 
-            //                strResult = strResult & "~" & rs(0).value
+            //                strResult = strResult & "~" & dataTable(0).value
 
 
             //            else
@@ -2329,22 +2326,22 @@ namespace Banking.Services
             //        end if
 
 
-            //        rs = nothing
+            //        dataTable = nothing
 
 
-            //        rs = Server.CreateObject("adodb.recordset")
+            //        dataTable = Server.CreateObject("adodb.recordset")
 
 
             //        sqlStr = "SELECT ACCNO FROM SBMST WHERE CUSTOMERID=(SELECT CUSTOMERID FROM " & strArr(3) & "MST WHERE ACCNO ='" & strArr(5) & "' AND GLCODE='" & strArr(4) & "' AND BRANCHCODE='" & strArr(1) & "') AND BRANCHCODE='" & strArr(1) & "'"
 
-            //        rs = obj.SingleSelectStat(sqlStr)
+            //        dataTable = obj.SingleSelectStat(sqlStr)
 
             //        if obj.ConnError = "Connected" then
 
-            //            if not rs.BOF and not rs.EOF then
+            //            if not dataTable.BOF and not dataTable.EOF then
 
 
-            //                strResult = strResult & "~" & rs(0).value
+            //                strResult = strResult & "~" & dataTable(0).value
 
 
             //            else
@@ -2355,22 +2352,22 @@ namespace Banking.Services
             //        end if
 
 
-            //        rs = nothing
+            //        dataTable = nothing
 
 
-            //        rs = Server.CreateObject("adodb.recordset")
+            //        dataTable = Server.CreateObject("adodb.recordset")
 
 
             //        sqlStr = "SELECT ACCNO FROM SHARESMST WHERE CUSTOMERID=(SELECT CUSTOMERID FROM " & strArr(3) & "MST WHERE ACCNO ='" & strArr(5) & "' AND GLCODE='" & strArr(4) & "' AND BRANCHCODE='" & strArr(1) & "') AND BRANCHCODE='" & strArr(1) & "'"
 
-            //        rs = obj.SingleSelectStat(sqlStr)
+            //        dataTable = obj.SingleSelectStat(sqlStr)
 
             //        if obj.ConnError = "Connected" then
 
-            //            if not rs.BOF and not rs.EOF then
+            //            if not dataTable.BOF and not dataTable.EOF then
 
 
-            //                strResult = strResult & "~" & rs(0).value
+            //                strResult = strResult & "~" & dataTable(0).value
 
 
             //            else
@@ -2381,23 +2378,23 @@ namespace Banking.Services
             //        end if
 
 
-            //        rs = nothing
+            //        dataTable = nothing
 
 
-            //        rs = Server.CreateObject("adodb.recordset")
+            //        dataTable = Server.CreateObject("adodb.recordset")
 
 
             //        sqlStr = "SELECT  AMOUNT,ROI FROM GENLIMITMST B WHERE LIMITID IN (SELECT LIMITID FROM GENLIMITLNK A WHERE A.LIMITID=B.LIMITID AND A.CUSTOMERID=B.CUSTOMERID AND A.BRANCHCODE=B.BRANCHCODE AND A.LINKEDACCNO='" & strArr(5) & "' AND A.LINKEDGLCODE='" & strArr(4) & "' AND A.BRANCHCODE='" & strArr(1) & "')"
 
-            //        rs = obj.SingleSelectStat(sqlStr)
+            //        dataTable = obj.SingleSelectStat(sqlStr)
 
             //        if obj.ConnError = "Connected" then
 
 
-            //            if not rs.BOF and not rs.EOF then
+            //            if not dataTable.BOF and not dataTable.EOF then
 
 
-            //                strResult = strResult & "~" & rs(0).value & "|" & rs(1).value
+            //                strResult = strResult & "~" & dataTable(0).value & "|" & dataTable(1).value
 
 
             //            else
@@ -2408,23 +2405,23 @@ namespace Banking.Services
             //        end if
 
 
-            //        rs = nothing
+            //        dataTable = nothing
 
 
-            //        rs = Server.CreateObject("adodb.recordset")
+            //        dataTable = Server.CreateObject("adodb.recordset")
 
 
             //        sqlStr = "SELECT DESCRIPTION FROM GENRELIGIONMST WHERE CODE=(SELECT RELIGIONID FROM GENCUSTINFOMST WHERE CUSTOMERID=(SELECT CUSTOMERID FROM " & strArr(3) & "MST WHERE ACCNO ='" & strArr(5) & "' AND GLCODE='" & strArr(4) & "' AND BRANCHCODE='" & strArr(1) & "')) "
 
-            //        rs = obj.SingleSelectStat(sqlStr)
+            //        dataTable = obj.SingleSelectStat(sqlStr)
 
             //        if obj.ConnError = "Connected" then
 
 
-            //            if not rs.BOF and not rs.EOF then
+            //            if not dataTable.BOF and not dataTable.EOF then
 
 
-            //                strResult = strResult & "~" & rs(0).value
+            //                strResult = strResult & "~" & dataTable(0).value
 
 
             //            else
@@ -2435,23 +2432,23 @@ namespace Banking.Services
             //        end if
 
 
-            //        rs = nothing
+            //        dataTable = nothing
 
 
-            //        rs = Server.CreateObject("adodb.recordset")
+            //        dataTable = Server.CreateObject("adodb.recordset")
 
 
             //        sqlStr = "SELECT CURBAL FROM SHARESBALANCE WHERE ACCNO=(SELECT ACCNO FROM SHARESMST WHERE CUSTOMERID=(SELECT CUSTOMERID FROM " & strArr(3) & "MST WHERE ACCNO ='" & strArr(5) & "' AND GLCODE='" & strArr(4) & "' AND BRANCHCODE='" & strArr(1) & "') AND BRANCHCODE='" & strArr(1) & "')"
 
-            //        rs = obj.SingleSelectStat(sqlStr)
+            //        dataTable = obj.SingleSelectStat(sqlStr)
 
             //        if obj.ConnError = "Connected" then
 
 
-            //            if not rs.BOF and not rs.EOF then
+            //            if not dataTable.BOF and not dataTable.EOF then
 
 
-            //                strResult = strResult & "~" & rs(0).value
+            //                strResult = strResult & "~" & dataTable(0).value
 
 
             //            else
@@ -2462,23 +2459,23 @@ namespace Banking.Services
             //        end if
 
 
-            //        rs = nothing
+            //        dataTable = nothing
 
 
-            //        rs = Server.CreateObject("adodb.recordset")
+            //        dataTable = Server.CreateObject("adodb.recordset")
 
 
             //        sqlStr = "SELECT NARRATION FROM GENOCCUPATIONMST WHERE CODE=(SELECT CUSTOCCUPATION FROM GENCUSTINFOMST WHERE CUSTOMERID=(SELECT CUSTOMERID FROM " & strArr(3) & "MST WHERE ACCNO ='" & strArr(5) & "' AND GLCODE='" & strArr(4) & "' AND BRANCHCODE='" & strArr(1) & "'))"
 
-            //        rs = obj.SingleSelectStat(sqlStr)
+            //        dataTable = obj.SingleSelectStat(sqlStr)
 
             //        if obj.ConnError = "Connected" then
 
 
-            //            if not rs.BOF and not rs.EOF then
+            //            if not dataTable.BOF and not dataTable.EOF then
 
 
-            //                strResult = strResult & "~" & rs(0).value
+            //                strResult = strResult & "~" & dataTable(0).value
 
 
             //            else
@@ -2489,23 +2486,23 @@ namespace Banking.Services
             //        end if
 
 
-            //        rs = nothing
+            //        dataTable = nothing
 
 
-            //        rs = Server.CreateObject("adodb.recordset")
+            //        dataTable = Server.CreateObject("adodb.recordset")
 
 
             //        sqlStr = "SELECT CONCAT(NAME2,' '||DISIGNATION2) FROM RBIREPSOSSPARAMETERS WHERE BRANCHCODE='" & strArr(1) & "'"
 
-            //        rs = obj.SingleSelectStat(sqlStr)
+            //        dataTable = obj.SingleSelectStat(sqlStr)
 
             //        if obj.ConnError = "Connected" then
 
 
-            //            if not rs.BOF and not rs.EOF then
+            //            if not dataTable.BOF and not dataTable.EOF then
 
 
-            //                strResult = strResult & "~" & rs(0).value
+            //                strResult = strResult & "~" & dataTable(0).value
 
 
             //            else
@@ -2516,7 +2513,7 @@ namespace Banking.Services
             //        end if
 
 
-            //        rs = nothing
+            //        dataTable = nothing
 
 
             //    elseif strArr(0)= "MATDEP" then
@@ -2531,20 +2528,20 @@ namespace Banking.Services
             //            sqlStr = "SELECT ACCNO, NAME, TO_CHAR(OPDATE,'DD-Mon-YYYY'), OPBAL , (CASE WHEN STATUS='C' THEN 0 ELSE OPBAL END) AMOUNT, STATUS ,TO_CHAR(CLOSEDATE,'DD-Mon-YYYY'), NARRATION FROM " & strArr(3) & "MST WHERE BRANCHCODE='" & strArr(1) & "' AND GLCODE='" & strArr(4) & "' AND CURRENCYCODE='" & strArr(2) & "' " & strArr(5) & " ORDER BY TO_NUMBER(ACCNO)"
 
 
-            //            rs = obj.SingleSelectStat(sqlStr)
+            //            dataTable = obj.SingleSelectStat(sqlStr)
 
 
             //            if obj.ConnError = "Connected" then
 
-            //                if not rs.BOF and not rs.EOF then
+            //                if not dataTable.BOF and not dataTable.EOF then
 
             //                    strResult = "SLNO,5,L~ACCNO,16,R~NAME,50,L~OPDATE,14,L~OPBAL,16,R~AMOUNT,16,R~STATUS,8,C~CLOSEDATE,14,L~NARRATION,50,L|"
 
-            //                    do until rs.EOF
+            //                    do until dataTable.EOF
 
-            //                        strResult = strResult & cstr(icount) & "~" & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & cDbl(rs(3).value).ToString("n", System.Globalization.CultureInfo.CreateSpecificCulture("hi-IN")) & "~" & cDbl(rs(4).value).ToString("n", System.Globalization.CultureInfo.CreateSpecificCulture("hi-IN")) & "~" & rs(5).value & "~" & rs(6).value & "~" & rs(7).value & "|"
+            //                        strResult = strResult & cstr(icount) & "~" & dataTable(0).value & "~" & dataTable(1).value & "~" & dataTable(2).value & "~" & cDbl(dataTable(3).value).ToString("n", System.Globalization.CultureInfo.CreateSpecificCulture("hi-IN")) & "~" & cDbl(dataTable(4).value).ToString("n", System.Globalization.CultureInfo.CreateSpecificCulture("hi-IN")) & "~" & dataTable(5).value & "~" & dataTable(6).value & "~" & dataTable(7).value & "|"
 
-            //                        rs.moveNext()
+            //                        dataTable.moveNext()
 
             //                        icount = icount + 1
 
@@ -2553,12 +2550,12 @@ namespace Banking.Services
             //                    sqlStr = "SELECT SUM(OPBAL) , SUM((CASE WHEN STATUS='C' THEN 0 ELSE OPBAL END)) AMOUNT  FROM " & strArr(3) & "MST WHERE BRANCHCODE='" & strArr(1) & "' AND GLCODE='" & strArr(4) & "' AND CURRENCYCODE='" & strArr(2) & "' " & strArr(5) & " "
 
 
-            //                    rs = obj.SingleSelectStat(sqlStr)
+            //                    dataTable = obj.SingleSelectStat(sqlStr)
 
 
             //                    strResult = strResult & "-----~~~~----------------~----------------~~~|"
 
-            //                    strResult = strResult & "Total~~~~" & cDbl(rs(0).value).ToString("n", System.Globalization.CultureInfo.CreateSpecificCulture("hi-IN")) & "~" & cDbl(rs(1).value).ToString("n", System.Globalization.CultureInfo.CreateSpecificCulture("hi-IN")) & "|"
+            //                    strResult = strResult & "Total~~~~" & cDbl(dataTable(0).value).ToString("n", System.Globalization.CultureInfo.CreateSpecificCulture("hi-IN")) & "~" & cDbl(dataTable(1).value).ToString("n", System.Globalization.CultureInfo.CreateSpecificCulture("hi-IN")) & "|"
 
             //                    strResult = strResult & "-----~~~~----------------~----------------~~~|"
 
@@ -2569,7 +2566,7 @@ namespace Banking.Services
 
             //            end if
 
-            //        rs = nothing
+            //        dataTable = nothing
 
 
             //        elseif strArr(0)= "MATDEPXL" then
@@ -2584,20 +2581,20 @@ namespace Banking.Services
             //            sqlStr = "SELECT ACCNO, NAME, TO_CHAR(OPDATE,'DD-Mon-YYYY'), OPBAL , (CASE WHEN STATUS='C' THEN 0 ELSE OPBAL END) AMOUNT, STATUS ,TO_CHAR(CLOSEDATE,'DD-Mon-YYYY'), NARRATION FROM " & strArr(3) & "MST WHERE BRANCHCODE='" & strArr(1) & "' AND GLCODE='" & strArr(4) & "' AND CURRENCYCODE='" & strArr(2) & "' " & strArr(5) & " ORDER BY TO_NUMBER(ACCNO)"
 
 
-            //            rs = obj.SingleSelectStat(sqlStr)
+            //            dataTable = obj.SingleSelectStat(sqlStr)
 
 
             //            if obj.ConnError = "Connected" then
 
-            //                if not rs.BOF and not rs.EOF then
+            //                if not dataTable.BOF and not dataTable.EOF then
 
             //                    strResult = "SLNO,5,L~ACCNO,16,R~NAME,50,L~OPDATE,14,L~OPBAL,16,R~AMOUNT,16,R~STATUS,8,C~CLOSEDATE,14,L~NARRATION,50,L|"
 
-            //                    do until rs.EOF
+            //                    do until dataTable.EOF
 
-            //                        strResult = strResult & cstr(icount) & "~" & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "~" & rs(7).value & "|"
+            //                        strResult = strResult & cstr(icount) & "~" & dataTable(0).value & "~" & dataTable(1).value & "~" & dataTable(2).value & "~" & dataTable(3).value & "~" & dataTable(4).value & "~" & dataTable(5).value & "~" & dataTable(6).value & "~" & dataTable(7).value & "|"
 
-            //                        rs.moveNext()
+            //                        dataTable.moveNext()
 
             //                        icount = icount + 1
 
@@ -2606,12 +2603,12 @@ namespace Banking.Services
             //                    sqlStr = "SELECT SUM(OPBAL) , SUM((CASE WHEN STATUS='C' THEN 0 ELSE OPBAL END)) AMOUNT  FROM " & strArr(3) & "MST WHERE BRANCHCODE='" & strArr(1) & "' AND GLCODE='" & strArr(4) & "' AND CURRENCYCODE='" & strArr(2) & "' " & strArr(5) & " "
 
 
-            //                    rs = obj.SingleSelectStat(sqlStr)
+            //                    dataTable = obj.SingleSelectStat(sqlStr)
 
 
             //                    strResult = strResult & "-----~~~~----------------~----------------~~~|"
 
-            //                    strResult = strResult & "Total~~~~" & rs(0).value & "~" & rs(1).value & "|"
+            //                    strResult = strResult & "Total~~~~" & dataTable(0).value & "~" & dataTable(1).value & "|"
 
             //                    strResult = strResult & "-----~~~~----------------~----------------~~~|"
 
@@ -2623,7 +2620,7 @@ namespace Banking.Services
 
             //            end if
 
-            //        rs = nothing
+            //        dataTable = nothing
 
 
             //    elseif strArr(0)= "deltran" then
@@ -2633,17 +2630,17 @@ namespace Banking.Services
 
             //            sqlStr = "SELECT TO_CHAR(APPLICATIONDATE,'DD-Mon-YYYY'),GLCODE,(SELECT GLDESCRIPTION FROM GENGLMASTMST B WHERE B.GLCODE=A.GLCODE)GLDESCRIPTION,ACCNO,NAME,BATCHNO,TRANNO,AMOUNT,REMARKS,USERID,MACHINEID,DELETEDUSERID,DELETEDMACHINEID,DELETEDAPPROVEDBY,DELETEDAPPROVEDMACHINE FROM GENDELETEDTRANSLOG A WHERE ABBYN='N' AND BRANCHCODE='" & strArr(1) & "' AND CURRENCYCODE='" & strArr(2) & "' " & strArr(3) & " UNION SELECT TO_CHAR(APPLICATIONDATE,'DD-Mon-YYYY'),GLCODE,(SELECT GLDESCRIPTION FROM GENGLMASTMST B WHERE B.GLCODE=C.GLCODE)GLDESCRIPTION,ACCNO,NAME,BATCHNO,TRANNO,AMOUNT,REMARKS,USERID,MACHINEID,DELETEDUSERID,DELETEDMACHINEID,DELETEDAPPROVEDBY,DELETEDAPPROVEDMACHINE FROM GENDELETEDTRANSLOGBKP C WHERE ABBYN='N' AND BRANCHCODE='" & strArr(1) & "' AND CURRENCYCODE='" & strArr(2) & "' " & strArr(3) & " ORDER BY BATCHNO,TRANNO"
 
-            //            rs = obj.SingleSelectStat(sqlStr)
+            //            dataTable = obj.SingleSelectStat(sqlStr)
 
             //            if obj.ConnError = "Connected" then
 
-            //                if not rs.BOF and not rs.EOF then
+            //                if not dataTable.BOF and not dataTable.EOF then
 
-            //                do until rs.EOF
+            //                do until dataTable.EOF
 
-            //                        strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "~" & rs(7).value & "~" & rs(8).value & "~" & rs(9).value & "~" & rs(10).value & "~" & rs(11).value & "~" & rs(12).value & "~" & rs(13).value & "~" & rs(14).value & "|"
+            //                        strResult = strResult & dataTable(0).value & "~" & dataTable(1).value & "~" & dataTable(2).value & "~" & dataTable(3).value & "~" & dataTable(4).value & "~" & dataTable(5).value & "~" & dataTable(6).value & "~" & dataTable(7).value & "~" & dataTable(8).value & "~" & dataTable(9).value & "~" & dataTable(10).value & "~" & dataTable(11).value & "~" & dataTable(12).value & "~" & dataTable(13).value & "~" & dataTable(14).value & "|"
 
-            //                        rs.moveNext()
+            //                        dataTable.moveNext()
 
             //                loop
             //                strResult = mid(strResult, 1, strResult.length - 1)
@@ -2652,7 +2649,7 @@ namespace Banking.Services
 
             //            end if
 
-            //    rs = nothing
+            //    dataTable = nothing
 
 
             //    elseif strArr(0)= "delabbtran" then
@@ -2662,17 +2659,17 @@ namespace Banking.Services
 
             //            sqlStr = "SELECT TO_CHAR(APPLICATIONDATE,'DD-Mon-YYYY'),GLCODE,(SELECT GLDESCRIPTION FROM GENGLMASTMST B WHERE B.GLCODE=A.GLCODE)GLDESCRIPTION,ACCNO,NAME,BATCHNO,TRANNO,AMOUNT,REMARKS,USERID,MACHINEID,DELETEDUSERID,DELETEDMACHINEID,DELETEDAPPROVEDBY,DELETEDAPPROVEDMACHINE FROM GENDELETEDTRANSLOG A WHERE ABBYN='Y' AND BRANCHCODE='" & strArr(1) & "' AND CURRENCYCODE='" & strArr(2) & "' " & strArr(3) & " UNION SELECT TO_CHAR(APPLICATIONDATE,'DD-Mon-YYYY'),GLCODE,(SELECT GLDESCRIPTION FROM GENGLMASTMST B WHERE B.GLCODE=C.GLCODE)GLDESCRIPTION,ACCNO,NAME,BATCHNO,TRANNO,AMOUNT,REMARKS,USERID,MACHINEID,DELETEDUSERID,DELETEDMACHINEID,DELETEDAPPROVEDBY,DELETEDAPPROVEDMACHINE FROM GENDELETEDTRANSLOGBKP C WHERE ABBYN='Y' AND BRANCHCODE='" & strArr(1) & "' AND CURRENCYCODE='" & strArr(2) & "' " & strArr(3) & " ORDER BY BATCHNO,TRANNO"
 
-            //            rs = obj.SingleSelectStat(sqlStr)
+            //            dataTable = obj.SingleSelectStat(sqlStr)
 
             //            if obj.ConnError = "Connected" then
 
-            //                if not rs.BOF and not rs.EOF then
+            //                if not dataTable.BOF and not dataTable.EOF then
 
-            //                do until rs.EOF
+            //                do until dataTable.EOF
 
-            //                        strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "~" & rs(7).value & "~" & rs(8).value & "~" & rs(9).value & "~" & rs(10).value & "~" & rs(11).value & "~" & rs(12).value & "~" & rs(13).value & "~" & rs(14).value & "|"
+            //                        strResult = strResult & dataTable(0).value & "~" & dataTable(1).value & "~" & dataTable(2).value & "~" & dataTable(3).value & "~" & dataTable(4).value & "~" & dataTable(5).value & "~" & dataTable(6).value & "~" & dataTable(7).value & "~" & dataTable(8).value & "~" & dataTable(9).value & "~" & dataTable(10).value & "~" & dataTable(11).value & "~" & dataTable(12).value & "~" & dataTable(13).value & "~" & dataTable(14).value & "|"
 
-            //                        rs.moveNext()
+            //                        dataTable.moveNext()
 
             //                loop
             //                strResult = mid(strResult, 1, strResult.length - 1)
@@ -2681,7 +2678,7 @@ namespace Banking.Services
 
             //            end if
 
-            //    rs = nothing
+            //    dataTable = nothing
 
 
             //    elseif strArr(0)= "GETSCHOOLDESC" then
@@ -2698,19 +2695,19 @@ namespace Banking.Services
             //        end if
 
 
-            //        rs = obj.SingleSelectStat(sqlStr)
+            //        dataTable = obj.SingleSelectStat(sqlStr)
 
             //        if obj.ConnError = "Connected" then
 
-            //            if not rs.BOF and not rs.EOF then
+            //            if not dataTable.BOF and not dataTable.EOF then
 
-            //                strResult = rs(0).value & "~" & rs(1).value & "~" & rs(2).value
+            //                strResult = dataTable(0).value & "~" & dataTable(1).value & "~" & dataTable(2).value
 
             //            end if
 
             //        end if
 
-            //        rs = nothing
+            //        dataTable = nothing
 
             //    elseif strArr(0)= "GETSCHBRANCHDESC" then
             //        strResult = ""
@@ -2726,19 +2723,19 @@ namespace Banking.Services
             //        end if
 
 
-            //        rs = obj.SingleSelectStat(sqlStr)
+            //        dataTable = obj.SingleSelectStat(sqlStr)
 
             //        if obj.ConnError = "Connected" then
 
-            //            if not rs.BOF and not rs.EOF then
+            //            if not dataTable.BOF and not dataTable.EOF then
 
-            //                strResult = rs(0).value
+            //                strResult = dataTable(0).value
 
             //            end if
 
             //        end if
 
-            //        rs = nothing
+            //        dataTable = nothing
 
             //    elseif strArr(0)= "GETSTUDENTDESC" then
             //        strResult = ""
@@ -2747,19 +2744,19 @@ namespace Banking.Services
 
             //        sqlStr = "SELECT NAME FROM SCHOOLSTUDENTINFOMST WHERE SCHOOLACCNO='" & strArr(1) & "' AND SCHOOLBRANCHID='" & strArr(2) & "' AND STUDENTID='" & strArr(3) & "' AND STATUS='R'"
 
-            //        rs = obj.SingleSelectStat(sqlStr)
+            //        dataTable = obj.SingleSelectStat(sqlStr)
 
             //        if obj.ConnError = "Connected" then
 
-            //            if not rs.BOF and not rs.EOF then
+            //            if not dataTable.BOF and not dataTable.EOF then
 
-            //                strResult = rs(0).value
+            //                strResult = dataTable(0).value
 
             //            end if
 
             //        end if
 
-            //        rs = nothing
+            //        dataTable = nothing
 
             //    elseif strArr(0)= "GETBRANCHID" then
             //        strResult = ""
@@ -2768,13 +2765,13 @@ namespace Banking.Services
 
             //        sqlStr = "SELECT nvl(MAX(TO_NUMBER(SCHOOLBRANCHID))+1,1) MAXBRANCH FROM SCHOOLBRANCHMST WHERE SCHOOLACCNO='" & strArr(5) & "' AND GLCODE='" & strArr(4) & "'"
 
-            //        rs = obj.SingleSelectStat(sqlStr)
+            //        dataTable = obj.SingleSelectStat(sqlStr)
 
             //        if obj.ConnError = "Connected" then
 
-            //            if not rs.BOF and not rs.EOF then
+            //            if not dataTable.BOF and not dataTable.EOF then
 
-            //                strResult = rs(0).value
+            //                strResult = dataTable(0).value
 
             //            else
             //                strResult = "1"
@@ -2783,7 +2780,7 @@ namespace Banking.Services
 
             //        end if
 
-            //        rs = nothing
+            //        dataTable = nothing
 
             //    elseif strArr(0)= "GETBRANCHDTLS" then
             //        strResult = ""
@@ -2794,15 +2791,15 @@ namespace Banking.Services
 
             //        sqlStr = "SELECT ADDR1,ADDR2,ADDR3,ADDR4,CITY,MOBILE,PHONE1, PHONE2, LNKBRANCHCODE, (SELECT B.BRANCHNAME FROM GENBANKBRANCHMST B WHERE B.BRANCHCODE=A.LNKBRANCHCODE) BRNAME, LNKMODULEID, (SELECT B.NARRATION FROM GENMODULEMST B WHERE B.MODULEID=UPPER(A.LNKMODULEID)) MODNARRATION, LNKGLCODE, (SELECT B.GLDESCRIPTION FROM GENGLMASTMST B WHERE B.GLCODE=A.LNKGLCODE AND B.MODULEID=UPPER(A.LNKMODULEID)) GLDESC, LNKACCNO FROM SCHOOLBRANCHMST A WHERE GLCODE='" & strArr(1) & "' AND SCHOOLACCNO='" & strArr(2) & "' AND SCHOOLBRANCHID='" & strArr(3) & "' "
 
-            //        rs = obj.SingleSelectStat(sqlStr)
+            //        dataTable = obj.SingleSelectStat(sqlStr)
 
             //        if obj.ConnError = "Connected" then
 
-            //            if not rs.BOF and not rs.EOF then
+            //            if not dataTable.BOF and not dataTable.EOF then
 
-            //                strResult = rs(0).value + "~" + rs(1).value + "~" + rs(2).value + "~" + rs(3).value + "~" + rs(4).value + "~" + rs(5).value + "~" + rs(6).value + "~" + rs(7).value + "~" + rs(8).value + "~" + rs(9).value + "~" + rs(10).value + "~" + rs(11).value + "~" + rs(12).value + "~" + rs(13).value + "~" + rs(14).value
+            //                strResult = dataTable(0).value + "~" + dataTable(1).value + "~" + dataTable(2).value + "~" + dataTable(3).value + "~" + dataTable(4).value + "~" + dataTable(5).value + "~" + dataTable(6).value + "~" + dataTable(7).value + "~" + dataTable(8).value + "~" + dataTable(9).value + "~" + dataTable(10).value + "~" + dataTable(11).value + "~" + dataTable(12).value + "~" + dataTable(13).value + "~" + dataTable(14).value
 
-            //                sqlStr = "SELECT NAME FROM " & rs(10).value & "MST WHERE ACCNO='" & rs(14).value & "' AND GLCODE='" & rs(12).value & "' AND BRANCHCODE='" & rs(8).value & "'"
+            //                sqlStr = "SELECT NAME FROM " & dataTable(10).value & "MST WHERE ACCNO='" & dataTable(14).value & "' AND GLCODE='" & dataTable(12).value & "' AND BRANCHCODE='" & dataTable(8).value & "'"
 
             //                rs1 = Server.CreateObject("adodb.recordset")
 
@@ -2829,7 +2826,7 @@ namespace Banking.Services
 
             //        end if
 
-            //        rs = nothing
+            //        dataTable = nothing
 
             //    elseif strArr(0)= "GETLOANNPAINT" then
             //        strResult = ""
@@ -2841,13 +2838,13 @@ namespace Banking.Services
 
             //        'sqlStr="SELECT ABS(NPAINTBAL) FROM LOANBALANCE WHERE ACCNO='" & strArr(5) & "' AND GLCODE='" & strArr(4) & "' AND BRANCHCODE='" & strArr(1) & "'"
 
-            //        'rs=obj.SingleSelectStat(sqlStr)
+            //        'dataTable=obj.SingleSelectStat(sqlStr)
 
             //        'if obj.ConnError="Connected" then
 
-            //        '	if not rs.BOF and not rs.EOF then
+            //        '	if not dataTable.BOF and not dataTable.EOF then
 
-            //        '		strResult=rs(0).value
+            //        '		strResult=dataTable(0).value
 
             //        '	else 
 
@@ -2857,18 +2854,18 @@ namespace Banking.Services
 
             //        'end if
 
-            //        'rs=nothing
+            //        'dataTable=nothing
 
 
             //        sqlStr = "SELECT ABS(NPAINTBAL),TO_CHAR(LASTINTCALCDATE,'DD-MON-YYYY') FROM LOANBALANCE a,loanmst b WHERE a.accno=b.accno AND a.glcode=b.glcode AND a.branchcode=b.branchcode AND a.ACCNO='" & strArr(5) & "' AND a.GLCODE='" & strArr(4) & "' AND a.BRANCHCODE='" & strArr(1) & "'"
 
-            //        rs = obj.SingleSelectStat(sqlStr)
+            //        dataTable = obj.SingleSelectStat(sqlStr)
 
             //        if obj.ConnError = "Connected" then
 
-            //            if not rs.BOF and not rs.EOF then
+            //            if not dataTable.BOF and not dataTable.EOF then
 
-            //                strResult = rs(0).value & "~" & rs(1).value
+            //                strResult = dataTable(0).value & "~" & dataTable(1).value
 
             //            else
             //                strResult = "0~"
@@ -2877,7 +2874,7 @@ namespace Banking.Services
 
             //        end if
 
-            //        rs = nothing
+            //        dataTable = nothing
 
 
             //    elseif strArr(0)= "GETAMOUNTDTLS" then
@@ -2888,13 +2885,13 @@ namespace Banking.Services
             //    ''BRANCHCODE,CURRENCYCODE,MODULEID,GLCODE,ACCNO,APPLICATIONDATE
             //    sqlStr = "SELECT GETANYDAYBAL('" & strArr(1) & "','" & strArr(2) & "','" & strArr(3) & "','" & strArr(4) & "','" & strArr(5) & "','" & strArr(6) & "') FROM DUAL"
 
-            //    rs = obj.SingleSelectStat(sqlStr)
+            //    dataTable = obj.SingleSelectStat(sqlStr)
 
             //    if obj.ConnError = "Connected" then
 
-            //        if not rs.BOF and not rs.EOF then
+            //        if not dataTable.BOF and not dataTable.EOF then
 
-            //            strResult = rs(0).value
+            //            strResult = dataTable(0).value
 
             //        else
             //                strResult = "0"
@@ -2903,7 +2900,7 @@ namespace Banking.Services
 
             //    end if
 
-            //    rs = nothing
+            //    dataTable = nothing
 
 
             //    elseif strArr(0)= "GETAMOUNTDTLSLMTAMT" then
@@ -2918,13 +2915,13 @@ namespace Banking.Services
 
             //    sqlStr = "SELECT GETANYDAYBAL('" & strArr(1) & "','" & strArr(2) & "','" & strArr(3) & "','" & strArr(4) & "','" & strArr(5) & "','" & strArr(6) & "') FROM DUAL"
 
-            //    rs = obj.SingleSelectStat(sqlStr)
+            //    dataTable = obj.SingleSelectStat(sqlStr)
 
             //    if obj.ConnError = "Connected" then
 
-            //        if not rs.BOF and not rs.EOF then
+            //        if not dataTable.BOF and not dataTable.EOF then
 
-            //            dblCurbal5 = rs(0).value
+            //            dblCurbal5 = dataTable(0).value
 
             //        else
             //                dblCurbal5 = "0"
@@ -2933,7 +2930,7 @@ namespace Banking.Services
 
             //    end if
 
-            //    rs = nothing
+            //    dataTable = nothing
 
             //    '' modid = "CC"
 
@@ -2941,13 +2938,13 @@ namespace Banking.Services
             //    sqlStr = "SELECT AMOUNT FROM GENLIMITMST G, GENLIMITLNK L,CCMST M WHERE G.LIMITID = L.LIMITID AND G.BRANCHCODE = L.BRANCHCODE AND G.CURRENCYCODE = L.CURRENCYCODE AND G.CUSTOMERID = M.CUSTOMERID AND G.BRANCHCODE = M.BRANCHCODE AND G.CURRENCYCODE = M.CURRENCYCODE AND  M.ACCNO = '" & strArr(5) & "' AND M.GLCODE = '" & strArr(4) & "' AND m.branchcode = '" & strArr(1) & "'  AND L.STATUS = 'R'"
 
 
-            //    rs = obj.SingleSelectStat(sqlStr)
+            //    dataTable = obj.SingleSelectStat(sqlStr)
 
             //    if obj.ConnError = "Connected" then
 
-            //        if not rs.BOF and not rs.EOF then
+            //        if not dataTable.BOF and not dataTable.EOF then
 
-            //            dbllimitamt5 = rs(0).value
+            //            dbllimitamt5 = dataTable(0).value
 
             //        else
             //                dbllimitamt5 = "0"
@@ -2956,7 +2953,7 @@ namespace Banking.Services
 
             //    end if
 
-            //    rs = nothing
+            //    dataTable = nothing
 
             //    end if
 
@@ -2971,18 +2968,18 @@ namespace Banking.Services
             //    sqlStr = "SELECT a.DRLIENYN,a.CRLIENYN,b.DRLIENAMT, b.CRLIENAMT, b.REASON  FROM (SELECT  BRANCHCODE, CURRENCYCODE, GLCODE, ACCNO,DRLIENYN, CRLIENYN FROM " & strArr(3) & "mst WHERE accno = '" & strArr(5) & "' AND glcode = '" & strArr(4) & "' AND currencycode = '" & strArr(2) & "' and  branchcode = '" & strArr(1) & "' ) a,(SELECT BRANCHCODE, CURRENCYCODE, GLCODE, ACCNO,DRLIENAMT, CRLIENAMT, REASON FROM SBCALIENDTLS WHERE accno = '" & strArr(5) & "' AND glcode = '" & strArr(4) & "' AND currencycode = '" & strArr(2) & "' AND branchcode = '" & strArr(1) & "') b WHERE b.accno =  a.accno AND b.glcode = a.glcode AND b.currencycode = a.CURRENCYCODE AND  b.BRANCHCODE= a.branchcode"
 
 
-            //    rs = obj.SingleSelectStat(sqlStr)
+            //    dataTable = obj.SingleSelectStat(sqlStr)
 
 
             //    if obj.ConnError = "Connected" then
 
-            //        if not rs.BOF and not rs.EOF then
+            //        if not dataTable.BOF and not dataTable.EOF then
 
-            //            do until rs.EOF
+            //            do until dataTable.EOF
 
-            //                strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "|"
+            //                strResult = strResult & dataTable(0).value & "~" & dataTable(1).value & "~" & dataTable(2).value & "~" & dataTable(3).value & "~" & dataTable(4).value & "|"
 
-            //                rs.movenext()
+            //                dataTable.movenext()
 
             //            loop
             //            strResult = mid(strResult, 1, strResult.length - 1)
@@ -2994,7 +2991,7 @@ namespace Banking.Services
 
             //    end if
 
-            //    rs = nothing
+            //    dataTable = nothing
 
 
 
@@ -3031,14 +3028,14 @@ namespace Banking.Services
             //    ''BRANCHCODE,CURRENCYCODE,MODULEID,GLCODE,ACCNO,APPLICATIONDATE
             //    sqlStr = "SELECT GETANYDAYBAL('" & strArr(1) & "','" & strArr(2) & "','" & strArr(3) & "','" & strArr(4) & "','" & strArr(5) & "','" & strArr(6) & "'),(select distinct ifsccode from genbankbranchmst where branchcode = '" & strArr(1) & "') FROM DUAL"
 
-            //    rs = obj.SingleSelectStat(sqlStr)
+            //    dataTable = obj.SingleSelectStat(sqlStr)
 
 
             //    if obj.ConnError = "Connected" then
 
-            //        if not rs.BOF and not rs.EOF then
+            //        if not dataTable.BOF and not dataTable.EOF then
 
-            //            strResult = rs(0).value & "~" & rs(1).value & "~" & dblminamount
+            //            strResult = dataTable(0).value & "~" & dataTable(1).value & "~" & dblminamount
 
             //        else
             //                strResult = "0"
@@ -3047,7 +3044,7 @@ namespace Banking.Services
 
             //    end if
 
-            //    rs = nothing
+            //    dataTable = nothing
 
 
             //elseif strArr(0)= "GETAMOUNTDTLSBRIFSCCODE" then
@@ -3058,14 +3055,14 @@ namespace Banking.Services
             //    ''BRANCHCODE,CURRENCYCODE,MODULEID,GLCODE,ACCNO,APPLICATIONDATE
             //    sqlStr = "SELECT GETANYDAYBAL('" & strArr(1) & "','" & strArr(2) & "','" & strArr(3) & "','" & strArr(4) & "','" & strArr(5) & "','" & strArr(6) & "'),(select distinct ifsccode from genbankbranchmst where branchcode = '" & strArr(1) & "') FROM DUAL"
 
-            //    rs = obj.SingleSelectStat(sqlStr)
+            //    dataTable = obj.SingleSelectStat(sqlStr)
 
 
             //    if obj.ConnError = "Connected" then
 
-            //        if not rs.BOF and not rs.EOF then
+            //        if not dataTable.BOF and not dataTable.EOF then
 
-            //            strResult = rs(0).value & "~" & rs(1).value
+            //            strResult = dataTable(0).value & "~" & dataTable(1).value
 
             //        else
             //                strResult = "0"
@@ -3074,7 +3071,7 @@ namespace Banking.Services
 
             //    end if
 
-            //    rs = nothing
+            //    dataTable = nothing
 
 
             //elseif strArr(0)= "GETBRIFSCCODE" then
@@ -3085,13 +3082,13 @@ namespace Banking.Services
             //    ''BRANCHCODE,CURRENCYCODE,MODULEID,GLCODE,ACCNO,APPLICATIONDATE
             //    sqlStr = "select distinct ifsccode from genbankbranchmst where branchcode = '" & strArr(1) & "'"
 
-            //    rs = obj.SingleSelectStat(sqlStr)
+            //    dataTable = obj.SingleSelectStat(sqlStr)
 
             //    if obj.ConnError = "Connected" then
 
-            //        if not rs.BOF and not rs.EOF then
+            //        if not dataTable.BOF and not dataTable.EOF then
 
-            //            strResult = rs(0).value
+            //            strResult = dataTable(0).value
 
             //        else
             //                strResult = "0"
@@ -3100,7 +3097,7 @@ namespace Banking.Services
 
             //    end if
 
-            //    rs = nothing
+            //    dataTable = nothing
 
 
 
@@ -3114,13 +3111,13 @@ namespace Banking.Services
             //    sqlStr = "select neftmobile from  genbankbranchmst a where branchcode = '" & strArr(1) & "'"
 
 
-            //    rs = obj.SingleSelectStat(sqlStr)
+            //    dataTable = obj.SingleSelectStat(sqlStr)
 
             //    if obj.ConnError = "Connected" then
 
-            //        if not rs.BOF and not rs.EOF then
+            //        if not dataTable.BOF and not dataTable.EOF then
 
-            //            strResult = iif(isdbnull(rs(0).value), "", rs(0).value)
+            //            strResult = iif(isdbnull(dataTable(0).value), "", dataTable(0).value)
 
             //        else
             //                strResult = ""
@@ -3129,7 +3126,7 @@ namespace Banking.Services
 
             //    end if
 
-            //    rs = nothing
+            //    dataTable = nothing
 
 
             //elseif strArr(0)= "SetMobileNo" then
@@ -3142,13 +3139,13 @@ namespace Banking.Services
             //    sqlStr = "SELECT CUSTMOBILE FROM gencustinfomst where customerid in (SELECT customerid FROM " & strArr(3) & "mst where accno = '" & strArr(5) & "' and glcode = '" & strArr(4) & "' and branchcode = '" & strArr(1) & "' and currencycode ='" & strArr(2) & "')"
 
 
-            //    rs = obj.SingleSelectStat(sqlStr)
+            //    dataTable = obj.SingleSelectStat(sqlStr)
 
             //    if obj.ConnError = "Connected" then
 
-            //        if not rs.BOF and not rs.EOF then
+            //        if not dataTable.BOF and not dataTable.EOF then
 
-            //            strResult = iif(isdbnull(rs(0).value), "", rs(0).value)
+            //            strResult = iif(isdbnull(dataTable(0).value), "", dataTable(0).value)
 
             //        else
             //                strResult = "0"
@@ -3157,7 +3154,7 @@ namespace Banking.Services
 
             //    end if
 
-            //    rs = nothing
+            //    dataTable = nothing
 
             //elseif strArr(0)= "SetMobileNoNEFTRTGS" then
 
@@ -3175,13 +3172,13 @@ namespace Banking.Services
 
             //    end if
 
-            //    rs = obj.SingleSelectStat(sqlStr)
+            //    dataTable = obj.SingleSelectStat(sqlStr)
 
             //    if obj.ConnError = "Connected" then
 
-            //        if not rs.BOF and not rs.EOF then
+            //        if not dataTable.BOF and not dataTable.EOF then
 
-            //            strResult = iif(isdbnull(rs(0).value), "", rs(0).value)
+            //            strResult = iif(isdbnull(dataTable(0).value), "", dataTable(0).value)
 
             //        else
             //                strResult = "0"
@@ -3190,7 +3187,7 @@ namespace Banking.Services
 
             //    end if
 
-            //    rs = nothing
+            //    dataTable = nothing
 
             //    elseif strArr(0)= "QUE15GA" then
             //    strResult = ""
@@ -3211,26 +3208,26 @@ namespace Banking.Services
             //    end if
 
 
-            //    rs = obj.SingleSelectStat(sqlStr)
+            //    dataTable = obj.SingleSelectStat(sqlStr)
 
 
             //    if obj.ConnError = "Connected" then
 
-            //        if not rs.BOF and not rs.EOF then
+            //        if not dataTable.BOF and not dataTable.EOF then
 
-            //            do until rs.EOF
+            //            do until dataTable.EOF
 
 
             //                if strArr(6) = "0" then
-            //                    strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "~" & rs(7).value & "~" & rs(8).value & "~" & rs(9).value & "~" & rs(10).value & "~" & rs(11).value & "|"
+            //                    strResult = strResult & dataTable(0).value & "~" & dataTable(1).value & "~" & dataTable(2).value & "~" & dataTable(3).value & "~" & dataTable(4).value & "~" & dataTable(5).value & "~" & dataTable(6).value & "~" & dataTable(7).value & "~" & dataTable(8).value & "~" & dataTable(9).value & "~" & dataTable(10).value & "~" & dataTable(11).value & "|"
 
             //                else
-            //                strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "~" & rs(7).value & "~" & rs(8).value & "~" & rs(9).value & "~" & rs(10).value & "~" & rs(11).value & "~" & rs(12).value & "|"
+            //                strResult = strResult & dataTable(0).value & "~" & dataTable(1).value & "~" & dataTable(2).value & "~" & dataTable(3).value & "~" & dataTable(4).value & "~" & dataTable(5).value & "~" & dataTable(6).value & "~" & dataTable(7).value & "~" & dataTable(8).value & "~" & dataTable(9).value & "~" & dataTable(10).value & "~" & dataTable(11).value & "~" & dataTable(12).value & "|"
 
             //                end if
 
 
-            //                rs.movenext()
+            //                dataTable.movenext()
 
             //            loop
             //            strResult = mid(strResult, 1, strResult.length - 1)
@@ -3243,7 +3240,7 @@ namespace Banking.Services
 
             //    end if
 
-            //    rs = nothing
+            //    dataTable = nothing
 
 
             //    elseif strArr(0)= "QUE15GC" then
@@ -3267,30 +3264,30 @@ namespace Banking.Services
 
 
 
-            //    rs = obj.SingleSelectStat(sqlStr)
+            //    dataTable = obj.SingleSelectStat(sqlStr)
 
 
             //    if obj.ConnError = "Connected" then
 
-            //        if not rs.BOF and not rs.EOF then
+            //        if not dataTable.BOF and not dataTable.EOF then
 
-            //            do until rs.EOF
+            //            do until dataTable.EOF
 
 
             //                if strArr(7) = "0" then
 
-            //                    strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "~" & rs(7).value & "~" & rs(8).value & "~" & rs(9).value & "~" & rs(10).value & "~" & rs(11).value & "|"
+            //                    strResult = strResult & dataTable(0).value & "~" & dataTable(1).value & "~" & dataTable(2).value & "~" & dataTable(3).value & "~" & dataTable(4).value & "~" & dataTable(5).value & "~" & dataTable(6).value & "~" & dataTable(7).value & "~" & dataTable(8).value & "~" & dataTable(9).value & "~" & dataTable(10).value & "~" & dataTable(11).value & "|"
 
 
             //                else
 
-            //                strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "~" & rs(7).value & "~" & rs(8).value & "~" & rs(9).value & "~" & rs(10).value & "~" & rs(11).value & "~" & rs(12).value & "|"
+            //                strResult = strResult & dataTable(0).value & "~" & dataTable(1).value & "~" & dataTable(2).value & "~" & dataTable(3).value & "~" & dataTable(4).value & "~" & dataTable(5).value & "~" & dataTable(6).value & "~" & dataTable(7).value & "~" & dataTable(8).value & "~" & dataTable(9).value & "~" & dataTable(10).value & "~" & dataTable(11).value & "~" & dataTable(12).value & "|"
 
 
             //                end if
 
 
-            //                rs.movenext()
+            //                dataTable.movenext()
 
             //            loop
             //            strResult = mid(strResult, 1, strResult.length - 1)
@@ -3303,7 +3300,7 @@ namespace Banking.Services
 
             //    end if
 
-            //    rs = nothing
+            //    dataTable = nothing
 
 
             //    elseif strArr(0)= "QUE15GAC" then
@@ -3327,24 +3324,24 @@ namespace Banking.Services
 
 
 
-            //    rs = obj.SingleSelectStat(sqlStr)
+            //    dataTable = obj.SingleSelectStat(sqlStr)
 
 
             //    if obj.ConnError = "Connected" then
 
-            //        if not rs.BOF and not rs.EOF then
+            //        if not dataTable.BOF and not dataTable.EOF then
 
-            //            do until rs.EOF
+            //            do until dataTable.EOF
 
             //                if strArr(8) = "0" then
-            //                    strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "~" & rs(7).value & "~" & rs(8).value & "~" & rs(9).value & "~" & rs(10).value & "~" & rs(11).value & "|"
+            //                    strResult = strResult & dataTable(0).value & "~" & dataTable(1).value & "~" & dataTable(2).value & "~" & dataTable(3).value & "~" & dataTable(4).value & "~" & dataTable(5).value & "~" & dataTable(6).value & "~" & dataTable(7).value & "~" & dataTable(8).value & "~" & dataTable(9).value & "~" & dataTable(10).value & "~" & dataTable(11).value & "|"
 
             //                else
-            //                strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "~" & rs(7).value & "~" & rs(8).value & "~" & rs(9).value & "~" & rs(10).value & "~" & rs(11).value & "~" & rs(12).value & "|"
+            //                strResult = strResult & dataTable(0).value & "~" & dataTable(1).value & "~" & dataTable(2).value & "~" & dataTable(3).value & "~" & dataTable(4).value & "~" & dataTable(5).value & "~" & dataTable(6).value & "~" & dataTable(7).value & "~" & dataTable(8).value & "~" & dataTable(9).value & "~" & dataTable(10).value & "~" & dataTable(11).value & "~" & dataTable(12).value & "|"
 
             //                end if
 
-            //                rs.movenext()
+            //                dataTable.movenext()
 
             //            loop
             //            strResult = mid(strResult, 1, strResult.length - 1)
@@ -3357,7 +3354,7 @@ namespace Banking.Services
 
             //    end if
 
-            //    rs = nothing
+            //    dataTable = nothing
 
 
             //    elseif strArr(0)= "QUE15HA" then
@@ -3375,26 +3372,26 @@ namespace Banking.Services
             //    end if
 
 
-            //    rs = obj.SingleSelectStat(sqlStr)
+            //    dataTable = obj.SingleSelectStat(sqlStr)
 
 
             //    if obj.ConnError = "Connected" then
 
-            //        if not rs.BOF and not rs.EOF then
+            //        if not dataTable.BOF and not dataTable.EOF then
 
-            //            do until rs.EOF
+            //            do until dataTable.EOF
 
 
             //                if strArr(6) = "0" then
-            //                    strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "~" & rs(7).value & "~" & rs(8).value & "~" & rs(9).value & "~" & rs(10).value & "~" & rs(11).value & "|"
+            //                    strResult = strResult & dataTable(0).value & "~" & dataTable(1).value & "~" & dataTable(2).value & "~" & dataTable(3).value & "~" & dataTable(4).value & "~" & dataTable(5).value & "~" & dataTable(6).value & "~" & dataTable(7).value & "~" & dataTable(8).value & "~" & dataTable(9).value & "~" & dataTable(10).value & "~" & dataTable(11).value & "|"
 
             //                else
-            //                strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "~" & rs(7).value & "~" & rs(8).value & "~" & rs(9).value & "~" & rs(10).value & "~" & rs(11).value & "~" & rs(12).value & "|"
+            //                strResult = strResult & dataTable(0).value & "~" & dataTable(1).value & "~" & dataTable(2).value & "~" & dataTable(3).value & "~" & dataTable(4).value & "~" & dataTable(5).value & "~" & dataTable(6).value & "~" & dataTable(7).value & "~" & dataTable(8).value & "~" & dataTable(9).value & "~" & dataTable(10).value & "~" & dataTable(11).value & "~" & dataTable(12).value & "|"
 
             //                end if
 
 
-            //                rs.movenext()
+            //                dataTable.movenext()
 
             //            loop
             //            strResult = mid(strResult, 1, strResult.length - 1)
@@ -3407,7 +3404,7 @@ namespace Banking.Services
 
             //    end if
 
-            //    rs = nothing
+            //    dataTable = nothing
 
 
             //    elseif strArr(0)= "QUE15HC" then
@@ -3426,25 +3423,25 @@ namespace Banking.Services
             //    end if
 
 
-            //    rs = obj.SingleSelectStat(sqlStr)
+            //    dataTable = obj.SingleSelectStat(sqlStr)
 
 
             //    if obj.ConnError = "Connected" then
 
-            //        if not rs.BOF and not rs.EOF then
+            //        if not dataTable.BOF and not dataTable.EOF then
 
-            //            do until rs.EOF
+            //            do until dataTable.EOF
 
             //                if strArr(7) = "0" then
-            //                    strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "~" & rs(7).value & "~" & rs(8).value & "~" & rs(9).value & "~" & rs(10).value & "~" & rs(11).value & "|"
+            //                    strResult = strResult & dataTable(0).value & "~" & dataTable(1).value & "~" & dataTable(2).value & "~" & dataTable(3).value & "~" & dataTable(4).value & "~" & dataTable(5).value & "~" & dataTable(6).value & "~" & dataTable(7).value & "~" & dataTable(8).value & "~" & dataTable(9).value & "~" & dataTable(10).value & "~" & dataTable(11).value & "|"
 
             //                else
-            //                strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "~" & rs(7).value & "~" & rs(8).value & "~" & rs(9).value & "~" & rs(10).value & "~" & rs(11).value & "~" & rs(12).value & "|"
+            //                strResult = strResult & dataTable(0).value & "~" & dataTable(1).value & "~" & dataTable(2).value & "~" & dataTable(3).value & "~" & dataTable(4).value & "~" & dataTable(5).value & "~" & dataTable(6).value & "~" & dataTable(7).value & "~" & dataTable(8).value & "~" & dataTable(9).value & "~" & dataTable(10).value & "~" & dataTable(11).value & "~" & dataTable(12).value & "|"
 
             //                end if
 
 
-            //                rs.movenext()
+            //                dataTable.movenext()
 
             //            loop
             //            strResult = mid(strResult, 1, strResult.length - 1)
@@ -3457,7 +3454,7 @@ namespace Banking.Services
 
             //    end if
 
-            //    rs = nothing
+            //    dataTable = nothing
 
 
             //    elseif strArr(0)= "QUE15HAC" then
@@ -3479,26 +3476,26 @@ namespace Banking.Services
             //    end if
 
 
-            //    rs = obj.SingleSelectStat(sqlStr)
+            //    dataTable = obj.SingleSelectStat(sqlStr)
 
 
             //    if obj.ConnError = "Connected" then
 
-            //        if not rs.BOF and not rs.EOF then
+            //        if not dataTable.BOF and not dataTable.EOF then
 
-            //            do until rs.EOF
+            //            do until dataTable.EOF
 
 
             //                if strArr(8) = "0" then
-            //                    strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "~" & rs(7).value & "~" & rs(8).value & "~" & rs(9).value & "~" & rs(10).value & "~" & rs(11).value & "|"
+            //                    strResult = strResult & dataTable(0).value & "~" & dataTable(1).value & "~" & dataTable(2).value & "~" & dataTable(3).value & "~" & dataTable(4).value & "~" & dataTable(5).value & "~" & dataTable(6).value & "~" & dataTable(7).value & "~" & dataTable(8).value & "~" & dataTable(9).value & "~" & dataTable(10).value & "~" & dataTable(11).value & "|"
 
             //                else
-            //                strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "~" & rs(7).value & "~" & rs(8).value & "~" & rs(9).value & "~" & rs(10).value & "~" & rs(11).value & "~" & rs(12).value & "|"
+            //                strResult = strResult & dataTable(0).value & "~" & dataTable(1).value & "~" & dataTable(2).value & "~" & dataTable(3).value & "~" & dataTable(4).value & "~" & dataTable(5).value & "~" & dataTable(6).value & "~" & dataTable(7).value & "~" & dataTable(8).value & "~" & dataTable(9).value & "~" & dataTable(10).value & "~" & dataTable(11).value & "~" & dataTable(12).value & "|"
 
             //                end if
 
 
-            //                rs.movenext()
+            //                dataTable.movenext()
 
             //            loop
             //            strResult = mid(strResult, 1, strResult.length - 1)
@@ -3511,7 +3508,7 @@ namespace Banking.Services
 
             //    end if
 
-            //    rs = nothing
+            //    dataTable = nothing
 
 
             //    elseif strArr(0)= "QUE15GAN" then
@@ -3529,25 +3526,25 @@ namespace Banking.Services
             //    end if
 
 
-            //    rs = obj.SingleSelectStat(sqlStr)
+            //    dataTable = obj.SingleSelectStat(sqlStr)
 
 
             //    if obj.ConnError = "Connected" then
 
-            //        if not rs.BOF and not rs.EOF then
+            //        if not dataTable.BOF and not dataTable.EOF then
 
-            //            do until rs.EOF
+            //            do until dataTable.EOF
 
             //                if strArr(6) = "0" then
-            //                    strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "~" & rs(7).value & "~" & rs(8).value & "~" & rs(9).value & "~" & rs(10).value & "~" & rs(11).value & "|"
+            //                    strResult = strResult & dataTable(0).value & "~" & dataTable(1).value & "~" & dataTable(2).value & "~" & dataTable(3).value & "~" & dataTable(4).value & "~" & dataTable(5).value & "~" & dataTable(6).value & "~" & dataTable(7).value & "~" & dataTable(8).value & "~" & dataTable(9).value & "~" & dataTable(10).value & "~" & dataTable(11).value & "|"
 
             //                else
-            //                strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "~" & rs(7).value & "~" & rs(8).value & "~" & rs(9).value & "~" & rs(10).value & "~" & rs(11).value & "~" & rs(12).value & "|"
+            //                strResult = strResult & dataTable(0).value & "~" & dataTable(1).value & "~" & dataTable(2).value & "~" & dataTable(3).value & "~" & dataTable(4).value & "~" & dataTable(5).value & "~" & dataTable(6).value & "~" & dataTable(7).value & "~" & dataTable(8).value & "~" & dataTable(9).value & "~" & dataTable(10).value & "~" & dataTable(11).value & "~" & dataTable(12).value & "|"
 
             //                end if
 
 
-            //                rs.movenext()
+            //                dataTable.movenext()
 
             //            loop
             //            strResult = mid(strResult, 1, strResult.length - 1)
@@ -3560,7 +3557,7 @@ namespace Banking.Services
 
             //    end if
 
-            //    rs = nothing
+            //    dataTable = nothing
 
 
             //    elseif strArr(0)= "QUE15GNC" then
@@ -3580,25 +3577,25 @@ namespace Banking.Services
 
 
 
-            //    rs = obj.SingleSelectStat(sqlStr)
+            //    dataTable = obj.SingleSelectStat(sqlStr)
 
 
             //    if obj.ConnError = "Connected" then
 
-            //        if not rs.BOF and not rs.EOF then
+            //        if not dataTable.BOF and not dataTable.EOF then
 
-            //            do until rs.EOF
+            //            do until dataTable.EOF
 
             //                if strArr(7) = "0" then
-            //                    strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "~" & rs(7).value & "~" & rs(8).value & "~" & rs(9).value & "~" & rs(10).value & "~" & rs(11).value & "|"
+            //                    strResult = strResult & dataTable(0).value & "~" & dataTable(1).value & "~" & dataTable(2).value & "~" & dataTable(3).value & "~" & dataTable(4).value & "~" & dataTable(5).value & "~" & dataTable(6).value & "~" & dataTable(7).value & "~" & dataTable(8).value & "~" & dataTable(9).value & "~" & dataTable(10).value & "~" & dataTable(11).value & "|"
 
             //                else
-            //                strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "~" & rs(7).value & "~" & rs(8).value & "~" & rs(9).value & "~" & rs(10).value & "~" & rs(11).value & "~" & rs(12).value & "|"
+            //                strResult = strResult & dataTable(0).value & "~" & dataTable(1).value & "~" & dataTable(2).value & "~" & dataTable(3).value & "~" & dataTable(4).value & "~" & dataTable(5).value & "~" & dataTable(6).value & "~" & dataTable(7).value & "~" & dataTable(8).value & "~" & dataTable(9).value & "~" & dataTable(10).value & "~" & dataTable(11).value & "~" & dataTable(12).value & "|"
 
             //                end if
 
 
-            //                rs.movenext()
+            //                dataTable.movenext()
 
             //            loop
             //            strResult = mid(strResult, 1, strResult.length - 1)
@@ -3611,7 +3608,7 @@ namespace Banking.Services
 
             //    end if
 
-            //    rs = nothing
+            //    dataTable = nothing
 
 
             //    elseif strArr(0)= "QUE15GNA" then
@@ -3631,25 +3628,25 @@ namespace Banking.Services
 
 
 
-            //    rs = obj.SingleSelectStat(sqlStr)
+            //    dataTable = obj.SingleSelectStat(sqlStr)
 
 
             //    if obj.ConnError = "Connected" then
 
-            //        if not rs.BOF and not rs.EOF then
+            //        if not dataTable.BOF and not dataTable.EOF then
 
-            //            do until rs.EOF
+            //            do until dataTable.EOF
 
             //                if strArr(8) = "0" then
-            //                    strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "~" & rs(7).value & "~" & rs(8).value & "~" & rs(9).value & "~" & rs(10).value & "~" & rs(11).value & "|"
+            //                    strResult = strResult & dataTable(0).value & "~" & dataTable(1).value & "~" & dataTable(2).value & "~" & dataTable(3).value & "~" & dataTable(4).value & "~" & dataTable(5).value & "~" & dataTable(6).value & "~" & dataTable(7).value & "~" & dataTable(8).value & "~" & dataTable(9).value & "~" & dataTable(10).value & "~" & dataTable(11).value & "|"
 
             //                else
-            //                strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "~" & rs(7).value & "~" & rs(8).value & "~" & rs(9).value & "~" & rs(10).value & "~" & rs(11).value & "~" & rs(12).value & "|"
+            //                strResult = strResult & dataTable(0).value & "~" & dataTable(1).value & "~" & dataTable(2).value & "~" & dataTable(3).value & "~" & dataTable(4).value & "~" & dataTable(5).value & "~" & dataTable(6).value & "~" & dataTable(7).value & "~" & dataTable(8).value & "~" & dataTable(9).value & "~" & dataTable(10).value & "~" & dataTable(11).value & "~" & dataTable(12).value & "|"
 
             //                end if
 
 
-            //                rs.movenext()
+            //                dataTable.movenext()
 
             //            loop
             //            strResult = mid(strResult, 1, strResult.length - 1)
@@ -3662,7 +3659,7 @@ namespace Banking.Services
 
             //    end if
 
-            //    rs = nothing
+            //    dataTable = nothing
 
 
             //    elseif strArr(0)= "QUE15GCU" then
@@ -3682,25 +3679,25 @@ namespace Banking.Services
 
 
 
-            //    rs = obj.SingleSelectStat(sqlStr)
+            //    dataTable = obj.SingleSelectStat(sqlStr)
 
 
             //    if obj.ConnError = "Connected" then
 
-            //        if not rs.BOF and not rs.EOF then
+            //        if not dataTable.BOF and not dataTable.EOF then
 
-            //            do until rs.EOF
+            //            do until dataTable.EOF
 
             //                if strArr(6) = "0" then
-            //                    strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "~" & rs(7).value & "~" & rs(8).value & "~" & rs(9).value & "~" & rs(10).value & "~" & rs(11).value & "~" & rs(12).value & "|"
+            //                    strResult = strResult & dataTable(0).value & "~" & dataTable(1).value & "~" & dataTable(2).value & "~" & dataTable(3).value & "~" & dataTable(4).value & "~" & dataTable(5).value & "~" & dataTable(6).value & "~" & dataTable(7).value & "~" & dataTable(8).value & "~" & dataTable(9).value & "~" & dataTable(10).value & "~" & dataTable(11).value & "~" & dataTable(12).value & "|"
 
             //                else
-            //                strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "~" & rs(7).value & "~" & rs(8).value & "~" & rs(9).value & "~" & rs(10).value & "~" & rs(11).value & "~" & rs(12).value & "~" & rs(13).value & "|"
+            //                strResult = strResult & dataTable(0).value & "~" & dataTable(1).value & "~" & dataTable(2).value & "~" & dataTable(3).value & "~" & dataTable(4).value & "~" & dataTable(5).value & "~" & dataTable(6).value & "~" & dataTable(7).value & "~" & dataTable(8).value & "~" & dataTable(9).value & "~" & dataTable(10).value & "~" & dataTable(11).value & "~" & dataTable(12).value & "~" & dataTable(13).value & "|"
 
             //                end if
 
 
-            //                rs.movenext()
+            //                dataTable.movenext()
 
             //            loop
             //            strResult = mid(strResult, 1, strResult.length - 1)
@@ -3713,7 +3710,7 @@ namespace Banking.Services
 
             //    end if
 
-            //    rs = nothing
+            //    dataTable = nothing
 
 
             //    elseif strArr(0)= "QUE15HCU" then
@@ -3733,26 +3730,26 @@ namespace Banking.Services
 
 
 
-            //    rs = obj.SingleSelectStat(sqlStr)
+            //    dataTable = obj.SingleSelectStat(sqlStr)
 
 
             //    if obj.ConnError = "Connected" then
 
-            //        if not rs.BOF and not rs.EOF then
+            //        if not dataTable.BOF and not dataTable.EOF then
 
-            //            do until rs.EOF
+            //            do until dataTable.EOF
 
 
             //                if strArr(6) = "0" then
-            //                    strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "~" & rs(7).value & "~" & rs(8).value & "~" & rs(9).value & "~" & rs(10).value & "~" & rs(11).value & "~" & rs(12).value & "|"
+            //                    strResult = strResult & dataTable(0).value & "~" & dataTable(1).value & "~" & dataTable(2).value & "~" & dataTable(3).value & "~" & dataTable(4).value & "~" & dataTable(5).value & "~" & dataTable(6).value & "~" & dataTable(7).value & "~" & dataTable(8).value & "~" & dataTable(9).value & "~" & dataTable(10).value & "~" & dataTable(11).value & "~" & dataTable(12).value & "|"
 
             //                else
-            //                strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "~" & rs(7).value & "~" & rs(8).value & "~" & rs(9).value & "~" & rs(10).value & "~" & rs(11).value & "~" & rs(12).value & "~" & rs(13).value & "|"
+            //                strResult = strResult & dataTable(0).value & "~" & dataTable(1).value & "~" & dataTable(2).value & "~" & dataTable(3).value & "~" & dataTable(4).value & "~" & dataTable(5).value & "~" & dataTable(6).value & "~" & dataTable(7).value & "~" & dataTable(8).value & "~" & dataTable(9).value & "~" & dataTable(10).value & "~" & dataTable(11).value & "~" & dataTable(12).value & "~" & dataTable(13).value & "|"
 
             //                end if
 
 
-            //                rs.movenext()
+            //                dataTable.movenext()
 
             //            loop
             //            strResult = mid(strResult, 1, strResult.length - 1)
@@ -3765,7 +3762,7 @@ namespace Banking.Services
 
             //    end if
 
-            //    rs = nothing
+            //    dataTable = nothing
 
 
             //    elseif strArr(0)= "QUE15HAN" then
@@ -3783,25 +3780,25 @@ namespace Banking.Services
             //    end if
 
 
-            //    rs = obj.SingleSelectStat(sqlStr)
+            //    dataTable = obj.SingleSelectStat(sqlStr)
 
 
             //    if obj.ConnError = "Connected" then
 
-            //        if not rs.BOF and not rs.EOF then
+            //        if not dataTable.BOF and not dataTable.EOF then
 
-            //            do until rs.EOF
+            //            do until dataTable.EOF
 
             //                if strArr(6) = "0" then
-            //                    strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "~" & rs(7).value & "~" & rs(8).value & "~" & rs(9).value & "~" & rs(10).value & "~" & rs(11).value & "|"
+            //                    strResult = strResult & dataTable(0).value & "~" & dataTable(1).value & "~" & dataTable(2).value & "~" & dataTable(3).value & "~" & dataTable(4).value & "~" & dataTable(5).value & "~" & dataTable(6).value & "~" & dataTable(7).value & "~" & dataTable(8).value & "~" & dataTable(9).value & "~" & dataTable(10).value & "~" & dataTable(11).value & "|"
 
             //                else
-            //                strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "~" & rs(7).value & "~" & rs(8).value & "~" & rs(9).value & "~" & rs(10).value & "~" & rs(11).value & "~" & rs(12).value & "|"
+            //                strResult = strResult & dataTable(0).value & "~" & dataTable(1).value & "~" & dataTable(2).value & "~" & dataTable(3).value & "~" & dataTable(4).value & "~" & dataTable(5).value & "~" & dataTable(6).value & "~" & dataTable(7).value & "~" & dataTable(8).value & "~" & dataTable(9).value & "~" & dataTable(10).value & "~" & dataTable(11).value & "~" & dataTable(12).value & "|"
 
             //                end if
 
 
-            //                rs.movenext()
+            //                dataTable.movenext()
 
             //            loop
             //            strResult = mid(strResult, 1, strResult.length - 1)
@@ -3814,7 +3811,7 @@ namespace Banking.Services
 
             //    end if
 
-            //    rs = nothing
+            //    dataTable = nothing
 
 
             //    elseif strArr(0)= "QUE15HANC" then
@@ -3832,26 +3829,26 @@ namespace Banking.Services
             //    end if
 
 
-            //    rs = obj.SingleSelectStat(sqlStr)
+            //    dataTable = obj.SingleSelectStat(sqlStr)
 
 
             //    if obj.ConnError = "Connected" then
 
-            //        if not rs.BOF and not rs.EOF then
+            //        if not dataTable.BOF and not dataTable.EOF then
 
-            //            do until rs.EOF
+            //            do until dataTable.EOF
 
 
             //                if strArr(7) = "0" then
-            //                    strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "~" & rs(7).value & "~" & rs(8).value & "~" & rs(9).value & "~" & rs(10).value & "~" & rs(11).value & "|"
+            //                    strResult = strResult & dataTable(0).value & "~" & dataTable(1).value & "~" & dataTable(2).value & "~" & dataTable(3).value & "~" & dataTable(4).value & "~" & dataTable(5).value & "~" & dataTable(6).value & "~" & dataTable(7).value & "~" & dataTable(8).value & "~" & dataTable(9).value & "~" & dataTable(10).value & "~" & dataTable(11).value & "|"
 
             //                else
-            //                strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "~" & rs(7).value & "~" & rs(8).value & "~" & rs(9).value & "~" & rs(10).value & "~" & rs(11).value & "~" & rs(12).value & "|"
+            //                strResult = strResult & dataTable(0).value & "~" & dataTable(1).value & "~" & dataTable(2).value & "~" & dataTable(3).value & "~" & dataTable(4).value & "~" & dataTable(5).value & "~" & dataTable(6).value & "~" & dataTable(7).value & "~" & dataTable(8).value & "~" & dataTable(9).value & "~" & dataTable(10).value & "~" & dataTable(11).value & "~" & dataTable(12).value & "|"
 
             //                end if
 
 
-            //                rs.movenext()
+            //                dataTable.movenext()
 
             //            loop
             //            strResult = mid(strResult, 1, strResult.length - 1)
@@ -3864,7 +3861,7 @@ namespace Banking.Services
 
             //    end if
 
-            //    rs = nothing
+            //    dataTable = nothing
 
 
             //    elseif strArr(0)= "QUE15HANA" then
@@ -3882,25 +3879,25 @@ namespace Banking.Services
             //    end if
 
 
-            //    rs = obj.SingleSelectStat(sqlStr)
+            //    dataTable = obj.SingleSelectStat(sqlStr)
 
 
             //    if obj.ConnError = "Connected" then
 
-            //        if not rs.BOF and not rs.EOF then
+            //        if not dataTable.BOF and not dataTable.EOF then
 
-            //            do until rs.EOF
+            //            do until dataTable.EOF
 
             //                if strArr(8) = "0" then
-            //                    strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "~" & rs(7).value & "~" & rs(8).value & "~" & rs(9).value & "~" & rs(10).value & "~" & rs(11).value & "|"
+            //                    strResult = strResult & dataTable(0).value & "~" & dataTable(1).value & "~" & dataTable(2).value & "~" & dataTable(3).value & "~" & dataTable(4).value & "~" & dataTable(5).value & "~" & dataTable(6).value & "~" & dataTable(7).value & "~" & dataTable(8).value & "~" & dataTable(9).value & "~" & dataTable(10).value & "~" & dataTable(11).value & "|"
 
             //                else
-            //                strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "~" & rs(7).value & "~" & rs(8).value & "~" & rs(9).value & "~" & rs(10).value & "~" & rs(11).value & "~" & rs(12).value & "|"
+            //                strResult = strResult & dataTable(0).value & "~" & dataTable(1).value & "~" & dataTable(2).value & "~" & dataTable(3).value & "~" & dataTable(4).value & "~" & dataTable(5).value & "~" & dataTable(6).value & "~" & dataTable(7).value & "~" & dataTable(8).value & "~" & dataTable(9).value & "~" & dataTable(10).value & "~" & dataTable(11).value & "~" & dataTable(12).value & "|"
 
             //                end if
 
 
-            //                rs.movenext()
+            //                dataTable.movenext()
 
             //            loop
             //            strResult = mid(strResult, 1, strResult.length - 1)
@@ -3913,7 +3910,7 @@ namespace Banking.Services
 
             //    end if
 
-            //    rs = nothing
+            //    dataTable = nothing
 
             //    '''TDS REPORT
 
@@ -3932,25 +3929,25 @@ namespace Banking.Services
             //    end if
 
 
-            //    rs = obj.SingleSelectStat(sqlStr)
+            //    dataTable = obj.SingleSelectStat(sqlStr)
 
 
             //    if obj.ConnError = "Connected" then
 
-            //        if not rs.BOF and not rs.EOF then
+            //        if not dataTable.BOF and not dataTable.EOF then
 
-            //            do until rs.EOF
+            //            do until dataTable.EOF
 
             //                if strArr(5) = "0" then
-            //                    strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "~" & rs(7).value & "~" & rs(8).value & "~" & rs(9).value & "|"
+            //                    strResult = strResult & dataTable(0).value & "~" & dataTable(1).value & "~" & dataTable(2).value & "~" & dataTable(3).value & "~" & dataTable(4).value & "~" & dataTable(5).value & "~" & dataTable(6).value & "~" & dataTable(7).value & "~" & dataTable(8).value & "~" & dataTable(9).value & "|"
 
             //                else
-            //                strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "~" & rs(7).value & "~" & rs(8).value & "~" & rs(9).value & "~" & rs(10).value & "|"
+            //                strResult = strResult & dataTable(0).value & "~" & dataTable(1).value & "~" & dataTable(2).value & "~" & dataTable(3).value & "~" & dataTable(4).value & "~" & dataTable(5).value & "~" & dataTable(6).value & "~" & dataTable(7).value & "~" & dataTable(8).value & "~" & dataTable(9).value & "~" & dataTable(10).value & "|"
 
             //                end if
 
 
-            //                rs.movenext()
+            //                dataTable.movenext()
 
             //            loop
             //            strResult = mid(strResult, 1, strResult.length - 1)
@@ -3963,7 +3960,7 @@ namespace Banking.Services
 
             //    end if
 
-            //    rs = nothing
+            //    dataTable = nothing
 
             //    ''' NON TDS 
 
@@ -3982,26 +3979,26 @@ namespace Banking.Services
             //    end if
 
 
-            //    rs = obj.SingleSelectStat(sqlStr)
+            //    dataTable = obj.SingleSelectStat(sqlStr)
 
 
             //    if obj.ConnError = "Connected" then
 
-            //        if not rs.BOF and not rs.EOF then
+            //        if not dataTable.BOF and not dataTable.EOF then
 
-            //            do until rs.EOF
+            //            do until dataTable.EOF
 
 
             //                if strArr(5) = "0" then
-            //                    strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "~" & rs(7).value & "~" & rs(8).value & "~" & rs(9).value & "|"
+            //                    strResult = strResult & dataTable(0).value & "~" & dataTable(1).value & "~" & dataTable(2).value & "~" & dataTable(3).value & "~" & dataTable(4).value & "~" & dataTable(5).value & "~" & dataTable(6).value & "~" & dataTable(7).value & "~" & dataTable(8).value & "~" & dataTable(9).value & "|"
 
             //                else
-            //                strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "~" & rs(7).value & "~" & rs(8).value & "~" & rs(9).value & "~" & rs(10).value & "|"
+            //                strResult = strResult & dataTable(0).value & "~" & dataTable(1).value & "~" & dataTable(2).value & "~" & dataTable(3).value & "~" & dataTable(4).value & "~" & dataTable(5).value & "~" & dataTable(6).value & "~" & dataTable(7).value & "~" & dataTable(8).value & "~" & dataTable(9).value & "~" & dataTable(10).value & "|"
 
             //                end if
 
 
-            //                rs.movenext()
+            //                dataTable.movenext()
 
             //            loop
             //            strResult = mid(strResult, 1, strResult.length - 1)
@@ -4014,7 +4011,7 @@ namespace Banking.Services
 
             //    end if
 
-            //    rs = nothing
+            //    dataTable = nothing
 
 
             //    elseif strArr(0)= "AadhaFileName" then
@@ -4027,7 +4024,7 @@ namespace Banking.Services
             //    'sqlStr="SELECT INWARDFILENAME FROM AADHARHEADERINWRTNDTLS where APPLICATIONDATE='" & strArr(3) & "' "
 
 
-            //    rs = obj.SingleSelectStat(sqlStr)
+            //    dataTable = obj.SingleSelectStat(sqlStr)
 
 
             //    strResult = "Select" & "|"
@@ -4035,14 +4032,14 @@ namespace Banking.Services
 
             //    if obj.ConnError = "Connected" then
 
-            //        if not rs.BOF and not rs.EOF then
+            //        if not dataTable.BOF and not dataTable.EOF then
 
 
-            //            do until rs.EOF
+            //            do until dataTable.EOF
 
-            //                strResult = strResult & rs(0).value & "|"
+            //                strResult = strResult & dataTable(0).value & "|"
 
-            //                rs.movenext()
+            //                dataTable.movenext()
 
             //            loop
             //            strResult = mid(strResult, 1, strResult.length - 1)
@@ -4051,7 +4048,7 @@ namespace Banking.Services
 
             //    end if
 
-            //    rs = nothing
+            //    dataTable = nothing
 
 
             //    elseif strArr(0)= "AadhaFName" then
@@ -4064,7 +4061,7 @@ namespace Banking.Services
             //    'sqlStr="SELECT INWARDFILENAME FROM AADHARHEADERINWRTNDTLS where APPLICATIONDATE='" & strArr(3) & "' "
 
 
-            //    rs = obj.SingleSelectStat(sqlStr)
+            //    dataTable = obj.SingleSelectStat(sqlStr)
 
 
             //    strResult = "Select" & "|"
@@ -4072,14 +4069,14 @@ namespace Banking.Services
 
             //    if obj.ConnError = "Connected" then
 
-            //        if not rs.BOF and not rs.EOF then
+            //        if not dataTable.BOF and not dataTable.EOF then
 
 
-            //            do until rs.EOF
+            //            do until dataTable.EOF
 
-            //                strResult = strResult & rs(0).value & "|"
+            //                strResult = strResult & dataTable(0).value & "|"
 
-            //                rs.movenext()
+            //                dataTable.movenext()
 
             //            loop
             //            strResult = mid(strResult, 1, strResult.length - 1)
@@ -4088,7 +4085,7 @@ namespace Banking.Services
 
             //    end if
 
-            //    rs = nothing
+            //    dataTable = nothing
 
 
             //    elseif strArr(0)= "AadharExp" then
@@ -4100,17 +4097,17 @@ namespace Banking.Services
             //    sqlStr = "SELECT TNXCODE, LPAD(BANKIIN,9,0), DESTACCTYPE, LFNO, LPAD(AADHARID,15,0), NAME, LPAD(SPONSORBANKIIN,9,0),USERNO, NARRATION, USERCRDITREF, LPAD(AMOUNT,13,0),ACHITEMNO, CHECKSUM, FLAGCRDR, ACCNO, RTNREASON FROM AADHARINWRTNDTLS WHERE INWARDFILENAME='" & strArr(3) & "'"
 
 
-            //    rs = obj.SingleSelectStat(sqlStr)
+            //    dataTable = obj.SingleSelectStat(sqlStr)
 
             //        if obj.ConnError = "Connected" then
 
-            //            if not rs.BOF and not rs.EOF then
+            //            if not dataTable.BOF and not dataTable.EOF then
 
-            //            do until rs.EOF
+            //            do until dataTable.EOF
 
-            //                strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "~" & rs(7).value & "~" & rs(8).value & "~" & rs(9).value & "~" & rs(10).value & "~" & rs(11).value & "~" & rs(12).value & "~" & rs(13).value & "~" & rs(14).value & "~" & rs(15).value & "|"
+            //                strResult = strResult & dataTable(0).value & "~" & dataTable(1).value & "~" & dataTable(2).value & "~" & dataTable(3).value & "~" & dataTable(4).value & "~" & dataTable(5).value & "~" & dataTable(6).value & "~" & dataTable(7).value & "~" & dataTable(8).value & "~" & dataTable(9).value & "~" & dataTable(10).value & "~" & dataTable(11).value & "~" & dataTable(12).value & "~" & dataTable(13).value & "~" & dataTable(14).value & "~" & dataTable(15).value & "|"
 
-            //                rs.movenext()
+            //                dataTable.movenext()
 
             //            loop
             //            strResult = mid(strResult, 1, strResult.length - 1)
@@ -4119,16 +4116,16 @@ namespace Banking.Services
 
             //        end if
 
-            //        rs = nothing
+            //        dataTable = nothing
 
 
-            //    rs = Server.CreateObject("adodb.recordset")
+            //    dataTable = Server.CreateObject("adodb.recordset")
 
 
             //    sqlStr = "SELECT RPAD(HEADERID,9,0), LPAD(BANKIIN,7,0),LPAD(NOOFRECORDS,9,0) ,LPAD(TOTALAMT,13,0) ,TO_CHAR(DATAOFINPUT,'DD-Mon-YYYY') FROM AADHARHEADERINWRTNDTLS WHERE INWARDFILENAME='" & strArr(3) & "'"
 
 
-            //    rs = obj.SingleSelectStat(sqlStr)
+            //    dataTable = obj.SingleSelectStat(sqlStr)
 
 
             //    dim strAhd as string
@@ -4138,13 +4135,13 @@ namespace Banking.Services
 
             //    if obj.ConnError = "Connected" then
 
-            //        if not rs.BOF and not rs.EOF then
+            //        if not dataTable.BOF and not dataTable.EOF then
 
-            //            do until rs.EOF
+            //            do until dataTable.EOF
 
-            //                strAhd = strAhd & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value
+            //                strAhd = strAhd & dataTable(0).value & "~" & dataTable(1).value & "~" & dataTable(2).value & "~" & dataTable(3).value & "~" & dataTable(4).value
 
-            //                rs.movenext()
+            //                dataTable.movenext()
 
             //            loop
 
@@ -4162,16 +4159,16 @@ namespace Banking.Services
 
             //    end if
 
-            //    rs = nothing
+            //    dataTable = nothing
 
 
-            //    rs = Server.CreateObject("adodb.recordset")
+            //    dataTable = Server.CreateObject("adodb.recordset")
 
 
             //    sqlStr = "SELECT COUNT(*) FROM AADHARINWRTNDTLS WHERE INWARDFILENAME='" & strArr(3) & "'"
 
 
-            //    rs = obj.SingleSelectStat(sqlStr)
+            //    dataTable = obj.SingleSelectStat(sqlStr)
 
 
             //    dim strCnt as string
@@ -4181,13 +4178,13 @@ namespace Banking.Services
 
             //    if obj.ConnError = "Connected" then
 
-            //        if not rs.BOF and not rs.EOF then
+            //        if not dataTable.BOF and not dataTable.EOF then
 
-            //            do until rs.EOF
+            //            do until dataTable.EOF
 
-            //                strCnt = strCnt & rs(0).value
+            //                strCnt = strCnt & dataTable(0).value
 
-            //                rs.movenext()
+            //                dataTable.movenext()
 
             //            loop
 
@@ -4205,16 +4202,16 @@ namespace Banking.Services
 
             //    end if
 
-            //    rs = nothing
+            //    dataTable = nothing
 
 
-            //    rs = Server.CreateObject("adodb.recordset")
+            //    dataTable = Server.CreateObject("adodb.recordset")
 
 
             //    sqlStr = "SELECT COUNT(*) FROM AADHARINWRTNDTLS WHERE INWARDFILENAME='" & strArr(3) & "' AND POSTYN='Y'"
 
 
-            //    rs = obj.SingleSelectStat(sqlStr)
+            //    dataTable = obj.SingleSelectStat(sqlStr)
 
 
             //    dim strCntY as string
@@ -4224,13 +4221,13 @@ namespace Banking.Services
 
             //    if obj.ConnError = "Connected" then
 
-            //        if not rs.BOF and not rs.EOF then
+            //        if not dataTable.BOF and not dataTable.EOF then
 
-            //            do until rs.EOF
+            //            do until dataTable.EOF
 
-            //                strCntY = strCntY & rs(0).value
+            //                strCntY = strCntY & dataTable(0).value
 
-            //                rs.movenext()
+            //                dataTable.movenext()
 
             //            loop
 
@@ -4248,7 +4245,7 @@ namespace Banking.Services
 
             //    end if
 
-            //    rs = nothing
+            //    dataTable = nothing
 
             //    elseif strArr(0)= "ToatalAadharRec" then
             //    strResult = ""
@@ -4261,19 +4258,19 @@ namespace Banking.Services
             //    sqlStr = "SELECT ACCNO,NAME,AADHARID,AMOUNT/100,LFNO,USERCRDITREF FROM AADHARINWRTNDTLS WHERE INWARDFILENAME='" & strArr(3) & "'"
 
 
-            //    rs = obj.SingleSelectStat(sqlStr)
+            //    dataTable = obj.SingleSelectStat(sqlStr)
 
             //        if obj.ConnError = "Connected" then
 
-            //            if not rs.BOF and not rs.EOF then
+            //            if not dataTable.BOF and not dataTable.EOF then
 
-            //            do until rs.EOF
+            //            do until dataTable.EOF
 
-            //                'strResult=strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "~" & rs(7).value & "~" & rs(8).value & "~" & rs(9).value & "~" & rs(10).value & "~" & rs(11).value & "~" & rs(12).value & "~" & rs(13).value & "~" & rs(14).value & "~" & rs(15).value & "|"
+            //                'strResult=strResult & dataTable(0).value & "~" & dataTable(1).value & "~" & dataTable(2).value & "~" & dataTable(3).value & "~" & dataTable(4).value & "~" & dataTable(5).value & "~" & dataTable(6).value & "~" & dataTable(7).value & "~" & dataTable(8).value & "~" & dataTable(9).value & "~" & dataTable(10).value & "~" & dataTable(11).value & "~" & dataTable(12).value & "~" & dataTable(13).value & "~" & dataTable(14).value & "~" & dataTable(15).value & "|"
 
-            //                strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "|"
+            //                strResult = strResult & dataTable(0).value & "~" & dataTable(1).value & "~" & dataTable(2).value & "~" & dataTable(3).value & "~" & dataTable(4).value & "~" & dataTable(5).value & "|"
 
-            //                rs.movenext()
+            //                dataTable.movenext()
 
             //            loop
             //            strResult = mid(strResult, 1, strResult.length - 1)
@@ -4282,7 +4279,7 @@ namespace Banking.Services
 
             //        end if
 
-            //        rs = nothing
+            //        dataTable = nothing
 
 
             //    elseif strArr(0)= "AadharPosted" then
@@ -4296,19 +4293,19 @@ namespace Banking.Services
             //    sqlStr = "SELECT ACCNO,NAME,AADHARID,AMOUNT/100,LFNO,USERCRDITREF FROM AADHARINWRTNDTLS WHERE INWARDFILENAME='" & strArr(3) & "' AND POSTYN='Y'"
 
 
-            //    rs = obj.SingleSelectStat(sqlStr)
+            //    dataTable = obj.SingleSelectStat(sqlStr)
 
             //        if obj.ConnError = "Connected" then
 
-            //            if not rs.BOF and not rs.EOF then
+            //            if not dataTable.BOF and not dataTable.EOF then
 
-            //            do until rs.EOF
+            //            do until dataTable.EOF
 
-            //                'strResult=strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "~" & rs(7).value & "~" & rs(8).value & "~" & rs(9).value & "~" & rs(10).value & "~" & rs(11).value & "~" & rs(12).value & "~" & rs(13).value & "~" & rs(14).value & "~" & rs(15).value & "|"
+            //                'strResult=strResult & dataTable(0).value & "~" & dataTable(1).value & "~" & dataTable(2).value & "~" & dataTable(3).value & "~" & dataTable(4).value & "~" & dataTable(5).value & "~" & dataTable(6).value & "~" & dataTable(7).value & "~" & dataTable(8).value & "~" & dataTable(9).value & "~" & dataTable(10).value & "~" & dataTable(11).value & "~" & dataTable(12).value & "~" & dataTable(13).value & "~" & dataTable(14).value & "~" & dataTable(15).value & "|"
 
-            //                strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "|"
+            //                strResult = strResult & dataTable(0).value & "~" & dataTable(1).value & "~" & dataTable(2).value & "~" & dataTable(3).value & "~" & dataTable(4).value & "~" & dataTable(5).value & "|"
 
-            //                rs.movenext()
+            //                dataTable.movenext()
 
             //            loop
             //            strResult = mid(strResult, 1, strResult.length - 1)
@@ -4317,7 +4314,7 @@ namespace Banking.Services
 
             //        end if
 
-            //        rs = nothing
+            //        dataTable = nothing
 
 
             //    elseif strArr(0)= "AadharNonPosted" then
@@ -4331,19 +4328,19 @@ namespace Banking.Services
             //    sqlStr = "SELECT ACCNO,NAME,AADHARID,AMOUNT/100,LFNO,USERCRDITREF FROM AADHARINWRTNDTLS WHERE INWARDFILENAME='" & strArr(3) & "' AND POSTYN='N'"
 
 
-            //    rs = obj.SingleSelectStat(sqlStr)
+            //    dataTable = obj.SingleSelectStat(sqlStr)
 
             //        if obj.ConnError = "Connected" then
 
-            //            if not rs.BOF and not rs.EOF then
+            //            if not dataTable.BOF and not dataTable.EOF then
 
-            //            do until rs.EOF
+            //            do until dataTable.EOF
 
-            //                'strResult=strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "~" & rs(7).value & "~" & rs(8).value & "~" & rs(9).value & "~" & rs(10).value & "~" & rs(11).value & "~" & rs(12).value & "~" & rs(13).value & "~" & rs(14).value & "~" & rs(15).value & "|"
+            //                'strResult=strResult & dataTable(0).value & "~" & dataTable(1).value & "~" & dataTable(2).value & "~" & dataTable(3).value & "~" & dataTable(4).value & "~" & dataTable(5).value & "~" & dataTable(6).value & "~" & dataTable(7).value & "~" & dataTable(8).value & "~" & dataTable(9).value & "~" & dataTable(10).value & "~" & dataTable(11).value & "~" & dataTable(12).value & "~" & dataTable(13).value & "~" & dataTable(14).value & "~" & dataTable(15).value & "|"
 
-            //                strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "|"
+            //                strResult = strResult & dataTable(0).value & "~" & dataTable(1).value & "~" & dataTable(2).value & "~" & dataTable(3).value & "~" & dataTable(4).value & "~" & dataTable(5).value & "|"
 
-            //                rs.movenext()
+            //                dataTable.movenext()
 
             //            loop
             //            strResult = mid(strResult, 1, strResult.length - 1)
@@ -4352,7 +4349,7 @@ namespace Banking.Services
 
             //        end if
 
-            //        rs = nothing
+            //        dataTable = nothing
 
 
             //    elseif strArr(0)= "AadharPay" then
@@ -4364,17 +4361,17 @@ namespace Banking.Services
             //    sqlStr = "SELECT B.BRANCHCODE,B.GLCODE,B.MODULEID,A.ACCNO,B.NAME ,A.AMOUNT/100, A.NARRATION,A.USERCRDITREF  FROM AADHARINWRTNDTLS A,GENCUSTAADHARLNK B WHERE a.POSTYN='N' AND a.inwardfilename='" & strArr(3) & "' AND a.ACCNO=b.ACCNO "
 
 
-            //    rs = obj.SingleSelectStat(sqlStr)
+            //    dataTable = obj.SingleSelectStat(sqlStr)
 
             //        if obj.ConnError = "Connected" then
 
-            //            if not rs.BOF and not rs.EOF then
+            //            if not dataTable.BOF and not dataTable.EOF then
 
-            //            do until rs.EOF
+            //            do until dataTable.EOF
 
-            //                strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "~" & rs(7).value & "|"
+            //                strResult = strResult & dataTable(0).value & "~" & dataTable(1).value & "~" & dataTable(2).value & "~" & dataTable(3).value & "~" & dataTable(4).value & "~" & dataTable(5).value & "~" & dataTable(6).value & "~" & dataTable(7).value & "|"
 
-            //                rs.movenext()
+            //                dataTable.movenext()
 
             //            loop
             //            strResult = mid(strResult, 1, strResult.length - 1)
@@ -4383,7 +4380,7 @@ namespace Banking.Services
 
             //        end if
 
-            //        rs = nothing
+            //        dataTable = nothing
 
 
             //    elseif strArr(0)= "Form15G" then
@@ -4394,19 +4391,19 @@ namespace Banking.Services
             //    sqlStr = "SELECT B.GLDESCRIPTION,A.ACCNO,C.NAME,A.STATUS,A.TRANSTATUS,A.ASSESYEAR,A.CUSTOMERID,A.USERID,A.MACHINEID FROM FORM15GHTRACKINGDTLS A,GENGLMASTMST B,DEPMST C WHERE A.GLCODE=B.GLCODE AND A.ACCNO=C.ACCNO AND A.CUSTOMERID=C.CUSTOMERID  AND A.FORM15GYN='Y'AND A.submitdate='" & strArr(3) & "' AND A.transtatus='P' AND A.branchcode='" & strArr(1) & "'"
 
 
-            //    rs = obj.SingleSelectStat(sqlStr)
+            //    dataTable = obj.SingleSelectStat(sqlStr)
 
 
             //    if obj.ConnError = "Connected" then
 
-            //        if not rs.BOF and not rs.EOF then
+            //        if not dataTable.BOF and not dataTable.EOF then
 
 
-            //            do until rs.EOF
+            //            do until dataTable.EOF
 
-            //                strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "~" & rs(7).value & "~" & rs(8).value & "|"
+            //                strResult = strResult & dataTable(0).value & "~" & dataTable(1).value & "~" & dataTable(2).value & "~" & dataTable(3).value & "~" & dataTable(4).value & "~" & dataTable(5).value & "~" & dataTable(6).value & "~" & dataTable(7).value & "~" & dataTable(8).value & "|"
 
-            //                rs.movenext()
+            //                dataTable.movenext()
 
             //            loop
             //            strResult = mid(strResult, 1, strResult.length - 1)
@@ -4415,7 +4412,7 @@ namespace Banking.Services
 
             //    end if
 
-            //    rs = nothing
+            //    dataTable = nothing
 
 
             //    elseif strArr(0)= "Form15H" then
@@ -4426,19 +4423,19 @@ namespace Banking.Services
             //    sqlStr = "SELECT B.GLDESCRIPTION,A.ACCNO,C.NAME,A.STATUS,A.TRANSTATUS,A.ASSESYEAR,A.CUSTOMERID,A.USERID,A.MACHINEID FROM FORM15GHTRACKINGDTLS A,GENGLMASTMST B,DEPMST C WHERE A.GLCODE=B.GLCODE AND A.ACCNO=C.ACCNO AND A.CUSTOMERID=C.CUSTOMERID  AND A.FORM15HYN='Y'AND A.submitdate='" & strArr(3) & "' AND A.transtatus='P' AND A.branchcode='" & strArr(1) & "'"
 
 
-            //    rs = obj.SingleSelectStat(sqlStr)
+            //    dataTable = obj.SingleSelectStat(sqlStr)
 
 
             //    if obj.ConnError = "Connected" then
 
-            //        if not rs.BOF and not rs.EOF then
+            //        if not dataTable.BOF and not dataTable.EOF then
 
 
-            //            do until rs.EOF
+            //            do until dataTable.EOF
 
-            //                strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "~" & rs(7).value & "~" & rs(8).value & "|"
+            //                strResult = strResult & dataTable(0).value & "~" & dataTable(1).value & "~" & dataTable(2).value & "~" & dataTable(3).value & "~" & dataTable(4).value & "~" & dataTable(5).value & "~" & dataTable(6).value & "~" & dataTable(7).value & "~" & dataTable(8).value & "|"
 
-            //                rs.movenext()
+            //                dataTable.movenext()
 
             //            loop
             //            strResult = mid(strResult, 1, strResult.length - 1)
@@ -4447,7 +4444,7 @@ namespace Banking.Services
 
             //    end if
 
-            //    rs = nothing
+            //    dataTable = nothing
 
 
             //    '''for loan details
@@ -4462,20 +4459,20 @@ namespace Banking.Services
             //        sqlStr = "SELECT A.BRANCHCODE,A.GLCODE, A.ACCNO, A.NAME, A.CUSTOMERID, A.CREDITTYPE, NVL((a.SANCTIONAMT-NVL((SELECT NVL(SUM(C.TOTCHRGS),0) FROM LOANCHARGEPOSTDTLS C WHERE C.ACCNO=A.ACCNO AND C.POSTYN='N' AND C.moduleid='LOAN'  AND C.GLCODE=A.GLCODE AND C.BRANCHCODE=A.BRANCHCODE),'0')),'0')NETPAYMENT, A.POSTYN, A.CREDITBRANCHCODE, A.CREDITMODULEID, A.CREDITGLCODE, A.CREDITACCNO, A.CREDITNAME, A.CREDITCUSTOMERID, A.PAYEENAME, A.PAYEEACCNO, A.INSTACCTYPE, A.IFSCCODE, A.CITY, A.PAYEEBANK, A.PAYEEBRANCH,NVL((SELECT NVL(SUM(C.TOTCHRGS),0) FROM LOANCHARGEPOSTDTLS C WHERE C.ACCNO=A.ACCNO AND C.POSTYN='N' AND C.moduleid='LOAN'  AND C.GLCODE=A.GLCODE AND C.BRANCHCODE=A.BRANCHCODE),'0')CHRGAMT,NVL(A.SANCTIONAMT,'0')SANCTIONAMT FROM LOANPAYMENTDTLS A,LOANDISBURSEMENTDTLS B WHERE A.postyn='N' AND A.TRANSTATUS='A' AND B.DISBURSMENETSTATUS='P' AND A.credittype IN ('T') AND A.moduleid=B.moduleid AND A.GLCODE=B.GLCODE AND A.ACCNO=B.ACCNO AND B.DISBURSEDDATE IS NULL AND A.applicationdate='" & strArr(4) & "' AND A.BRANCHCODE=A.CREDITBRANCHCODE AND A.branchcode=A.BRANCHCODE AND A.BRANCHCODE='" & strArr(1) & "'"
 
 
-            //        rs = obj.SingleSelectStat(sqlStr)
+            //        dataTable = obj.SingleSelectStat(sqlStr)
 
 
             //        if obj.ConnError = "Connected" then
 
-            //            if not rs.BOF and not rs.EOF then
+            //            if not dataTable.BOF and not dataTable.EOF then
 
 
-            //                do until rs.EOF
+            //                do until dataTable.EOF
 
-            //                    strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "~" & rs(7).value & "~" & rs(8).value & "~" & rs(9).value & "~" & rs(10).value & "~" & rs(11).value & "~" & rs(12).value & "~" & rs(13).value & "~" & rs(14).value & "~" & rs(15).value & "~" & rs(16).value & "~" & rs(17).value & "~" & rs(18).value & "~" & rs(19).value & "~" & rs(20).value & "~" & rs(21).value & "~" & rs(22).value & "|"
+            //                    strResult = strResult & dataTable(0).value & "~" & dataTable(1).value & "~" & dataTable(2).value & "~" & dataTable(3).value & "~" & dataTable(4).value & "~" & dataTable(5).value & "~" & dataTable(6).value & "~" & dataTable(7).value & "~" & dataTable(8).value & "~" & dataTable(9).value & "~" & dataTable(10).value & "~" & dataTable(11).value & "~" & dataTable(12).value & "~" & dataTable(13).value & "~" & dataTable(14).value & "~" & dataTable(15).value & "~" & dataTable(16).value & "~" & dataTable(17).value & "~" & dataTable(18).value & "~" & dataTable(19).value & "~" & dataTable(20).value & "~" & dataTable(21).value & "~" & dataTable(22).value & "|"
 
 
-            //                    rs.movenext()
+            //                    dataTable.movenext()
 
             //                loop
             //                strResult = mid(strResult, 1, strResult.length - 1)
@@ -4484,7 +4481,7 @@ namespace Banking.Services
 
             //        end if
 
-            //    rs = nothing
+            //    dataTable = nothing
 
 
             //    elseif strArr(0)= "NORTRANNR" then
@@ -4498,20 +4495,20 @@ namespace Banking.Services
             //        sqlStr = "SELECT A.BRANCHCODE,A.GLCODE, A.ACCNO, A.NAME, A.CUSTOMERID, A.CREDITTYPE, NVL((a.SANCTIONAMT-NVL((SELECT NVL(SUM(C.TOTCHRGS),0) FROM LOANCHARGEPOSTDTLS C WHERE C.ACCNO=A.ACCNO AND C.POSTYN='N' AND C.moduleid='LOAN'  AND C.GLCODE=A.GLCODE AND C.BRANCHCODE=A.BRANCHCODE),'0')),'0')NETPAYMENT, A.POSTYN, A.CREDITBRANCHCODE, A.CREDITMODULEID, A.CREDITGLCODE, A.CREDITACCNO, A.CREDITNAME, A.CREDITCUSTOMERID, A.PAYEENAME, A.PAYEEACCNO, A.INSTACCTYPE, A.IFSCCODE, A.CITY, A.PAYEEBANK, A.PAYEEBRANCH,NVL((SELECT NVL(SUM(C.TOTCHRGS),0) FROM LOANCHARGEPOSTDTLS C WHERE C.ACCNO=A.ACCNO AND C.POSTYN='N' AND C.moduleid='LOAN'  AND C.GLCODE=A.GLCODE AND C.BRANCHCODE=A.BRANCHCODE),'0')CHRGAMT,NVL(A.SANCTIONAMT,'0')SANCTIONAMT FROM LOANPAYMENTDTLS A,LOANDISBURSEMENTDTLS B WHERE A.postyn='N' AND A.TRANSTATUS='A' AND B.DISBURSMENETSTATUS='P' AND A.credittype IN ('R','N') AND A.moduleid=B.moduleid AND A.GLCODE=B.GLCODE AND A.ACCNO=B.ACCNO AND B.DISBURSEDDATE IS NULL AND A.applicationdate='" & strArr(4) & "' AND A.BRANCHCODE=A.CREDITBRANCHCODE AND A.branchcode=A.BRANCHCODE AND A.BRANCHCODE='" & strArr(1) & "'"
 
 
-            //        rs = obj.SingleSelectStat(sqlStr)
+            //        dataTable = obj.SingleSelectStat(sqlStr)
 
 
             //        if obj.ConnError = "Connected" then
 
-            //            if not rs.BOF and not rs.EOF then
+            //            if not dataTable.BOF and not dataTable.EOF then
 
 
-            //                do until rs.EOF
+            //                do until dataTable.EOF
 
-            //                    strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "~" & rs(7).value & "~" & rs(8).value & "~" & rs(9).value & "~" & rs(10).value & "~" & rs(11).value & "~" & rs(12).value & "~" & rs(13).value & "~" & rs(14).value & "~" & rs(15).value & "~" & rs(16).value & "~" & rs(17).value & "~" & rs(18).value & "~" & rs(19).value & "~" & rs(20).value & "~" & rs(21).value & "~" & rs(22).value & "|"
+            //                    strResult = strResult & dataTable(0).value & "~" & dataTable(1).value & "~" & dataTable(2).value & "~" & dataTable(3).value & "~" & dataTable(4).value & "~" & dataTable(5).value & "~" & dataTable(6).value & "~" & dataTable(7).value & "~" & dataTable(8).value & "~" & dataTable(9).value & "~" & dataTable(10).value & "~" & dataTable(11).value & "~" & dataTable(12).value & "~" & dataTable(13).value & "~" & dataTable(14).value & "~" & dataTable(15).value & "~" & dataTable(16).value & "~" & dataTable(17).value & "~" & dataTable(18).value & "~" & dataTable(19).value & "~" & dataTable(20).value & "~" & dataTable(21).value & "~" & dataTable(22).value & "|"
 
 
-            //                    rs.movenext()
+            //                    dataTable.movenext()
 
             //                loop
             //                strResult = mid(strResult, 1, strResult.length - 1)
@@ -4520,7 +4517,7 @@ namespace Banking.Services
 
             //        end if
 
-            //    rs = nothing
+            //    dataTable = nothing
 
 
             //    elseif strArr(0)= "NORABBTRAN" then
@@ -4533,20 +4530,20 @@ namespace Banking.Services
             //         sqlStr = "SELECT A.BRANCHCODE,A.GLCODE, A.ACCNO, A.NAME, A.CUSTOMERID, A.CREDITTYPE, NVL((a.SANCTIONAMT-NVL((SELECT NVL(SUM(C.TOTCHRGS),0) FROM LOANCHARGEPOSTDTLS C WHERE C.ACCNO=A.ACCNO AND C.POSTYN='N' AND C.moduleid='LOAN'  AND C.GLCODE=A.GLCODE AND C.BRANCHCODE=A.BRANCHCODE),'0')),'0')NETPAYMENT, A.POSTYN, A.CREDITBRANCHCODE, A.CREDITMODULEID, A.CREDITGLCODE, A.CREDITACCNO, A.CREDITNAME, A.CREDITCUSTOMERID, A.PAYEENAME, A.PAYEEACCNO, A.INSTACCTYPE, A.IFSCCODE, A.CITY, A.PAYEEBANK, A.PAYEEBRANCH,NVL((SELECT NVL(SUM(C.TOTCHRGS),0) FROM LOANCHARGEPOSTDTLS C WHERE C.ACCNO=A.ACCNO AND C.POSTYN='N' AND C.moduleid='LOAN'  AND C.GLCODE=A.GLCODE AND C.BRANCHCODE=A.BRANCHCODE),'0')CHRGAMT,NVL(A.SANCTIONAMT,'0')SANCTIONAMT FROM LOANPAYMENTDTLS A,LOANDISBURSEMENTDTLS B WHERE A.postyn='N' AND A.TRANSTATUS='A' AND B.DISBURSMENETSTATUS='P' AND A.credittype IN ('T') AND A.moduleid=B.moduleid AND A.GLCODE=B.GLCODE AND A.ACCNO=B.ACCNO AND B.DISBURSEDDATE IS NULL AND A.applicationdate='" & strArr(4) & "' AND A.BRANCHCODE<>A.CREDITBRANCHCODE AND A.branchcode=A.BRANCHCODE AND A.BRANCHCODE='" & strArr(1) & "'"
 
 
-            //        rs = obj.SingleSelectStat(sqlStr)
+            //        dataTable = obj.SingleSelectStat(sqlStr)
 
 
             //        if obj.ConnError = "Connected" then
 
-            //            if not rs.BOF and not rs.EOF then
+            //            if not dataTable.BOF and not dataTable.EOF then
 
 
-            //                do until rs.EOF
+            //                do until dataTable.EOF
 
-            //                    strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "~" & rs(7).value & "~" & rs(8).value & "~" & rs(9).value & "~" & rs(10).value & "~" & rs(11).value & "~" & rs(12).value & "~" & rs(13).value & "~" & rs(14).value & "~" & rs(15).value & "~" & rs(16).value & "~" & rs(17).value & "~" & rs(18).value & "~" & rs(19).value & "~" & rs(20).value & "~" & rs(21).value & "~" & rs(22).value & "|"
+            //                    strResult = strResult & dataTable(0).value & "~" & dataTable(1).value & "~" & dataTable(2).value & "~" & dataTable(3).value & "~" & dataTable(4).value & "~" & dataTable(5).value & "~" & dataTable(6).value & "~" & dataTable(7).value & "~" & dataTable(8).value & "~" & dataTable(9).value & "~" & dataTable(10).value & "~" & dataTable(11).value & "~" & dataTable(12).value & "~" & dataTable(13).value & "~" & dataTable(14).value & "~" & dataTable(15).value & "~" & dataTable(16).value & "~" & dataTable(17).value & "~" & dataTable(18).value & "~" & dataTable(19).value & "~" & dataTable(20).value & "~" & dataTable(21).value & "~" & dataTable(22).value & "|"
 
 
-            //                    rs.movenext()
+            //                    dataTable.movenext()
 
             //                loop
             //                strResult = mid(strResult, 1, strResult.length - 1)
@@ -4555,7 +4552,7 @@ namespace Banking.Services
 
             //        end if
 
-            //    rs = nothing
+            //    dataTable = nothing
 
 
             //    elseif strArr(0)= "NORABBTRANNR" then
@@ -4568,20 +4565,20 @@ namespace Banking.Services
             //         sqlStr = "SELECT A.BRANCHCODE,A.GLCODE, A.ACCNO, A.NAME, A.CUSTOMERID, A.CREDITTYPE, NVL((a.SANCTIONAMT-NVL((SELECT NVL(SUM(C.TOTCHRGS),0) FROM LOANCHARGEPOSTDTLS C WHERE C.ACCNO=A.ACCNO AND C.POSTYN='N' AND C.moduleid='LOAN'  AND C.GLCODE=A.GLCODE AND C.BRANCHCODE=A.BRANCHCODE),'0')),'0')NETPAYMENT, A.POSTYN, A.CREDITBRANCHCODE, A.CREDITMODULEID, A.CREDITGLCODE, A.CREDITACCNO, A.CREDITNAME, A.CREDITCUSTOMERID, A.PAYEENAME, A.PAYEEACCNO, A.INSTACCTYPE, A.IFSCCODE, A.CITY, A.PAYEEBANK, A.PAYEEBRANCH,NVL((SELECT NVL(SUM(C.TOTCHRGS),0) FROM LOANCHARGEPOSTDTLS C WHERE C.ACCNO=A.ACCNO AND C.POSTYN='N' AND C.moduleid='LOAN'  AND C.GLCODE=A.GLCODE AND C.BRANCHCODE=A.BRANCHCODE),'0')CHRGAMT,NVL(A.SANCTIONAMT,'0')SANCTIONAMT FROM LOANPAYMENTDTLS A,LOANDISBURSEMENTDTLS B WHERE A.postyn='N' AND A.TRANSTATUS='A' AND B.DISBURSMENETSTATUS='P' AND A.credittype IN ('R','N') AND A.moduleid=B.moduleid AND A.GLCODE=B.GLCODE AND A.ACCNO=B.ACCNO AND B.DISBURSEDDATE IS NULL AND A.applicationdate='" & strArr(4) & "' AND A.BRANCHCODE<>A.CREDITBRANCHCODE AND A.branchcode=A.BRANCHCODE AND A.BRANCHCODE='" & strArr(1) & "'"
 
 
-            //        rs = obj.SingleSelectStat(sqlStr)
+            //        dataTable = obj.SingleSelectStat(sqlStr)
 
 
             //        if obj.ConnError = "Connected" then
 
-            //            if not rs.BOF and not rs.EOF then
+            //            if not dataTable.BOF and not dataTable.EOF then
 
 
-            //                do until rs.EOF
+            //                do until dataTable.EOF
 
-            //                    strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "~" & rs(7).value & "~" & rs(8).value & "~" & rs(9).value & "~" & rs(10).value & "~" & rs(11).value & "~" & rs(12).value & "~" & rs(13).value & "~" & rs(14).value & "~" & rs(15).value & "~" & rs(16).value & "~" & rs(17).value & "~" & rs(18).value & "~" & rs(19).value & "~" & rs(20).value & "~" & rs(21).value & "~" & rs(22).value & "|"
+            //                    strResult = strResult & dataTable(0).value & "~" & dataTable(1).value & "~" & dataTable(2).value & "~" & dataTable(3).value & "~" & dataTable(4).value & "~" & dataTable(5).value & "~" & dataTable(6).value & "~" & dataTable(7).value & "~" & dataTable(8).value & "~" & dataTable(9).value & "~" & dataTable(10).value & "~" & dataTable(11).value & "~" & dataTable(12).value & "~" & dataTable(13).value & "~" & dataTable(14).value & "~" & dataTable(15).value & "~" & dataTable(16).value & "~" & dataTable(17).value & "~" & dataTable(18).value & "~" & dataTable(19).value & "~" & dataTable(20).value & "~" & dataTable(21).value & "~" & dataTable(22).value & "|"
 
 
-            //                    rs.movenext()
+            //                    dataTable.movenext()
 
             //                loop
             //                strResult = mid(strResult, 1, strResult.length - 1)
@@ -4590,7 +4587,7 @@ namespace Banking.Services
 
             //        end if
 
-            //    rs = nothing
+            //    dataTable = nothing
 
             //    elseif strArr(0)= "NORCAS" then
             //    strResult = ""
@@ -4607,19 +4604,19 @@ namespace Banking.Services
             //         sqlStr = "SELECT A.BRANCHCODE, A.GLCODE, A.ACCNO, A.NAME, A.CUSTOMERID, A.CREDITTYPE, NVL((a.SANCTIONAMT-NVL((SELECT NVL(SUM(C.TOTCHRGS),0) FROM LOANCHARGEPOSTDTLS C WHERE C.ACCNO=A.ACCNO AND C.POSTYN='N' AND C.moduleid='LOAN'  AND C.GLCODE=A.GLCODE AND C.BRANCHCODE=A.BRANCHCODE),'0')),'0')NETPAYMENT , A.POSTYN,A.TOKENNO, NVL((SELECT NVL(SUM(C.TOTCHRGS),0) FROM LOANCHARGEPOSTDTLS C WHERE C.ACCNO=A.ACCNO AND C.POSTYN='N' AND C.moduleid='LOAN'  AND C.GLCODE=A.GLCODE AND C.BRANCHCODE=A.BRANCHCODE),'0')CHRGAMT, NVL(A.SANCTIONAMT,'0')SANCTIONAMT FROM LOANPAYMENTDTLS A,LOANDISBURSEMENTDTLS B WHERE A.credittype='C' AND A.postyn='N' AND A.TRANSTATUS='A' AND A.moduleid=B.moduleid AND A.GLCODE=B.GLCODE AND A.ACCNO=B.ACCNO AND B.DISBURSEDDATE IS NULL AND A.moduleid='" & strArr(3) & "' AND A.applicationdate='" & strArr(4) & "' AND A.branchcode='" & strArr(1) & "'"
 
 
-            //        rs = obj.SingleSelectStat(sqlStr)
+            //        dataTable = obj.SingleSelectStat(sqlStr)
 
 
             //        if obj.ConnError = "Connected" then
 
-            //            if not rs.BOF and not rs.EOF then
+            //            if not dataTable.BOF and not dataTable.EOF then
 
 
-            //                do until rs.EOF
+            //                do until dataTable.EOF
 
-            //                    strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "~" & rs(7).value & "~" & rs(8).value & "~" & rs(9).value & "~" & rs(10).value & "|"
+            //                    strResult = strResult & dataTable(0).value & "~" & dataTable(1).value & "~" & dataTable(2).value & "~" & dataTable(3).value & "~" & dataTable(4).value & "~" & dataTable(5).value & "~" & dataTable(6).value & "~" & dataTable(7).value & "~" & dataTable(8).value & "~" & dataTable(9).value & "~" & dataTable(10).value & "|"
 
-            //                    rs.movenext()
+            //                    dataTable.movenext()
 
             //                loop
             //                strResult = mid(strResult, 1, strResult.length - 1)
@@ -4628,7 +4625,7 @@ namespace Banking.Services
 
             //        end if
 
-            //    rs = nothing
+            //    dataTable = nothing
 
 
             //    elseif strArr(0)= "CUSTID" then
@@ -4640,20 +4637,20 @@ namespace Banking.Services
             //        sqlStr = "SELECT CUSTOMERID FROM " & strArr(2) & "MST WHERE ACCNO='" & strArr(4) & "' AND GLCODE='" & strArr(3) & "' and STATUS='R' AND BRANCHCODE='" & strArr(1) & "'"
 
 
-            //        rs = obj.SingleSelectStat(sqlStr)
+            //        dataTable = obj.SingleSelectStat(sqlStr)
 
 
             //        if obj.ConnError = "Connected" then
 
-            //            if not rs.BOF and not rs.EOF then
+            //            if not dataTable.BOF and not dataTable.EOF then
 
-            //                    strResult = strResult & rs(0).value
+            //                    strResult = strResult & dataTable(0).value
 
             //            end if
 
             //        end if
 
-            //    rs = nothing
+            //    dataTable = nothing
 
 
             //    elseif strArr(0)= "FRM26TDSCUST" or strArr(0)= "FRM26TDSWISEACC"  or strArr(0)= "FRM26TDSACC" then
@@ -4816,25 +4813,25 @@ namespace Banking.Services
 
             //         end if ''not rschk.eof and not rschk.bof
 
-            //         rs = obj.SingleSelectStat(sqlStr)
+            //         dataTable = obj.SingleSelectStat(sqlStr)
 
 
             //        if obj.ConnError = "Connected" then
 
-            //            if not rs.BOF and not rs.EOF then
+            //            if not dataTable.BOF and not dataTable.EOF then
 
-            //                do until rs.EOF
+            //                do until dataTable.EOF
 
             //                if strArr(0) = "FRM26TDSCUST" then ''FRM26TDSCUST
 
-            //                    strResult = strResult & "'" & rs(0).value & "','" & rs(1).value & "','" & rs(2).value & "','" & rs(3).value & "','" & rs(4).value & "','" & rs(5).value & "','" & rs(6).value & "'," & rs(7).value & "," & rs(8).value & ",'" & rs(9).value & "','" & rs(10).value & "','" & rs(11).value & "'|"
+            //                    strResult = strResult & "'" & dataTable(0).value & "','" & dataTable(1).value & "','" & dataTable(2).value & "','" & dataTable(3).value & "','" & dataTable(4).value & "','" & dataTable(5).value & "','" & dataTable(6).value & "'," & dataTable(7).value & "," & dataTable(8).value & ",'" & dataTable(9).value & "','" & dataTable(10).value & "','" & dataTable(11).value & "'|"
 
             //                else '' FRM26TDSWISEACC or FRM26TDSACC
-            //                    strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "~" & rs(7).value & "~" & rs(8).value & "~" & rs(9).value & "~" & rs(10).value & "~" & rs(11).value & "~" & rs(12).value & "|"
+            //                    strResult = strResult & dataTable(0).value & "~" & dataTable(1).value & "~" & dataTable(2).value & "~" & dataTable(3).value & "~" & dataTable(4).value & "~" & dataTable(5).value & "~" & dataTable(6).value & "~" & dataTable(7).value & "~" & dataTable(8).value & "~" & dataTable(9).value & "~" & dataTable(10).value & "~" & dataTable(11).value & "~" & dataTable(12).value & "|"
 
             //                end if
 
-            //                    rs.movenext()
+            //                    dataTable.movenext()
 
             //                loop
 
@@ -4863,26 +4860,26 @@ namespace Banking.Services
             //         sqlStr = " SELECT T.BRANCHCODE, T.CUSTOMERID,t.glcode,T.accno, SUBSTR(T.NAME,1,40),T.PANNO,TO_CHAR(T.APPLICATIONDATE,'DD-Mon-YYYY'),nvl(SUM(nvl(T.INTEREST,0)),0),SUM(T.TDSAMT),TO_CHAR(T.CHALLANDATE,'DD-Mon-YYYY'),T.CHALLANNO,T.BSRCODE,T.Age FROM(SELECT A.BRANCHCODE,A.CUSTOMERID,a.glcode,A.accno,B.NAME,B.PANNO,A.APPLICATIONDATE,(SELECT (NVL((SELECT SUM(ABS(C.INTAMOUNT)) FROM DEPINTACCRUEDDTLS C WHERE C.ACCNO=D.ACCNO AND C.GLCODE=D.GLCODE AND C.INTAMOUNT>0 AND C.MODULEID='DEP' AND C.applicationdate between '" & frmdate & "' and '" & todate1 & "' AND C.BRANCHCODE=D.BRANCHCODE AND C.CURRENCYCODE=D.CURRENCYCODE AND (C.branchcode,C.glcode,C.accno,C.batchno,C.tranno) NOT IN (SELECT branchcode,glcode,accno,batchno,tranno FROM DEPINTACCRUEDDTLS C1 WHERE C1.ACCNO=C.ACCNO AND C1.GLCODE=C.GLCODE AND C1.BRANCHCODE=C.BRANCHCODE AND C1.CURRENCYCODE=C.CURRENCYCODE AND C1.INTAMOUNT>0 AND C1.MODULEID='DEP' AND C1.APPLICATIONDATE BETWEEN '" & frmdate & "' and '" & todate1 & "'  AND (remarks LIKE 'TDS From%' or remarks LIKE 'TDSREFUND%') AND C1.APPLICATIONDATE = (SELECT MAX(applicationdate) FROM DEPINTACCRUEDDTLS C2 WHERE C2.ACCNO=C1.ACCNO AND C2.GLCODE=C1.GLCODE AND C2.BRANCHCODE=C1.BRANCHCODE AND C2.CURRENCYCODE=C1.CURRENCYCODE AND C2.INTAMOUNT>0 AND C2.MODULEID='DEP' AND C2.APPLICATIONDATE BETWEEN '" & frmdate & "' and '" & todate1 & "' AND (remarks LIKE 'TDS From%' or remarks LIKE 'TDSREFUND%')))),0) + NVL((SELECT SUM(ABS(E.AMOUNT)) FROM DEPTRAN E WHERE E.CHQFVG = 'DEPIP' AND E.ACCNO=D.ACCNO AND E.GLCODE=D.GLCODE AND E.MODULEID='DEP' AND E.BRANCHCODE=D.BRANCHCODE AND E.CURRENCYCODE=D.CURRENCYCODE AND E.applicationdate between '" & frmdate & "' and '" & todate2 & "' AND (E.branchcode,E.glcode,E.accno,E.batchno,E.tranno) NOT IN (SELECT branchcode,glcode,accno,batchno,tranno FROM DEPTRAN C1 WHERE C1.ACCNO=E.ACCNO AND C1.GLCODE=E.GLCODE AND C1.BRANCHCODE=E.BRANCHCODE AND C1.CURRENCYCODE=E.CURRENCYCODE AND C1.MODULEID='DEP' AND C1.APPLICATIONDATE BETWEEN '" & frmdate & "' and '" & todate1 & "'  AND (C1.remarks LIKE 'TDS From%' OR C1.remarks LIKE 'TDSREFUND%') AND C1.APPLICATIONDATE = (SELECT MAX(applicationdate) FROM DEPTRAN C2 WHERE C2.ACCNO=C1.ACCNO AND C2.GLCODE=C1.GLCODE AND C2.BRANCHCODE=C1.BRANCHCODE AND C2.CURRENCYCODE=C1.CURRENCYCODE AND  C2.MODULEID='DEP' AND C2.APPLICATIONDATE BETWEEN '" & frmdate & "' and '" & todate2 & "' AND (remarks LIKE 'TDS From%' OR remarks LIKE 'TDSREFUND%')))),0) - NVL((SELECT NVL(sum(amount),0) intamount FROM DEPTRAN WHERE ACCNO = D.ACCNO AND GLCODE = D.GLCODE AND BRANCHCODE = D.BRANCHCODE AND AMOUNT>0 AND MODULEID='DEP' AND APPLICATIONDATE = '" & todate1 & "' AND (remarks LIKE 'TDS From%')),0) + NVL((SELECT NVL(AMOUNT,0) FROM DEPTRAN WHERE ACCNO = D.ACCNO AND GLCODE = D.GLCODE AND EFFECTIVEDATE BETWEEN '" & frmdate & "' and '" & todate1 & "' AND remarks LIKE 'Excess Int Rev To GL%' AND AMOUNT<0 AND BRANCHCODE = D.BRANCHCODE),0) +  NVL((SELECT NVL(INTAMOUNT,0) FROM DEPINTACCRUEDDTLS WHERE glcode=a.GLCODE AND accno=a.ACCNO AND TRANSFERTODEP BETWEEN '" & frmdate & "' and '" & todate1 & "' AND (REMARKS LIKE 'Excess Interest Adjusted%'  OR REMARKS LIKE 'Excess Int Rev To GL%') AND branchcode=A.BRANCHCODE),0) - NVL((SELECT NVL(intamount,0)intamount FROM DEPINTACCRUEDDTLS C1 WHERE C1.ACCNO=a.ACCNO AND C1.GLCODE=a.GLCODE AND C1.BRANCHCODE=a.BRANCHCODE AND C1.INTAMOUNT>0 AND C1.MODULEID='DEP' AND C1.APPLICATIONDATE BETWEEN '" & frmdate & "' and '" & todate1 & "'  AND (remarks LIKE 'TDSREFUND%')),0) - NVL((SELECT NVL(sum(intamount),0) intamount FROM DEPINTACCRUEDDTLS WHERE ACCNO = a.ACCNO AND GLCODE = a.GLCODE AND BRANCHCODE = a.BRANCHCODE AND INTAMOUNT>0 AND MODULEID='DEP' AND APPLICATIONDATE = '" & todate1 & "' AND (remarks LIKE 'TDS From%')),0) ) INTAMT FROM DEPMST D WHERE D.BRANCHCODE=A.BRANCHCODE AND d.ACCNO=a.ACCNO AND D.GLCODE = a.GLCODE AND  d.CURRENCYCODE=a.CURRENCYCODE) interest, ABS(A.AMOUNT) TDSAMT,A.CHALLANDATE,A.CHALLANNO,A.BSRCODE,(SELECT ROUND(NVL((SYSDATE - M.CUSTDOB)/365.242199,0) ) FROM gencustinfomst M WHERE M.CUSTOMERID=a.CUSTOMERID ) Age FROM TDSDTLS A, GENCUSTINFOMST B WHERE A.applicationdate between '" & frmdate & "' and '" & todate1 & "'  AND A.customerid=b.customerid AND A.branchcode='" & rsmain(0).value & "' and a.customerid = '" & rsmain(1).value & "' and a.accno='" & rsmain(2).value & "'  and a.glcode='" & rsmain(3).value & "') T GROUP BY T.BRANCHCODE, T.CUSTOMERID, T.NAME ,T.panno,T.APPLICATIONDATE,T.CHALLANDATE,T.CHALLANNO,T.BSRCODE,T.glcode,T.accno,T.Age ORDER BY T.branchcode,T.customerid "
 
 
-            //        rs = obj.SingleSelectStat(sqlStr)
+            //        dataTable = obj.SingleSelectStat(sqlStr)
 
 
 
             //        if obj.ConnError = "Connected" then
 
-            //            if not rs.BOF and not rs.EOF then
+            //            if not dataTable.BOF and not dataTable.EOF then
 
-            //                do until rs.EOF
+            //                do until dataTable.EOF
 
             //                if strArr(0) = "FRM26TDSCUST" then ''FRM26TDSCUST
 
-            //                    strResult = strResult & "'" & rs(0).value & "','" & rs(1).value & "','" & rs(2).value & "','" & rs(3).value & "','" & rs(4).value & "','" & rs(5).value & "','" & rs(6).value & "'," & rs(7).value & "," & rs(8).value & ",'" & rs(9).value & "','" & rs(10).value & "','" & rs(11).value & "'|"
+            //                    strResult = strResult & "'" & dataTable(0).value & "','" & dataTable(1).value & "','" & dataTable(2).value & "','" & dataTable(3).value & "','" & dataTable(4).value & "','" & dataTable(5).value & "','" & dataTable(6).value & "'," & dataTable(7).value & "," & dataTable(8).value & ",'" & dataTable(9).value & "','" & dataTable(10).value & "','" & dataTable(11).value & "'|"
 
             //                else '' FRM26TDSWISEACC or FRM26TDSACC
-            //                    strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "~" & rs(7).value & "~" & rs(8).value & "~" & rs(9).value & "~" & rs(10).value & "~" & rs(11).value & "~" & rs(12).value & "|"
+            //                    strResult = strResult & dataTable(0).value & "~" & dataTable(1).value & "~" & dataTable(2).value & "~" & dataTable(3).value & "~" & dataTable(4).value & "~" & dataTable(5).value & "~" & dataTable(6).value & "~" & dataTable(7).value & "~" & dataTable(8).value & "~" & dataTable(9).value & "~" & dataTable(10).value & "~" & dataTable(11).value & "~" & dataTable(12).value & "|"
 
             //                end if  ''strArr(0) = "FRM26TDSCUST"
 
-            //                    rs.movenext()
+            //                    dataTable.movenext()
 
             //                loop
             //            end if
@@ -4905,7 +4902,7 @@ namespace Banking.Services
 
             //    rsmain = nothing
 
-            //    rs = nothing
+            //    dataTable = nothing
 
             //    rschk = nothing
 
@@ -5037,26 +5034,26 @@ namespace Banking.Services
 
 
 
-            //    rs = obj.SingleSelectStat(sqlStr)
+            //    dataTable = obj.SingleSelectStat(sqlStr)
 
 
-            //    if not rs.BOF and not rs.EOF then
+            //    if not dataTable.BOF and not dataTable.EOF then
 
-            //        do until rs.EOF
+            //        do until dataTable.EOF
 
-            //        strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "~" & rs(7).value & "~" & rs(8).value & "~" & rs(9).value & "~" & rs(10).value & "|"
+            //        strResult = strResult & dataTable(0).value & "~" & dataTable(1).value & "~" & dataTable(2).value & "~" & dataTable(3).value & "~" & dataTable(4).value & "~" & dataTable(5).value & "~" & dataTable(6).value & "~" & dataTable(7).value & "~" & dataTable(8).value & "~" & dataTable(9).value & "~" & dataTable(10).value & "|"
 
-            //        rs.movenext()
+            //        dataTable.movenext()
 
             //        loop
-            //    end if ''not rs.BOF and not rs.EOF
+            //    end if ''not dataTable.BOF and not dataTable.EOF
 
             //    if strResult<> "" then
             //    strResult = mid(strResult, 1, strResult.length - 1)
 
             //    end if
 
-            //    rs = nothing
+            //    dataTable = nothing
 
             //    else
             //                    strResult = Strmsg
@@ -5096,18 +5093,18 @@ namespace Banking.Services
 
 
 
-            //        rs = obj.SingleSelectStat(sqlStr)
+            //        dataTable = obj.SingleSelectStat(sqlStr)
 
 
             //        if obj.ConnError = "Connected" then
 
-            //            if not rs.BOF and not rs.EOF then
+            //            if not dataTable.BOF and not dataTable.EOF then
 
-            //                do until rs.EOF
+            //                do until dataTable.EOF
 
-            //                    strResult = strResult & "'" & rs(0).value & "','" & rs(1).value & "','" & rs(2).value & "','" & rs(3).value & "','" & rs(4).value & "','" & rs(5).value & "','" & rs(6).value & "'," & rs(7).value & "," & rs(8).value & ",'" & rs(9).value & "','" & rs(10).value & "','" & rs(11).value & "'|"
+            //                    strResult = strResult & "'" & dataTable(0).value & "','" & dataTable(1).value & "','" & dataTable(2).value & "','" & dataTable(3).value & "','" & dataTable(4).value & "','" & dataTable(5).value & "','" & dataTable(6).value & "'," & dataTable(7).value & "," & dataTable(8).value & ",'" & dataTable(9).value & "','" & dataTable(10).value & "','" & dataTable(11).value & "'|"
 
-            //                    rs.movenext()
+            //                    dataTable.movenext()
 
             //                loop
             //                strResult = mid(strResult, 1, strResult.length - 1)
@@ -5116,7 +5113,7 @@ namespace Banking.Services
 
             //        end if
 
-            //    rs = nothing
+            //    dataTable = nothing
 
 
             //    '' INSERT INTO tdsreporttemp
@@ -5245,26 +5242,26 @@ namespace Banking.Services
             //    end if
 
 
-            //    rs = obj.SingleSelectStat(sqlStr)
+            //    dataTable = obj.SingleSelectStat(sqlStr)
 
 
-            //    if not rs.BOF and not rs.EOF then
+            //    if not dataTable.BOF and not dataTable.EOF then
 
-            //        do until rs.EOF
+            //        do until dataTable.EOF
 
-            //        strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "~" & rs(7).value & "~" & rs(8).value & "~" & rs(9).value & "~" & rs(10).value & "|"
+            //        strResult = strResult & dataTable(0).value & "~" & dataTable(1).value & "~" & dataTable(2).value & "~" & dataTable(3).value & "~" & dataTable(4).value & "~" & dataTable(5).value & "~" & dataTable(6).value & "~" & dataTable(7).value & "~" & dataTable(8).value & "~" & dataTable(9).value & "~" & dataTable(10).value & "|"
 
-            //        rs.movenext()
+            //        dataTable.movenext()
 
             //        loop
-            //    end if ''not rs.BOF and not rs.EOF
+            //    end if ''not dataTable.BOF and not dataTable.EOF
 
             //    if strResult<> "" then
             //    strResult = mid(strResult, 1, strResult.length - 1)
 
             //    end if
 
-            //    rs = nothing
+            //    dataTable = nothing
 
             //    else
             //                    strResult = Strmsg
@@ -5304,18 +5301,18 @@ namespace Banking.Services
 
 
 
-            //rs = obj.SingleSelectStat(sqlStr)
+            //dataTable = obj.SingleSelectStat(sqlStr)
 
 
             //        if obj.ConnError = "Connected" then
 
-            //            if not rs.BOF and not rs.EOF then
+            //            if not dataTable.BOF and not dataTable.EOF then
 
-            //                do until rs.EOF
+            //                do until dataTable.EOF
 
-            //                    strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "~" & rs(7).value & "~" & rs(8).value & "~" & rs(9).value & "~" & rs(10).value & "~" & rs(11).value & "~" & rs(12).value & "|"
+            //                    strResult = strResult & dataTable(0).value & "~" & dataTable(1).value & "~" & dataTable(2).value & "~" & dataTable(3).value & "~" & dataTable(4).value & "~" & dataTable(5).value & "~" & dataTable(6).value & "~" & dataTable(7).value & "~" & dataTable(8).value & "~" & dataTable(9).value & "~" & dataTable(10).value & "~" & dataTable(11).value & "~" & dataTable(12).value & "|"
 
-            //                    rs.movenext()
+            //                    dataTable.movenext()
 
             //                loop
             //                strResult = mid(strResult, 1, strResult.length - 1)
@@ -5324,7 +5321,7 @@ namespace Banking.Services
 
             //        end if
 
-            //    rs = nothing
+            //    dataTable = nothing
 
 
             //    elseif strArr(0)= "TDSREF" then
@@ -5336,18 +5333,18 @@ namespace Banking.Services
             //        sqlStr = "select t.GLCODE, t.ACCNO, SUBSTR(t.NAME,1,40),t.CUSTOMERID, ABS(t.AMOUNT),TO_CHAR(t.FROMDATE,'DD-Mon-YYYY') FROMDATE,TO_CHAR(t.TODATE,'DD-Mon-YYYY') TODATE,t.ASSESYEAR,m.status FROM TDSDTLS t ,depmst m WHERE t.accno = m.accno AND t.glcode = m.glcode AND t.branchcode  = m.branchcode AND t.currencycode = m.currencycode AND t.STATUS='R' AND t.amount<>'0' AND t.CHALLANNO IS NULL AND t.CHALLANDATE IS   NULL " & strArr(3) & " AND t.branchcode='" & strArr(1) & "' ORDER BY t.glcode, TO_NUMBER(t.CUSTOMERID)"
 
 
-            //        rs = obj.SingleSelectStat(sqlStr)
+            //        dataTable = obj.SingleSelectStat(sqlStr)
 
 
             //        if obj.ConnError = "Connected" then
 
-            //            if not rs.BOF and not rs.EOF then
+            //            if not dataTable.BOF and not dataTable.EOF then
 
-            //                do until rs.EOF
+            //                do until dataTable.EOF
 
-            //                    strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "~" & rs(7).value & "~" & rs(8).value & "|"
+            //                    strResult = strResult & dataTable(0).value & "~" & dataTable(1).value & "~" & dataTable(2).value & "~" & dataTable(3).value & "~" & dataTable(4).value & "~" & dataTable(5).value & "~" & dataTable(6).value & "~" & dataTable(7).value & "~" & dataTable(8).value & "|"
 
-            //                    rs.movenext()
+            //                    dataTable.movenext()
 
             //                loop
             //                strResult = mid(strResult, 1, strResult.length - 1)
@@ -5356,7 +5353,7 @@ namespace Banking.Services
 
             //        end if
 
-            //    rs = nothing
+            //    dataTable = nothing
 
 
             //    elseif strArr(0)= "SLNO" then
@@ -5372,15 +5369,15 @@ namespace Banking.Services
             //        sqlStr = "SELECT NVL(MAX(sno),0)+1 FROM LOCKEROPERATINGDTLS WHERE ACCNO='" & strArr(5) & "' AND applicationdate = '" & strArr(6) & "' AND  branchcode='" & strArr(1) & "' AND OUTTIME IS NOT NULL "
 
 
-            //        rs = obj.SingleSelectStat(sqlStr)
+            //        dataTable = obj.SingleSelectStat(sqlStr)
 
 
             //        if obj.ConnError = "Connected" then
 
-            //            if not rs.BOF and not rs.EOF then
+            //            if not dataTable.BOF and not dataTable.EOF then
 
 
-            //                strResult = rs(0).value
+            //                strResult = dataTable(0).value
 
 
             //                sqlstr = ""
@@ -5418,7 +5415,7 @@ namespace Banking.Services
 
             //        end if
 
-            //    rs = nothing
+            //    dataTable = nothing
 
 
             //    elseif strArr(0)= "FRM15GHREP" then
@@ -5468,7 +5465,7 @@ namespace Banking.Services
 
 
 
-            //        rs = obj.SingleSelectStat(sqlStr)
+            //        dataTable = obj.SingleSelectStat(sqlStr)
 
 
 
@@ -5477,13 +5474,13 @@ namespace Banking.Services
 
             //            if obj.ConnError = "Connected" then
 
-            //                if not rs.BOF and not rs.EOF then
+            //                if not dataTable.BOF and not dataTable.EOF then
 
-            //                    do until rs.EOF
+            //                    do until dataTable.EOF
 
-            //                        strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "|"
+            //                        strResult = strResult & dataTable(0).value & "~" & dataTable(1).value & "~" & dataTable(2).value & "~" & dataTable(3).value & "~" & dataTable(4).value & "|"
 
-            //                        rs.movenext()
+            //                        dataTable.movenext()
 
             //                    loop
             //                    strResult = mid(strResult, 1, strResult.length - 1)
@@ -5497,13 +5494,13 @@ namespace Banking.Services
 
             //            if obj.ConnError = "Connected" then
 
-            //                if not rs.BOF and not rs.EOF then
+            //                if not dataTable.BOF and not dataTable.EOF then
 
-            //                    do until rs.EOF
+            //                    do until dataTable.EOF
 
-            //                        strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(5).value & "~" & rs(6).value & "|"
+            //                        strResult = strResult & dataTable(0).value & "~" & dataTable(1).value & "~" & dataTable(2).value & "~" & dataTable(3).value & "~" & dataTable(5).value & "~" & dataTable(6).value & "|"
 
-            //                        rs.movenext()
+            //                        dataTable.movenext()
 
             //                    loop
             //                    strResult = mid(strResult, 1, strResult.length - 1)
@@ -5515,13 +5512,13 @@ namespace Banking.Services
             //        else
             //            if obj.ConnError = "Connected" then
 
-            //                if not rs.BOF and not rs.EOF then
+            //                if not dataTable.BOF and not dataTable.EOF then
 
-            //                    do until rs.EOF
+            //                    do until dataTable.EOF
 
-            //                        strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "|"
+            //                        strResult = strResult & dataTable(0).value & "~" & dataTable(1).value & "~" & dataTable(2).value & "~" & dataTable(3).value & "~" & dataTable(4).value & "~" & dataTable(5).value & "~" & dataTable(6).value & "|"
 
-            //                        rs.movenext()
+            //                        dataTable.movenext()
 
             //                    loop
             //                    strResult = mid(strResult, 1, strResult.length - 1)
@@ -5533,7 +5530,7 @@ namespace Banking.Services
             //        end if
 
 
-            //    rs = nothing
+            //    dataTable = nothing
 
 
             //    elseif strArr(0)= "GETCUSTCHECK" then
@@ -5545,22 +5542,22 @@ namespace Banking.Services
             //        sqlStr = "SELECT COUNT(*),customerid,name FROM GENCUSTFROZENDTLS WHERE customerid='" & strArr(3) & "' AND branchcode='" & strArr(1) & "' GROUP BY customerid,name"
 
 
-            //        rs = obj.SingleSelectStat(sqlStr)
+            //        dataTable = obj.SingleSelectStat(sqlStr)
 
 
             //        if obj.ConnError = "Connected" then
 
-            //            if not rs.BOF and not rs.EOF then
+            //            if not dataTable.BOF and not dataTable.EOF then
 
-            //                'strResult=rs(0).value 
+            //                'strResult=dataTable(0).value 
 
-            //                    strResult = rs(0).value & "~" & rs(1).value & "~" & rs(2).value
+            //                    strResult = dataTable(0).value & "~" & dataTable(1).value & "~" & dataTable(2).value
 
             //            end if
 
             //        end if
 
-            //    rs = nothing
+            //    dataTable = nothing
 
 
             //    elseif strArr(0)= "GETFROZDTLS" then
@@ -5572,18 +5569,18 @@ namespace Banking.Services
             //        sqlStr = "SELECT MODULEID, GLCODE, ACCNO, NAME, CUSTOMERID, STATUS, FROZENDTLS, UNFROZENDTLS, TO_CHAR(APPLICATIONDATE,'DD-Mon-YYYY') APPDATE, TO_CHAR(UNFROZEDATE,'DD-Mon-YYYY') UNFROZEDATE FROM GENCUSTFROZENDTLS WHERE " & strArr(5) & ">='" & strArr(3) & "' AND " & strArr(5) & "<='" & strArr(4) & "' " & strArr(6) & " and BRANCHCODE='" & strArr(1) & "' ORDER BY " & strArr(5) & " "
 
 
-            //        rs = obj.SingleSelectStat(sqlStr)
+            //        dataTable = obj.SingleSelectStat(sqlStr)
 
 
             //        if obj.ConnError = "Connected" then
 
-            //            if not rs.BOF and not rs.EOF then
+            //            if not dataTable.BOF and not dataTable.EOF then
 
-            //                do until rs.EOF
+            //                do until dataTable.EOF
 
-            //                    strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "~" & rs(7).value & "~" & rs(8).value & "~" & rs(9).value & "|"
+            //                    strResult = strResult & dataTable(0).value & "~" & dataTable(1).value & "~" & dataTable(2).value & "~" & dataTable(3).value & "~" & dataTable(4).value & "~" & dataTable(5).value & "~" & dataTable(6).value & "~" & dataTable(7).value & "~" & dataTable(8).value & "~" & dataTable(9).value & "|"
 
-            //                    rs.movenext()
+            //                    dataTable.movenext()
 
             //                loop
             //                strResult = mid(strResult, 1, strResult.length - 1)
@@ -5592,7 +5589,7 @@ namespace Banking.Services
 
             //        end if
 
-            //    rs = nothing
+            //    dataTable = nothing
 
 
             //    elseif strArr(0)= "BalDisplay" then
@@ -5607,18 +5604,18 @@ namespace Banking.Services
             //        sqlStr = "SELECT a.accno, a.CUSTOMERID,SUBSTR(a.name,1,33),NVL(b.CURBAL,0),NVL(b.CURBAL/(select amount from SHAREVALUESMST WHERE SHARETYPE='" & strArr(4) & "' ),0) noshares  FROM " & trim(strArr(3)) & "MST a," & trim(strArr(3)) & "balance b  WHERE a.glcode='" & strArr(4) & "' " & strArr(5) & " " & strArr(6) & " AND a.status='R' AND a.branchcode='" & strArr(1) & "' AND a.currencycode='" & strArr(2) & "' AND a.branchcode = b.branchcode AND a.currencycode = b.currencycode AND a.glcode = b.glcode  AND a.accno = b.accno AND NVL(b.CURBAL,0) <> 0 order by to_number(accno)"
 
 
-            //        rs = obj.SingleSelectStat(sqlStr)
+            //        dataTable = obj.SingleSelectStat(sqlStr)
 
 
             //        if obj.ConnError = "Connected" then
 
-            //            if not rs.BOF and not rs.EOF then
+            //            if not dataTable.BOF and not dataTable.EOF then
 
-            //                do until rs.EOF
+            //                do until dataTable.EOF
 
-            //                    strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "|"
+            //                    strResult = strResult & dataTable(0).value & "~" & dataTable(1).value & "~" & dataTable(2).value & "~" & dataTable(3).value & "~" & dataTable(4).value & "|"
 
-            //                    rs.movenext()
+            //                    dataTable.movenext()
 
             //                loop
             //                strResult = mid(strResult, 1, strResult.length - 1)
@@ -5627,7 +5624,7 @@ namespace Banking.Services
 
             //        end if
 
-            //    rs = nothing
+            //    dataTable = nothing
 
 
             //    elseif strArr(0)= "ShareNotallot" then
@@ -5639,18 +5636,18 @@ namespace Banking.Services
             //        sqlStr = "SELECT TO_CHAR(applicationdate,'DD-Mon-YYYY') applicationdate, BATCHNO, TRANNO, AMOUNT, REMARKS FROM VIEWMISCTRAN a WHERE glcode=(SELECT suspenseglcode FROM sharetypemst WHERE glcode='" & strArr(4) & "') " & strArr(5) & " AND branchcode='" & strArr(1) & "' AND (branchcode,applicationdate,batchno,tranno) NOT IN (SELECT branchcode,tranapplicationdate,batchno, tranno FROM SHARESSUSPENSEDTLS b WHERE b.tranno=a.tranno AND b.batchno=a.batchno AND b.branchcode=a.branchcode AND b.tranapplicationdate=a.APPLICATIONDATE) AND amount>'0' ORDER BY TO_DATE(applicationdate,'DD-Mon-YYYY'),to_number(batchno),to_number(tranno) "
 
 
-            //        rs = obj.SingleSelectStat(sqlStr)
+            //        dataTable = obj.SingleSelectStat(sqlStr)
 
 
             //        if obj.ConnError = "Connected" then
 
-            //            if not rs.BOF and not rs.EOF then
+            //            if not dataTable.BOF and not dataTable.EOF then
 
-            //                do until rs.EOF
+            //                do until dataTable.EOF
 
-            //                    strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "|"
+            //                    strResult = strResult & dataTable(0).value & "~" & dataTable(1).value & "~" & dataTable(2).value & "~" & dataTable(3).value & "~" & dataTable(4).value & "|"
 
-            //                    rs.movenext()
+            //                    dataTable.movenext()
 
             //                loop
             //                strResult = mid(strResult, 1, strResult.length - 1)
@@ -5659,7 +5656,7 @@ namespace Banking.Services
 
             //        end if
 
-            //    rs = nothing
+            //    dataTable = nothing
 
 
             //    elseif strArr(0)= "ShareVal" then
@@ -5671,21 +5668,21 @@ namespace Banking.Services
             //        sqlStr = "SELECT AMOUNT,SHARESPERFOLIO FROM SHAREVALUESMST WHERE SHARETYPE='" & strArr(1) & "'"
 
 
-            //        rs = obj.SingleSelectStat(sqlStr)
+            //        dataTable = obj.SingleSelectStat(sqlStr)
 
 
             //        if obj.ConnError = "Connected" then
 
-            //            if not rs.BOF and not rs.EOF then
+            //            if not dataTable.BOF and not dataTable.EOF then
 
-            //                strResult = rs(0).value & "~" & rs(1).value & "|"
+            //                strResult = dataTable(0).value & "~" & dataTable(1).value & "|"
 
 
             //            end if
 
             //        end if
 
-            //    rs = nothing
+            //    dataTable = nothing
 
 
             //    elseif strArr(0)= "REFUNDDTLS" then
@@ -5697,18 +5694,18 @@ namespace Banking.Services
             //        sqlStr = "SELECT b.DEPSUBNATURE, a.ACCNO, SUBSTR(a.NAME,1,40), a.AMOUNT, TO_CHAR(a.PAIDDATE,'DD-Mon-YYYY') PAIDDATE,a.ASSESYEAR, a.REFUNDDTLS FROM TDSDTLS a,DEPTYPEMST b WHERE a.glcode=b.glcode AND a.REFUNDYN='Y'AND a.PAIDDATE IS NOT NULL " & strArr(3) & " and a.branchcode='" & strArr(1) & "' and a.currencycode='" & strArr(2) & "'"
 
 
-            //        rs = obj.SingleSelectStat(sqlStr)
+            //        dataTable = obj.SingleSelectStat(sqlStr)
 
 
             //        if obj.ConnError = "Connected" then
 
-            //            if not rs.BOF and not rs.EOF then
+            //            if not dataTable.BOF and not dataTable.EOF then
 
-            //                do until rs.EOF
+            //                do until dataTable.EOF
 
-            //                    strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "|"
+            //                    strResult = strResult & dataTable(0).value & "~" & dataTable(1).value & "~" & dataTable(2).value & "~" & dataTable(3).value & "~" & dataTable(4).value & "~" & dataTable(5).value & "~" & dataTable(6).value & "|"
 
-            //                    rs.movenext()
+            //                    dataTable.movenext()
 
             //                loop
             //                strResult = mid(strResult, 1, strResult.length - 1)
@@ -5718,7 +5715,7 @@ namespace Banking.Services
 
             //        end if
 
-            //    rs = nothing
+            //    dataTable = nothing
 
 
             //    elseif strArr(0)= "SUBNATURE" then
@@ -5730,20 +5727,20 @@ namespace Banking.Services
             //        sqlStr = "SELECT DEPSUBNATURE FROM DEPTYPEMST WHERE glcode='" & strArr(1) & "'"
 
 
-            //        rs = obj.SingleSelectStat(sqlStr)
+            //        dataTable = obj.SingleSelectStat(sqlStr)
 
 
             //        if obj.ConnError = "Connected" then
 
-            //            if not rs.BOF and not rs.EOF then
+            //            if not dataTable.BOF and not dataTable.EOF then
 
-            //                strResult = rs(0).value
+            //                strResult = dataTable(0).value
 
             //            end if
 
             //        end if
 
-            //    rs = nothing
+            //    dataTable = nothing
 
 
             //    elseif strArr(0)= "MANUALDTLS" then
@@ -5755,18 +5752,18 @@ namespace Banking.Services
             //        sqlStr = "SELECT b.DEPSUBNATURE, a.ACCNO, SUBSTR(a.NAME,1,40), a.AMOUNT, a.ASSESYEAR, a.remarks FROM TDSDTLS a,DEPTYPEMST b WHERE remarks LIKE 'TDS Collected%' AND a.glcode=b.glcode " & strArr(3) & " and a.branchcode='" & strArr(1) & "' and a.currencycode='" & strArr(2) & "'"
 
 
-            //        rs = obj.SingleSelectStat(sqlStr)
+            //        dataTable = obj.SingleSelectStat(sqlStr)
 
 
             //        if obj.ConnError = "Connected" then
 
-            //            if not rs.BOF and not rs.EOF then
+            //            if not dataTable.BOF and not dataTable.EOF then
 
-            //                do until rs.EOF
+            //                do until dataTable.EOF
 
-            //                    strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "|"
+            //                    strResult = strResult & dataTable(0).value & "~" & dataTable(1).value & "~" & dataTable(2).value & "~" & dataTable(3).value & "~" & dataTable(4).value & "~" & dataTable(5).value & "|"
 
-            //                    rs.movenext()
+            //                    dataTable.movenext()
 
             //                loop
             //                strResult = mid(strResult, 1, strResult.length - 1)
@@ -5776,7 +5773,7 @@ namespace Banking.Services
 
             //        end if
 
-            //    rs = nothing
+            //    dataTable = nothing
 
 
             //    elseif strArr(0)= "CLGDTLS" then
@@ -5804,22 +5801,22 @@ namespace Banking.Services
             //        sqlStr = "SELECT " & field & ",(SELECT DESCRIPTION FROM CLGRETURNREASONMST D WHERE  ROWNUM = 1 AND D.CODE=A.REASONCODE)REASON,  (SELECT BANKNAME FROM GENOTHERBANKMST B WHERE  ROWNUM = 1 AND A.PRESENTINGBANKCODE=B.BANKCODE) BANKNAME,(SELECT BRANCHNAME FROM GENOTHERBRANCHMST C WHERE  ROWNUM = 1 AND A.PRESENTINGBANKCODE=C.BANKCODE AND C.BRANCHCODE=A.PRESENTINGBRANCHCODE)BRANCHNAME,retotherreasondesc FROM CLGOUTWARDRETURNDTLS A WHERE FAMOUNT" & strArr(3) & "'0'  " & strArr(4) & " " & strArr(5) & " ORDER BY APPLICATIONDATE,BRANCHCODE"
 
 
-            //        rs = obj.SingleSelectStat(sqlStr)
+            //        dataTable = obj.SingleSelectStat(sqlStr)
 
 
             //            if strArr(3) = "<" then
 
             //                if obj.ConnError = "Connected" then
 
-            //                    if not rs.BOF and not rs.EOF then
+            //                    if not dataTable.BOF and not dataTable.EOF then
 
-            //                        do until rs.EOF
-
-
-            //                            strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "~" & rs(7).value & "~" & rs(8).value & "~" & rs(9).value & "~" & rs(10).value & "~" & rs(11).value & "|"
+            //                        do until dataTable.EOF
 
 
-            //                            rs.movenext()
+            //                            strResult = strResult & dataTable(0).value & "~" & dataTable(1).value & "~" & dataTable(2).value & "~" & dataTable(3).value & "~" & dataTable(4).value & "~" & dataTable(5).value & "~" & dataTable(6).value & "~" & dataTable(7).value & "~" & dataTable(8).value & "~" & dataTable(9).value & "~" & dataTable(10).value & "~" & dataTable(11).value & "|"
+
+
+            //                            dataTable.movenext()
 
 
             //                        loop
@@ -5832,15 +5829,15 @@ namespace Banking.Services
             //            else
             //                if obj.ConnError = "Connected" then
 
-            //                    if not rs.BOF and not rs.EOF then
+            //                    if not dataTable.BOF and not dataTable.EOF then
 
-            //                        do until rs.EOF
-
-
-            //                            strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "~" & rs(7).value & "~" & rs(8).value & "~" & rs(9).value & "~" & rs(10).value & "~" & rs(11).value & "~" & rs(12).value & "|"
+            //                        do until dataTable.EOF
 
 
-            //                            rs.movenext()
+            //                            strResult = strResult & dataTable(0).value & "~" & dataTable(1).value & "~" & dataTable(2).value & "~" & dataTable(3).value & "~" & dataTable(4).value & "~" & dataTable(5).value & "~" & dataTable(6).value & "~" & dataTable(7).value & "~" & dataTable(8).value & "~" & dataTable(9).value & "~" & dataTable(10).value & "~" & dataTable(11).value & "~" & dataTable(12).value & "|"
+
+
+            //                            dataTable.movenext()
 
             //                        loop
             //                            strResult = mid(strResult, 1, strResult.length - 1)
@@ -5852,7 +5849,7 @@ namespace Banking.Services
             //            end if
 
 
-            //    rs = nothing
+            //    dataTable = nothing
 
 
             //    elseif strArr(0)= "LCKOPDTLS" then
@@ -5865,18 +5862,18 @@ namespace Banking.Services
             //        sqlStr = "SELECT TO_CHAR(a.applicationdate,'DD-Mon-YYYY') appdate,a.sno ,a.accno,b.LOCKERNO,b.name,TO_CHAR(a.intime,'DD-Mon-YYYY hh:Mi:ss AM') intime,TO_CHAR(a.outtime,'DD-Mon-YYYY hh:Mi:ss AM')outtime FROM  LOCKEROPERATINGDTLS a,lockermst b  WHERE a.accno=b.accno AND a.customerid=b.customerid  " & strArr(4) & " " & strArr(5) & " AND a.branchcode='" & strArr(1) & "' ORDER BY TO_NUMBER(accno),sno,intime"
 
 
-            //        rs = obj.SingleSelectStat(sqlStr)
+            //        dataTable = obj.SingleSelectStat(sqlStr)
 
 
             //        if obj.ConnError = "Connected" then
 
-            //            if not rs.BOF and not rs.EOF then
+            //            if not dataTable.BOF and not dataTable.EOF then
 
-            //                do until rs.EOF
+            //                do until dataTable.EOF
 
-            //                    strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "|"
+            //                    strResult = strResult & dataTable(0).value & "~" & dataTable(1).value & "~" & dataTable(2).value & "~" & dataTable(3).value & "~" & dataTable(4).value & "~" & dataTable(5).value & "~" & dataTable(6).value & "|"
 
-            //                    rs.movenext()
+            //                    dataTable.movenext()
 
             //                loop
             //                strResult = mid(strResult, 1, strResult.length - 1)
@@ -5885,7 +5882,7 @@ namespace Banking.Services
 
             //        end if
 
-            //    rs = nothing
+            //    dataTable = nothing
 
 
             //    elseif strArr(0)= "FRMTDSCUST" or strArr(0)= "FRMTDSACC"  or strArr(0)= "FRMTDSPAN" then
@@ -6046,26 +6043,26 @@ namespace Banking.Services
 
             //         end if ''not rschk.eof and not rschk.bof
 
-            //         rs = obj.SingleSelectStat(sqlStr)
+            //         dataTable = obj.SingleSelectStat(sqlStr)
 
 
             //        if obj.ConnError = "Connected" then
 
-            //            if not rs.BOF and not rs.EOF then
+            //            if not dataTable.BOF and not dataTable.EOF then
 
-            //                do until rs.EOF
+            //                do until dataTable.EOF
 
             //                'if strArr(0)="FRMTDSCUST" then ''FRMTDSCUST
 
-            //                    strResult = strResult & "'" & rs(0).value & "','" & rs(1).value & "','" & rs(2).value & "','" & rs(3).value & "','" & rs(4).value & "','" & rs(5).value & "','" & rs(6).value & "'," & rs(7).value & "," & rs(8).value & ",'" & rs(9).value & "','" & rs(10).value & "','" & rs(11).value & "'|"
+            //                    strResult = strResult & "'" & dataTable(0).value & "','" & dataTable(1).value & "','" & dataTable(2).value & "','" & dataTable(3).value & "','" & dataTable(4).value & "','" & dataTable(5).value & "','" & dataTable(6).value & "'," & dataTable(7).value & "," & dataTable(8).value & ",'" & dataTable(9).value & "','" & dataTable(10).value & "','" & dataTable(11).value & "'|"
 
             //                'else '' FRMTDSACC  or FRM26TDSACC
 
-            //                '	strResult=strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "~" & rs(7).value & "~" & rs(8).value & "~" & rs(9).value &  "~" & rs(10).value &  "~" & rs(11).value &  "|"
+            //                '	strResult=strResult & dataTable(0).value & "~" & dataTable(1).value & "~" & dataTable(2).value & "~" & dataTable(3).value & "~" & dataTable(4).value & "~" & dataTable(5).value & "~" & dataTable(6).value & "~" & dataTable(7).value & "~" & dataTable(8).value & "~" & dataTable(9).value &  "~" & dataTable(10).value &  "~" & dataTable(11).value &  "|"
 
             //            '	end if	
 
-            //                    rs.movenext()
+            //                    dataTable.movenext()
 
             //                loop
 
@@ -6100,26 +6097,26 @@ namespace Banking.Services
 
 
 
-            //        rs = obj.SingleSelectStat(sqlStr)
+            //        dataTable = obj.SingleSelectStat(sqlStr)
 
 
             //        if obj.ConnError = "Connected" then
 
-            //            if not rs.BOF and not rs.EOF then
+            //            if not dataTable.BOF and not dataTable.EOF then
 
-            //                do until rs.EOF
+            //                do until dataTable.EOF
 
             //                'if strArr(0)="FRMTDSCUST" then ''FRMTDSCUST
 
-            //                    strResult = strResult & "'" & rs(0).value & "','" & rs(1).value & "','" & rs(2).value & "','" & rs(3).value & "','" & rs(4).value & "','" & rs(5).value & "','" & rs(6).value & "'," & rs(7).value & "," & rs(8).value & ",'" & rs(9).value & "','" & rs(10).value & "','" & rs(11).value & "'|"
+            //                    strResult = strResult & "'" & dataTable(0).value & "','" & dataTable(1).value & "','" & dataTable(2).value & "','" & dataTable(3).value & "','" & dataTable(4).value & "','" & dataTable(5).value & "','" & dataTable(6).value & "'," & dataTable(7).value & "," & dataTable(8).value & ",'" & dataTable(9).value & "','" & dataTable(10).value & "','" & dataTable(11).value & "'|"
 
             //                'else '' FRMTDSACC  or FRM26TDSACC
 
-            //                '	strResult=strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "~" & rs(7).value & "~" & rs(8).value & "~" & rs(9).value &  "~" & rs(10).value &  "~" & rs(11).value &  "|"
+            //                '	strResult=strResult & dataTable(0).value & "~" & dataTable(1).value & "~" & dataTable(2).value & "~" & dataTable(3).value & "~" & dataTable(4).value & "~" & dataTable(5).value & "~" & dataTable(6).value & "~" & dataTable(7).value & "~" & dataTable(8).value & "~" & dataTable(9).value &  "~" & dataTable(10).value &  "~" & dataTable(11).value &  "|"
 
             //                'end if	''strArr(0)="FRMTDSCUST"
 
-            //                    rs.movenext()
+            //                    dataTable.movenext()
 
             //                loop
             //            end if
@@ -6146,7 +6143,7 @@ namespace Banking.Services
 
             //    rsmain = nothing
 
-            //    rs = nothing
+            //    dataTable = nothing
 
             //    rschk = nothing
 
@@ -6352,49 +6349,49 @@ namespace Banking.Services
             //    end if
 
 
-            //    rs = obj.SingleSelectStat(sqlStr)
+            //    dataTable = obj.SingleSelectStat(sqlStr)
 
 
-            //    if not rs.BOF and not rs.EOF then
+            //    if not dataTable.BOF and not dataTable.EOF then
 
-            //        do until rs.EOF
+            //        do until dataTable.EOF
 
             //            if strArr(0) = "FRMTDSCUST" then
 
             //                if strArr(3) = "" then
-            //                    strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "|"
+            //                    strResult = strResult & dataTable(0).value & "~" & dataTable(1).value & "~" & dataTable(2).value & "~" & dataTable(3).value & "~" & dataTable(4).value & "|"
 
             //                else
-            //                strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "|"
+            //                strResult = strResult & dataTable(0).value & "~" & dataTable(1).value & "~" & dataTable(2).value & "~" & dataTable(3).value & "~" & dataTable(4).value & "~" & dataTable(5).value & "~" & dataTable(6).value & "|"
 
             //                end if
 
             //            else if strArr(0) = "FRMTDSACC" then
-            //                strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "|"
+            //                strResult = strResult & dataTable(0).value & "~" & dataTable(1).value & "~" & dataTable(2).value & "~" & dataTable(3).value & "~" & dataTable(4).value & "~" & dataTable(5).value & "~" & dataTable(6).value & "|"
 
             //            else if strArr(0) = "FRMTDSPAN" then
 
             //                if strArr(3) = "" then
-            //                    strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "|"
+            //                    strResult = strResult & dataTable(0).value & "~" & dataTable(1).value & "~" & dataTable(2).value & "~" & dataTable(3).value & "~" & dataTable(4).value & "|"
 
             //                else
-            //                strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "|"
+            //                strResult = strResult & dataTable(0).value & "~" & dataTable(1).value & "~" & dataTable(2).value & "~" & dataTable(3).value & "~" & dataTable(4).value & "~" & dataTable(5).value & "~" & dataTable(6).value & "|"
 
             //                end if
 
             //            end if
 
-            //        rs.movenext()
+            //        dataTable.movenext()
 
             //        loop
-            //    end if ''not rs.BOF and not rs.EOF
+            //    end if ''not dataTable.BOF and not dataTable.EOF
 
             //    if strResult<> "" then
             //    strResult = mid(strResult, 1, strResult.length - 1)
 
             //    end if
 
-            //    rs = nothing
+            //    dataTable = nothing
 
             //    else
             //                    strResult = Strmsg
@@ -6435,20 +6432,20 @@ namespace Banking.Services
             //        sqlStr = "SELECT BASIC, HRA, DA, PF, MEDIALLOWANCE, ALLOWANCE, PROFTAX, OTHERALLOWANCE FROM SALARYPARM WHERE EFFECTIVEDATE='" & strArr(1) & "'"
 
 
-            //        rs = obj.SingleSelectStat(sqlStr)
+            //        dataTable = obj.SingleSelectStat(sqlStr)
 
 
             //        if obj.ConnError = "Connected" then
 
-            //            if not rs.BOF and not rs.EOF then
+            //            if not dataTable.BOF and not dataTable.EOF then
 
-            //                strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "~" & rs(7).value
+            //                strResult = strResult & dataTable(0).value & "~" & dataTable(1).value & "~" & dataTable(2).value & "~" & dataTable(3).value & "~" & dataTable(4).value & "~" & dataTable(5).value & "~" & dataTable(6).value & "~" & dataTable(7).value
 
             //            end if
 
             //        end if
 
-            //    rs = nothing
+            //    dataTable = nothing
 
             //    rs1 = nothing
 
@@ -6463,18 +6460,18 @@ namespace Banking.Services
             //        sqlStr = "SELECT X.brcode,X.opbal,X.vaultamt, X.opbal+(C.receipts-C.payments) closebal FROM (SELECT a.branchcode brcode,a.closingbal opbal,v.TOTAMOUNT vaultamt FROM cashbalance a,CASHVAULTMST v WHERE a.applicationdate=(SELECT MAX(applicationdate) FROM cashbalance b WHERE applicationdate<='" & strArr(1) & "' AND b.branchcode=a.branchcode) AND a.branchcode=v.branchcode) X, (SELECT a.branchcode brcode,NVL(r.amount,0) receipts,NVL(p.amount,0) payments FROM (SELECT branchcode,SUM(amount) amount FROM CASHRECEIPTSTRN WHERE applicationdate='" & strArr(1) & "' GROUP BY branchcode) r, (SELECT branchcode,SUM(amount) amount FROM CASHPAYMENTSTRN WHERE applicationdate='" & strArr(1) & "' GROUP BY branchcode) p, (SELECT branchcode FROM CASHVAULTMST WHERE applicationdate='" & strArr(1) & "' GROUP BY branchcode) a WHERE A.branchcode=R.branchcode(+) AND A.branchcode=P.branchcode(+)) C WHERE X.brcode=C.brcode  ORDER BY TO_NUMBER(X.brcode)"
 
 
-            //        rs = obj.SingleSelectStat(sqlStr)
+            //        dataTable = obj.SingleSelectStat(sqlStr)
 
 
             //        if obj.ConnError = "Connected" then
 
-            //            if not rs.BOF and not rs.EOF then
+            //            if not dataTable.BOF and not dataTable.EOF then
 
-            //                do until rs.EOF
+            //                do until dataTable.EOF
 
-            //                    strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "|"
+            //                    strResult = strResult & dataTable(0).value & "~" & dataTable(1).value & "~" & dataTable(2).value & "~" & dataTable(3).value & "|"
 
-            //                    rs.movenext()
+            //                    dataTable.movenext()
 
             //                loop
             //                strResult = mid(strResult, 1, strResult.length - 1)
@@ -6603,7 +6600,7 @@ namespace Banking.Services
             //        strResult = DenFld & "$" & strResult & "#" & sDval
 
 
-            //    rs = nothing
+            //    dataTable = nothing
 
 
             //    elseif strArr(0)= "GETOPDATE" then
@@ -6616,20 +6613,20 @@ namespace Banking.Services
             //        sqlStr = "SELECT TO_CHAR(OPDATE,'DD-MON-YYYY') OPDATE FROM " & strArr(4) & "MST WHERE ACCNO='" & strArr(5) & "' AND GLCODE='" & strArr(3) & "' AND BRANCHCODE='" & strArr(1) & "'"
 
 
-            //        rs = obj.SingleSelectStat(sqlStr)
+            //        dataTable = obj.SingleSelectStat(sqlStr)
 
 
             //        if obj.ConnError = "Connected" then
 
-            //            if not rs.BOF and not rs.EOF then
+            //            if not dataTable.BOF and not dataTable.EOF then
 
-            //                strResult = rs(0).value
+            //                strResult = dataTable(0).value
 
             //            end if
 
             //        end if
 
-            //    rs = nothing
+            //    dataTable = nothing
 
 
             //    elseif strArr(0)= "GETPAN" then
@@ -6642,14 +6639,14 @@ namespace Banking.Services
             //        sqlStr = "SELECT COUNT(*) cnt FROM gencustinfomst WHERE customerid = (SELECT CUSTOMERID FROM DEPMST WHERE glcode=" & strArr(3) & " AND Accno=" & strArr(4) & " AND branchcode='" & strArr(1) & "' AND currencycode='" & strArr(2) & "') AND kycid='2' AND PANNO IS NOT NULL AND branchcode='" & strArr(1) & "' AND currencycode='" & strArr(2) & "'"
 
 
-            //        rs = obj.SingleSelectStat(sqlStr)
+            //        dataTable = obj.SingleSelectStat(sqlStr)
 
 
             //        if obj.ConnError = "Connected" then
 
-            //            if not rs.BOF and not rs.EOF then
+            //            if not dataTable.BOF and not dataTable.EOF then
 
-            //                strResult = rs(0).value
+            //                strResult = dataTable(0).value
 
             //                if strResult = "1" then
             //                    strResult = "Y"
@@ -6663,7 +6660,7 @@ namespace Banking.Services
 
             //        end if
 
-            //    rs = nothing
+            //    dataTable = nothing
 
 
             //    elseif strArr(0)= "NOMREP" then
@@ -6692,25 +6689,25 @@ namespace Banking.Services
             //        sqlStr = "SELECT SUBSTR(C.SUBNATURE,1,8) SUBNATUR, A.ACCNO, A.CUSTOMERID, A.NOMCUSTOMERID, SUBSTR(A.NOMINEENAME,1,35) NOMNAME, TO_CHAR(A.MINNOMINEEDOB,'DD-MON-YYYY') MINDOB, NVL(B.NARRATION,'') RELATION, SUBSTR(A.RECEIVERNAME,1,35) RECEIVNAME, A.ALLOCATION FROM GENCUSTNOMINEEMST A, GENRELATIONSMST B,(SELECT MODULEID, GLCODE, SUBNATURE SUBNATURE FROM SBTYPEMST UNION SELECT MODULEID, GLCODE, SUBNATURE SUBNATURE FROM CATYPEMST UNION SELECT MODULEID, GLCODE, CCSUBNATURE  SUBNATURE FROM CCTYPEMST UNION SELECT MODULEID, GLCODE, DEPSUBNATURE SUBNATURE FROM DEPTYPEMST UNION SELECT MODULEID, GLCODE, LOANSUBNATURE SUBNATURE FROM LOANTYPEMST UNION SELECT MODULEID, GLCODE, MODULEID SUBNATURE FROM genglsheetmst WHERE moduleid IN ('SHARES','LOCKERS') AND BRANCHCODE = '" & strArr(5) & "' ) C WHERE B.CODE=A.RELATION AND A.MODULEID = C.MODULEID AND a.GLCODE=C.GLCODE " & strcond & " UNION SELECT SUBSTR(C.SUBNATURE,1,8) SUBNATUR, A.ACCNO, A.CUSTOMERID, A.NOMCUSTOMERID, SUBSTR(A.NOMINEENAME,1,35) NOMNAME, TO_CHAR(A.MINNOMINEEDOB,'DD-MON-YYYY') MINDOB, A.RELATION, SUBSTR(A.RECEIVERNAME,1,35) RECEIVNAME, A.ALLOCATION FROM GENCUSTNOMINEEMST A, GENRELATIONSMST B, (SELECT MODULEID, GLCODE, SUBNATURE SUBNATURE FROM SBTYPEMST UNION SELECT MODULEID, GLCODE, SUBNATURE SUBNATURE FROM CATYPEMST UNION SELECT MODULEID, GLCODE, CCSUBNATURE  SUBNATURE FROM CCTYPEMST UNION SELECT MODULEID, GLCODE, DEPSUBNATURE SUBNATURE FROM DEPTYPEMST UNION SELECT MODULEID, GLCODE, LOANSUBNATURE SUBNATURE FROM LOANTYPEMST UNION SELECT MODULEID, GLCODE, MODULEID SUBNATURE FROM genglsheetmst WHERE moduleid IN ('SHARES','LOCKERS') AND BRANCHCODE = '" & strArr(5) & "' ) C WHERE A.MODULEID = C.MODULEID AND a.GLCODE=C.GLCODE AND LENGTH(trim(a.relation)) > 2 " & strcond & " UNION SELECT SUBSTR(C.SUBNATURE,1,8) SUBNATUR, A.ACCNO, A.CUSTOMERID, A.NOMCUSTOMERID, SUBSTR(A.NOMINEENAME,1,35) NOMNAME, TO_CHAR(A.MINNOMINEEDOB,'DD-MON-YYYY') MINDOB, A.RELATION, SUBSTR(A.RECEIVERNAME,1,35) RECEIVNAME, A.ALLOCATION FROM GENCUSTNOMINEEMST A,(SELECT MODULEID, GLCODE, SUBNATURE SUBNATURE FROM SBTYPEMST UNION SELECT MODULEID, GLCODE, SUBNATURE SUBNATURE FROM CATYPEMST UNION SELECT MODULEID, GLCODE, CCSUBNATURE  SUBNATURE FROM CCTYPEMST UNION SELECT MODULEID, GLCODE, DEPSUBNATURE SUBNATURE FROM DEPTYPEMST UNION SELECT MODULEID, GLCODE, LOANSUBNATURE SUBNATURE FROM LOANTYPEMST UNION SELECT MODULEID, GLCODE, MODULEID SUBNATURE FROM genglsheetmst WHERE moduleid IN ('SHARES','LOCKERS') AND BRANCHCODE = '" & strArr(5) & "' ) C WHERE A.MODULEID = C.MODULEID AND a.GLCODE=C.GLCODE AND a.relation IS NULL " & strcond & " "
 
 
-            //        rs = obj.SingleSelectStat(sqlStr)
+            //        dataTable = obj.SingleSelectStat(sqlStr)
 
 
             //        if obj.ConnError = "Connected" then
 
-            //            if not rs.BOF and not rs.EOF then
+            //            if not dataTable.BOF and not dataTable.EOF then
 
-            //                do until rs.EOF
+            //                do until dataTable.EOF
 
 
             //                    if strArr(4) = "" then
-            //                        strResult = strResult & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(6).value & "~" & rs(7).value & "~" & rs(8).value & "|"
+            //                        strResult = strResult & dataTable(2).value & "~" & dataTable(3).value & "~" & dataTable(4).value & "~" & dataTable(6).value & "~" & dataTable(7).value & "~" & dataTable(8).value & "|"
 
             //                    else
-            //                strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(6).value & "~" & rs(7).value & "~" & rs(8).value & "|"
+            //                strResult = strResult & dataTable(0).value & "~" & dataTable(1).value & "~" & dataTable(3).value & "~" & dataTable(4).value & "~" & dataTable(6).value & "~" & dataTable(7).value & "~" & dataTable(8).value & "|"
 
             //                    end if
 
-            //                    rs.movenext()
+            //                    dataTable.movenext()
 
             //                loop
             //                strResult = mid(strResult, 1, strResult.length - 1)
@@ -6720,7 +6717,7 @@ namespace Banking.Services
 
             //        end if
 
-            //    rs = nothing
+            //    dataTable = nothing
 
 
 
@@ -6736,18 +6733,18 @@ namespace Banking.Services
 
             //sqlstr = "SELECT d.TRANSDATE, d.RECEIPTNO,d.ACCNO,m.name, d.AMOUNT  FROM LOANDLYCOLLDTLS d, loanmst m WHERE d.accno = m.accno AND d.glcode = m.glcode AND d.branchcode = m.branchcode AND d.currencycode = m.currencycode AND d.branchcode = '" & strArr(1) & "' AND d.currencycode = '" & strArr(2) & "' AND d.glcode = '" & strArr(3) & "' AND d.accno = '" & strArr(4) & "' AND " & actdatewhere & ""
 
-            //rs = obj.SingleSelectStat(sqlstr)
+            //dataTable = obj.SingleSelectStat(sqlstr)
 
             //if obj.ConnError = "Connected" then
 
-            //    if not rs.BOF and not rs.EOF then
+            //    if not dataTable.BOF and not dataTable.EOF then
 
-            //        do until rs.EOF
+            //        do until dataTable.EOF
 
 
-            //        strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "|"
+            //        strResult = strResult & dataTable(0).value & "~" & dataTable(1).value & "~" & dataTable(2).value & "~" & dataTable(3).value & "~" & dataTable(4).value & "|"
 
-            //                rs.movenext()
+            //                dataTable.movenext()
 
             //                loop
             //                strResult = mid(strResult, 1, strResult.length - 1)
@@ -6755,7 +6752,7 @@ namespace Banking.Services
             //        end if
 
             //    end if
-            //rs = nothing
+            //dataTable = nothing
 
             //elseif strArr(0)= "BLCAGENTWISEDET" then
 
@@ -6769,18 +6766,18 @@ namespace Banking.Services
 
             //sqlstr = "SELECT d.TRANSDATE, d.RECEIPTNO,d.ACCNO,m.name, d.AMOUNT  FROM LOANDLYCOLLDTLS d, loanmst m WHERE d.accno = m.accno AND d.glcode = m.glcode AND d.branchcode = m.branchcode AND d.currencycode = m.currencycode AND d.branchcode = '" & strArr(1) & "' AND d.currencycode = '" & strArr(2) & "' AND d.agentcode = '" & strArr(3) & "' AND " & actdatewhere & ""
 
-            //rs = obj.SingleSelectStat(sqlstr)
+            //dataTable = obj.SingleSelectStat(sqlstr)
 
             //if obj.ConnError = "Connected" then
 
-            //    if not rs.BOF and not rs.EOF then
+            //    if not dataTable.BOF and not dataTable.EOF then
 
-            //        do until rs.EOF
+            //        do until dataTable.EOF
 
 
-            //        strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "|"
+            //        strResult = strResult & dataTable(0).value & "~" & dataTable(1).value & "~" & dataTable(2).value & "~" & dataTable(3).value & "~" & dataTable(4).value & "|"
 
-            //                rs.movenext()
+            //                dataTable.movenext()
 
             //                loop
             //                strResult = mid(strResult, 1, strResult.length - 1)
@@ -6788,7 +6785,7 @@ namespace Banking.Services
             //        end if
 
             //    end if
-            //rs = nothing
+            //dataTable = nothing
 
             //elseif strArr(0)= "BLCAGENTWISESUM" then
 
@@ -6802,18 +6799,18 @@ namespace Banking.Services
 
             //sqlstr = "SELECT d.TRANSDATE,count(*), sum(d.AMOUNT)  FROM LOANDLYCOLLDTLS d, loanmst m WHERE d.accno = m.accno AND d.glcode = m.glcode AND d.branchcode = m.branchcode AND d.currencycode = m.currencycode AND d.branchcode = '" & strArr(1) & "' AND d.currencycode = '" & strArr(2) & "' AND d.agentcode = '" & strArr(3) & "' AND " & actdatewhere & " group by d.transdate"
 
-            //rs = obj.SingleSelectStat(sqlstr)
+            //dataTable = obj.SingleSelectStat(sqlstr)
 
             //if obj.ConnError = "Connected" then
 
-            //    if not rs.BOF and not rs.EOF then
+            //    if not dataTable.BOF and not dataTable.EOF then
 
-            //        do until rs.EOF
+            //        do until dataTable.EOF
 
 
-            //        strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "|"
+            //        strResult = strResult & dataTable(0).value & "~" & dataTable(1).value & "~" & dataTable(2).value & "|"
 
-            //                rs.movenext()
+            //                dataTable.movenext()
 
             //                loop
             //                strResult = mid(strResult, 1, strResult.length - 1)
@@ -6821,7 +6818,7 @@ namespace Banking.Services
             //        end if
 
             //    end if
-            //rs = nothing
+            //dataTable = nothing
 
             //elseif strArr(0)= "BLCAGENTWISETRN" then
 
@@ -6835,18 +6832,18 @@ namespace Banking.Services
 
             //sqlstr = "SELECT d.TRANSFERDATE, d.RECEIPTNO,d.ACCNO,m.name, d.AMOUNT  FROM LOANDLYCOLLDTLS d, loanmst m WHERE d.accno = m.accno AND d.glcode = m.glcode AND d.branchcode = m.branchcode AND d.currencycode = m.currencycode AND d.branchcode = '" & strArr(1) & "' AND d.currencycode = '" & strArr(2) & "' AND d.agentcode = '" & strArr(3) & "' AND " & actdatewhere & ""
 
-            //rs = obj.SingleSelectStat(sqlstr)
+            //dataTable = obj.SingleSelectStat(sqlstr)
 
             //if obj.ConnError = "Connected" then
 
-            //    if not rs.BOF and not rs.EOF then
+            //    if not dataTable.BOF and not dataTable.EOF then
 
-            //        do until rs.EOF
+            //        do until dataTable.EOF
 
 
-            //        strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "|"
+            //        strResult = strResult & dataTable(0).value & "~" & dataTable(1).value & "~" & dataTable(2).value & "~" & dataTable(3).value & "~" & dataTable(4).value & "|"
 
-            //                rs.movenext()
+            //                dataTable.movenext()
 
             //                loop
             //                strResult = mid(strResult, 1, strResult.length - 1)
@@ -6854,7 +6851,7 @@ namespace Banking.Services
             //        end if
 
             //    end if
-            //rs = nothing
+            //dataTable = nothing
 
 
 
@@ -6868,20 +6865,20 @@ namespace Banking.Services
             //        sqlStr = "SELECT NVL(MAX(sno),0) FROM LOANINTRATEDTLS " & strArr(2) & " "
 
 
-            //        rs = obj.SingleSelectStat(sqlStr)
+            //        dataTable = obj.SingleSelectStat(sqlStr)
 
 
             //        if obj.ConnError = "Connected" then
 
-            //            if not rs.BOF and not rs.EOF then
+            //            if not dataTable.BOF and not dataTable.EOF then
 
-            //                strResult = rs(0).value
+            //                strResult = dataTable(0).value
 
             //            end if
 
             //        end if
 
-            //    rs = nothing
+            //    dataTable = nothing
 
 
             //    elseif strArr(0)= "DATECHECK" then
@@ -6894,20 +6891,20 @@ namespace Banking.Services
             //        sqlStr = "SELECT COUNT(*) FROM LOANINTRATEDTLS where EFFECTIVEDATE='" & strArr(2) & "' " & strArr(3) & " "
 
 
-            //        rs = obj.SingleSelectStat(sqlStr)
+            //        dataTable = obj.SingleSelectStat(sqlStr)
 
 
             //        if obj.ConnError = "Connected" then
 
-            //            if not rs.BOF and not rs.EOF then
+            //            if not dataTable.BOF and not dataTable.EOF then
 
-            //                strResult = rs(0).value
+            //                strResult = dataTable(0).value
 
             //            end if
 
             //        end if
 
-            //    rs = nothing
+            //    dataTable = nothing
 
 
             //    elseif strArr(0)= "MONCHK" then
@@ -6920,20 +6917,20 @@ namespace Banking.Services
             //        sqlStr = "SELECT MAX(tomonths) FROM LOANINTRATEDTLS " & strArr(2) & " "
 
 
-            //        rs = obj.SingleSelectStat(sqlStr)
+            //        dataTable = obj.SingleSelectStat(sqlStr)
 
 
             //        if obj.ConnError = "Connected" then
 
-            //            if not rs.BOF and not rs.EOF then
+            //            if not dataTable.BOF and not dataTable.EOF then
 
-            //                strResult = rs(0).value
+            //                strResult = dataTable(0).value
 
             //            end if
 
             //        end if
 
-            //    rs = nothing
+            //    dataTable = nothing
 
 
             //    elseif strArr(0)= "AMTCHK" then
@@ -6946,20 +6943,20 @@ namespace Banking.Services
             //        sqlStr = "SELECT MAX(TOAMOUNT) FROM LOANINTRATEDTLS " & strArr(2) & " "
 
 
-            //        rs = obj.SingleSelectStat(sqlStr)
+            //        dataTable = obj.SingleSelectStat(sqlStr)
 
 
             //        if obj.ConnError = "Connected" then
 
-            //            if not rs.BOF and not rs.EOF then
+            //            if not dataTable.BOF and not dataTable.EOF then
 
-            //                strResult = rs(0).value
+            //                strResult = dataTable(0).value
 
             //            end if
 
             //        end if
 
-            //    rs = nothing
+            //    dataTable = nothing
 
 
             //    elseif strArr(0)= "AMOUNTROI" then
@@ -6972,20 +6969,20 @@ namespace Banking.Services
             //        sqlStr = "SELECT NVL(a.ROI,0) roi , NVL(b.ABOVELIMITROI,0) abvroi FROM LOANINTRATEDTLS a,LoanTypeMst b WHERE b.glcode=a.glcode AND b.status='R' AND a.effectivedate = (SELECT MAX(effectivedate) FROM LOANINTRATEDTLS WHERE glcode='" & strArr(2) & "' AND status='R' AND fromamount <= '" & strArr(1) & "' AND TOAMOUNT >= '" & strArr(1) & "') and a.glcode='" & strArr(2) & "' AND fromamount <= '" & strArr(1) & "' AND TOAMOUNT >= '" & strArr(1) & "'"
 
 
-            //        rs = obj.SingleSelectStat(sqlStr)
+            //        dataTable = obj.SingleSelectStat(sqlStr)
 
 
             //        if obj.ConnError = "Connected" then
 
-            //            if not rs.BOF and not rs.EOF then
+            //            if not dataTable.BOF and not dataTable.EOF then
 
-            //                strResult = rs(0).value & "~" & rs(1).value
+            //                strResult = dataTable(0).value & "~" & dataTable(1).value
 
             //            end if
 
             //        end if
 
-            //    rs = nothing
+            //    dataTable = nothing
 
 
             //    elseif strArr(0)= "SALTYP" then
@@ -6998,20 +6995,20 @@ namespace Banking.Services
             //        sqlStr = "SELECT COUNT(*) FROM SALARYCTRLMST WHERE SALTYPE='" & strArr(1) & "' "
 
 
-            //        rs = obj.SingleSelectStat(sqlStr)
+            //        dataTable = obj.SingleSelectStat(sqlStr)
 
 
             //        if obj.ConnError = "Connected" then
 
-            //            if not rs.BOF and not rs.EOF then
+            //            if not dataTable.BOF and not dataTable.EOF then
 
-            //                strResult = rs(0).value
+            //                strResult = dataTable(0).value
 
             //            end if
 
             //        end if
 
-            //    rs = nothing
+            //    dataTable = nothing
 
 
             //    elseif strArr(0)= "SALTYPDATA" then
@@ -7036,17 +7033,17 @@ namespace Banking.Services
             //        sqlStr = "SELECT MODULEID, GLCODE, ACCNO, DRCRFLG FROM SALARYCTRLMST WHERE SALTYPE='" & strArr(1) & "' AND MODULEID IS NOT NULL AND GLCODE IS NOT NULL AND ACCNO IS NOT NULL AND DRCRFLG  IS NOT NULL AND APPLICATIONDATE = (SELECT MAX(APPLICATIONDATE) FROM SALARYCTRLMST WHERE SALTYPE='" & strArr(1) & "' AND MODULEID IS NOT NULL AND GLCODE IS NOT NULL AND ACCNO IS NOT NULL AND DRCRFLG  IS NOT NULL)"
 
 
-            //        rs = obj.SingleSelectStat(sqlStr)
+            //        dataTable = obj.SingleSelectStat(sqlStr)
 
 
             //        if obj.ConnError = "Connected" then
 
-            //            if not rs.BOF and not rs.EOF then
+            //            if not dataTable.BOF and not dataTable.EOF then
 
-            //                strResult = rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value
+            //                strResult = dataTable(0).value & "~" & dataTable(1).value & "~" & dataTable(2).value & "~" & dataTable(3).value
 
 
-            //                    sqlStr1 = "SELECT NARRATION FROM GENMODULETYPESMST WHERE MODULEID ='" & rs(0).value & "'"
+            //                    sqlStr1 = "SELECT NARRATION FROM GENMODULETYPESMST WHERE MODULEID ='" & dataTable(0).value & "'"
 
             //                    rs1 = obj1.SingleSelectStat(sqlStr1)
 
@@ -7069,7 +7066,7 @@ namespace Banking.Services
             //                    obj1 = nothing
 
 
-            //                    sqlStr2 = "SELECT NARRATION FROM GENGLSHEETMST WHERE MODULEID ='" & rs(0).value & "' AND GLCODE='" & rs(1).value & "'"
+            //                    sqlStr2 = "SELECT NARRATION FROM GENGLSHEETMST WHERE MODULEID ='" & dataTable(0).value & "' AND GLCODE='" & dataTable(1).value & "'"
 
             //                    rs2 = obj6.SingleSelectStat(sqlStr2)
 
@@ -7092,7 +7089,7 @@ namespace Banking.Services
             //                    obj6 = nothing
 
 
-            //                    sqlStr3 = "SELECT NAME FROM " & rs(0).value & "MST WHERE GLCODE='" & rs(1).value & "' AND ACCNO='" & rs(2).value & "'"
+            //                    sqlStr3 = "SELECT NAME FROM " & dataTable(0).value & "MST WHERE GLCODE='" & dataTable(1).value & "' AND ACCNO='" & dataTable(2).value & "'"
 
             //                    rs3 = obj7.SingleSelectStat(sqlStr3)
 
@@ -7119,7 +7116,7 @@ namespace Banking.Services
 
             //        end if
 
-            //    rs = nothing
+            //    dataTable = nothing
 
 
             //    elseif strArr(0)= "PARDATA" then
@@ -7132,20 +7129,20 @@ namespace Banking.Services
             //        sqlStr = "SELECT VALUE, FLAG, FROMAMT, TOAMT FROM SALARYPARMST WHERE EFFECTIVEDATE = '" & strArr(1) & "' AND CODE = '" & strArr(2) & "' AND status='R' "
 
 
-            //        rs = obj.SingleSelectStat(sqlStr)
+            //        dataTable = obj.SingleSelectStat(sqlStr)
 
 
             //        if obj.ConnError = "Connected" then
 
-            //            if not rs.BOF and not rs.EOF then
+            //            if not dataTable.BOF and not dataTable.EOF then
 
-            //                strResult = rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value
+            //                strResult = dataTable(0).value & "~" & dataTable(1).value & "~" & dataTable(2).value & "~" & dataTable(3).value
 
             //            end if
 
             //        end if
 
-            //    rs = nothing
+            //    dataTable = nothing
 
 
             //    elseif strArr(0)= "EMPDEDDTLS" then
@@ -7177,17 +7174,17 @@ namespace Banking.Services
             //    sqlStr = "SELECT BRANCHCODE, MODULEID, GLCODE, ACCNO, AMOUNT, NARRATION, NOOFMONTH, DEDTYPE FROM SALARYDEDUCTIONMST where EMPCODE='" & strArr(1) & "' and applicationdate='" & strArr(2) & "'"
 
 
-            //        rs = obj.SingleSelectStat(sqlStr)
+            //        dataTable = obj.SingleSelectStat(sqlStr)
 
 
             //        if obj.ConnError = "Connected" then
 
-            //            if not rs.BOF and not rs.EOF then
+            //            if not dataTable.BOF and not dataTable.EOF then
 
-            //                strResult = rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "~" & rs(7).value
+            //                strResult = dataTable(0).value & "~" & dataTable(1).value & "~" & dataTable(2).value & "~" & dataTable(3).value & "~" & dataTable(4).value & "~" & dataTable(5).value & "~" & dataTable(6).value & "~" & dataTable(7).value
 
 
-            //                    sqlStr4 = "SELECT NARRATION FROM GENBANKBRANCHMST WHERE branchcode='" & rs(0).value & "'"
+            //                    sqlStr4 = "SELECT NARRATION FROM GENBANKBRANCHMST WHERE branchcode='" & dataTable(0).value & "'"
 
             //                    rs4 = obj8.SingleSelectStat(sqlStr4)
 
@@ -7210,7 +7207,7 @@ namespace Banking.Services
             //                    obj8 = nothing
 
 
-            //                    sqlStr1 = "SELECT NARRATION FROM GENMODULETYPESMST WHERE MODULEID ='" & rs(1).value & "'"
+            //                    sqlStr1 = "SELECT NARRATION FROM GENMODULETYPESMST WHERE MODULEID ='" & dataTable(1).value & "'"
 
             //                    rs1 = obj1.SingleSelectStat(sqlStr1)
 
@@ -7233,7 +7230,7 @@ namespace Banking.Services
             //                    obj1 = nothing
 
 
-            //                    sqlStr2 = "SELECT NARRATION FROM GENGLSHEETMST WHERE MODULEID ='" & rs(1).value & "' AND GLCODE='" & rs(2).value & "'"
+            //                    sqlStr2 = "SELECT NARRATION FROM GENGLSHEETMST WHERE MODULEID ='" & dataTable(1).value & "' AND GLCODE='" & dataTable(2).value & "'"
 
             //                    rs2 = obj6.SingleSelectStat(sqlStr2)
 
@@ -7256,7 +7253,7 @@ namespace Banking.Services
             //                    obj6 = nothing
 
 
-            //                    sqlStr3 = "SELECT NAME FROM " & rs(1).value & "MST WHERE GLCODE='" & rs(2).value & "' AND ACCNO='" & rs(3).value & "'"
+            //                    sqlStr3 = "SELECT NAME FROM " & dataTable(1).value & "MST WHERE GLCODE='" & dataTable(2).value & "' AND ACCNO='" & dataTable(3).value & "'"
 
             //                    rs3 = obj7.SingleSelectStat(sqlStr3)
 
@@ -7284,7 +7281,7 @@ namespace Banking.Services
             //        end if
 
 
-            //    rs = nothing
+            //    dataTable = nothing
 
 
             //    elseif strArr(0)= "MEMBERDTLS" then
@@ -7307,16 +7304,16 @@ namespace Banking.Services
             //        sqlStr = "SELECT a.CUSTOMERID,a.STATUS, b.MAILADDRESS1||', '|| b.MAILADDRESS2 add1 , b.MAILADDRESS3||', '|| b.MAILADDRESS4||', '|| b.MAILADDRESS5 Add2, b.CUSTMOBILE, b.AADHARUID, b.KYCID,b.fathername  FROM SHARESMST a,gencustinfomst b WHERE b.customerid=a.customerid AND b.branchcode=a.branchcode AND a.accno = '" & strArr(3) & "' AND a.glcode='" & strArr(4) & "' AND a.branchcode='" & strArr(1) & "' "
 
 
-            //        rs = obj.SingleSelectStat(sqlStr)
+            //        dataTable = obj.SingleSelectStat(sqlStr)
 
 
             //        if obj.ConnError = "Connected" then
 
-            //            if not rs.BOF and not rs.EOF then
+            //            if not dataTable.BOF and not dataTable.EOF then
 
 
-            //                if isdbnull(rs(5).value) = false then
-            //                    aadhar = mid(rs(5).value, 1, 4) & " " & mid(rs(5).value, 5, 4) & " " & mid(rs(5).value, 9, 4)
+            //                if isdbnull(dataTable(5).value) = false then
+            //                    aadhar = mid(dataTable(5).value, 1, 4) & " " & mid(dataTable(5).value, 5, 4) & " " & mid(dataTable(5).value, 9, 4)
 
             //                else
             //                aadhar = ""
@@ -7324,25 +7321,25 @@ namespace Banking.Services
             //                end if
 
 
-            //                strResult = rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & aadhar & "~" & rs(6).value
+            //                strResult = dataTable(0).value & "~" & dataTable(1).value & "~" & dataTable(2).value & "~" & dataTable(3).value & "~" & dataTable(4).value & "~" & aadhar & "~" & dataTable(6).value
 
-            //                strFname = iif(isdbnull(rs(7).value), "", rs(7).value)
-
-
-            //                 'kyc = iif(isdbnull(rs(6).value),"",rs(6).value) 
+            //                strFname = iif(isdbnull(dataTable(7).value), "", dataTable(7).value)
 
 
-            //                if isdbnull(rs(6).value) = false then
+            //                 'kyc = iif(isdbnull(dataTable(6).value),"",dataTable(6).value) 
 
 
-            //                    if rs(6).value = 0 then
+            //                if isdbnull(dataTable(6).value) = false then
+
+
+            //                    if dataTable(6).value = 0 then
             //                        strResult = strResult & "~~"
 
             //                    else
             //                sqlStr = ""
 
 
-            //                        sqlStr = "SELECT b.DESCRIPTION,a.PANNO FROM gencustinfomst a,GENKYCMST b WHERE b.code=a.KYCID AND a.customerid='" & rs(0).value & "'"
+            //                        sqlStr = "SELECT b.DESCRIPTION,a.PANNO FROM gencustinfomst a,GENKYCMST b WHERE b.code=a.KYCID AND a.customerid='" & dataTable(0).value & "'"
 
 
             //                        rs1 = obj1.SingleSelectStat(sqlStr)
@@ -7375,7 +7372,7 @@ namespace Banking.Services
 
             //        strResult = strResult & "~" & strFname
 
-            //    rs = nothing
+            //    dataTable = nothing
 
 
             //    elseif strArr(0)= "CUSTDTLS" then
@@ -7397,16 +7394,16 @@ namespace Banking.Services
             //        sqlStr = "SELECT MAILADDRESS1||', '|| MAILADDRESS2 add1 , MAILADDRESS3||', '|| MAILADDRESS4||', '|| MAILADDRESS5 Add2, CUSTMOBILE, AADHARUID, KYCID,DECODE(status,'R','Running','C','Closed','J','Frozen'),fathername  FROM gencustinfomst  WHERE customerid= '" & strArr(3) & "' "
 
 
-            //        rs = obj.SingleSelectStat(sqlStr)
+            //        dataTable = obj.SingleSelectStat(sqlStr)
 
 
             //        if obj.ConnError = "Connected" then
 
-            //            if not rs.BOF and not rs.EOF then
+            //            if not dataTable.BOF and not dataTable.EOF then
 
 
-            //                if isdbnull(rs(3).value) = false then
-            //                    aadhar = mid(rs(3).value, 1, 4) & " " & mid(rs(3).value, 5, 4) & " " & mid(rs(3).value, 9, 4)
+            //                if isdbnull(dataTable(3).value) = false then
+            //                    aadhar = mid(dataTable(3).value, 1, 4) & " " & mid(dataTable(3).value, 5, 4) & " " & mid(dataTable(3).value, 9, 4)
 
             //                else
             //                aadhar = ""
@@ -7414,27 +7411,27 @@ namespace Banking.Services
             //                end if
 
 
-            //                strResult = rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & aadhar & "~" & rs(4).value
+            //                strResult = dataTable(0).value & "~" & dataTable(1).value & "~" & dataTable(2).value & "~" & aadhar & "~" & dataTable(4).value
 
-            //                strStatus = iif(isdbnull(rs(5).value), "", rs(5).value)
+            //                strStatus = iif(isdbnull(dataTable(5).value), "", dataTable(5).value)
 
-            //                strFname = iif(isdbnull(rs(6).value), "", rs(6).value)
-
-
-            //                 'kyc = iif(isdbnull(rs(4).value),"",rs(4).value) 
+            //                strFname = iif(isdbnull(dataTable(6).value), "", dataTable(6).value)
 
 
-            //                if isdbnull(rs(4).value) = false then
+            //                 'kyc = iif(isdbnull(dataTable(4).value),"",dataTable(4).value) 
 
 
-            //                    if rs(4).value = 0 then
+            //                if isdbnull(dataTable(4).value) = false then
+
+
+            //                    if dataTable(4).value = 0 then
             //                        strResult = strResult & "~~"
 
             //                    else
             //                sqlStr = ""
 
 
-            //                        sqlStr = "SELECT b.DESCRIPTION,a.PANNO FROM gencustinfomst a,GENKYCMST b WHERE b.code=a.KYCID and a.KYCID = '" & rs(4).value & "' and a.customerid='" & strArr(3) & "'"
+            //                        sqlStr = "SELECT b.DESCRIPTION,a.PANNO FROM gencustinfomst a,GENKYCMST b WHERE b.code=a.KYCID and a.KYCID = '" & dataTable(4).value & "' and a.customerid='" & strArr(3) & "'"
 
 
             //                        rs1 = obj1.SingleSelectStat(sqlStr)
@@ -7469,7 +7466,7 @@ namespace Banking.Services
 
             //        strResult = strResult & "~" & strStatus & "~" & strFname
 
-            //    rs = nothing
+            //    dataTable = nothing
 
 
             //    elseif strArr(0)= "FRMINTACRCUST" then
@@ -7539,20 +7536,20 @@ namespace Banking.Services
             //                    end if
 
 
-            //                    rs = obj.SingleSelectStat(sqlStr)
+            //                    dataTable = obj.SingleSelectStat(sqlStr)
 
 
             //                        if obj.ConnError = "Connected" then
 
-            //                            if not rs.BOF and not rs.EOF then
+            //                            if not dataTable.BOF and not dataTable.EOF then
 
-            //                                do until rs.EOF
-
-
-            //                                    strResult = strResult & "'" & rs(0).value & "','" & rs(1).value & "','" & rs(2).value & "','" & rs(3).value & "','" & rs(4).value & "','" & rs(5).value & "','" & rs(6).value & "','" & rs(7).value & "','" & rs(8).value & "','" & rs(9).value & "','" & rs(10).value & "'|"
+            //                                do until dataTable.EOF
 
 
-            //                                rs.movenext()
+            //                                    strResult = strResult & "'" & dataTable(0).value & "','" & dataTable(1).value & "','" & dataTable(2).value & "','" & dataTable(3).value & "','" & dataTable(4).value & "','" & dataTable(5).value & "','" & dataTable(6).value & "','" & dataTable(7).value & "','" & dataTable(8).value & "','" & dataTable(9).value & "','" & dataTable(10).value & "'|"
+
+
+            //                                dataTable.movenext()
 
             //                                loop
             //                            end if
@@ -7579,7 +7576,7 @@ namespace Banking.Services
 
             //        rsmain = nothing
 
-            //        rs = nothing
+            //        dataTable = nothing
 
 
             //        dim obj2
@@ -7707,26 +7704,26 @@ namespace Banking.Services
 
 
 
-            //            rs = obj.SingleSelectStat(sqlStr)
+            //            dataTable = obj.SingleSelectStat(sqlStr)
 
 
-            //            if not rs.BOF and not rs.EOF then
+            //            if not dataTable.BOF and not dataTable.EOF then
 
-            //                do until rs.EOF
+            //                do until dataTable.EOF
 
 
             //                    if strArr(6) = "0" then
-            //                        strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "~" & rs(7).value & "~" & rs(8).value & "|"
+            //                        strResult = strResult & dataTable(0).value & "~" & dataTable(1).value & "~" & dataTable(2).value & "~" & dataTable(3).value & "~" & dataTable(4).value & "~" & dataTable(5).value & "~" & dataTable(6).value & "~" & dataTable(7).value & "~" & dataTable(8).value & "|"
 
             //                    else
-            //                strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "~" & rs(7).value & "~" & rs(8).value & "~" & rs(9).value & "|"
+            //                strResult = strResult & dataTable(0).value & "~" & dataTable(1).value & "~" & dataTable(2).value & "~" & dataTable(3).value & "~" & dataTable(4).value & "~" & dataTable(5).value & "~" & dataTable(6).value & "~" & dataTable(7).value & "~" & dataTable(8).value & "~" & dataTable(9).value & "|"
 
             //                    end if
 
-            //                rs.movenext()
+            //                dataTable.movenext()
 
             //                loop
-            //            end if ''not rs.BOF and not rs.EOF
+            //            end if ''not dataTable.BOF and not dataTable.EOF
 
 
             //            if strResult<> "" then
@@ -7734,7 +7731,7 @@ namespace Banking.Services
 
             //            end if
 
-            //            rs = nothing
+            //            dataTable = nothing
 
             //        else
             //                    strResult = Strmsg
@@ -7793,21 +7790,21 @@ namespace Banking.Services
             //    " SELECT TO_CHAR(applicationdate,'dd-Mon-yyyy') appdate, batchno, tranno, glcode, accno, amount, userid, APPROVEDBY,branchcode FROM GENTRANSLOGbkp WHERE  " & strUserCond & "  " & strDateCond & " AND branchcode='" & strArr(5) & "' order by 1"
             //end if
 
-            //        rs = obj.SingleSelectStat(sqlStr)
+            //        dataTable = obj.SingleSelectStat(sqlStr)
 
 
             //        if obj.ConnError = "Connected" then
 
-            //            if not rs.BOF and not rs.EOF then
+            //            if not dataTable.BOF and not dataTable.EOF then
 
 
-            //                do until rs.EOF
+            //                do until dataTable.EOF
 
 
-            //                strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "~" & rs(7).value & "~" & rs(8).value & "|"
+            //                strResult = strResult & dataTable(0).value & "~" & dataTable(1).value & "~" & dataTable(2).value & "~" & dataTable(3).value & "~" & dataTable(4).value & "~" & dataTable(5).value & "~" & dataTable(6).value & "~" & dataTable(7).value & "~" & dataTable(8).value & "|"
 
 
-            //                rs.movenext()
+            //                dataTable.movenext()
 
             //                loop
 
@@ -7826,7 +7823,7 @@ namespace Banking.Services
 
 
 
-            //    rs = nothing
+            //    dataTable = nothing
 
 
             //    elseif strArr(0)= "CDRATIO" then
@@ -7839,15 +7836,15 @@ namespace Banking.Services
             //        sqlStr = "SELECT DLFLAG FROM CDRATIOPARM where glcode='" & strArr(2) & "' and moduleid='" & strArr(1) & "' and status='R' and DLFLAG in ('A','B','C')"
 
 
-            //        rs = obj.SingleSelectStat(sqlStr)
+            //        dataTable = obj.SingleSelectStat(sqlStr)
 
 
             //        if obj.ConnError = "Connected" then
 
-            //            if not rs.BOF and not rs.EOF then
+            //            if not dataTable.BOF and not dataTable.EOF then
 
 
-            //                strResult = rs(0).value
+            //                strResult = dataTable(0).value
 
 
             //            end if
@@ -7855,7 +7852,7 @@ namespace Banking.Services
             //        end if
 
 
-            //    rs = nothing
+            //    dataTable = nothing
 
 
             //    elseif strArr(0)= "CRRSLR" then
@@ -7868,15 +7865,15 @@ namespace Banking.Services
             //        sqlStr = "SELECT DLFLAG,FLAGSUBTYPE FROM CDRATIOPARM where glcode='" & strArr(2) & "' and moduleid='" & strArr(1) & "' and status='R' and DLFLAG in ('CRR','SLR') "
 
 
-            //        rs = obj.SingleSelectStat(sqlStr)
+            //        dataTable = obj.SingleSelectStat(sqlStr)
 
 
             //        if obj.ConnError = "Connected" then
 
-            //            if not rs.BOF and not rs.EOF then
+            //            if not dataTable.BOF and not dataTable.EOF then
 
 
-            //                strResult = rs(0).value & "|" & rs(1).value
+            //                strResult = dataTable(0).value & "|" & dataTable(1).value
 
 
             //            end if
@@ -7884,7 +7881,7 @@ namespace Banking.Services
             //        end if
 
 
-            //    rs = nothing
+            //    dataTable = nothing
 
 
             //    elseif strArr(0)= "REFDETAIL" then
@@ -7897,15 +7894,15 @@ namespace Banking.Services
             //        sqlStr = "SELECT LTRIM(SUBSTR(a.ACCNO,10),'0') ACCNO,LTRIM(SUBSTR(a.ACCNO,4,6),'0') glcode, a.NOBOOKS, a.NOPAGES, a.BO, a.ATPAR, a.AUTOCHARGESYN, a.CHQFROM, a.CHQTO, b.NARRATION, a.INSTRTYPE FROM CHQREQSTDTLS a,GENGLSHEETMST b WHERE b.glcode=LTRIM(SUBSTR(a.ACCNO,4,6),'0') AND b.BRANCHCODE=a.BRANCHCODE AND a.REFNO = '" & strArr(1) & "' AND AF4ACTYPE = '" & strArr(3) & "' AND a.BRANCHCODE='" & strArr(2) & "' "
 
 
-            //        rs = obj.SingleSelectStat(sqlStr)
+            //        dataTable = obj.SingleSelectStat(sqlStr)
 
 
             //        if obj.ConnError = "Connected" then
 
-            //            if not rs.BOF and not rs.EOF then
+            //            if not dataTable.BOF and not dataTable.EOF then
 
 
-            //                strResult = rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "~" & rs(7).value & "~" & rs(8).value & "~" & rs(9).value & "~" & rs(10).value
+            //                strResult = dataTable(0).value & "~" & dataTable(1).value & "~" & dataTable(2).value & "~" & dataTable(3).value & "~" & dataTable(4).value & "~" & dataTable(5).value & "~" & dataTable(6).value & "~" & dataTable(7).value & "~" & dataTable(8).value & "~" & dataTable(9).value & "~" & dataTable(10).value
 
 
             //            end if
@@ -7913,7 +7910,7 @@ namespace Banking.Services
             //        end if
 
 
-            //    rs = nothing
+            //    dataTable = nothing
 
 
             //    elseif strArr(0)= "VALDETAL" then
@@ -7938,15 +7935,15 @@ namespace Banking.Services
             //        sqlStr = "SELECT SUBSTR(MAILADDRESS1,0,40),SUBSTR(MAILADDRESS2,0,40),SUBSTR(MAILADDRESS3,0,40),NVL(MAILADDRESS4,0) city,NVL(MAILADDRESS5,0) pin, customertype from gencustinfomst where customerid=(SELECT Customerid FROM " & strArr(2) & "MST WHERE ACCNO = '" & strArr(4) & "' AND GLCODE = '" & strArr(3) & "' AND BRANCHCODE = '" & strArr(1) & "') "
 
 
-            //        rs = obj.SingleSelectStat(sqlStr)
+            //        dataTable = obj.SingleSelectStat(sqlStr)
 
 
             //        if obj.ConnError = "Connected" then
 
-            //            if not rs.BOF and not rs.EOF then
+            //            if not dataTable.BOF and not dataTable.EOF then
 
 
-            //                strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "|"
+            //                strResult = strResult & dataTable(0).value & "~" & dataTable(1).value & "~" & dataTable(2).value & "~" & dataTable(3).value & "~" & dataTable(4).value & "~" & dataTable(5).value & "|"
 
 
             //                sqlStr = ""
@@ -8069,7 +8066,7 @@ namespace Banking.Services
             //        end if
 
 
-            //    rs = nothing
+            //    dataTable = nothing
 
 
             //    elseif strArr(0)= "CHQSLNO" then
@@ -8082,15 +8079,15 @@ namespace Banking.Services
             //        sqlStr = "SELECT BOOKENDNO FROM GENINSTRUMENTSTOCKDTLS WHERE INSTRTYPE='" & strArr(4) & "' AND GLCODE='" & strArr(3) & "' AND MODULEID='" & strArr(2) & "' AND BRANCHCODE='" & strArr(1) & "' "
 
 
-            //        rs = obj.SingleSelectStat(sqlStr)
+            //        dataTable = obj.SingleSelectStat(sqlStr)
 
 
             //        if obj.ConnError = "Connected" then
 
-            //            if not rs.BOF and not rs.EOF then
+            //            if not dataTable.BOF and not dataTable.EOF then
 
 
-            //                strResult = rs(0).value
+            //                strResult = dataTable(0).value
 
 
             //            end if
@@ -8098,7 +8095,7 @@ namespace Banking.Services
             //        end if
 
 
-            //    rs = nothing
+            //    dataTable = nothing
 
 
             //    elseif strArr(0)= "BCSLNO" then
@@ -8111,21 +8108,21 @@ namespace Banking.Services
             //        sqlStr = "SELECT NVL(MAX(chqto),0) + 1 FROM BCREQSTDTLS WHERE BRANCHCODE='" & strArr(1) & "' and INSTRTYPE='" & strArr(2) & "'"
 
 
-            //        rs = obj.SingleSelectStat(sqlStr)
+            //        dataTable = obj.SingleSelectStat(sqlStr)
 
 
             //        if obj.ConnError = "Connected" then
 
-            //            if not rs.BOF and not rs.EOF then
+            //            if not dataTable.BOF and not dataTable.EOF then
 
-            //                strResult = rs(0).value
+            //                strResult = dataTable(0).value
 
             //            end if
 
             //        end if
 
 
-            //    rs = nothing
+            //    dataTable = nothing
 
 
             //    elseif strArr(0)= "FRMCHQNO" then
@@ -8138,15 +8135,15 @@ namespace Banking.Services
             //        sqlStr = "SELECT CHQFROM,CHQTO FROM CHQREQSTDTLS WHERE REFNO='" & strArr(6) & "' AND INSTRTYPE='" & strArr(4) & "' AND AF6GLCD='" & strArr(3) & "' AND AF4ACTYPE='" & strArr(2) & "' AND BRANCHCODE='" & strArr(1) & "' "
 
 
-            //        rs = obj.SingleSelectStat(sqlStr)
+            //        dataTable = obj.SingleSelectStat(sqlStr)
 
 
             //        if obj.ConnError = "Connected" then
 
-            //            if not rs.BOF and not rs.EOF then
+            //            if not dataTable.BOF and not dataTable.EOF then
 
 
-            //                strResult = rs(0).value & "~" & rs(1).value
+            //                strResult = dataTable(0).value & "~" & dataTable(1).value
 
 
             //            end if
@@ -8154,7 +8151,7 @@ namespace Banking.Services
             //        end if
 
 
-            //    rs = nothing
+            //    dataTable = nothing
 
 
             //    elseif strArr(0)= "GRIDDETAIL" then
@@ -8181,12 +8178,12 @@ namespace Banking.Services
             //end if
 
 
-            //        rs = obj.SingleSelectStat(sqlStr)
+            //        dataTable = obj.SingleSelectStat(sqlStr)
 
 
             //        if obj.ConnError = "Connected" then
 
-            //            if not rs.BOF and not rs.EOF then
+            //            if not dataTable.BOF and not dataTable.EOF then
 
 
             //                    obj1 = server.CreateObject("ReportPurposeOnly.Reportonly")
@@ -8256,7 +8253,7 @@ namespace Banking.Services
 
 
 
-            //                strResult = rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "~" & rs(7).value & "~" & dblgstper & "~" & dblcessper
+            //                strResult = dataTable(0).value & "~" & dataTable(1).value & "~" & dataTable(2).value & "~" & dataTable(3).value & "~" & dataTable(4).value & "~" & dataTable(5).value & "~" & dataTable(6).value & "~" & dataTable(7).value & "~" & dblgstper & "~" & dblcessper
 
 
             //            end if
@@ -8264,7 +8261,7 @@ namespace Banking.Services
             //        end if
 
 
-            //    rs = nothing
+            //    dataTable = nothing
 
 
             //    elseif strArr(0)= "LOCKADVDTLS" then
@@ -8277,15 +8274,15 @@ namespace Banking.Services
             //        sqlStr = " SELECT a.LNKGLCODE, b.NARRATION, a.LNKACCNO, a.LNKNAME, a.AMOUNT FROM LOCKERADVLNKDTLS a, genglsheetmst b WHERE b.glcode = a.LNKGLCODE AND b.branchcode = a.branchcode AND a.status='R' AND a.accno='" & strArr(2) & "' AND a.branchcode='" & strArr(1) & "' "
 
 
-            //        rs = obj.SingleSelectStat(sqlStr)
+            //        dataTable = obj.SingleSelectStat(sqlStr)
 
 
             //        if obj.ConnError = "Connected" then
 
-            //            if not rs.BOF and not rs.EOF then
+            //            if not dataTable.BOF and not dataTable.EOF then
 
 
-            //                strResult = rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value
+            //                strResult = dataTable(0).value & "~" & dataTable(1).value & "~" & dataTable(2).value & "~" & dataTable(3).value & "~" & dataTable(4).value
 
 
             //            end if
@@ -8293,7 +8290,7 @@ namespace Banking.Services
             //        end if
 
 
-            //    rs = nothing
+            //    dataTable = nothing
 
 
             //    elseif strArr(0)= "DAYREPORT" then
@@ -8306,21 +8303,21 @@ namespace Banking.Services
             //        sqlStr = " SELECT Z.glcode,Z.GLDESCRIPTION,Z.openingbalance, Z.DEBIT, Z.CREDIT, Z.dbcash, Z.dbtran, Z.dbclg, Z.crcash, Z.crtran,Z.crclg FROM(SELECT X.glcode,X.GLDESCRIPTION,NVL(X.openingbalance,y.openingbalance) openingbalance, NVL(X.DEBIT,y.debit) debit,NVL(X.CREDIT,y.CREDIT) CREDIT, NVL(X.dbcash,y.dbcash) dbcash, NVL(X.dbtran,y.dbtran) dbtran, NVL(X.dbclg,y.dbclg) dbclg, NVL(X.crcash,y.crcash) crcash, NVL(X.crtran,y.crtran) crtran, NVL(X.crclg,y.crclg) crclg FROM (SELECT O.glcode,O.GLDESCRIPTION,NVL(O.openingbalance,0) openingbalance, P.DEBIT, P.CREDIT, P.dbcash, P.dbtran, P.dbclg,P.crcash,P.crtran, P.crclg FROM (SELECT M.glcode,M.GLDESCRIPTION,NVL(SUM(N.openingbalance),0)openingbalance FROM(SELECT DISTINCT a.glcode,d.GLDESCRIPTION FROM GENGLDAYBOOK a,genglmastmst d WHERE a.glcode=d.glcode )M,(SELECT a.glcode,NVL((a.closingbalance),0)openingbalance FROM GENGLDAYBOOK a, genglmastmst d WHERE a.glcode=d.glcode AND a.applicationdate=(SELECT MAX(b.applicationdate) FROM GENGLDAYBOOK b WHERE b.glcode=a.glcode AND b.branchcode=a.branchcode AND b.applicationdate<'" & strArr(1) & "'))N WHERE M.glcode=N.glcode(+) GROUP BY M.glcode,M.GLDESCRIPTION ORDER BY M.GLCODE )O,(SELECT c.glcode,c.glnarration,SUM(NVL(c.GTOTAL1,0)) DEBIT,SUM(NVL(c.GTOTAL2,0)) CREDIT,SUM(NVL(c.TOTAL1,0)) dbcash, SUM(NVL(c.TOTAL3,0)) dbtran, SUM(NVL(c.TOTAL5,0)) dbclg, SUM(NVL(c.TOTAL2,0)) crcash, SUM(NVL(c.TOTAL4,0)) crtran, SUM(NVL(c.TOTAL6,0)) crclg FROM GENGLDAYBOOK c WHERE c.Applicationdate BETWEEN '" & strArr(1) & "' AND  '" & strArr(2) & "' GROUP BY c.GLCODE,c.GLNARRATION )P WHERE O.glcode = P.glcode(+) ORDER BY O.GLCODE )X,(SELECT X.glcode,X.GLDESCRIPTION,X.openingbalance, X.DEBIT, X.CREDIT, X.dbcash, X.dbtran, X.dbclg, X.crcash,X.crtran,X.crclg FROM (SELECT O.glcode,O.GLDESCRIPTION,NVL(O.openingbalance,0) openingbalance, P.DEBIT, P.CREDIT, P.dbcash, P.dbtran, P.dbclg,P.crcash, P.crtran, P.crclg FROM (SELECT M.glcode,M.GLDESCRIPTION,NVL(SUM(N.openingbalance),0)openingbalance FROM (SELECT DISTINCT a.glcode,d.GLDESCRIPTION FROM GENGLDAYBOOK a,genglmastmst d WHERE a.glcode=d.glcode )M,( SELECT a.glcode,NVL((a.closingbalance),0)openingbalance FROM GENGLDAYBOOK a, genglmastmst d WHERE a.glcode=d.glcode AND a.applicationdate=(SELECT MAX(b.applicationdate) FROM GENGLDAYBOOK b WHERE b.glcode=a.glcode AND b.branchcode=a.branchcode AND b.applicationdate<'" & strArr(1) & "'))N WHERE N.glcode=M.glcode GROUP BY M.glcode,M.GLDESCRIPTION )O,( SELECT c.glcode,d.GLDESCRIPTION,0 DEBIT, 0 CREDIT,0 dbcash, 0 dbtran, 0 dbclg, 0 crcash,0 crtran, 0 crclg  FROM GENGLDAYBOOK c,genglmastmst d WHERE c.glcode=d.glcode AND c.Applicationdate=(SELECT MAX(b.applicationdate) FROM GENGLDAYBOOK b WHERE b.glcode=c.glcode AND b.branchcode=c.branchcode AND b.applicationdate<'" & strArr(1) & "') GROUP BY c.GLCODE,d.GLDESCRIPTION)P WHERE P.glcode=O.glcode)X )Y WHERE Y.GLCODE  (+) =  X.GLCODE)Z MINUS SELECT Z.glcode,Z.GLDESCRIPTION,Z.openingbalance, Z.DEBIT, Z.CREDIT, Z.dbcash, Z.dbtran, Z.dbclg, Z.crcash, Z.crtran, Z.crclg FROM ( SELECT X.glcode,X.GLDESCRIPTION,NVL(X.openingbalance,y.openingbalance) openingbalance, NVL(X.DEBIT,y.debit) debit,NVL(X.CREDIT,y.CREDIT) CREDIT, NVL(X.dbcash,y.dbcash) dbcash, NVL(X.dbtran,y.dbtran) dbtran, NVL(X.dbclg,y.dbclg) dbclg, NVL(X.crcash,y.crcash) crcash, NVL(X.crtran,y.crtran) crtran, NVL(X.crclg,y.crclg) crclg FROM ( SELECT O.glcode,O.GLDESCRIPTION,NVL(O.openingbalance,0) openingbalance, P.DEBIT, P.CREDIT, P.dbcash, P.dbtran, P.dbclg, P.crcash,P.crtran, P.crclg FROM ( SELECT M.glcode,M.GLDESCRIPTION,NVL(SUM(N.openingbalance),0)openingbalance FROM (SELECT DISTINCT a.glcode,d.GLDESCRIPTION FROM GENGLDAYBOOK a,genglmastmst d WHERE a.glcode=d.glcode )M,( SELECT a.glcode,NVL((a.closingbalance),0)openingbalance FROM GENGLDAYBOOK a, genglmastmst d WHERE a.glcode=d.glcode AND a.applicationdate=(SELECT MAX(b.applicationdate) FROM GENGLDAYBOOK b WHERE b.glcode=a.glcode AND b.branchcode=a.branchcode AND b.applicationdate<'" & strArr(1) & "'))N WHERE M.glcode=N.glcode(+) GROUP BY M.glcode,M.GLDESCRIPTION ORDER BY M.GLCODE )O,(SELECT c.glcode,c.glnarration,SUM(NVL(c.GTOTAL1,0)) DEBIT,SUM(NVL(c.GTOTAL2,0)) CREDIT, SUM(NVL(c.TOTAL1,0)) dbcash, SUM(NVL(c.TOTAL3,0)) dbtran, SUM(NVL(c.TOTAL5,0)) dbclg, SUM(NVL(c.TOTAL2,0)) crcash, SUM(NVL(c.TOTAL4,0)) crtran, SUM(NVL(c.TOTAL6,0)) crclg FROM GENGLDAYBOOK c WHERE c.Applicationdate BETWEEN '" & strArr(1) & "' AND  '" & strArr(2) & "' GROUP BY c.GLCODE,c.GLNARRATION )P WHERE O.glcode = P.glcode(+) ORDER BY O.GLCODE )X,(SELECT X.glcode,X.GLDESCRIPTION,X.openingbalance, X.DEBIT, X.CREDIT, X.dbcash, X.dbtran, X.dbclg, X.crcash,X.crtran, X.crclg FROM (SELECT O.glcode,O.GLDESCRIPTION,NVL(O.openingbalance,0) openingbalance, P.DEBIT, P.CREDIT, P.dbcash, P.dbtran, P.dbclg, P.crcash, P.crtran, P.crclg FROM (SELECT M.glcode,M.GLDESCRIPTION,NVL(SUM(N.openingbalance),0)openingbalance FROM (SELECT DISTINCT a.glcode,d.GLDESCRIPTION FROM GENGLDAYBOOK a,genglmastmst d WHERE a.glcode=d.glcode )M,( SELECT a.glcode,NVL((a.closingbalance),0)openingbalance FROM GENGLDAYBOOK a, genglmastmst d WHERE a.glcode=d.glcode AND a.applicationdate=(SELECT MAX(b.applicationdate) FROM GENGLDAYBOOK b WHERE b.glcode=a.glcode AND b.branchcode=a.branchcode AND b.applicationdate<'" & strArr(1) & "'))N WHERE N.glcode=M.glcode GROUP BY M.glcode,M.GLDESCRIPTION )O,( SELECT c.glcode,d.GLDESCRIPTION,0 DEBIT, 0 CREDIT, 0 dbcash, 0 dbtran, 0 dbclg, 0 crcash,0 crtran, 0 crclg  FROM GENGLDAYBOOK c,genglmastmst d WHERE c.glcode=d.glcode AND c.Applicationdate=(SELECT MAX(b.applicationdate) FROM GENGLDAYBOOK b WHERE b.glcode=c.glcode AND b.branchcode=c.branchcode AND b.applicationdate<'" & strArr(1) & "') GROUP BY c.GLCODE,d.GLDESCRIPTION)P WHERE P.glcode=O.glcode)X )Y WHERE Y.GLCODE  (+) =  X.GLCODE)Z WHERE Z.dbcash =0 AND Z.dbtran =0 AND Z.dbclg =0 AND Z.crcash =0 AND Z.crtran =0 AND Z.crclg =0  "
 
 
-            //        rs = obj.SingleSelectStat(sqlStr)
+            //        dataTable = obj.SingleSelectStat(sqlStr)
 
 
             //        if obj.ConnError = "Connected" then
 
-            //            if not rs.BOF and not rs.EOF then
+            //            if not dataTable.BOF and not dataTable.EOF then
 
 
-            //                do until rs.EOF
+            //                do until dataTable.EOF
 
 
-            //                strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "~" & rs(7).value & "~" & rs(8).value & "~" & rs(9).value & "~" & rs(10).value & "|"
+            //                strResult = strResult & dataTable(0).value & "~" & dataTable(1).value & "~" & dataTable(2).value & "~" & dataTable(3).value & "~" & dataTable(4).value & "~" & dataTable(5).value & "~" & dataTable(6).value & "~" & dataTable(7).value & "~" & dataTable(8).value & "~" & dataTable(9).value & "~" & dataTable(10).value & "|"
 
 
-            //                rs.movenext()
+            //                dataTable.movenext()
 
             //                loop
 
@@ -8332,7 +8329,7 @@ namespace Banking.Services
             //            strResult = mid(strResult, 1, strResult.length - 1)
 
 
-            //    rs = nothing
+            //    dataTable = nothing
 
 
 
@@ -8358,21 +8355,21 @@ namespace Banking.Services
             //        sqlStr = " SELECT Moduleid FROM CUSTLNKMODULE "
 
 
-            //        rs = obj.SingleSelectStat(sqlStr)
+            //        dataTable = obj.SingleSelectStat(sqlStr)
 
 
             //        if obj.ConnError = "Connected" then
 
-            //            if not rs.BOF and not rs.EOF then
+            //            if not dataTable.BOF and not dataTable.EOF then
 
 
-            //                do until rs.EOF
+            //                do until dataTable.EOF
 
 
             //                    sqlQury = ""
 
 
-            //                    sqlQury = " SELECT branchcode,'" & rs(0).value & "' moduleid, glcode, accno,status FROM " & rs(0).value & "mst WHERE customerid='" & strArr(1) & "'"
+            //                    sqlQury = " SELECT branchcode,'" & dataTable(0).value & "' moduleid, glcode, accno,status FROM " & dataTable(0).value & "mst WHERE customerid='" & strArr(1) & "'"
 
 
             //                    rsTab = objTab.SingleSelectStat(sqlQury)
@@ -8420,7 +8417,7 @@ namespace Banking.Services
             //                    end if
 
 
-            //                rs.movenext()
+            //                dataTable.movenext()
 
             //                loop
 
@@ -8443,7 +8440,7 @@ namespace Banking.Services
 
             //    rsTab = nothing
 
-            //    rs = nothing
+            //    dataTable = nothing
 
 
             //    elseif strArr(0)= "EMPARDAT" then
@@ -8456,20 +8453,20 @@ namespace Banking.Services
             //        sqlStr = " SELECT VALUE FROM EMPLOYERPARM where EMPCODE = '" & strArr(3) & "' and CODE = '" & strArr(2) & "' and  EFFECTIVEDATE = '" & strArr(1) & "' "
 
 
-            //        rs = obj.SingleSelectStat(sqlStr)
+            //        dataTable = obj.SingleSelectStat(sqlStr)
 
 
             //        if obj.ConnError = "Connected" then
 
-            //            if not rs.BOF and not rs.EOF then
+            //            if not dataTable.BOF and not dataTable.EOF then
 
-            //                strResult = rs(0).value
+            //                strResult = dataTable(0).value
 
             //            end if
 
             //        end if
 
-            //    rs = nothing
+            //    dataTable = nothing
 
 
             //    elseif strArr(0)= "GETCARDDAT" then
@@ -8518,20 +8515,20 @@ namespace Banking.Services
             //            sqlStr = " SELECT TO_CHAR(CUSTDOB,'dd-Mon-yyyy') dob, CUSTMOBILE, CUSTEMAIL, (MAILADDRESS1||','|| MAILADDRESS2||','|| MAILADDRESS3) Address, MAILADDRESS4 city, MAILADDRESS5 zipcode,SUBSTR(NAME,0,20) name,b.DESCRIPTION,'" & strArr(2) & "' MODULE,(" & strArr(1) & "||''||" & strArr(3) & "||''||LPAD(" & strArr(4) & ",7,0))ACNO FROM gencustinfomst a, GENSALUTATIONMST b WHERE  CODE = (CASE WHEN SALUTATIONID IS NULL THEN '1' WHEN SALUTATIONID='0' THEN '1' WHEN SALUTATIONID='1' THEN '1' WHEN SALUTATIONID='2' THEN '2' WHEN SALUTATIONID='3' THEN '3' WHEN  SALUTATIONID='4' THEN '4' WHEN SALUTATIONID='5' THEN '5' WHEN SALUTATIONID='6' THEN '6' WHEN SALUTATIONID='7' THEN '7' WHEN SALUTATIONID='8' THEN '8' WHEN SALUTATIONID='9' THEN '9' WHEN SALUTATIONID='10' THEN '10' END) AND customerid IN (SELECT customerid FROM " & strArr(2) & "MST WHERE accno='" & strArr(4) & "' AND glcode='" & strArr(3) & "' AND branchcode='" & strArr(1) & "')  "
 
 
-            //            rs = obj.SingleSelectStat(sqlStr)
+            //            dataTable = obj.SingleSelectStat(sqlStr)
 
 
             //            if obj.ConnError = "Connected" then
 
-            //                if not rs.BOF and not rs.EOF then
+            //                if not dataTable.BOF and not dataTable.EOF then
 
-            //                    strResult = rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "~" & rs(7).value & "~" & rs(8).value & "~" & rs(9).value
+            //                    strResult = dataTable(0).value & "~" & dataTable(1).value & "~" & dataTable(2).value & "~" & dataTable(3).value & "~" & dataTable(4).value & "~" & dataTable(5).value & "~" & dataTable(6).value & "~" & dataTable(7).value & "~" & dataTable(8).value & "~" & dataTable(9).value
 
             //                end if
 
             //            end if
 
-            //            rs = nothing
+            //            dataTable = nothing
 
             //        end if
 
@@ -8594,23 +8591,23 @@ namespace Banking.Services
 
             //        end if
 
-            //        rs = obj.SingleSelectStat(sqlStr)
+            //        dataTable = obj.SingleSelectStat(sqlStr)
 
 
             //        if obj.ConnError = "Connected" then
 
-            //            if not rs.BOF and not rs.EOF then
+            //            if not dataTable.BOF and not dataTable.EOF then
 
 
-            //                do until rs.EOF
+            //                do until dataTable.EOF
 
 
-            //                    strResult = strResult & rs(0).value & rs(1).value & rs(2).value & rs(3).value & rs(4).value & rs(5).value & rs(6).value & rs(7).value & rs(8).value & rs(9).value & rs(10).value & rs(11).value & rs(12).value & rs(13).value & rs(14).value & rs(15).value & rs(16).value & rs(17).value & rs(18).value & rs(19).value & rs(20).value & rs(21).value & rs(22).value & rs(23).value & rs(24).value & rs(25).value & rs(26).value & rs(27).value & rs(28).value & rs(29).value & rs(30).value & rs(31).value & rs(32).value & rs(33).value & rs(34).value & rs(35).value & rs(36).value & rs(37).value & rs(38).value & rs(39).value & rs(40).value & rs(41).value & rs(42).value & rs(43).value & rs(44).value & rs(45).value & rs(46).value & rs(47).value & rs(48).value & rs(49).value & rs(50).value & rs(51).value & rs(52).value & rs(53).value & rs(54).value & rs(55).value & rs(56).value & rs(57).value & rs(58).value & rs(59).value & rs(60).value & rs(61).value & rs(62).value & rs(63).value & rs(64).value & rs(65).value & rs(66).value & rs(67).value & rs(68).value & rs(69).value & rs(70).value & rs(71).value & rs(72).value & rs(73).value & rs(74).value & rs(75).value & rs(76).value & rs(77).value & rs(78).value & rs(79).value & rs(80).value & rs(81).value & rs(82).value & rs(83).value & rs(84).value & rs(85).value & rs(86).value & rs(87).value & rs(88).value & rs(89).value & rs(90).value & rs(91).value & rs(92).value & rs(93).value & rs(94).value & rs(95).value & rs(96).value & rs(97).value & "|"
+            //                    strResult = strResult & dataTable(0).value & dataTable(1).value & dataTable(2).value & dataTable(3).value & dataTable(4).value & dataTable(5).value & dataTable(6).value & dataTable(7).value & dataTable(8).value & dataTable(9).value & dataTable(10).value & dataTable(11).value & dataTable(12).value & dataTable(13).value & dataTable(14).value & dataTable(15).value & dataTable(16).value & dataTable(17).value & dataTable(18).value & dataTable(19).value & dataTable(20).value & dataTable(21).value & dataTable(22).value & dataTable(23).value & dataTable(24).value & dataTable(25).value & dataTable(26).value & dataTable(27).value & dataTable(28).value & dataTable(29).value & dataTable(30).value & dataTable(31).value & dataTable(32).value & dataTable(33).value & dataTable(34).value & dataTable(35).value & dataTable(36).value & dataTable(37).value & dataTable(38).value & dataTable(39).value & dataTable(40).value & dataTable(41).value & dataTable(42).value & dataTable(43).value & dataTable(44).value & dataTable(45).value & dataTable(46).value & dataTable(47).value & dataTable(48).value & dataTable(49).value & dataTable(50).value & dataTable(51).value & dataTable(52).value & dataTable(53).value & dataTable(54).value & dataTable(55).value & dataTable(56).value & dataTable(57).value & dataTable(58).value & dataTable(59).value & dataTable(60).value & dataTable(61).value & dataTable(62).value & dataTable(63).value & dataTable(64).value & dataTable(65).value & dataTable(66).value & dataTable(67).value & dataTable(68).value & dataTable(69).value & dataTable(70).value & dataTable(71).value & dataTable(72).value & dataTable(73).value & dataTable(74).value & dataTable(75).value & dataTable(76).value & dataTable(77).value & dataTable(78).value & dataTable(79).value & dataTable(80).value & dataTable(81).value & dataTable(82).value & dataTable(83).value & dataTable(84).value & dataTable(85).value & dataTable(86).value & dataTable(87).value & dataTable(88).value & dataTable(89).value & dataTable(90).value & dataTable(91).value & dataTable(92).value & dataTable(93).value & dataTable(94).value & dataTable(95).value & dataTable(96).value & dataTable(97).value & "|"
 
-            //            '	strResult = strResult & rs(0).value & rs(1).value & rs(2).value & rs(3).value & rs(4).value & rs(5).value & rs(6).value & rs(7).value & rs(8).value & rs(9).value & rs(10).value & rs(11).value & rs(12).value & rs(13).value & rs(14).value & rs(15).value & rs(16).value & rs(17).value & rs(18).value & rs(19).value & rs(20).value & rs(21).value & rs(22).value & rs(23).value & rs(24).value & rs(25).value & rs(26).value & rs(27).value & rs(28).value & rs(29).value & rs(30).value & rs(31).value & rs(32).value & rs(33).value & rs(34).value & rs(35).value & rs(36).value & rs(37).value & rs(38).value & rs(39).value & rs(40).value & rs(41).value & rs(42).value & rs(43).value & rs(44).value & rs(45).value & rs(46).value & rs(47).value & rs(48).value & rs(49).value & rs(50).value & rs(51).value & rs(52).value & rs(53).value & rs(54).value & rs(55).value & rs(56).value & rs(57).value & rs(58).value & rs(59).value & rs(60).value & rs(61).value & rs(62).value & rs(63).value & rs(64).value & rs(65).value & rs(66).value & rs(67).value & rs(68).value & rs(69).value & rs(70).value & rs(71).value & rs(72).value & rs(73).value & rs(74).value & rs(75).value & rs(76).value & rs(77).value & rs(78).value & rs(79).value & rs(80).value & rs(81).value & rs(82).value & rs(83).value & rs(84).value & rs(85).value & rs(86).value & rs(87).value & rs(88).value & rs(89).value & rs(90).value & rs(91).value & rs(92).value & rs(93).value & rs(94).value & rs(95).value & rs(96).value & rs(97).value & rs(98).value & "|"
+            //            '	strResult = strResult & dataTable(0).value & dataTable(1).value & dataTable(2).value & dataTable(3).value & dataTable(4).value & dataTable(5).value & dataTable(6).value & dataTable(7).value & dataTable(8).value & dataTable(9).value & dataTable(10).value & dataTable(11).value & dataTable(12).value & dataTable(13).value & dataTable(14).value & dataTable(15).value & dataTable(16).value & dataTable(17).value & dataTable(18).value & dataTable(19).value & dataTable(20).value & dataTable(21).value & dataTable(22).value & dataTable(23).value & dataTable(24).value & dataTable(25).value & dataTable(26).value & dataTable(27).value & dataTable(28).value & dataTable(29).value & dataTable(30).value & dataTable(31).value & dataTable(32).value & dataTable(33).value & dataTable(34).value & dataTable(35).value & dataTable(36).value & dataTable(37).value & dataTable(38).value & dataTable(39).value & dataTable(40).value & dataTable(41).value & dataTable(42).value & dataTable(43).value & dataTable(44).value & dataTable(45).value & dataTable(46).value & dataTable(47).value & dataTable(48).value & dataTable(49).value & dataTable(50).value & dataTable(51).value & dataTable(52).value & dataTable(53).value & dataTable(54).value & dataTable(55).value & dataTable(56).value & dataTable(57).value & dataTable(58).value & dataTable(59).value & dataTable(60).value & dataTable(61).value & dataTable(62).value & dataTable(63).value & dataTable(64).value & dataTable(65).value & dataTable(66).value & dataTable(67).value & dataTable(68).value & dataTable(69).value & dataTable(70).value & dataTable(71).value & dataTable(72).value & dataTable(73).value & dataTable(74).value & dataTable(75).value & dataTable(76).value & dataTable(77).value & dataTable(78).value & dataTable(79).value & dataTable(80).value & dataTable(81).value & dataTable(82).value & dataTable(83).value & dataTable(84).value & dataTable(85).value & dataTable(86).value & dataTable(87).value & dataTable(88).value & dataTable(89).value & dataTable(90).value & dataTable(91).value & dataTable(92).value & dataTable(93).value & dataTable(94).value & dataTable(95).value & dataTable(96).value & dataTable(97).value & dataTable(98).value & "|"
 
 
-            //                rs.movenext()
+            //                dataTable.movenext()
 
             //                loop
 
@@ -8637,7 +8634,7 @@ namespace Banking.Services
             //        objCnt = nothing
 
 
-            //    rs = nothing
+            //    dataTable = nothing
 
             //    elseif strArr(0)= "CARDUPDATFILEGEN" then
             //    strResult = ""
@@ -8674,21 +8671,21 @@ namespace Banking.Services
             //        sqlStr = " SELECT ACTIONCODE,RPAD(NVL(CARDNUMBER,' '),22,' ') CARDNUMBER, LPAD(NVL(CLIENTCODE,'0'),24,'0') CLIENTCODE,RPAD(NVL(ADDRESS1,' '),30,' ') ADDRESS1,RPAD(NVL(ADDRESS2,' '),30,' ') ADDRESS2, RPAD(NVL(ADDRESS3,' '),30,' ') ADDRESS3,RPAD(NVL(ADDRESS4,' '),30,' ') ADDRESS4,LPAD(NVL(ZIPCODE,' '),10,' ') ZIPCODE, LPAD(NVL(CITYCODE,' '),5,' ') CITYCODE,LPAD(NVL(COUNTRYCODE,' '),3,' ') COUNTRYCODE,RPAD(NVL(MAILINGADDRESS1,' '),30,' ') MAILINGADDRESS1,RPAD(NVL(MAILINGADDRESS2,' '),30,' ') MAILINGADDRESS2, RPAD(NVL(MAILINGADDRESS3,' '),30,' ') MAILINGADDRESS3, RPAD(NVL(MAILINGADDRESS4,' '),30,' ') MAILINGADDRESS4,LPAD(NVL(MAILINGZIPCODE,' '),10,' ') MAILINGZIPCODE, LPAD(NVL(MAILINGCITYCODE,' '),5,' ') MAILINGCITYCODE, LPAD(NVL(MAILINGCOUNTRYCODE,' '),3,' ') MAILINGCOUNTRYCODE,RPAD(NVL(FAMILYNAME,' '),20,' ') FAMILYNAME, RPAD(NVL(FIRSTNAME,' '),26,' ') FIRSTNAME,RPAD(NVL(EMAIL1ID,' '),50,' ') EMAIL1ID,LPAD(NVL(DELIVERYFLAG,'0'),1,' ') DELIVERYFLAG  FROM atmcrddtls where TRANSTATUS = 'A' AND GENYN='N' " & strArr(1) & " "
 
 
-            //        rs = obj.SingleSelectStat(sqlStr)
+            //        dataTable = obj.SingleSelectStat(sqlStr)
 
 
             //        if obj.ConnError = "Connected" then
 
-            //            if not rs.BOF and not rs.EOF then
+            //            if not dataTable.BOF and not dataTable.EOF then
 
 
-            //                do until rs.EOF
+            //                do until dataTable.EOF
 
 
-            //                strResult = strResult & rs(0).value & rs(1).value & rs(2).value & rs(3).value & rs(4).value & rs(5).value & rs(6).value & rs(7).value & rs(8).value & rs(9).value & rs(10).value & rs(11).value & rs(12).value & rs(13).value & rs(14).value & rs(15).value & rs(16).value & rs(17).value & rs(18).value & rs(19).value & rs(20).value & "|"
+            //                strResult = strResult & dataTable(0).value & dataTable(1).value & dataTable(2).value & dataTable(3).value & dataTable(4).value & dataTable(5).value & dataTable(6).value & dataTable(7).value & dataTable(8).value & dataTable(9).value & dataTable(10).value & dataTable(11).value & dataTable(12).value & dataTable(13).value & dataTable(14).value & dataTable(15).value & dataTable(16).value & dataTable(17).value & dataTable(18).value & dataTable(19).value & dataTable(20).value & "|"
 
 
-            //                rs.movenext()
+            //                dataTable.movenext()
 
             //                loop
 
@@ -8716,7 +8713,7 @@ namespace Banking.Services
             //        objCnt = nothing
 
 
-            //    rs = nothing
+            //    dataTable = nothing
 
             //elseif strArr(0) = "CTSCLEAR" then
             //    obj = server.CreateObject("ReportPurposeOnly.Reportonly")
@@ -8881,19 +8878,19 @@ namespace Banking.Services
             //sqlStr = "SELECT  LPAD(D.INSTRNO,6,'0'),LPAD(NVL(D.MICRCODE,0),9,'0'), LPAD(D.MICRINSTRCODE,2,'0') trancode, LPAD(D.AMOUNT * 100,18,'0'), M.CLGACCTBRCODE||M.crglcode||LPAD(M.craccno,7,'0') accno,RPAD(SUBSTR(NVL(D.ISSUEDBY,''),1,25),25,' ') name  FROM CLGLODGEMENTINSTRUMENTDTLS D, CLGLODGEMENTVOUCHERDTLS M WHERE D.lodgementdate = '" & strdate5 & "' AND  m.BRANCHCODE = '" & rs1(0).value & "' AND m.CLEARINGTYPE = '" & strcleartype5 & "' and M.VOUCHERNO=D.VOUCHERNO AND M.BRANCHCODE = D.BRANCHCODE AND M.LODGEMENTDATE= D.LODGEMENTDATE"
 
 
-            //        rs = obj.SingleSelectStat(sqlStr)
+            //        dataTable = obj.SingleSelectStat(sqlStr)
 
             //        if obj.ConnError = "Connected" then
 
-            //            if not rs.BOF and not rs.EOF then
+            //            if not dataTable.BOF and not dataTable.EOF then
 
 
-            //                do until rs.EOF
+            //                do until dataTable.EOF
 
-            //                strResultCTSFile = strResultCTSFile & rs(0).value & rs(1).value & rs(2).value & rs(3).value & rs(4).value & rs(5).value & "~"
+            //                strResultCTSFile = strResultCTSFile & dataTable(0).value & dataTable(1).value & dataTable(2).value & dataTable(3).value & dataTable(4).value & dataTable(5).value & "~"
 
 
-            //                rs.movenext()
+            //                dataTable.movenext()
 
             //                loop
 
@@ -8918,9 +8915,9 @@ namespace Banking.Services
             //        endofline:
             //		strResult = strResultCTSFile & "|" & strMessage
 
-            //if rs.state = 1 then
-            //rs.close
-            //rs = nothing
+            //if dataTable.state = 1 then
+            //dataTable.close
+            //dataTable = nothing
             //end if
 
             //if rs1.state = 1 then
@@ -9005,19 +9002,19 @@ namespace Banking.Services
             //                    sqlStr = "SELECT LPAD(CHQNO,6,'0'),PAYBANKROUTNO,  TRANSCODE,LPAD(REASONCODE,2,'0') FROM CLGCTSIWDATA WHERE status in ('R','C') and applicationdate = '" & strdate6 & "' and CLEARINGTYPE = '" & strcleartype6 & "' and RETURNFILEYN = 'N' AND REASONCODE IS NOT NULL"
             //end if
 
-            //        rs = obj.SingleSelectStat(sqlStr)
+            //        dataTable = obj.SingleSelectStat(sqlStr)
 
             //        if obj.ConnError = "Connected" then
 
-            //            if not rs.BOF and not rs.EOF then
+            //            if not dataTable.BOF and not dataTable.EOF then
 
 
-            //                do until rs.EOF
+            //                do until dataTable.EOF
 
-            //                strResultRetCTSFile = strResultRetCTSFile & rs(0).value & rs(1).value & rs(2).value & " " & rs(3).value & "~"
+            //                strResultRetCTSFile = strResultRetCTSFile & dataTable(0).value & dataTable(1).value & dataTable(2).value & " " & dataTable(3).value & "~"
 
 
-            //                rs.movenext()
+            //                dataTable.movenext()
 
             //                loop
 
@@ -9032,9 +9029,9 @@ namespace Banking.Services
 
             //        strResult = strResultRetCTSFile & "|" & strMessage
 
-            //if rs.state = 1 then
-            //rs.close
-            //rs = nothing
+            //if dataTable.state = 1 then
+            //dataTable.close
+            //dataTable = nothing
             //end if
 
 
@@ -9071,19 +9068,19 @@ namespace Banking.Services
             //end if
 
 
-            //        rs = obj.SingleSelectStat(sqlStr)
+            //        dataTable = obj.SingleSelectStat(sqlStr)
 
             //        if obj.ConnError = "Connected" then
 
-            //            if not rs.BOF and not rs.EOF then
+            //            if not dataTable.BOF and not dataTable.EOF then
 
 
-            //                do until rs.EOF
+            //                do until dataTable.EOF
 
-            //                strResultRetCTSFile = strResultRetCTSFile & rs(0).value & rs(1).value & rs(2).value & " " & rs(3).value & "~"
+            //                strResultRetCTSFile = strResultRetCTSFile & dataTable(0).value & dataTable(1).value & dataTable(2).value & " " & dataTable(3).value & "~"
 
 
-            //                rs.movenext()
+            //                dataTable.movenext()
 
             //                loop
 
@@ -9098,9 +9095,9 @@ namespace Banking.Services
 
             //        strResult = strResultRetCTSFile & "|" & strMessage
 
-            //if rs.state = 1 then
-            //rs.close
-            //rs = nothing
+            //if dataTable.state = 1 then
+            //dataTable.close
+            //dataTable = nothing
             //end if
 
             //elseif strArr(0) = "CBSFILES" then
@@ -9144,21 +9141,21 @@ namespace Banking.Services
             //" SELECT LPAD('-',6,'-'), ' ' || LPAD('-',12,'-'),' ' ||LPAD('-',16,'-'), ' ' ||  LPAD('-',6,'-'),' ' ||RPAD('-',9,'-'), ' ' ||LPAD('-',6,'-'),' ' ||LPAD('-',9,'-'),' ' ||LPAD('-',17,'-'), ' ' ||LPAD('-',19,'-') , ' ' || LPAD('-',11,'-') FROM DUAL ORDER BY 2 DESC"
 
 
-            //        rs = obj.SingleSelectStat(sqlStr)
+            //        dataTable = obj.SingleSelectStat(sqlStr)
 
 
             //        if obj.ConnError = "Connected" then
 
-            //            if not rs.BOF and not rs.EOF then
+            //            if not dataTable.BOF and not dataTable.EOF then
 
 
-            //                do until rs.EOF
+            //                do until dataTable.EOF
 
 
-            //                strResultatmsuc = strResultatmsuc & rs(0).value & rs(1).value & rs(2).value & rs(3).value & rs(4).value & rs(5).value & rs(6).value & rs(7).value & rs(8).value & rs(9).value & "~"
+            //                strResultatmsuc = strResultatmsuc & dataTable(0).value & dataTable(1).value & dataTable(2).value & dataTable(3).value & dataTable(4).value & dataTable(5).value & dataTable(6).value & dataTable(7).value & dataTable(8).value & dataTable(9).value & "~"
 
 
-            //                rs.movenext()
+            //                dataTable.movenext()
 
             //                loop
             //            end if
@@ -9171,21 +9168,21 @@ namespace Banking.Services
             //"SELECT  LPAD(NVL(m.SYSTRAAUDNUM,' '),6,' ') STAN , ' ' || LPAD(NVL(m.REFNUM,' '),12,' ') REFNUM ,' ' || RPAD(NVL(m.ATMID,' '),16,' ')  ATMID, ' ' ||  LPAD(TO_CHAR(m.REQDATETIME,'HH24Miss'),6,' ') TXN_TI,' ' ||RPAD(TO_CHAR(m.REQDATETIME,'dd-Mon-yy'),9,' ') TERMDT,CASE  WHEN m.serviceid= 'NWDRRQ' OR m.serviceid= 'FWDRRQ' THEN ' ' || LPAD('004060',6,' ') WHEN m.serviceid = 'LWDRRQ' THEN ' ' || LPAD('020045',6,' ') END TRAN_C ,' ' || LPAD(NVL(TO_CHAR(t.TRANNO),' '),9,'0')BANCS_JOU,' ' ||LPAD(m.BRANCHCODE||m.GLCODE||LPAD(m.ACCNO,7,'0'),17,'0') CUSTOMERID,' ' ||RPAD(NVL(GetCardNo(m.cardno),' '),19,' ') CARD_NO, ' ' ||LPAD(t.AMOUNT,11,' ')  AMOUNT  FROM atmlogdtls m , atmtran t  WHERE m.status = 'Y' AND m.glcode = t.linkglcode AND m.accno = t.linkaccno AND m.batchno = t.batchno AND   m.SERVICEID IN ('NWDRRQ','FWDRRQ','LWDRRQ') " & strcond & "  AND m.refnum = t.RATEREFCODE ORDER BY 2"
 
 
-            //        rs = obj.SingleSelectStat(sqlStr)
+            //        dataTable = obj.SingleSelectStat(sqlStr)
 
 
             //        if obj.ConnError = "Connected" then
 
-            //            if not rs.BOF and not rs.EOF then
+            //            if not dataTable.BOF and not dataTable.EOF then
 
 
-            //                do until rs.EOF
+            //                do until dataTable.EOF
 
 
-            //                strResultatmsuc = strResultatmsuc & rs(0).value & rs(1).value & rs(2).value & rs(3).value & rs(4).value & rs(5).value & rs(6).value & rs(7).value & rs(8).value & rs(9).value & "~"
+            //                strResultatmsuc = strResultatmsuc & dataTable(0).value & dataTable(1).value & dataTable(2).value & dataTable(3).value & dataTable(4).value & dataTable(5).value & dataTable(6).value & dataTable(7).value & dataTable(8).value & dataTable(9).value & "~"
 
 
-            //                rs.movenext()
+            //                dataTable.movenext()
 
             //                loop
             //            end if
@@ -9214,21 +9211,21 @@ namespace Banking.Services
 
 
 
-            //        rs = obj.SingleSelectStat(sqlStr)
+            //        dataTable = obj.SingleSelectStat(sqlStr)
 
 
             //        if obj.ConnError = "Connected" then
 
-            //            if not rs.BOF and not rs.EOF then
+            //            if not dataTable.BOF and not dataTable.EOF then
 
 
-            //                do until rs.EOF
+            //                do until dataTable.EOF
 
 
-            //                strResultatmfail = strResultatmfail & rs(0).value & rs(1).value & rs(2).value & rs(3).value & rs(4).value & rs(5).value & rs(6).value & rs(7).value & rs(8).value & rs(9).value & rs(10).value & "~"
+            //                strResultatmfail = strResultatmfail & dataTable(0).value & dataTable(1).value & dataTable(2).value & dataTable(3).value & dataTable(4).value & dataTable(5).value & dataTable(6).value & dataTable(7).value & dataTable(8).value & dataTable(9).value & dataTable(10).value & "~"
 
 
-            //                rs.movenext()
+            //                dataTable.movenext()
 
             //                loop
             //            end if
@@ -9254,20 +9251,20 @@ namespace Banking.Services
 
 
 
-            //        rs = obj.SingleSelectStat(sqlStr)
+            //        dataTable = obj.SingleSelectStat(sqlStr)
 
 
             //        if obj.ConnError = "Connected" then
 
-            //            if not rs.BOF and not rs.EOF then
+            //            if not dataTable.BOF and not dataTable.EOF then
 
 
-            //                do until rs.EOF
+            //                do until dataTable.EOF
 
 
-            //                strResultatmfail = strResultatmfail & rs(0).value & rs(1).value & rs(2).value & rs(3).value & rs(4).value & rs(5).value & rs(6).value & rs(7).value & rs(8).value & rs(9).value & rs(10).value & "~"
+            //                strResultatmfail = strResultatmfail & dataTable(0).value & dataTable(1).value & dataTable(2).value & dataTable(3).value & dataTable(4).value & dataTable(5).value & dataTable(6).value & dataTable(7).value & dataTable(8).value & dataTable(9).value & dataTable(10).value & "~"
 
-            //                rs.movenext()
+            //                dataTable.movenext()
 
             //                loop
             //            end if
@@ -9299,21 +9296,21 @@ namespace Banking.Services
 
 
 
-            //        rs = obj.SingleSelectStat(sqlStr)
+            //        dataTable = obj.SingleSelectStat(sqlStr)
 
 
             //        if obj.ConnError = "Connected" then
 
-            //            if not rs.BOF and not rs.EOF then
+            //            if not dataTable.BOF and not dataTable.EOF then
 
 
-            //                do until rs.EOF
+            //                do until dataTable.EOF
 
 
-            //                strResultpossuc = strResultpossuc & rs(0).value & rs(1).value & rs(2).value & rs(3).value & rs(4).value & rs(5).value & rs(6).value & rs(7).value & rs(8).value & rs(9).value & "~"
+            //                strResultpossuc = strResultpossuc & dataTable(0).value & dataTable(1).value & dataTable(2).value & dataTable(3).value & dataTable(4).value & dataTable(5).value & dataTable(6).value & dataTable(7).value & dataTable(8).value & dataTable(9).value & "~"
 
 
-            //                rs.movenext()
+            //                dataTable.movenext()
 
             //                loop
             //            end if
@@ -9327,21 +9324,21 @@ namespace Banking.Services
             //"SELECT  LPAD(NVL(m.SYSTRAAUDNUM,' '),6,' ') STAN , ' ' || LPAD(NVL(m.REFNUM,' '),12,' ') REFNUM ,' ' || RPAD(NVL(m.ATMID,' '),16,' ') ATMID, ' ' || LPAD(TO_CHAR(m.REQDATETIME,'HH24Miss'),6,' ') TXN_TI,' ' ||RPAD(TO_CHAR(m.REQDATETIME,'dd-Mon-yy'),9,' ') TERMDT,CASE WHEN m.serviceid= 'CBPREQ' OR m.serviceid= 'POSREQ' OR m.serviceid= 'CHPREQ' THEN ' ' || LPAD('004061',6,' ') END TRAN_C ,' ' || LPAD(NVL(TO_CHAR(t.TRANNO),' '),9,'0')BANCS_JOU,' ' ||LPAD(m.BRANCHCODE||m.GLCODE||LPAD(m.ACCNO,7,'0'),17,'0') CUSTOMERID,' ' ||RPAD(NVL(GetCardNo(m.cardno),' '),19,' ') CARD_NO, ' ' || LPAD(t.AMOUNT,11,' ')  AMOUNT  FROM atmlogdtls m , atmtran t  WHERE m.status = 'Y' AND m.glcode = t.linkglcode AND m.accno = t.linkaccno AND m.batchno = t.batchno AND m.SERVICEID IN ('CBPREQ','POSREQ','CHPREQ') " & strcond & "  AND m.refnum = t.RATEREFCODE ORDER BY 2"
 
 
-            //        rs = obj.SingleSelectStat(sqlStr)
+            //        dataTable = obj.SingleSelectStat(sqlStr)
 
 
             //        if obj.ConnError = "Connected" then
 
-            //            if not rs.BOF and not rs.EOF then
+            //            if not dataTable.BOF and not dataTable.EOF then
 
 
-            //                do until rs.EOF
+            //                do until dataTable.EOF
 
 
-            //                strResultpossuc = strResultpossuc & rs(0).value & rs(1).value & rs(2).value & rs(3).value & rs(4).value & rs(5).value & rs(6).value & rs(7).value & rs(8).value & rs(9).value & "~"
+            //                strResultpossuc = strResultpossuc & dataTable(0).value & dataTable(1).value & dataTable(2).value & dataTable(3).value & dataTable(4).value & dataTable(5).value & dataTable(6).value & dataTable(7).value & dataTable(8).value & dataTable(9).value & "~"
 
 
-            //                rs.movenext()
+            //                dataTable.movenext()
 
             //                loop
             //            end if
@@ -9368,21 +9365,21 @@ namespace Banking.Services
 
 
 
-            //        rs = obj.SingleSelectStat(sqlStr)
+            //        dataTable = obj.SingleSelectStat(sqlStr)
 
 
             //        if obj.ConnError = "Connected" then
 
-            //            if not rs.BOF and not rs.EOF then
+            //            if not dataTable.BOF and not dataTable.EOF then
 
 
-            //                do until rs.EOF
+            //                do until dataTable.EOF
 
 
-            //                strResultposfail = strResultposfail & rs(0).value & rs(1).value & rs(2).value & rs(3).value & rs(4).value & rs(5).value & rs(6).value & rs(7).value & rs(8).value & rs(9).value & rs(10).value & "~"
+            //                strResultposfail = strResultposfail & dataTable(0).value & dataTable(1).value & dataTable(2).value & dataTable(3).value & dataTable(4).value & dataTable(5).value & dataTable(6).value & dataTable(7).value & dataTable(8).value & dataTable(9).value & dataTable(10).value & "~"
 
 
-            //                rs.movenext()
+            //                dataTable.movenext()
 
             //                loop
             //            end if
@@ -9408,21 +9405,21 @@ namespace Banking.Services
             //    "SELECT  LPAD(NVL(m.SYSTRAAUDNUM,' '),6,' ') STAN , ' ' || RPAD(NVL(m.REFNUM,' '),12,' ') REFNUM ,' ' ||RPAD(NVL(m.ATMID,' '),16,' ') ATMID,' ' || LPAD(TO_CHAR(m.REQDATETIME,'HH24Miss'),6,' ') TXN_TI,' ' ||RPAD(TO_CHAR(m.REQDATETIME,'dd-Mon-yy'),9,' ') TERMDT,CASE  WHEN m.serviceid= 'CBPRRQ' OR m.serviceid= 'PSRREQ' OR m.serviceid= 'CHPRRQ' THEN ' ' || LPAD('004161',6,' ') END TRAN_C   ,' ' ||LPAD(NVL(to_char((SELECT  t.tranno FROM atmlogdtls m, atmtran t  WHERE m.status = 'Y' AND m.branchcode = t.BRANCHCODE AND m.glcode = t.linkglcode AND m.accno = t.linkaccno AND m.batchno = t.batchno AND t.RATEREFCODE = '" & rs1(0).value & "' " & strcond & "  AND m.refnum = t.RATEREFCODE and rownum = 1 AND m.SERVICEID IN ('CBPREQ','POSREQ','CHPREQ'))),' '),9,'0')BANCS_JOU,' ' ||LPAD(m.BRANCHCODE||m.GLCODE||LPAD(m.ACCNO,7,'0'),17,'0') CUSTOMERID,' ' ||RPAD(NVL(GetCardNo(m.cardno),' '),19,' ') CARD_NO, ' ' || LPAD(abs(t.AMOUNT),11,' ') AMOUNT , ' ' || LPAD(t.tranno,9,'0') CORR_JOUR FROM atmlogdtls m , atmtran t WHERE m.status = 'Y' AND m.glcode = t.linkglcode AND m.accno = t.linkaccno AND m.batchno = t.batchno AND m.SERVICEID IN ('CBPRRQ','PSRREQ','CHPRRQ') AND t.RATEREFCODE = '" & rs1(0).value & "' " & strcond & "  AND m.refnum = t.RATEREFCODE ORDER BY 2"
 
 
-            //        rs = obj.SingleSelectStat(sqlStr)
+            //        dataTable = obj.SingleSelectStat(sqlStr)
 
 
             //        if obj.ConnError = "Connected" then
 
-            //            if not rs.BOF and not rs.EOF then
+            //            if not dataTable.BOF and not dataTable.EOF then
 
 
-            //                do until rs.EOF
+            //                do until dataTable.EOF
 
 
-            //                strResultposfail = strResultposfail & rs(0).value & rs(1).value & rs(2).value & rs(3).value & rs(4).value & rs(5).value & rs(6).value & rs(7).value & rs(8).value & rs(9).value & rs(10).value & "~"
+            //                strResultposfail = strResultposfail & dataTable(0).value & dataTable(1).value & dataTable(2).value & dataTable(3).value & dataTable(4).value & dataTable(5).value & dataTable(6).value & dataTable(7).value & dataTable(8).value & dataTable(9).value & dataTable(10).value & "~"
 
 
-            //                rs.movenext()
+            //                dataTable.movenext()
 
             //                loop
             //            end if
@@ -9445,7 +9442,7 @@ namespace Banking.Services
             //        strResult = strResultatmsuc & "*" & strResultatmfail & "*" & strResultpossuc & "*" & strResultposfail
 
 
-            //    rs = nothing
+            //    dataTable = nothing
 
             //    rs1 = nothing
 
@@ -9460,21 +9457,21 @@ namespace Banking.Services
             //        sqlStr = " SELECT CLIENTCODE, FAMILYNAME, FIRSTNAME, EMAIL1ID, ADDRESS1, ADDRESS2, ADDRESS3, ADDRESS4, CITYCODE, ZIPCODE, MAILINGADDRESS1, MAILINGADDRESS2, MAILINGADDRESS3, MAILINGADDRESS4, MAILINGCITYCODE,MAILINGZIPCODE, MOBILEPHONE,MIDDLENAME, FATHERNAME, CITY, STATE FROM atmcrddtls WHERE cardnumber = '" & strArr(1) & "' "
 
 
-            //        rs = obj.SingleSelectStat(sqlStr)
+            //        dataTable = obj.SingleSelectStat(sqlStr)
 
 
             //        if obj.ConnError = "Connected" then
 
-            //            if not rs.BOF and not rs.EOF then
+            //            if not dataTable.BOF and not dataTable.EOF then
 
 
-            //                do until rs.EOF
+            //                do until dataTable.EOF
 
 
-            //                strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "~" & rs(7).value & "~" & rs(8).value & "~" & rs(9).value & "~" & rs(10).value & "~" & rs(11).value & "~" & rs(12).value & "~" & rs(13).value & "~" & rs(14).value & "~" & rs(15).value & "~" & rs(16).value & "~" & rs(17).value & "~" & rs(18).value & "~" & rs(19).value & "~" & rs(20).value & "|"
+            //                strResult = strResult & dataTable(0).value & "~" & dataTable(1).value & "~" & dataTable(2).value & "~" & dataTable(3).value & "~" & dataTable(4).value & "~" & dataTable(5).value & "~" & dataTable(6).value & "~" & dataTable(7).value & "~" & dataTable(8).value & "~" & dataTable(9).value & "~" & dataTable(10).value & "~" & dataTable(11).value & "~" & dataTable(12).value & "~" & dataTable(13).value & "~" & dataTable(14).value & "~" & dataTable(15).value & "~" & dataTable(16).value & "~" & dataTable(17).value & "~" & dataTable(18).value & "~" & dataTable(19).value & "~" & dataTable(20).value & "|"
 
 
-            //                rs.movenext()
+            //                dataTable.movenext()
 
             //                loop
             //            end if
@@ -9491,7 +9488,7 @@ namespace Banking.Services
             //        end if
 
 
-            //    rs = nothing
+            //    dataTable = nothing
 
 
 
@@ -9524,21 +9521,21 @@ namespace Banking.Services
             //        sqlStr = " SELECT  USERID, TO_CHAR(LOGINSYSDATE,'DD-Mon-YYYY hh:Mi:ss AM') LOGINSYSDATE , TO_CHAR(LOGOUTSYSDATE,'DD-Mon-YYYY hh:Mi:ss AM') LOGOUTSYSDATE, KILLEDBY, MACHINEID, TO_CHAR(SYSTEMDATE,'DD-Mon-YYYY hh:Mi:ss AM') SYSTEMDATE FROM GENUSERLOGINDTLSHIST WHERE " & stDat & " AND BRANCHCODE = '" & strArr(5) & "' " & strArr(4) & " ORDER BY USERID,LOGINSYSDATE "
 
 
-            //        rs = obj.SingleSelectStat(sqlStr)
+            //        dataTable = obj.SingleSelectStat(sqlStr)
 
 
             //        if obj.ConnError = "Connected" then
 
-            //            if not rs.BOF and not rs.EOF then
+            //            if not dataTable.BOF and not dataTable.EOF then
 
 
-            //                do until rs.EOF
+            //                do until dataTable.EOF
 
 
-            //                strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "|"
+            //                strResult = strResult & dataTable(0).value & "~" & dataTable(1).value & "~" & dataTable(2).value & "~" & dataTable(3).value & "~" & dataTable(4).value & "~" & dataTable(5).value & "|"
 
 
-            //                rs.movenext()
+            //                dataTable.movenext()
 
             //                loop
             //            end if
@@ -9555,7 +9552,7 @@ namespace Banking.Services
             //        end if
 
 
-            //    rs = nothing
+            //    dataTable = nothing
 
 
             //    elseif strArr(0)= "HOEODETAILS" then
@@ -9568,21 +9565,21 @@ namespace Banking.Services
             //        sqlStr = " SELECT Branchcode,TO_CHAR(Applicationdate,'DD-Mon-YYYY')  Applicationdate,Userid,Machineid,TO_CHAR(Systemdate,'DD-Mon-YYYY hh:Mi:ss AM') Systemdate, CASE WHEN DAYBEGINSTATUS='O' AND DAYENDSTATUS='N' AND HODAYBEGINSTATUS='O' AND HODAYENDSTATUS ='N'  THEN 'HO and Branch Day Begin Started' WHEN DAYBEGINSTATUS='O' AND DAYENDSTATUS='S' AND HODAYBEGINSTATUS='O' AND HODAYENDSTATUS ='N'  THEN 'Branch EOD started' WHEN DAYBEGINSTATUS='O' AND DAYENDSTATUS='O' AND HODAYBEGINSTATUS='O' AND HODAYENDSTATUS ='N'  THEN 'Branch EOD Completed' WHEN DAYBEGINSTATUS='O' AND DAYENDSTATUS='O' AND HODAYBEGINSTATUS='O' AND HODAYENDSTATUS ='O'  THEN 'HO EOD Completed' END Remarks FROM GENAPPLICATIONDATEMSTHIST WHERE  " & strArr(1) & " " & strArr(2) & " ORDER BY Branchcode,SYSTEMDATE "
 
 
-            //        rs = obj.SingleSelectStat(sqlStr)
+            //        dataTable = obj.SingleSelectStat(sqlStr)
 
 
             //        if obj.ConnError = "Connected" then
 
-            //            if not rs.BOF and not rs.EOF then
+            //            if not dataTable.BOF and not dataTable.EOF then
 
 
-            //                do until rs.EOF
+            //                do until dataTable.EOF
 
 
-            //                strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "|"
+            //                strResult = strResult & dataTable(0).value & "~" & dataTable(1).value & "~" & dataTable(2).value & "~" & dataTable(3).value & "~" & dataTable(4).value & "~" & dataTable(5).value & "|"
 
 
-            //                rs.movenext()
+            //                dataTable.movenext()
 
             //                loop
             //            end if
@@ -9599,7 +9596,7 @@ namespace Banking.Services
             //        end if
 
 
-            //    rs = nothing
+            //    dataTable = nothing
 
 
             //    elseif strArr(0)= "ATMPOSITION" then
@@ -9612,21 +9609,21 @@ namespace Banking.Services
             //        sqlStr = " SELECT C.branchcode,c.Accno,c.atmid,c.NAME, NVL(C.opbal,0) Opbal, NVL(abs(D.debit),0) debit,NVL(R.Credit,0) Credit,NVL ((NVL(C.opbal,0)+NVL(D.debit,0)+NVL(R.Credit,0)),0) closbal FROM (SELECT Branchcode,Accno,SUM(amount) debit FROM ATMTRANDAY WHERE MODEOFTRAN IN ('1','3','5') AND APPLICATIONDATE = '" & strArr(1) & "' GROUP BY branchcode,Accno )D, (SELECT Branchcode,Accno,SUM(amount) Credit FROM ATMTRANDAY WHERE MODEOFTRAN IN ('2','4','6') AND APPLICATIONDATE = '" & strArr(1) & "' GROUP BY branchcode,Accno )R, (SELECT a.Branchcode,a.ACCNO , a.ATMID,a.NAME, NVL(b.curbal,0) Opbal FROM ATMMST a,ATMbalance b  WHERE b.accno=a.accno AND b.branchcode=a.branchcode)C  WHERE  C.ACCNO=D.ACCNO(+) AND C.ACCNO=R.ACCNO(+) AND C.branchcode=D.branchcode(+) AND C.branchcode=R.branchcode(+) ORDER BY C.branchcode,c.Accno "
 
 
-            //        rs = obj.SingleSelectStat(sqlStr)
+            //        dataTable = obj.SingleSelectStat(sqlStr)
 
 
             //        if obj.ConnError = "Connected" then
 
-            //            if not rs.BOF and not rs.EOF then
+            //            if not dataTable.BOF and not dataTable.EOF then
 
 
-            //                do until rs.EOF
+            //                do until dataTable.EOF
 
 
-            //                strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "~" & rs(7).value & "|"
+            //                strResult = strResult & dataTable(0).value & "~" & dataTable(1).value & "~" & dataTable(2).value & "~" & dataTable(3).value & "~" & dataTable(4).value & "~" & dataTable(5).value & "~" & dataTable(6).value & "~" & dataTable(7).value & "|"
 
 
-            //                rs.movenext()
+            //                dataTable.movenext()
 
             //                loop
             //            end if
@@ -9643,7 +9640,7 @@ namespace Banking.Services
             //        end if
 
 
-            //    rs = nothing
+            //    dataTable = nothing
 
 
             //    elseif strArr(0)= "FRM61REPORT" then
@@ -9677,21 +9674,21 @@ namespace Banking.Services
             //        sqlStr = "SELECT  y.customerid,y.branchcode,y.moduleid,y.glcode,y.accno,SUBSTR(B.NAME,0,30),y.amount,y.status,y.clsdate,y.categorycode,SUBSTR(NVL(y.OPERATEDBY,B.NAME),0,25) OPERATEDBY,y.REGDATE,TO_CHAR(b.CUSTDOB,'DD-Mon-YYYY'),  b.CUSTMOBILE, b.PANNO, b.AADHARUID,SUBSTR((b.MAILADDRESS1||', '|| b.MAILADDRESS2||', ' ||b.MAILADDRESS3||', ' ||b.MAILADDRESS4 ||', ' ||b.MAILADDRESS5),0,75) Address FROM (SELECT A.customerid, a.branchcode, a.moduleid, a.glcode, a.accno, SUM(a.AMOUNT) amount, a.status,a.clsdate ,a.CATEGORYCODE, a.OPERATEDBY OPERATEDBY,TO_CHAR(a.REGDATE,'DD-Mon-YYYY') REGDATE FROM ( SELECT /*+ index(M IDX_SBMST_ACGLBRCR) */ T.customerid,T.branchcode, T.moduleid,T.glcode, T.accno,T.name, T.amount,M.status,TO_CHAR(M.closedate, 'DD-Mon-yyyy') clsdate, M.CATEGORYCODE, M.OPERATEDBY,M.OPDATE REGDATE  FROM SBTRAN T,SBMST M WHERE T." & strArr(2) & " AND T.modeoftran=" & strArr(5) & " " & staccond & "  AND M.accno=T.accno AND M.glcode=T.glcode AND M.branchcode=T.BRANCHCODE AND M.currencycode=T.currencycode UNION ALL SELECT /*+ index(M IND_CCMSTBCGA) */  T.customerid,T.branchcode, T.moduleid,T.glcode, T.accno,T.name, T.amount,M.status,TO_CHAR(M.closedate, 'DD-Mon-yyyy') clsdate, M.CATEGORYCODE,M.OPERATEDBY,M.REGDATE    FROM cctran T,ccmst M WHERE T." & strArr(2) & " AND T.modeoftran=" & strArr(5) & " AND M.accno=T.accno AND M.glcode=T.glcode AND M.branchcode=T.BRANCHCODE UNION ALL SELECT /*+ index(M IND_LOANMST_ACGLBRCR) */ T.customerid,T.branchcode, T.moduleid,T.glcode, T.accno,T.name, T.amount,M.status,TO_CHAR(M.closedate, 'DD-Mon-yyyy') clsdate, M.CATEGORYCODE,M.OPERATEDBY,M.SANCTIONEDDATE REGDATE FROM loantran T,loanmst M WHERE T." & strArr(2) & " AND T.modeoftran=" & strArr(5) & " AND M.accno=T.accno  AND M.glcode=T.glcode AND M.branchcode=T.BRANCHCODE AND M.currencycode=T.currencycode UNION ALL SELECT /*+ index(M IND_DEPMSTBCGA) */  T.customerid,T.branchcode, T.moduleid,T.glcode, T.accno,T.name, T.amount,M.status,TO_CHAR(M.closedate, 'DD-Mon-yyyy') clsdate, TO_CHAR(M.CATEGORYCODE), M.OPERATEDBY,M.EFFDATE REGDATE FROM deptran T,depmst M WHERE T." & strArr(2) & " AND T.modeoftran=" & strArr(5) & " AND M.accno=T.accno AND M.glcode=T.glcode AND M.branchcode=T.BRANCHCODE) a,( SELECT d.customerid FROM (  SELECT A.customerid, SUM(A.AMOUNT) FROM (  SELECT /*+ index(t IDX_SBTRAN_ADGLBR) */ customerid, amount   FROM sbtran t WHERE " & strArr(2) & " AND modeoftran=" & strArr(5) & " UNION  ALL SELECT customerid, amount   FROM loantran WHERE " & strArr(2) & " AND modeoftran=" & strArr(5) & " UNION  ALL SELECT customerid, amount FROM cctran WHERE  " & strArr(2) & " AND modeoftran=" & strArr(5) & " UNION ALL SELECT customerid, amount   FROM deptran WHERE  " & strArr(2) & " AND modeoftran=" & strArr(5) & " ) a,   GENCUSTINFOMST B WHERE A.CUSTOMERID=B.CUSTOMERID " & stCustid & " GROUP BY A.customerid,B.NAME HAVING  " & strArr(3) & " )d ) x WHERE a.customerid = x.customerid GROUP BY A.customerid,a.branchcode, a.moduleid,a.glcode, a.accno, a.status,a.clsdate,a.CATEGORYCODE, a.OPERATEDBY ,a.REGDATE ) Y, gencustinfomst B WHERE y.customerid=  b.customerid "
 
 
-            //        rs = obj.SingleSelectStat(sqlStr)
+            //        dataTable = obj.SingleSelectStat(sqlStr)
 
 
             //            if obj.ConnError = "Connected" then
 
-            //                if not rs.BOF and not rs.EOF then
+            //                if not dataTable.BOF and not dataTable.EOF then
 
 
-            //                    do until rs.EOF
+            //                    do until dataTable.EOF
 
 
-            //                    strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "~" & rs(7).value & "~" & rs(8).value & "~" & rs(9).value & "~" & rs(10).value & "~" & rs(11).value & "~" & rs(12).value & "~" & rs(13).value & "~" & rs(14).value & "~" & rs(15).value & "~" & rs(16).value & "|"
+            //                    strResult = strResult & dataTable(0).value & "~" & dataTable(1).value & "~" & dataTable(2).value & "~" & dataTable(3).value & "~" & dataTable(4).value & "~" & dataTable(5).value & "~" & dataTable(6).value & "~" & dataTable(7).value & "~" & dataTable(8).value & "~" & dataTable(9).value & "~" & dataTable(10).value & "~" & dataTable(11).value & "~" & dataTable(12).value & "~" & dataTable(13).value & "~" & dataTable(14).value & "~" & dataTable(15).value & "~" & dataTable(16).value & "|"
 
 
-            //                    rs.movenext()
+            //                    dataTable.movenext()
 
             //                    loop
             //                end if
@@ -9708,7 +9705,7 @@ namespace Banking.Services
             //        end if
 
 
-            //    rs = nothing
+            //    dataTable = nothing
 
 
             //    end if
@@ -9762,21 +9759,21 @@ namespace Banking.Services
 
 
 
-            //        rs = obj.SingleSelectStat(sqlStr)
+            //        dataTable = obj.SingleSelectStat(sqlStr)
 
 
             //        if obj.ConnError = "Connected" then
 
-            //            if not rs.BOF and not rs.EOF then
+            //            if not dataTable.BOF and not dataTable.EOF then
 
 
-            //                do until rs.EOF
+            //                do until dataTable.EOF
 
 
-            //                strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "~" & rs(7).value & "~" & rs(8).value & "~" & rs(9).value & "~" & rs(10).value & "~" & rs(11).value & "~" & rs(12).value & "~" & rs(13).value & "~" & rs(14).value & "~" & rs(15).value & "~" & rs(16).value & "~" & rs(17).value & "|"
+            //                strResult = strResult & dataTable(0).value & "~" & dataTable(1).value & "~" & dataTable(2).value & "~" & dataTable(3).value & "~" & dataTable(4).value & "~" & dataTable(5).value & "~" & dataTable(6).value & "~" & dataTable(7).value & "~" & dataTable(8).value & "~" & dataTable(9).value & "~" & dataTable(10).value & "~" & dataTable(11).value & "~" & dataTable(12).value & "~" & dataTable(13).value & "~" & dataTable(14).value & "~" & dataTable(15).value & "~" & dataTable(16).value & "~" & dataTable(17).value & "|"
 
 
-            //                rs.movenext()
+            //                dataTable.movenext()
 
             //                loop
             //            end if
@@ -9804,21 +9801,21 @@ namespace Banking.Services
 
 
 
-            //        rs = obj.SingleSelectStat(sqlStr)
+            //        dataTable = obj.SingleSelectStat(sqlStr)
 
 
             //        if obj.ConnError = "Connected" then
 
-            //            if not rs.BOF and not rs.EOF then
+            //            if not dataTable.BOF and not dataTable.EOF then
 
 
-            //                do until rs.EOF
+            //                do until dataTable.EOF
 
 
-            //                strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "~" & rs(7).value & "~" & rs(8).value & "~" & rs(9).value & "~" & rs(10).value & "~" & rs(11).value & "~" & rs(12).value & "~" & rs(13).value & "~" & rs(14).value & "~" & rs(15).value & "~" & rs(16).value & "|"
+            //                strResult = strResult & dataTable(0).value & "~" & dataTable(1).value & "~" & dataTable(2).value & "~" & dataTable(3).value & "~" & dataTable(4).value & "~" & dataTable(5).value & "~" & dataTable(6).value & "~" & dataTable(7).value & "~" & dataTable(8).value & "~" & dataTable(9).value & "~" & dataTable(10).value & "~" & dataTable(11).value & "~" & dataTable(12).value & "~" & dataTable(13).value & "~" & dataTable(14).value & "~" & dataTable(15).value & "~" & dataTable(16).value & "|"
 
 
-            //                rs.movenext()
+            //                dataTable.movenext()
 
             //                loop
             //            end if
@@ -9839,7 +9836,7 @@ namespace Banking.Services
 
 
 
-            //    rs = nothing
+            //    dataTable = nothing
 
 
             //elseif strArr(0)= "CARDREQUEST" then
@@ -9853,21 +9850,21 @@ namespace Banking.Services
             //        sqlStr = " SELECT LPAD(REFNUM,5,0)Refnum, BRANCHCODE, (DECODE(TRIM(MODULEID),'SB','020','CA','030')) AccType ,(DECODE(TRIM(MODULEID),'SB','001','CA','002')) SCHEME, (BRANCHCODE||GLCODE||LPAD(ACCNO,7,0)) Accno, SUBSTR(NAME,0,25) name, SUBSTR(CARDNAME,0,25) CARDNAME, CARDLIMIT, SUBSTR(ADDRESS1,0,25) ADDRESS1, SUBSTR(ADDRESS2,0,25) ADDRESS2, SUBSTR(ADDRESS3,0,25) ADDRESS3, NVL(CARDNUMBER,'NA')CARDNUMBER ,  SUBSTR(MOTHERNAME,0,25) MOTHERNAME, PREFERENCE, MOBILE, ZIPCODE, SUBSTR(STATE,0,25) STATE, SUBSTR(CITYCODE,0,25) CITYCODE  FROM ATMCRDREQUESTDTLS WHERE genyn='N' " & strArr(1) & " "
 
 
-            //        rs = obj.SingleSelectStat(sqlStr)
+            //        dataTable = obj.SingleSelectStat(sqlStr)
 
 
             //        if obj.ConnError = "Connected" then
 
-            //            if not rs.BOF and not rs.EOF then
+            //            if not dataTable.BOF and not dataTable.EOF then
 
 
-            //                do until rs.EOF
+            //                do until dataTable.EOF
 
 
-            //                strResult = strResult & rs(0).value & "|" & rs(1).value & "|" & rs(2).value & "|" & rs(3).value & "|" & rs(4).value & "|" & rs(5).value & "|" & rs(6).value & "|" & rs(7).value & "|" & rs(8).value & "|" & rs(9).value & "|" & rs(10).value & "|" & rs(11).value & "|" & rs(12).value & "|" & rs(13).value & "|" & rs(14).value & "|" & rs(15).value & "|" & rs(16).value & "|" & rs(16).value & "~"
+            //                strResult = strResult & dataTable(0).value & "|" & dataTable(1).value & "|" & dataTable(2).value & "|" & dataTable(3).value & "|" & dataTable(4).value & "|" & dataTable(5).value & "|" & dataTable(6).value & "|" & dataTable(7).value & "|" & dataTable(8).value & "|" & dataTable(9).value & "|" & dataTable(10).value & "|" & dataTable(11).value & "|" & dataTable(12).value & "|" & dataTable(13).value & "|" & dataTable(14).value & "|" & dataTable(15).value & "|" & dataTable(16).value & "|" & dataTable(16).value & "~"
 
 
-            //                rs.movenext()
+            //                dataTable.movenext()
 
             //                loop
             //            end if
@@ -9884,7 +9881,7 @@ namespace Banking.Services
             //        end if
 
 
-            //    rs = nothing
+            //    dataTable = nothing
 
 
 
@@ -9899,18 +9896,18 @@ namespace Banking.Services
             //        sqlStr = "SELECT APPLICATIONDATE,VALUEDATE, TRANSREFNUM, RELREFNUM, SENDBRANCHIFSC,SENDCUSTACCNUM, SENDCUSTACCNAME,AMOUNT,BENBRANCHIFSC ,BENCUSTACCNUM, BENCUSTACCNAME,REMITINF, REASONCODE, REJECTREASON,RESPCODE,RESPREASON FROM neftinwarddtls WHERE trantype = 'NEFTIW'  and " & strArr(1) & " " & strArr(2) & " " & strArr(3) & " order by systemdate "
 
 
-            //        rs = obj.SingleSelectStat(sqlStr)
+            //        dataTable = obj.SingleSelectStat(sqlStr)
 
 
             //        if obj.ConnError = "Connected" then
 
-            //            if not rs.BOF and not rs.EOF then
+            //            if not dataTable.BOF and not dataTable.EOF then
 
-            //                do until rs.EOF
+            //                do until dataTable.EOF
 
-            //                strResult = strResult & format(cdate(rs(0).value), "dd-MMM-yyyy") & "~" & format(cdate(rs(1).value), "dd-MMM-yyyy") & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "~" & rs(7).value & "~" & rs(8).value & "~" & rs(9).value & "~" & rs(10).value & "~" & rs(11).value & "~" & rs(12).value & "~" & rs(13).value & "~" & rs(14).value & "~" & rs(15).value & "|"
+            //                strResult = strResult & format(cdate(dataTable(0).value), "dd-MMM-yyyy") & "~" & format(cdate(dataTable(1).value), "dd-MMM-yyyy") & "~" & dataTable(2).value & "~" & dataTable(3).value & "~" & dataTable(4).value & "~" & dataTable(5).value & "~" & dataTable(6).value & "~" & dataTable(7).value & "~" & dataTable(8).value & "~" & dataTable(9).value & "~" & dataTable(10).value & "~" & dataTable(11).value & "~" & dataTable(12).value & "~" & dataTable(13).value & "~" & dataTable(14).value & "~" & dataTable(15).value & "|"
 
-            //                rs.movenext()
+            //                dataTable.movenext()
 
             //                loop
             //            end if
@@ -9927,7 +9924,7 @@ namespace Banking.Services
             //        end if
 
 
-            //    rs = nothing
+            //    dataTable = nothing
 
 
             //elseif strArr(0) = "NEFTOUTWARDRETURN" then
@@ -9941,18 +9938,18 @@ namespace Banking.Services
             //        sqlStr = "SELECT APPLICATIONDATE,VALUEDATE, TRANSREFNUM, RELREFNUM, SENDBRANCHIFSC,SENDCUSTACCNUM, SENDCUSTACCNAME,AMOUNT,BENBRANCHIFSC ,BENCUSTACCNUM, BENCUSTACCNAME,REMITINF, REASONCODE, REJECTREASON,RESPCODE,RESPREASON FROM neftinwarddtls WHERE trantype = 'NEFTOR'  and " & strArr(1) & " " & strArr(2) & " " & strArr(3) & " order by systemdate "
 
 
-            //        rs = obj.SingleSelectStat(sqlStr)
+            //        dataTable = obj.SingleSelectStat(sqlStr)
 
 
             //        if obj.ConnError = "Connected" then
 
-            //            if not rs.BOF and not rs.EOF then
+            //            if not dataTable.BOF and not dataTable.EOF then
 
-            //                do until rs.EOF
+            //                do until dataTable.EOF
 
-            //                strResult = strResult & format(cdate(rs(0).value), "dd-MMM-yyyy") & "~" & format(cdate(rs(1).value), "dd-MMM-yyyy") & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "~" & rs(7).value & "~" & rs(8).value & "~" & rs(9).value & "~" & rs(10).value & "~" & rs(11).value & "~" & rs(12).value & "~" & rs(13).value & "~" & rs(14).value & "~" & rs(15).value & "*"
+            //                strResult = strResult & format(cdate(dataTable(0).value), "dd-MMM-yyyy") & "~" & format(cdate(dataTable(1).value), "dd-MMM-yyyy") & "~" & dataTable(2).value & "~" & dataTable(3).value & "~" & dataTable(4).value & "~" & dataTable(5).value & "~" & dataTable(6).value & "~" & dataTable(7).value & "~" & dataTable(8).value & "~" & dataTable(9).value & "~" & dataTable(10).value & "~" & dataTable(11).value & "~" & dataTable(12).value & "~" & dataTable(13).value & "~" & dataTable(14).value & "~" & dataTable(15).value & "*"
 
-            //                rs.movenext()
+            //                dataTable.movenext()
 
             //                loop
             //            end if
@@ -9969,7 +9966,7 @@ namespace Banking.Services
             //        end if
 
 
-            //    rs = nothing
+            //    dataTable = nothing
 
             //elseif strArr(0) = "RTGSINWARD" then
 
@@ -9979,18 +9976,18 @@ namespace Banking.Services
             //    sqlStr = "SELECT APPLICATIONDATE ,VALUEDATE_F4488_1 ValueDate, TRANSREFNUM_F2020_1 RefNum, RELREF_F2006_1 RelRefNum, SENDIFSCCODE_FSRID_1 sendIFSCCode,OCSENDACCNUM_F5500_1 SendAccNum, OCSENDACCNAME_F5500_2 SendAccName,OCSENDACCADD_F5500_3 SendAccAdd,AMOUNT_F4488_2 Amount,RECIFSCCODE_FRCID_1 RecIFSCCode, BC_RECACCNUM_F5561_1 RecAccnum, BC_RECNAMEADD_F5561_2 RecAccNameAdd, STRI_RETCODE_F7495_1 RetCode,STRI_RETREAS_F7495_2 RetReasDesc FROM RTGSINWARDDTLS WHERE trantype = 'RTGSIW' and " & strArr(1) & " " & strArr(2) & " " & strArr(3) & " order by systemdate "
 
 
-            //        rs = obj.SingleSelectStat(sqlStr)
+            //        dataTable = obj.SingleSelectStat(sqlStr)
 
 
             //        if obj.ConnError = "Connected" then
 
-            //            if not rs.BOF and not rs.EOF then
+            //            if not dataTable.BOF and not dataTable.EOF then
 
-            //                do until rs.EOF
+            //                do until dataTable.EOF
 
-            //                strResult = strResult & format(cdate(rs(0).value), "dd-MMM-yyyy") & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "~" & rs(7).value & "~" & rs(8).value & "~" & rs(9).value & "~" & rs(10).value & "~" & rs(11).value & "~" & rs(12).value & "~" & rs(13).value & "|"
+            //                strResult = strResult & format(cdate(dataTable(0).value), "dd-MMM-yyyy") & "~" & dataTable(1).value & "~" & dataTable(2).value & "~" & dataTable(3).value & "~" & dataTable(4).value & "~" & dataTable(5).value & "~" & dataTable(6).value & "~" & dataTable(7).value & "~" & dataTable(8).value & "~" & dataTable(9).value & "~" & dataTable(10).value & "~" & dataTable(11).value & "~" & dataTable(12).value & "~" & dataTable(13).value & "|"
 
-            //                rs.movenext()
+            //                dataTable.movenext()
 
             //                loop
             //            end if
@@ -10007,7 +10004,7 @@ namespace Banking.Services
             //        end if
 
 
-            //    rs = nothing
+            //    dataTable = nothing
 
             //elseif strArr(0) = "RTGSINWARDRETURN" then
 
@@ -10017,18 +10014,18 @@ namespace Banking.Services
             //    sqlStr = "SELECT APPLICATIONDATE ,VALUEDATE_F4488_1 ValueDate, TRANSREFNUM_F2020_1 RefNum, RELREF_F2006_1 RelRefNum,SENDIFSCCODE_FSRID_1 sendIFSCCode,OI_SENDBANKVALIDIFSC_F5517_1 SendBnkValidIFSC,AMOUNT_F4488_2 Amount,BI_RECBENBNKVALIFSC_F6521_1 RecBnkValdIFSC,RECIFSCCODE_FRCID_1 RecIFSCCode, BC_RECACCNUM_F5561_1 RecAccnum, BC_RECNAMEADD_F5561_2 RecAccNameAdd, STRI_RETCODE_F7495_1 RetCode,STRI_RETREAS_F7495_2 RetReasDesc FROM RTGSINWARDDTLS WHERE trantype = 'RTGSIR'  and " & strArr(1) & " " & strArr(2) & " " & strArr(3) & " order by systemdate "
 
 
-            //        rs = obj.SingleSelectStat(sqlStr)
+            //        dataTable = obj.SingleSelectStat(sqlStr)
 
 
             //        if obj.ConnError = "Connected" then
 
-            //            if not rs.BOF and not rs.EOF then
+            //            if not dataTable.BOF and not dataTable.EOF then
 
-            //                do until rs.EOF
+            //                do until dataTable.EOF
 
-            //                strResult = strResult & format(cdate(rs(0).value), "dd-MMM-yyyy") & "~" & format(cdate(rs(1).value), "dd-MMM-yyyy") & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "~" & rs(7).value & "~" & rs(8).value & "~" & rs(9).value & "~" & rs(10).value & "~" & rs(11).value & "~" & rs(12).value & "|"
+            //                strResult = strResult & format(cdate(dataTable(0).value), "dd-MMM-yyyy") & "~" & format(cdate(dataTable(1).value), "dd-MMM-yyyy") & "~" & dataTable(2).value & "~" & dataTable(3).value & "~" & dataTable(4).value & "~" & dataTable(5).value & "~" & dataTable(6).value & "~" & dataTable(7).value & "~" & dataTable(8).value & "~" & dataTable(9).value & "~" & dataTable(10).value & "~" & dataTable(11).value & "~" & dataTable(12).value & "|"
 
-            //                rs.movenext()
+            //                dataTable.movenext()
 
             //                loop
             //            end if
@@ -10045,7 +10042,7 @@ namespace Banking.Services
             //        end if
 
 
-            //    rs = nothing
+            //    dataTable = nothing
 
             //elseif strArr(0) = "RTGSOUTWARDRETURN" then
 
@@ -10055,18 +10052,18 @@ namespace Banking.Services
             //    sqlStr = "SELECT APPLICATIONDATE ,VALUEDATE_F4488_1 ValueDate, TRANSREFNUM_F2020_1 RefNum, RELREF_F2006_1 RelRefNum,SENDIFSCCODE_FSRID_1 sendIFSCCode,OI_SENDBANKVALIDIFSC_F5517_1 SendBnkValidIFSC,AMOUNT_F4488_2 Amount,BI_RECBENBNKVALIFSC_F6521_1 RecBnkValdIFSC,RECIFSCCODE_FRCID_1 RecIFSCCode, BC_RECACCNUM_F5561_1 RecAccnum, BC_RECNAMEADD_F5561_2 RecAccNameAdd, STRI_RETCODE_F7495_1 RetCode, REPLACE(REPLACE(STRI_RETREAS_F7495_2,CHR(13),NULL),CHR(10),NULL) RetReasDesc FROM RTGSINWARDDTLS WHERE trantype = 'RTGSOR'  and " & strArr(1) & " " & strArr(2) & " " & strArr(3) & " order by systemdate "
 
 
-            //        rs = obj.SingleSelectStat(sqlStr)
+            //        dataTable = obj.SingleSelectStat(sqlStr)
 
 
             //        if obj.ConnError = "Connected" then
 
-            //            if not rs.BOF and not rs.EOF then
+            //            if not dataTable.BOF and not dataTable.EOF then
 
-            //                do until rs.EOF
+            //                do until dataTable.EOF
 
-            //                strResult = strResult & format(cdate(rs(0).value), "dd-MMM-yyyy") & "~" & format(cdate(rs(1).value), "dd-MMM-yyyy") & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "~" & rs(7).value & "~" & rs(8).value & "~" & rs(9).value & "~" & rs(10).value & "~" & rs(11).value & "~" & rs(12).value & "|"
+            //                strResult = strResult & format(cdate(dataTable(0).value), "dd-MMM-yyyy") & "~" & format(cdate(dataTable(1).value), "dd-MMM-yyyy") & "~" & dataTable(2).value & "~" & dataTable(3).value & "~" & dataTable(4).value & "~" & dataTable(5).value & "~" & dataTable(6).value & "~" & dataTable(7).value & "~" & dataTable(8).value & "~" & dataTable(9).value & "~" & dataTable(10).value & "~" & dataTable(11).value & "~" & dataTable(12).value & "|"
 
-            //                rs.movenext()
+            //                dataTable.movenext()
 
             //                loop
             //            end if
@@ -10083,7 +10080,7 @@ namespace Banking.Services
             //        end if
 
 
-            //    rs = nothing
+            //    dataTable = nothing
 
 
 
@@ -10099,18 +10096,18 @@ namespace Banking.Services
             //        sqlStr = "SELECT APPLICATIONDATE,VALUEDATE, TRANSREFNUM, RELREFNUM, SENDBRANCHIFSC,SENDCUSTACCNUM, SENDCUSTACCNAME,AMOUNT,BENBRANCHIFSC ,BENCUSTACCNUM, BENCUSTACCNAME,replace(REMITINF,'|','#'), REASONCODE, REJECTREASON, RESPCODE, RESPREASON FROM neftinwarddtls WHERE trantype = 'NEFTIR'  and " & strArr(1) & " " & strArr(2) & " " & strArr(3) & " order by systemdate "
 
 
-            //        rs = obj.SingleSelectStat(sqlStr)
+            //        dataTable = obj.SingleSelectStat(sqlStr)
 
 
             //        if obj.ConnError = "Connected" then
 
-            //            if not rs.BOF and not rs.EOF then
+            //            if not dataTable.BOF and not dataTable.EOF then
 
-            //                do until rs.EOF
+            //                do until dataTable.EOF
 
-            //                strResult = strResult & format(cdate(rs(0).value), "dd-MMM-yyyy") & "~" & format(cdate(rs(1).value), "dd-MMM-yyyy") & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "~" & rs(7).value & "~" & rs(8).value & "~" & rs(9).value & "~" & rs(10).value & "~" & rs(11).value & "~" & rs(12).value & "~" & rs(13).value & "~" & rs(14).value & "~" & rs(15).value & "*"
+            //                strResult = strResult & format(cdate(dataTable(0).value), "dd-MMM-yyyy") & "~" & format(cdate(dataTable(1).value), "dd-MMM-yyyy") & "~" & dataTable(2).value & "~" & dataTable(3).value & "~" & dataTable(4).value & "~" & dataTable(5).value & "~" & dataTable(6).value & "~" & dataTable(7).value & "~" & dataTable(8).value & "~" & dataTable(9).value & "~" & dataTable(10).value & "~" & dataTable(11).value & "~" & dataTable(12).value & "~" & dataTable(13).value & "~" & dataTable(14).value & "~" & dataTable(15).value & "*"
 
-            //                rs.movenext()
+            //                dataTable.movenext()
 
             //                loop
             //            end if
@@ -10126,7 +10123,7 @@ namespace Banking.Services
 
             //        end if
 
-            //    rs = nothing
+            //    dataTable = nothing
 
 
             //    elseif strArr(0) = "NEFTOUTWARD" then
@@ -10150,26 +10147,26 @@ namespace Banking.Services
 
             //         end if
 
-            //        rs = obj.SingleSelectStat(sqlStr)
+            //        dataTable = obj.SingleSelectStat(sqlStr)
 
 
             //        if obj.ConnError = "Connected" then
 
-            //            if not rs.BOF and not rs.EOF then
+            //            if not dataTable.BOF and not dataTable.EOF then
 
-            //                do until rs.EOF
+            //                do until dataTable.EOF
 
-            //                strResult = strResult & format(cdate(rs(0).value), "dd-MMM-yyyy") & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "~" & rs(7).value & "~" & rs(8).value & "~" & rs(9).value & "~" & rs(10).value & "~"
+            //                strResult = strResult & format(cdate(dataTable(0).value), "dd-MMM-yyyy") & "~" & dataTable(1).value & "~" & dataTable(2).value & "~" & dataTable(3).value & "~" & dataTable(4).value & "~" & dataTable(5).value & "~" & dataTable(6).value & "~" & dataTable(7).value & "~" & dataTable(8).value & "~" & dataTable(9).value & "~" & dataTable(10).value & "~"
 
 
             //        strSentfilename = ""
             //strAckFilename = ""
             //intcnt = 1
 
-            //        '' get sent file name --refno-- rs(7).value , serviceid-- - rs(11).value
+            //        '' get sent file name --refno-- dataTable(7).value , serviceid-- - dataTable(11).value
 
 
-            //        sqlStr = " SELECT nvl(Filename,'') FROM NEFTRTGSFILEDTLS WHERE filetype = '" & rs(11).value & "' AND '" & rs(7).value & "' between fromrefno and torefno  ORDER BY filename DESC "
+            //        sqlStr = " SELECT nvl(Filename,'') FROM NEFTRTGSFILEDTLS WHERE filetype = '" & dataTable(11).value & "' AND '" & dataTable(7).value & "' between fromrefno and torefno  ORDER BY filename DESC "
 
             //        rs1 = obj.SingleSelectStat(sqlStr)
 
@@ -10206,7 +10203,7 @@ namespace Banking.Services
             //        end if
 
 
-            //                rs.movenext()
+            //                dataTable.movenext()
 
             //                loop
             //            end if
@@ -10223,7 +10220,7 @@ namespace Banking.Services
             //        end if
 
 
-            //    rs = nothing
+            //    dataTable = nothing
 
 
 
@@ -10253,26 +10250,26 @@ namespace Banking.Services
             //         end if
 
 
-            //        rs = obj.SingleSelectStat(sqlStr)
+            //        dataTable = obj.SingleSelectStat(sqlStr)
 
 
             //        if obj.ConnError = "Connected" then
 
-            //            if not rs.BOF and not rs.EOF then
+            //            if not dataTable.BOF and not dataTable.EOF then
 
-            //                do until rs.EOF
+            //                do until dataTable.EOF
 
-            //                strResult = strResult & format(cdate(rs(0).value), "dd-MMM-yyyy") & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "~" & rs(7).value & "~" & rs(8).value & "~" & rs(9).value & "~" & rs(11).value & "~"
+            //                strResult = strResult & format(cdate(dataTable(0).value), "dd-MMM-yyyy") & "~" & dataTable(1).value & "~" & dataTable(2).value & "~" & dataTable(3).value & "~" & dataTable(4).value & "~" & dataTable(5).value & "~" & dataTable(6).value & "~" & dataTable(7).value & "~" & dataTable(8).value & "~" & dataTable(9).value & "~" & dataTable(11).value & "~"
 
 
             //                strSentfilename = ""
             //strAckFilename = ""
             //intcnt = 1
 
-            //        '' get sent file name --refno-- rs(7).value , serviceid-- - rs(10).value
+            //        '' get sent file name --refno-- dataTable(7).value , serviceid-- - dataTable(10).value
 
             //            if frmname = "ELURU" then
-            //            sqlStr = " SELECT filetype, nvl(Filename,'') FROM NEFTRTGSFILEDTLS WHERE filetype in ('" & rs(10).value & "', 'RTGSAK') AND '" & rs(7).value & "' between fromrefno and torefno  ORDER BY filename DESC "
+            //            sqlStr = " SELECT filetype, nvl(Filename,'') FROM NEFTRTGSFILEDTLS WHERE filetype in ('" & dataTable(10).value & "', 'RTGSAK') AND '" & dataTable(7).value & "' between fromrefno and torefno  ORDER BY filename DESC "
 
             //                rs1 = obj.SingleSelectStat(sqlStr)
 
@@ -10306,7 +10303,7 @@ namespace Banking.Services
             //            end if
 
             //            else
-            //                        sqlStr = " SELECT nvl(Filename,'') FROM NEFTRTGSFILEDTLS WHERE filetype = '" & rs(10).value & "' AND '" & rs(7).value & "' between fromrefno and torefno  ORDER BY filename DESC "
+            //                        sqlStr = " SELECT nvl(Filename,'') FROM NEFTRTGSFILEDTLS WHERE filetype = '" & dataTable(10).value & "' AND '" & dataTable(7).value & "' between fromrefno and torefno  ORDER BY filename DESC "
 
 
 
@@ -10350,7 +10347,7 @@ namespace Banking.Services
 
 
 
-            //                rs.movenext()
+            //                dataTable.movenext()
 
             //                loop
             //            end if
@@ -10367,7 +10364,7 @@ namespace Banking.Services
             //        end if
 
 
-            //    rs = nothing
+            //    dataTable = nothing
 
 
 
@@ -10382,21 +10379,21 @@ namespace Banking.Services
             //        sqlStr = " SELECT DECODE (NEFTRTGS,'NEFT','N','RTGS','R') Nft ,PAYEEAMT, TO_CHAR(APPLICATIONDATE,'dd-Mon-yyyy') appdat, PAYEENAME, PAYEEACCNO, '' GAP, REMARKS, (SELECT NEFTRTGSNO FROM invtypemst WHERE INVTYPE='CA') Credac,'' GAP1,IFSCCODE,'11',accno, '' Mobile FROM NEFTRTGSDTLS a WHERE " & strArr(1) & " " & strArr(2) & " ORDER BY APPLICATIONDATE,payeeaccno"
 
 
-            //        rs = obj.SingleSelectStat(sqlStr)
+            //        dataTable = obj.SingleSelectStat(sqlStr)
 
 
             //        if obj.ConnError = "Connected" then
 
-            //            if not rs.BOF and not rs.EOF then
+            //            if not dataTable.BOF and not dataTable.EOF then
 
 
-            //                do until rs.EOF
+            //                do until dataTable.EOF
 
 
-            //                strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "~" & rs(7).value & "~" & rs(8).value & "~" & rs(9).value & "~" & rs(10).value & "~" & rs(11).value & "~" & rs(12).value & "|"
+            //                strResult = strResult & dataTable(0).value & "~" & dataTable(1).value & "~" & dataTable(2).value & "~" & dataTable(3).value & "~" & dataTable(4).value & "~" & dataTable(5).value & "~" & dataTable(6).value & "~" & dataTable(7).value & "~" & dataTable(8).value & "~" & dataTable(9).value & "~" & dataTable(10).value & "~" & dataTable(11).value & "~" & dataTable(12).value & "|"
 
 
-            //                rs.movenext()
+            //                dataTable.movenext()
 
             //                loop
             //            end if
@@ -10413,7 +10410,7 @@ namespace Banking.Services
             //        end if
 
 
-            //    rs = nothing
+            //    dataTable = nothing
 
 
             //    elseif strArr(0) = "SBCADRCRLIEN" then
@@ -10428,21 +10425,21 @@ namespace Banking.Services
             //        sqlStr = "SELECT S.branchcode || S.GLCODE || lpad(S.ACCNO,7,'0'),M.NAME, S.DRLIENAMT, to_char(S.DRLIENLIFTDT,'dd-Mon-yyyy'), S.REASON, to_char(S.APPLICATIONDATE,'dd-Mon-yyyy') FROM SBCALIENDTLS S ,SBMST M WHERE M.DRLIENYN= 'Y' AND S.branchcode = '" & strArr(2) & "' AND S.currencycode = '" & strArr(3) & "' AND S.BRANCHCODE= M.BRANCHCODE  AND S.CURRENCYCODE= M.CURRENCYCODE AND S.GLCODE=  M.GLCODE AND S.ACCNO= M.ACCNO"
 
 
-            //        rs = obj.SingleSelectStat(sqlStr)
+            //        dataTable = obj.SingleSelectStat(sqlStr)
 
 
             //        if obj.ConnError = "Connected" then
 
-            //            if not rs.BOF and not rs.EOF then
+            //            if not dataTable.BOF and not dataTable.EOF then
 
 
-            //                do until rs.EOF
+            //                do until dataTable.EOF
 
 
-            //                strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "|"
+            //                strResult = strResult & dataTable(0).value & "~" & dataTable(1).value & "~" & dataTable(2).value & "~" & dataTable(3).value & "~" & dataTable(4).value & "~" & dataTable(5).value & "|"
 
 
-            //                rs.movenext()
+            //                dataTable.movenext()
 
             //                loop
             //            end if
@@ -10455,21 +10452,21 @@ namespace Banking.Services
             //            sqlStr = "SELECT S.branchcode || S.GLCODE || lpad(S.ACCNO,7,'0'),M.NAME, to_char(S.CRLIENLIFTDT,'dd-Mon-yyyy'), S.REASON, to_char(S.APPLICATIONDATE,'dd-Mon-yyyy') FROM SBCALIENDTLS S ,SBMST M WHERE M.CRLIENYN= 'Y' AND S.branchcode = '" & strArr(2) & "' AND S.currencycode = '" & strArr(3) & "' AND S.BRANCHCODE= M.BRANCHCODE  AND S.CURRENCYCODE= M.CURRENCYCODE AND S.GLCODE=  M.GLCODE AND S.ACCNO= M.ACCNO"
 
 
-            //        rs = obj.SingleSelectStat(sqlStr)
+            //        dataTable = obj.SingleSelectStat(sqlStr)
 
 
             //        if obj.ConnError = "Connected" then
 
-            //            if not rs.BOF and not rs.EOF then
+            //            if not dataTable.BOF and not dataTable.EOF then
 
 
-            //                do until rs.EOF
+            //                do until dataTable.EOF
 
 
-            //                strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "|"
+            //                strResult = strResult & dataTable(0).value & "~" & dataTable(1).value & "~" & dataTable(2).value & "~" & dataTable(3).value & "~" & dataTable(4).value & "|"
 
 
-            //                rs.movenext()
+            //                dataTable.movenext()
 
             //                loop
             //            end if
@@ -10489,7 +10486,7 @@ namespace Banking.Services
             //        end if
 
 
-            //    rs = nothing
+            //    dataTable = nothing
 
 
             //    elseif strArr(0) = "INOPRDTLS" then
@@ -10516,21 +10513,21 @@ namespace Banking.Services
             //         sqlStr = " SELECT glcode,accno,SUBSTR(name,0,30)name ,GETANYDAYBAL('" & strArr(3) & "','INR','" & strArr(1) & "','" & strArr(2) & "'," & stAc & ",'" & strArr(6) & "')curbal FROM " & strArr(1) & "mst WHERE glcode='" & strArr(2) & "' " & strArr(4) & " AND status='R' AND branchcode='" & strArr(3) & "' ORDER BY TO_NUMBER(accno) "
 
 
-            //        rs = obj.SingleSelectStat(sqlStr)
+            //        dataTable = obj.SingleSelectStat(sqlStr)
 
 
             //        if obj.ConnError = "Connected" then
 
-            //            if not rs.BOF and not rs.EOF then
+            //            if not dataTable.BOF and not dataTable.EOF then
 
 
-            //                do until rs.EOF
+            //                do until dataTable.EOF
 
 
-            //                strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "|"
+            //                strResult = strResult & dataTable(0).value & "~" & dataTable(1).value & "~" & dataTable(2).value & "~" & dataTable(3).value & "|"
 
 
-            //                rs.movenext()
+            //                dataTable.movenext()
 
             //                loop
             //            end if
@@ -10548,7 +10545,7 @@ namespace Banking.Services
             //        end if
 
 
-            //    rs = nothing
+            //    dataTable = nothing
 
 
 
@@ -10563,21 +10560,21 @@ namespace Banking.Services
             //        sqlStr = " SELECT accno,substr(name,0,30) name ,ABS(AMOUNT),TO_CHAR(applicationdate,'DD-MON-YYYY') dat FROM " & strArr(1) & "tran WHERE CHQFVG='IOPC' AND glcode='" & strArr(2) & "' " & strArr(4) & "  " & strArr(5) & " AND branchcode='" & strArr(3) & "' UNION ALL SELECT accno,substr(name,0,30) name ,ABS(AMOUNT),TO_CHAR(applicationdate,'DD-MON-YYYY') dat FROM v" & strArr(1) & "tranday WHERE CHQFVG='IOPC' AND glcode='" & strArr(2) & "' " & strArr(4) & " AND branchcode='" & strArr(3) & "' "
 
 
-            //        rs = obj.SingleSelectStat(sqlStr)
+            //        dataTable = obj.SingleSelectStat(sqlStr)
 
 
             //        if obj.ConnError = "Connected" then
 
-            //            if not rs.BOF and not rs.EOF then
+            //            if not dataTable.BOF and not dataTable.EOF then
 
 
-            //                do until rs.EOF
+            //                do until dataTable.EOF
 
 
-            //                strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "|"
+            //                strResult = strResult & dataTable(0).value & "~" & dataTable(1).value & "~" & dataTable(2).value & "~" & dataTable(3).value & "|"
 
 
-            //                rs.movenext()
+            //                dataTable.movenext()
 
             //                loop
             //            end if
@@ -10594,7 +10591,7 @@ namespace Banking.Services
             //        end if
 
 
-            //    rs = nothing
+            //    dataTable = nothing
 
 
             //    elseif strArr(0) = "WITHOUTPANDTLS" then
@@ -10608,21 +10605,21 @@ namespace Banking.Services
             //        sqlStr = " SELECT branchcode,glcode,accno,substr(name,1,30) FROM ( SELECT branchcode,glcode,accno,name FROM sbmst WHERE customerid IN (SELECT customerid FROM gencustinfomst WHERE panno IS NULL) AND status='R' UNION ALL SELECT branchcode,glcode,accno,name FROM CAmst WHERE customerid IN (SELECT customerid FROM gencustinfomst WHERE panno IS NULL) AND status='R' UNION ALL SELECT branchcode,glcode,accno,name FROM ccmst WHERE customerid IN (SELECT customerid FROM gencustinfomst WHERE panno IS NULL) AND status='R' UNION ALL SELECT branchcode,glcode,accno,name FROM depmst WHERE customerid IN (SELECT customerid FROM gencustinfomst WHERE panno IS NULL) AND status='R' UNION ALL SELECT branchcode,glcode,accno,name FROM loanmst WHERE customerid IN (SELECT customerid FROM gencustinfomst WHERE panno IS NULL) AND status='R' ) a  ORDER BY TO_NUMBER(branchcode),TO_NUMBER(glcode),TO_NUMBER(accno)  "
 
 
-            //        rs = obj.SingleSelectStat(sqlStr)
+            //        dataTable = obj.SingleSelectStat(sqlStr)
 
 
             //        if obj.ConnError = "Connected" then
 
-            //            if not rs.BOF and not rs.EOF then
+            //            if not dataTable.BOF and not dataTable.EOF then
 
 
-            //                do until rs.EOF
+            //                do until dataTable.EOF
 
 
-            //                strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "|"
+            //                strResult = strResult & dataTable(0).value & "~" & dataTable(1).value & "~" & dataTable(2).value & "~" & dataTable(3).value & "|"
 
 
-            //                rs.movenext()
+            //                dataTable.movenext()
 
             //                loop
             //            end if
@@ -10639,7 +10636,7 @@ namespace Banking.Services
             //        end if
 
 
-            //    rs = nothing
+            //    dataTable = nothing
 
 
             //    elseif strArr(0) = "WITHOUTAADHARDTLS" then
@@ -10653,21 +10650,21 @@ namespace Banking.Services
             //        sqlStr = " SELECT branchcode,glcode,accno,substr(name,1,30) FROM ( SELECT branchcode,glcode,accno,name FROM sbmst WHERE customerid IN (SELECT customerid FROM gencustinfomst WHERE AADHARUID IS NULL ) AND status='R' UNION ALL SELECT branchcode,glcode,accno,name FROM CAmst WHERE customerid IN (SELECT customerid FROM gencustinfomst WHERE AADHARUID IS NULL ) AND status='R' UNION ALL SELECT branchcode,glcode,accno,name FROM ccmst WHERE customerid IN (SELECT customerid FROM gencustinfomst WHERE AADHARUID IS NULL ) AND status='R' UNION ALL SELECT branchcode,glcode,accno,name FROM depmst WHERE customerid IN (SELECT customerid FROM gencustinfomst WHERE AADHARUID IS NULL ) AND status='R' UNION ALL SELECT branchcode,glcode,accno,name FROM loanmst WHERE customerid IN (SELECT customerid FROM gencustinfomst WHERE AADHARUID IS NULL ) AND status='R' ) a  ORDER BY TO_NUMBER(branchcode),TO_NUMBER(glcode),TO_NUMBER(accno)   "
 
 
-            //        rs = obj.SingleSelectStat(sqlStr)
+            //        dataTable = obj.SingleSelectStat(sqlStr)
 
 
             //        if obj.ConnError = "Connected" then
 
-            //            if not rs.BOF and not rs.EOF then
+            //            if not dataTable.BOF and not dataTable.EOF then
 
 
-            //                do until rs.EOF
+            //                do until dataTable.EOF
 
 
-            //                strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "|"
+            //                strResult = strResult & dataTable(0).value & "~" & dataTable(1).value & "~" & dataTable(2).value & "~" & dataTable(3).value & "|"
 
 
-            //                rs.movenext()
+            //                dataTable.movenext()
 
             //                loop
             //            end if
@@ -10684,7 +10681,7 @@ namespace Banking.Services
             //        end if
 
 
-            //    rs = nothing
+            //    dataTable = nothing
 
 
             //    elseif strArr(0) = "BOTHPANNOANDAADHARDTLS" then
@@ -10698,21 +10695,21 @@ namespace Banking.Services
             //        sqlStr = " SELECT branchcode,glcode,accno,SUBSTR(name,1,30),g.panno, g.AADHARUID FROM ( SELECT branchcode,glcode,accno,name,customerid FROM sbmst WHERE  status='R' UNION ALL SELECT branchcode,glcode,accno,name,customerid FROM CAmst WHERE  status='R' UNION ALL SELECT branchcode,glcode,accno,name,customerid FROM ccmst WHERE  status='R' UNION ALL SELECT branchcode,glcode,accno,name,customerid FROM depmst WHERE  status='R' UNION ALL SELECT branchcode,glcode,accno,name,customerid FROM loanmst WHERE  status='R' ) a  , (SELECT CUSTOMERID, PANNO, AADHARUID,STATUS,kycid FROM gencustinfomst WHERE (kycid = 2 OR AADHARUID IS NOT NULL)) g WHERE a.customerid = g.customerid  ORDER BY TO_NUMBER(branchcode),TO_NUMBER(glcode),TO_NUMBER(accno)"
 
 
-            //        rs = obj.SingleSelectStat(sqlStr)
+            //        dataTable = obj.SingleSelectStat(sqlStr)
 
 
             //        if obj.ConnError = "Connected" then
 
-            //            if not rs.BOF and not rs.EOF then
+            //            if not dataTable.BOF and not dataTable.EOF then
 
 
-            //                do until rs.EOF
+            //                do until dataTable.EOF
 
 
-            //                strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "|"
+            //                strResult = strResult & dataTable(0).value & "~" & dataTable(1).value & "~" & dataTable(2).value & "~" & dataTable(3).value & "~" & dataTable(4).value & "~" & dataTable(5).value & "|"
 
 
-            //                rs.movenext()
+            //                dataTable.movenext()
 
             //                loop
             //            end if
@@ -10729,7 +10726,7 @@ namespace Banking.Services
             //        end if
 
 
-            //    rs = nothing
+            //    dataTable = nothing
 
 
 
@@ -10744,21 +10741,21 @@ namespace Banking.Services
             //        sqlStr = " SELECT branchcode,glcode,accno,SUBSTR(name,1,30),g.panno, g.AADHARUID FROM ( SELECT branchcode,glcode,accno,name,customerid FROM sbmst WHERE  status='R' UNION ALL SELECT branchcode,glcode,accno,name,customerid FROM CAmst WHERE  status='R' UNION ALL SELECT branchcode,glcode,accno,name,customerid FROM ccmst WHERE  status='R' UNION ALL SELECT branchcode,glcode,accno,name,customerid FROM depmst WHERE  status='R' UNION ALL SELECT branchcode,glcode,accno,name,customerid FROM loanmst WHERE  status='R' ) a  , (SELECT CUSTOMERID, PANNO, AADHARUID,STATUS,kycid FROM gencustinfomst WHERE (panno IS NULL AND AADHARUID IS  NULL)) g WHERE a.customerid = g.customerid  ORDER BY TO_NUMBER(branchcode),TO_NUMBER(glcode),TO_NUMBER(accno)"
 
 
-            //        rs = obj.SingleSelectStat(sqlStr)
+            //        dataTable = obj.SingleSelectStat(sqlStr)
 
 
             //        if obj.ConnError = "Connected" then
 
-            //            if not rs.BOF and not rs.EOF then
+            //            if not dataTable.BOF and not dataTable.EOF then
 
 
-            //                do until rs.EOF
+            //                do until dataTable.EOF
 
 
-            //                strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "|"
+            //                strResult = strResult & dataTable(0).value & "~" & dataTable(1).value & "~" & dataTable(2).value & "~" & dataTable(3).value & "~" & dataTable(4).value & "~" & dataTable(5).value & "|"
 
 
-            //                rs.movenext()
+            //                dataTable.movenext()
 
             //                loop
             //            end if
@@ -10775,7 +10772,7 @@ namespace Banking.Services
             //        end if
 
 
-            //    rs = nothing
+            //    dataTable = nothing
 
             //    elseif strArr(0) = "GSTRCUSTID" then
 
@@ -10788,21 +10785,21 @@ namespace Banking.Services
             //            sqlStr = " SELECT BRANCHCODE, GSTCODE, UPPER( GSTIN), INVOICENO, TO_CHAR(INVDATE,'dd-MON-yyyy') dat, INVVALUE, RATE,  BATCHNO FROM GSTTNXDTLS WHERE customerid='" & strArr(2) & "' ORDER BY TO_NUMBER(INVOICENO)"
 
 
-            //            rs = obj.SingleSelectStat(sqlStr)
+            //            dataTable = obj.SingleSelectStat(sqlStr)
 
 
             //            if obj.ConnError = "Connected" then
 
-            //                if not rs.BOF and not rs.EOF then
+            //                if not dataTable.BOF and not dataTable.EOF then
 
 
-            //                    do until rs.EOF
+            //                    do until dataTable.EOF
 
 
-            //                    strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "~" & rs(7).value & "|"
+            //                    strResult = strResult & dataTable(0).value & "~" & dataTable(1).value & "~" & dataTable(2).value & "~" & dataTable(3).value & "~" & dataTable(4).value & "~" & dataTable(5).value & "~" & dataTable(6).value & "~" & dataTable(7).value & "|"
 
 
-            //                    rs.movenext()
+            //                    dataTable.movenext()
 
             //                    loop
             //                end if
@@ -10819,7 +10816,7 @@ namespace Banking.Services
             //            end if
 
 
-            //        rs = nothing
+            //        dataTable = nothing
 
 
             //    elseif strArr(0) = "GSTREPORT" then
@@ -10856,28 +10853,28 @@ namespace Banking.Services
 
 
 
-            //            rs = obj.SingleSelectStat(sqlStr)
+            //            dataTable = obj.SingleSelectStat(sqlStr)
 
 
             //            if obj.ConnError = "Connected" then
 
-            //                if not rs.BOF and not rs.EOF then
+            //                if not dataTable.BOF and not dataTable.EOF then
 
 
-            //                    do until rs.EOF
+            //                    do until dataTable.EOF
 
 
             //                    if strArr(5) = "0" then
-            //                        strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "~" & rs(7).value & "~" & rs(8).value & "~" & rs(9).value & "~" & rs(10).value & "~" & rs(11).value & "~" & rs(12).value & "~" & rs(13).value & "~" & rs(14).value & "~" & rs(15).value & "~" & rs(16).value & "~" & rs(17).value & "~" & rs(18).value & "|"
+            //                        strResult = strResult & dataTable(0).value & "~" & dataTable(1).value & "~" & dataTable(2).value & "~" & dataTable(3).value & "~" & dataTable(4).value & "~" & dataTable(5).value & "~" & dataTable(6).value & "~" & dataTable(7).value & "~" & dataTable(8).value & "~" & dataTable(9).value & "~" & dataTable(10).value & "~" & dataTable(11).value & "~" & dataTable(12).value & "~" & dataTable(13).value & "~" & dataTable(14).value & "~" & dataTable(15).value & "~" & dataTable(16).value & "~" & dataTable(17).value & "~" & dataTable(18).value & "|"
 
             //                    else
-            //                strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "~" & rs(7).value & "~" & rs(8).value & "~" & rs(9).value & "~" & rs(10).value & "~" & rs(11).value & "~" & rs(12).value & "~" & rs(13).value & "~" & rs(14).value & "~" & rs(15).value & "~" & rs(16).value & "~" & rs(17).value & "~" & rs(18).value & "~" & rs(19).value & "|"
+            //                strResult = strResult & dataTable(0).value & "~" & dataTable(1).value & "~" & dataTable(2).value & "~" & dataTable(3).value & "~" & dataTable(4).value & "~" & dataTable(5).value & "~" & dataTable(6).value & "~" & dataTable(7).value & "~" & dataTable(8).value & "~" & dataTable(9).value & "~" & dataTable(10).value & "~" & dataTable(11).value & "~" & dataTable(12).value & "~" & dataTable(13).value & "~" & dataTable(14).value & "~" & dataTable(15).value & "~" & dataTable(16).value & "~" & dataTable(17).value & "~" & dataTable(18).value & "~" & dataTable(19).value & "|"
 
             //                    end if
 
 
 
-            //                    rs.movenext()
+            //                    dataTable.movenext()
 
             //                    loop
             //                end if
@@ -10912,28 +10909,28 @@ namespace Banking.Services
 
 
 
-            //            rs = obj.SingleSelectStat(sqlStr)
+            //            dataTable = obj.SingleSelectStat(sqlStr)
 
 
             //            if obj.ConnError = "Connected" then
 
-            //                if not rs.BOF and not rs.EOF then
+            //                if not dataTable.BOF and not dataTable.EOF then
 
 
-            //                    do until rs.EOF
+            //                    do until dataTable.EOF
 
 
             //                    if strArr(5) = "0" then
-            //                        strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "~" & rs(7).value & "~" & rs(8).value & "~" & rs(9).value & "~" & rs(10).value & "~" & rs(11).value & "~" & rs(12).value & "~" & rs(13).value & "~" & rs(14).value & "~" & rs(15).value & "~" & rs(16).value & "~" & rs(17).value & "~" & rs(18).value & "~" & rs(19).value & "|"
+            //                        strResult = strResult & dataTable(0).value & "~" & dataTable(1).value & "~" & dataTable(2).value & "~" & dataTable(3).value & "~" & dataTable(4).value & "~" & dataTable(5).value & "~" & dataTable(6).value & "~" & dataTable(7).value & "~" & dataTable(8).value & "~" & dataTable(9).value & "~" & dataTable(10).value & "~" & dataTable(11).value & "~" & dataTable(12).value & "~" & dataTable(13).value & "~" & dataTable(14).value & "~" & dataTable(15).value & "~" & dataTable(16).value & "~" & dataTable(17).value & "~" & dataTable(18).value & "~" & dataTable(19).value & "|"
 
             //                    else
-            //                strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "~" & rs(7).value & "~" & rs(8).value & "~" & rs(9).value & "~" & rs(10).value & "~" & rs(11).value & "~" & rs(12).value & "~" & rs(13).value & "~" & rs(14).value & "~" & rs(15).value & "~" & rs(16).value & "~" & rs(17).value & "~" & rs(18).value & "~" & rs(19).value & "~" & rs(20).value & "|"
+            //                strResult = strResult & dataTable(0).value & "~" & dataTable(1).value & "~" & dataTable(2).value & "~" & dataTable(3).value & "~" & dataTable(4).value & "~" & dataTable(5).value & "~" & dataTable(6).value & "~" & dataTable(7).value & "~" & dataTable(8).value & "~" & dataTable(9).value & "~" & dataTable(10).value & "~" & dataTable(11).value & "~" & dataTable(12).value & "~" & dataTable(13).value & "~" & dataTable(14).value & "~" & dataTable(15).value & "~" & dataTable(16).value & "~" & dataTable(17).value & "~" & dataTable(18).value & "~" & dataTable(19).value & "~" & dataTable(20).value & "|"
 
             //                    end if
 
 
 
-            //                    rs.movenext()
+            //                    dataTable.movenext()
 
             //                    loop
             //                end if
@@ -10953,7 +10950,7 @@ namespace Banking.Services
             //            end if
 
 
-            //        rs = nothing
+            //        dataTable = nothing
 
 
 
@@ -10984,21 +10981,21 @@ namespace Banking.Services
             //        end if
 
 
-            //        rs = obj.SingleSelectStat(sqlStr)
+            //        dataTable = obj.SingleSelectStat(sqlStr)
 
 
             //            if obj.ConnError = "Connected" then
 
-            //                if not rs.BOF and not rs.EOF then
+            //                if not dataTable.BOF and not dataTable.EOF then
 
 
-            //                    do until rs.EOF
+            //                    do until dataTable.EOF
 
 
-            //                        strResult = strResult & rs(0).value & "|"
+            //                        strResult = strResult & dataTable(0).value & "|"
 
 
-            //                    rs.movenext()
+            //                    dataTable.movenext()
 
             //                    loop
 
@@ -11019,7 +11016,7 @@ namespace Banking.Services
             //            end if
 
 
-            //        rs = nothing
+            //        dataTable = nothing
 
 
             //    elseif strArr(0) = "INTRATEDTLS" then
@@ -11093,20 +11090,20 @@ namespace Banking.Services
             //            sqlStr = " SELECT x.glcode, (x.frmday ||' Days To '|| x.today ||' Days') period ," & denom & " FROM ( SELECT SUBSTR(b.NARRATION,0,20) glcode, A.FROMCONVDAYS frmday , A.TOCONVDAYS today," & denom1 & " FROM GENINTERESTDTLS A, deptypemst b WHERE A.effectivedate = '" & strArr(2) & "' AND A.glcode IN (SELECT glcode FROM DEPtypemst) AND a.glcode = b.glcode GROUP BY b.NARRATION, A.FROMCONVDAYS,A.TOCONVDAYS,a.CATEGORYCODE,a.rate )x GROUP BY x.glcode, x.frmday,x.today ORDER BY X.glcode, TO_NUMBER(x.frmday), TO_NUMBER(x.today) ASC "
 
 
-            //            rs = obj.SingleSelectStat(sqlStr)
+            //            dataTable = obj.SingleSelectStat(sqlStr)
 
 
             //            if obj.ConnError = "Connected" then
 
-            //                if not rs.BOF and not rs.EOF then
+            //                if not dataTable.BOF and not dataTable.EOF then
 
 
-            //                    do until rs.EOF
+            //                    do until dataTable.EOF
 
 
-            //                        for i = 0 to rs.fields.count - 1
+            //                        for i = 0 to dataTable.fields.count - 1
 
-            //                            iRval = iRval & rs(i).value & "~"
+            //                            iRval = iRval & dataTable(i).value & "~"
 
             //                        next i
 
@@ -11116,7 +11113,7 @@ namespace Banking.Services
 
             //                            iRval = iRval & "|"
 
-            //                        rs.movenext()
+            //                        dataTable.movenext()
 
             //                    loop
 
@@ -11134,20 +11131,20 @@ namespace Banking.Services
             //            sqlStr = " SELECT x.glcode, (x.fromamount ||'-'|| x.toamount) period , SUM(ROI) FROM ( SELECT SUBSTR(b.NARRATION,0,20) glcode,a.FROMAMOUNT, a.TOAMOUNT, NVL(a.ROI,0)ROI  FROM LOANINTRATEDTLS a, LOANTYPEMST b WHERE a.glcode IN (SELECT glcode FROM loantypemst) AND a.effectivedate = '" & strArr(2) & "' AND a.glcode = b.glcode  GROUP BY b.NARRATION, a.FROMAMOUNT, a.TOAMOUNT, a.ROI ) x GROUP BY x.glcode, x.FROMAMOUNT,x.TOAMOUNT ORDER BY X.glcode, TO_NUMBER(x.FROMAMOUNT), TO_NUMBER(x.TOAMOUNT) ASC  "
 
 
-            //            rs = obj.SingleSelectStat(sqlStr)
+            //            dataTable = obj.SingleSelectStat(sqlStr)
 
 
             //            if obj.ConnError = "Connected" then
 
-            //                if not rs.BOF and not rs.EOF then
+            //                if not dataTable.BOF and not dataTable.EOF then
 
 
-            //                    do until rs.EOF
+            //                    do until dataTable.EOF
 
 
-            //                        for i = 0 to rs.fields.count - 1
+            //                        for i = 0 to dataTable.fields.count - 1
 
-            //                            iRval = iRval & rs(i).value & "~"
+            //                            iRval = iRval & dataTable(i).value & "~"
 
             //                        next i
 
@@ -11157,7 +11154,7 @@ namespace Banking.Services
 
             //                            iRval = iRval & "|"
 
-            //                        rs.movenext()
+            //                        dataTable.movenext()
 
             //                    loop
 
@@ -11221,20 +11218,20 @@ namespace Banking.Services
             //            sqlStr = " SELECT x.glcode,(x.frmday ||'-'|| x.today) period ," & denom & " FROM ( SELECT SUBSTR(b.NARRATION,0,20) glcode,A.fromamt frmday , A.TOamt today ," & denom1 & " FROM GENSBCASLABINTRATEDTLS A, " & strArr(1) & "typemst b WHERE A.effectivedate = '" & strArr(2) & "' AND a.moduleid='" & strArr(1) & "' AND A.glcode IN (SELECT glcode FROM " & strArr(1) & "typemst) AND a.glcode = b.glcode GROUP BY b.NARRATION,A.fromamt , A.TOamt, a.CATEGORYCODE,a.intrate )x GROUP BY x.glcode, x.frmday, x.today ORDER BY X.glcode, TO_NUMBER(x.frmday), TO_NUMBER(x.today) ASC "
 
 
-            //            rs = obj.SingleSelectStat(sqlStr)
+            //            dataTable = obj.SingleSelectStat(sqlStr)
 
 
             //            if obj.ConnError = "Connected" then
 
-            //                if not rs.BOF and not rs.EOF then
+            //                if not dataTable.BOF and not dataTable.EOF then
 
 
-            //                    do until rs.EOF
+            //                    do until dataTable.EOF
 
 
-            //                        for i = 0 to rs.fields.count - 1
+            //                        for i = 0 to dataTable.fields.count - 1
 
-            //                            iRval = iRval & rs(i).value & "~"
+            //                            iRval = iRval & dataTable(i).value & "~"
 
             //                        next i
 
@@ -11244,7 +11241,7 @@ namespace Banking.Services
 
             //                            iRval = iRval & "|"
 
-            //                        rs.movenext()
+            //                        dataTable.movenext()
 
             //                    loop
 
@@ -11262,7 +11259,7 @@ namespace Banking.Services
 
 
 
-            //        rs = nothing
+            //        dataTable = nothing
 
 
             //    elseif strArr(0) = "PHOTOSIGNDTLS" then
@@ -11288,21 +11285,21 @@ namespace Banking.Services
             //        sqlStr = " SELECT x.customerid, x.accno,SUBSTR(x.name,0,25) name, DECODE(SUM(x.Photo),'1', 'N','0','Y') Pho, DECODE(SUM(x.signatur),'1', 'N','0','Y') SIGN FROM ( SELECT DISTINCT b.customerid, " & stAcn & " accno,a.name,'1' Photo, '0' signatur  FROM gencustinfomst a, " & strArr(1) & "mst b WHERE b.customerid NOT IN (SELECT customerid FROM GENPHOTOMST ) AND a.customerid=b.customerid AND b.status='R' " & strArr(2) & " UNION ALL SELECT DISTINCT b.customerid, " & stAcn & " accno,a.name,'0' Photo,'1' signatur FROM gencustinfomst a, " & strArr(1) & "mst b WHERE b.customerid NOT IN (SELECT customerid FROM GENSIGNATUREMST ) AND a.customerid=b.customerid AND b.status='R' " & strArr(2) & " ) x  GROUP BY x.customerid, x.accno, x.name ORDER BY TO_NUMBER(x.customerid)   "
 
 
-            //        rs = obj.SingleSelectStat(sqlStr)
+            //        dataTable = obj.SingleSelectStat(sqlStr)
 
 
             //            if obj.ConnError = "Connected" then
 
-            //                if not rs.BOF and not rs.EOF then
+            //                if not dataTable.BOF and not dataTable.EOF then
 
 
-            //                    do until rs.EOF
+            //                    do until dataTable.EOF
 
 
-            //                        strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "|"
+            //                        strResult = strResult & dataTable(0).value & "~" & dataTable(1).value & "~" & dataTable(2).value & "~" & dataTable(3).value & "~" & dataTable(4).value & "|"
 
 
-            //                    rs.movenext()
+            //                    dataTable.movenext()
 
             //                    loop
             //                end if
@@ -11319,7 +11316,7 @@ namespace Banking.Services
             //            end if
 
 
-            //        rs = nothing
+            //        dataTable = nothing
 
 
             //    elseif strArr(0) = "MEMDTLS" then
@@ -11366,25 +11363,25 @@ namespace Banking.Services
 
 
 
-            //        rs = obj.SingleSelectStat(sqlStr)
+            //        dataTable = obj.SingleSelectStat(sqlStr)
 
 
             //            if obj.ConnError = "Connected" then
 
-            //                if not rs.BOF and not rs.EOF then
+            //                if not dataTable.BOF and not dataTable.EOF then
 
 
-            //                    do until rs.EOF
+            //                    do until dataTable.EOF
 
             //                        if strArr(4) = "SUMARY" then
-            //                            strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "|"
+            //                            strResult = strResult & dataTable(0).value & "~" & dataTable(1).value & "~" & dataTable(2).value & "|"
 
             //                        else if strArr(4) = "DETAIL" then
-            //                            strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "~" & rs(7).value & "~" & rs(8).value & "~" & rs(9).value & "~" & rs(10).value & "|"
+            //                            strResult = strResult & dataTable(0).value & "~" & dataTable(1).value & "~" & dataTable(2).value & "~" & dataTable(3).value & "~" & dataTable(4).value & "~" & dataTable(5).value & "~" & dataTable(6).value & "~" & dataTable(7).value & "~" & dataTable(8).value & "~" & dataTable(9).value & "~" & dataTable(10).value & "|"
 
             //                        end if
 
-            //                    rs.movenext()
+            //                    dataTable.movenext()
 
             //                    loop
             //                end if
@@ -11401,7 +11398,7 @@ namespace Banking.Services
             //            end if
 
 
-            //        rs = nothing
+            //        dataTable = nothing
 
 
             //    elseif strArr(0) = "NONMEMDTLS" then
@@ -11446,25 +11443,25 @@ namespace Banking.Services
             //        end if
 
 
-            //        rs = obj.SingleSelectStat(sqlStr)
+            //        dataTable = obj.SingleSelectStat(sqlStr)
 
 
             //            if obj.ConnError = "Connected" then
 
-            //                if not rs.BOF and not rs.EOF then
+            //                if not dataTable.BOF and not dataTable.EOF then
 
 
-            //                    do until rs.EOF
+            //                    do until dataTable.EOF
 
             //                        if strArr(4) = "SUMARY" then
-            //                            strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "|"
+            //                            strResult = strResult & dataTable(0).value & "~" & dataTable(1).value & "~" & dataTable(2).value & "|"
 
             //                        else if strArr(4) = "DETAIL" then
-            //                            strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "~" & rs(7).value & "~" & rs(8).value & "~" & rs(9).value & "|"
+            //                            strResult = strResult & dataTable(0).value & "~" & dataTable(1).value & "~" & dataTable(2).value & "~" & dataTable(3).value & "~" & dataTable(4).value & "~" & dataTable(5).value & "~" & dataTable(6).value & "~" & dataTable(7).value & "~" & dataTable(8).value & "~" & dataTable(9).value & "|"
 
             //                        end if
 
-            //                    rs.movenext()
+            //                    dataTable.movenext()
 
             //                    loop
             //                end if
@@ -11481,7 +11478,7 @@ namespace Banking.Services
             //            end if
 
 
-            //        rs = nothing
+            //        dataTable = nothing
 
 
             //    elseif strArr(0)= "CHARTYP" then
@@ -11494,20 +11491,20 @@ namespace Banking.Services
             //        sqlStr = "SELECT COUNT(*) FROM GENCHARGETYPEMST WHERE CHARGETYPE='" & strArr(1) & "' and status='R'"
 
 
-            //        rs = obj.SingleSelectStat(sqlStr)
+            //        dataTable = obj.SingleSelectStat(sqlStr)
 
 
             //        if obj.ConnError = "Connected" then
 
-            //            if not rs.BOF and not rs.EOF then
+            //            if not dataTable.BOF and not dataTable.EOF then
 
-            //                strResult = rs(0).value
+            //                strResult = dataTable(0).value
 
             //            end if
 
             //        end if
 
-            //    rs = nothing
+            //    dataTable = nothing
 
 
             //    elseif strArr(0)= "CHARREPORT" then
@@ -11520,18 +11517,18 @@ namespace Banking.Services
             //        sqlStr = "SELECT a.CHARGESID, SUBSTR(b.DESCRIPTION,1,40) descr, a.COMMMODULEID, a.COMMGLCODE, SUBSTR(a.COMGLDESC,1,40) gldesc, a.COMMACCNO, a.COMMAMT, DECODE(a.FLAG,'P','PERCENTAGE','F','FLAT') flag, a.AUTOPOSTCHRGSYN, a.COMMISSIONYN, a.SERVICETAXYN FROM GENCHARGESPMT a,GENCHARGETYPEMST b WHERE a.status='R' AND a.CHARGESID = b.CHARGETYPE ORDER BY a.CHARGESID "
 
 
-            //        rs = obj.SingleSelectStat(sqlStr)
+            //        dataTable = obj.SingleSelectStat(sqlStr)
 
 
             //        if obj.ConnError = "Connected" then
 
-            //            if not rs.BOF and not rs.EOF then
+            //            if not dataTable.BOF and not dataTable.EOF then
 
-            //                do until rs.EOF
+            //                do until dataTable.EOF
 
-            //                    strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "~" & rs(7).value & "~" & rs(8).value & "~" & rs(9).value & "~" & rs(10).value & "|"
+            //                    strResult = strResult & dataTable(0).value & "~" & dataTable(1).value & "~" & dataTable(2).value & "~" & dataTable(3).value & "~" & dataTable(4).value & "~" & dataTable(5).value & "~" & dataTable(6).value & "~" & dataTable(7).value & "~" & dataTable(8).value & "~" & dataTable(9).value & "~" & dataTable(10).value & "|"
 
-            //                rs.movenext()
+            //                dataTable.movenext()
 
             //                loop
             //            end if
@@ -11548,7 +11545,7 @@ namespace Banking.Services
             //        end if
 
 
-            //    rs = nothing
+            //    dataTable = nothing
 
 
             //    elseif strArr(0)= "TERMINAL" then
@@ -11561,18 +11558,18 @@ namespace Banking.Services
             //        sqlStr = "SELECT TERMINALID FROM posmasterdtls WHERE TERMINALID='" & strArr(1) & "' AND STATUS='R' AND ISSUEDYN='N'  "
 
 
-            //        rs = obj.SingleSelectStat(sqlStr)
+            //        dataTable = obj.SingleSelectStat(sqlStr)
 
 
             //        if obj.ConnError = "Connected" then
 
-            //            if not rs.BOF and not rs.EOF then
+            //            if not dataTable.BOF and not dataTable.EOF then
 
-            //                do until rs.EOF
+            //                do until dataTable.EOF
 
-            //                    strResult = strResult & rs(0).value & "|"
+            //                    strResult = strResult & dataTable(0).value & "|"
 
-            //                rs.movenext()
+            //                dataTable.movenext()
 
             //                loop
             //            end if
@@ -11589,7 +11586,7 @@ namespace Banking.Services
             //        end if
 
 
-            //    rs = nothing
+            //    dataTable = nothing
 
 
             //    elseif strArr(0)= "POSRENTDTLS" then
@@ -11608,18 +11605,18 @@ namespace Banking.Services
             //        sqlStr = "SELECT name,sno,TID, MID FROM posissuedtls WHERE TO_NUMBER(SUBSTR(RENTDATE,3,4))||TO_NUMBER(SUBSTR(RENTDATE,1,2)) <= " & clng(strrentdate) & " AND STATUS='R' AND BRANCHCODE='" & strArr(2) & "' AND TID NOT IN (SELECT TID FROM POSRENTDTLS WHERE RENTDATE = '" & strArr(1) & "' AND BRANCHCODE='" & strArr(2) & "' )"
 
 
-            //        rs = obj.SingleSelectStat(sqlStr)
+            //        dataTable = obj.SingleSelectStat(sqlStr)
 
 
             //        if obj.ConnError = "Connected" then
 
-            //            if not rs.BOF and not rs.EOF then
+            //            if not dataTable.BOF and not dataTable.EOF then
 
-            //                do until rs.EOF
+            //                do until dataTable.EOF
 
-            //                    strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "|"
+            //                    strResult = strResult & dataTable(0).value & "~" & dataTable(1).value & "~" & dataTable(2).value & "~" & dataTable(3).value & "|"
 
-            //                rs.movenext()
+            //                dataTable.movenext()
 
             //                loop
             //            end if
@@ -11636,7 +11633,7 @@ namespace Banking.Services
             //        end if
 
 
-            //    rs = nothing
+            //    dataTable = nothing
 
 
             //    elseif strArr(0)= "POSRENTGENRAT" then
@@ -11659,18 +11656,18 @@ namespace Banking.Services
 
 
 
-            //        rs = obj.SingleSelectStat(sqlStr)
+            //        dataTable = obj.SingleSelectStat(sqlStr)
 
 
             //        if obj.ConnError = "Connected" then
 
-            //            if not rs.BOF and not rs.EOF then
+            //            if not dataTable.BOF and not dataTable.EOF then
 
-            //                do until rs.EOF
+            //                do until dataTable.EOF
 
-            //                    strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "|"
+            //                    strResult = strResult & dataTable(0).value & "~" & dataTable(1).value & "~" & dataTable(2).value & "~" & dataTable(3).value & "~" & dataTable(4).value & "~" & dataTable(5).value & "|"
 
-            //                rs.movenext()
+            //                dataTable.movenext()
 
             //                loop
             //            end if
@@ -11687,7 +11684,7 @@ namespace Banking.Services
             //        end if
 
 
-            //    rs = nothing
+            //    dataTable = nothing
 
 
             //    elseif strArr(0)= "REPORTPOSDTLS" then
@@ -11700,18 +11697,18 @@ namespace Banking.Services
             //        sqlStr = "SELECT BRANCHCODE,(select DESCRIPTION  from postypemst where sno = a.sno) typedescription, TERMINALID, SERIALNUM, MERCHANTID, ISSUEDYN, REMARKS FROM POSMASTERDTLS a " & strArr(1) & " "
 
 
-            //        rs = obj.SingleSelectStat(sqlStr)
+            //        dataTable = obj.SingleSelectStat(sqlStr)
 
 
             //        if obj.ConnError = "Connected" then
 
-            //            if not rs.BOF and not rs.EOF then
+            //            if not dataTable.BOF and not dataTable.EOF then
 
-            //                do until rs.EOF
+            //                do until dataTable.EOF
 
-            //                    strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "|"
+            //                    strResult = strResult & dataTable(0).value & "~" & dataTable(1).value & "~" & dataTable(2).value & "~" & dataTable(3).value & "~" & dataTable(4).value & "~" & dataTable(5).value & "~" & dataTable(6).value & "|"
 
-            //                rs.movenext()
+            //                dataTable.movenext()
 
             //                loop
             //            end if
@@ -11728,7 +11725,7 @@ namespace Banking.Services
             //        end if
 
 
-            //    rs = nothing
+            //    dataTable = nothing
 
 
             //    elseif strArr(0)= "POSDTLSREPRT" then
@@ -11766,26 +11763,26 @@ namespace Banking.Services
 
 
 
-            //        rs = obj.SingleSelectStat(sqlStr)
+            //        dataTable = obj.SingleSelectStat(sqlStr)
 
 
             //        if obj.ConnError = "Connected" then
 
-            //            if not rs.BOF and not rs.EOF then
+            //            if not dataTable.BOF and not dataTable.EOF then
 
-            //                do until rs.EOF
+            //                do until dataTable.EOF
 
 
             //                    if ((strArr(4) = "ALL") or(strArr(4) = "ACCNO")) then
-            //                        strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "~" & rs(7).value & "~" & rs(8).value & "|"
+            //                        strResult = strResult & dataTable(0).value & "~" & dataTable(1).value & "~" & dataTable(2).value & "~" & dataTable(3).value & "~" & dataTable(4).value & "~" & dataTable(5).value & "~" & dataTable(6).value & "~" & dataTable(7).value & "~" & dataTable(8).value & "|"
 
             //                    else
-            //                strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "~" & rs(7).value & "|"
+            //                strResult = strResult & dataTable(0).value & "~" & dataTable(1).value & "~" & dataTable(2).value & "~" & dataTable(3).value & "~" & dataTable(4).value & "~" & dataTable(5).value & "~" & dataTable(6).value & "~" & dataTable(7).value & "|"
 
             //                    end if
 
 
-            //                rs.movenext()
+            //                dataTable.movenext()
 
             //                loop
             //            end if
@@ -11802,7 +11799,7 @@ namespace Banking.Services
             //        end if
 
 
-            //    rs = nothing
+            //    dataTable = nothing
 
 
             //    elseif strArr(0)= "POSISSUEDTLSREPRT" then
@@ -11841,18 +11838,18 @@ namespace Banking.Services
 
 
 
-            //        rs = obj.SingleSelectStat(sqlStr)
+            //        dataTable = obj.SingleSelectStat(sqlStr)
 
 
             //        if obj.ConnError = "Connected" then
 
-            //            if not rs.BOF and not rs.EOF then
+            //            if not dataTable.BOF and not dataTable.EOF then
 
-            //                do until rs.EOF
+            //                do until dataTable.EOF
 
-            //                    strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "~" & rs(7).value & "~" & rs(8).value & "~" & rs(9).value & "~" & rs(10).value & "|"
+            //                    strResult = strResult & dataTable(0).value & "~" & dataTable(1).value & "~" & dataTable(2).value & "~" & dataTable(3).value & "~" & dataTable(4).value & "~" & dataTable(5).value & "~" & dataTable(6).value & "~" & dataTable(7).value & "~" & dataTable(8).value & "~" & dataTable(9).value & "~" & dataTable(10).value & "|"
 
-            //                rs.movenext()
+            //                dataTable.movenext()
 
             //                loop
             //            end if
@@ -11869,7 +11866,7 @@ namespace Banking.Services
             //        end if
 
 
-            //    rs = nothing
+            //    dataTable = nothing
 
 
             //    elseif strArr(0)= "MERCHVAL" then
@@ -11883,18 +11880,18 @@ namespace Banking.Services
             //        sqlStr = "SELECT BRANCHCODE, TERMINALID, SERIALNUM, MERCHANTID, STATUS, REMARKS,sno FROM POSMASTERDTLS WHERE UPPER(branchcode) = '" & strArr(3) & "' AND UPPER(TERMINALID) = '" & strArr(1) & "' AND UPPER(SERIALNUM) = '" & strArr(2) & "' "
 
 
-            //        rs = obj.SingleSelectStat(sqlStr)
+            //        dataTable = obj.SingleSelectStat(sqlStr)
 
 
             //        if obj.ConnError = "Connected" then
 
-            //            if not rs.BOF and not rs.EOF then
+            //            if not dataTable.BOF and not dataTable.EOF then
 
-            //                do until rs.EOF
+            //                do until dataTable.EOF
 
-            //                    strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "|"
+            //                    strResult = strResult & dataTable(0).value & "~" & dataTable(1).value & "~" & dataTable(2).value & "~" & dataTable(3).value & "~" & dataTable(4).value & "~" & dataTable(5).value & "~" & dataTable(6).value & "|"
 
-            //                rs.movenext()
+            //                dataTable.movenext()
 
             //                loop
             //            end if
@@ -11911,7 +11908,7 @@ namespace Banking.Services
             //        end if
 
 
-            //    rs = nothing
+            //    dataTable = nothing
 
 
             //    elseif strArr(0)= "MODISSUVAL" then
@@ -11925,18 +11922,18 @@ namespace Banking.Services
             //        sqlStr = "SELECT RENT, GST, TO_CHAR(RENTCOLLECTFROM,'dd-Mon-yyyy') dat,to_char(issuedate,'dd-Mon-yyyy') issuedate FROM posissuedtls WHERE UPPER(branchcode) = '" & strArr(3) & "' AND UPPER(TID) = '" & strArr(1) & "' AND UPPER(MID) = '" & strArr(2) & "' "
 
 
-            //        rs = obj.SingleSelectStat(sqlStr)
+            //        dataTable = obj.SingleSelectStat(sqlStr)
 
 
             //        if obj.ConnError = "Connected" then
 
-            //            if not rs.BOF and not rs.EOF then
+            //            if not dataTable.BOF and not dataTable.EOF then
 
-            //                do until rs.EOF
+            //                do until dataTable.EOF
 
-            //                    strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "|"
+            //                    strResult = strResult & dataTable(0).value & "~" & dataTable(1).value & "~" & dataTable(2).value & "~" & dataTable(3).value & "|"
 
-            //                rs.movenext()
+            //                dataTable.movenext()
 
             //                loop
             //            end if
@@ -11953,7 +11950,7 @@ namespace Banking.Services
             //        end if
 
 
-            //    rs = nothing
+            //    dataTable = nothing
 
 
             //elseif strArr(0)= "LoanRepayAccName" then
@@ -11961,14 +11958,14 @@ namespace Banking.Services
 
             //sqlStr = "SELECT distinct A.ACCNO, A.NAME FROM LOANMST A, LOANSCHEDULEDTLS B  WHERE a.accno = '" & strArr(5) & "' AND a.branchcode = '" & strArr(1) & "' AND a.currencycode = '" & strArr(2) & "' AND a.glcode = '" & strArr(4) & "' and A.STATUS='R' AND  B.REPAYDUEDATE<A.DUEDATE AND A.ACCNO=B.ACCNO AND A.GLCODE=B.GLCODE AND A.BRANCHCODE=B.BRANCHCODE"
 
-            //rs = obj.SingleSelectStat(sqlStr)
+            //dataTable = obj.SingleSelectStat(sqlStr)
 
 
             //        if obj.ConnError = "Connected" then
 
-            //                if not rs.BOF and not rs.EOF then
+            //                if not dataTable.BOF and not dataTable.EOF then
 
-            //                strResult = rs(1).value
+            //                strResult = dataTable(1).value
 
             //                else
             //                strResult = "No Records"
@@ -12019,18 +12016,18 @@ namespace Banking.Services
             //        sqlStr = "SELECT A.glcode,A.ACCNO, A.NAME,A.SANCTIONEDDATE SANCDATE,A.DUEDATE,A.SANCTIONEDAMT SANCAMT, A.INSTALMENTAMT INSTLAMT, NVL(B.EMIPRINCIPLEPART,A.INSTALMENTAMT) EMIPRIN, NVL(B.EMIINTERESTPART,0) EMIINT, B.REPAYDUEDATE REPAYDATE FROM LOANMST A, LOANSCHEDULEDTLS B  WHERE a.branchcode = '" & strArr(1) & "' and a.currencycode  = '" & strArr(2) & "' and A.STATUS='R' AND  B.REPAYDUEDATE<A.DUEDATE AND A.ACCNO=B.ACCNO AND A.GLCODE=B.GLCODE AND A.BRANCHCODE=B.BRANCHCODE " & strCond & " ORDER BY B.REPAYDUEDATE, A.GLCODE, TO_NUMBER(A.ACCNO)"
 
 
-            //        rs = obj.SingleSelectStat(sqlStr)
+            //        dataTable = obj.SingleSelectStat(sqlStr)
 
 
             //        if obj.ConnError = "Connected" then
 
-            //            if not rs.BOF and not rs.EOF then
+            //            if not dataTable.BOF and not dataTable.EOF then
 
-            //                do until rs.EOF
+            //                do until dataTable.EOF
 
-            //                    strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "~" & rs(7).value & "~" & rs(8).value & "~" & rs(9).value & "|"
+            //                    strResult = strResult & dataTable(0).value & "~" & dataTable(1).value & "~" & dataTable(2).value & "~" & dataTable(3).value & "~" & dataTable(4).value & "~" & dataTable(5).value & "~" & dataTable(6).value & "~" & dataTable(7).value & "~" & dataTable(8).value & "~" & dataTable(9).value & "|"
 
-            //                rs.movenext()
+            //                dataTable.movenext()
 
             //                loop
             //            end if
@@ -12047,7 +12044,7 @@ namespace Banking.Services
             //        end if
 
 
-            //    rs = nothing
+            //    dataTable = nothing
 
 
 
@@ -12102,8 +12099,8 @@ namespace Banking.Services
 
             return counterNo;
 
-            //  dim rs,obj
-            //  rs = server.CreateObject("adodb.recordset")
+            //  dim dataTable,obj
+            //  dataTable = server.CreateObject("adodb.recordset")
             //  obj = server.CreateObject("queryrecordsets.fetchrecordsets")
             //  dim strTab, strCond
 
@@ -12122,48 +12119,48 @@ namespace Banking.Services
             //    sqlStr = "SELECT (SELECT APPLICATIONDATE FROM GENAPPLICATIONDATEMST WHERE BRANCHCODE='" & st(1) & "' AND ((DAYBEGINSTATUS='O' AND DAYENDSTATUS='N' AND HODAYBEGINSTATUS='O' AND HODAYENDSTATUS='N') OR (DAYBEGINSTATUS='O' AND DAYENDSTATUS='O' AND HODAYBEGINSTATUS='O' AND HODAYENDSTATUS='N')))-(SELECT ADD_MONTHS((SELECT SANCTIONEDDATE FROM LOANMST WHERE ACCNO='" & st(4) & "' AND GLCODE='" & st(3) & "' AND BRANCHCODE='" & st(1) & "'),(SELECT NVL(MINPERIODMON,0) FROM GENMINMAXBALANCEMST WHERE GLCODE='" & st(3) & "'))+(SELECT NVL(MINPERIODDAYS,0) FROM GENMINMAXBALANCEMST WHERE GLCODE='" & st(3) & "') REQDATE FROM DUAL) FROM DUAL"
 
 
-            //    rs = obj.SingleSelectStat(sqlStr)
+            //    dataTable = obj.SingleSelectStat(sqlStr)
 
             //    if obj.ConnError = "Connected" then
 
-            //        if not rs.BOF and not rs.EOF then
+            //        if not dataTable.BOF and not dataTable.EOF then
 
-            //            intMinDays = cDbl(rs(0).value)
+            //            intMinDays = cDbl(dataTable(0).value)
 
             //        end if
 
             //    end if
 
-            //    rs = nothing
+            //    dataTable = nothing
 
             //    if (intMinDays < 0)
             //                        sqlStr = "SELECT TO_NUMBER((SELECT ADD_MONTHS(SYSDATE,(SELECT NVL(MINPERIODMON,0) FROM GENMINMAXBALANCEMST WHERE GLCODE='" & st(3) & "'))+(SELECT NVL(MINPERIODDAYS,0) FROM GENMINMAXBALANCEMST WHERE GLCODE='" & st(3) & "') REQDATE FROM DUAL)-SYSDATE)*(SELECT ROI FROM LOANMST WHERE ACCNO='" & st(4) & "' AND GLCODE='" & st(3) & "' AND BRANCHCODE='" & st(1) & "' AND CURRENCYCODE='" & st(2) & "')/36500 FROM DUAL"
 
 
-            //        rs = obj.SingleSelectStat(sqlStr)
+            //        dataTable = obj.SingleSelectStat(sqlStr)
 
             //        if obj.ConnError = "Connected" then
 
-            //            if not rs.BOF and not rs.EOF then
+            //            if not dataTable.BOF and not dataTable.EOF then
 
-            //                counterno = intMinDays & "|" & rs(0).value
+            //                counterno = intMinDays & "|" & dataTable(0).value
 
             //            end if
 
             //        end if
 
-            //        rs = nothing
+            //        dataTable = nothing
 
 
             //        sqlStr = "SELECT NVL(SUM(AMOUNT), 0) AMT FROM LOANTRAN WHERE ACCNO='" & st(4) & "' AND GLCODE='" & st(3) & "' AND BRANCHCODE='" & st(1) & "' AND CHQFVG='IC'"
 
-            //        rs = obj.SingleSelectStat(sqlStr)
+            //        dataTable = obj.SingleSelectStat(sqlStr)
 
             //        if obj.ConnError = "Connected" then
 
-            //            if not rs.BOF and not rs.EOF then
+            //            if not dataTable.BOF and not dataTable.EOF then
 
-            //                counterno = counterno & "|" & rs(0).value
+            //                counterno = counterno & "|" & dataTable(0).value
 
             //            else
             //                counterno = counterno & "|0"
@@ -12172,7 +12169,7 @@ namespace Banking.Services
 
             //        end if
 
-            //        rs = nothing
+            //        dataTable = nothing
 
             //    else
             //                        counterno = intMinDays & "|" & "0|0"
@@ -12232,11 +12229,11 @@ namespace Banking.Services
             //        st = SPLIT(STR1, "~!~")
 
 
-            //        rs = obj.singleRecordSet("SCRCATEGORYMST", "CATEGORYNAME", "branchcode='" & st(1) & "' and  currencycode='" & st(2) & "' and CATEGORYCODE='" & st(3) & "'")
+            //        dataTable = obj.singleRecordSet("SCRCATEGORYMST", "CATEGORYNAME", "branchcode='" & st(1) & "' and  currencycode='" & st(2) & "' and CATEGORYCODE='" & st(3) & "'")
 
-            //        if not rs.EOF and not rs.bof then
+            //        if not dataTable.EOF and not dataTable.bof then
 
-            //            counterno = rs(0).value
+            //            counterno = dataTable(0).value
 
             //        end if
 
@@ -12246,28 +12243,28 @@ namespace Banking.Services
 
             //'the following condition recieves a query string with tables, display fields and conditions as one string we r spliting it into an array then passing to component 
 
-            //elseif Left(str1,16)= "CombinationQuery" then
+            //elseif Left(strResult,16)= "CombinationQuery" then
             //    st = SPLIT(STR1, "|")
 
             //    myString = st(3)
 
             //    myString = Replace(myString, "~", "%")
 
-            //    rs = obj.singleRecordSet(st(1), st(2), myString)     'st1,st2,st3 are the tables, fields and conditions respectively
+            //    dataTable = obj.singleRecordSet(st(1), st(2), myString)     'st1,st2,st3 are the tables, fields and conditions respectively
 
-            //    if not rs.EOF and not rs.bof then
+            //    if not dataTable.EOF and not dataTable.bof then
 
-            //          do while not rs.EOF
+            //          do while not dataTable.EOF
 
-            //            for i = 0 to rs.fields.count - 1
+            //            for i = 0 to dataTable.fields.count - 1
 
-            //              counterno = counterno & rs(i).value & "~"
+            //              counterno = counterno & dataTable(i).value & "~"
 
             //            next
 
-            //            counterno = counterno & "|"                   ' counterno is a hidden variable holds the rs data joined with ~ and | 
+            //            counterno = counterno & "|"                   ' counterno is a hidden variable holds the dataTable data joined with ~ and | 
 
-            //            rs.Movenext
+            //            dataTable.Movenext
 
             //          loop
 
@@ -12275,7 +12272,7 @@ namespace Banking.Services
             //                    counterno = "NO"
             //     end if
 
-            //elseif Left(str1, 17) = "lCombinationQuery" then
+            //elseif Left(strResult, 17) = "lCombinationQuery" then
             //        st = SPLIT(STR1, "|")
 
             //        myString = st(3)
@@ -12290,21 +12287,21 @@ namespace Banking.Services
 
             //        myString = Replace(myString, "lm.CURRENCYCODE( )", "lm.CURRENCYCODE(+)")
 
-            //        rs = obj.singleRecordSet(st(1), st(2), myString)     'st1,st2,st3 are the tables, fields and conditions respectively
+            //        dataTable = obj.singleRecordSet(st(1), st(2), myString)     'st1,st2,st3 are the tables, fields and conditions respectively
 
-            //    if not rs.EOF and not rs.bof then
+            //    if not dataTable.EOF and not dataTable.bof then
 
-            //          do while not rs.EOF
+            //          do while not dataTable.EOF
 
-            //            for i = 0 to rs.fields.count - 1
+            //            for i = 0 to dataTable.fields.count - 1
 
-            //              counterno = counterno & rs(i).value & "~"
+            //              counterno = counterno & dataTable(i).value & "~"
 
             //            next
 
-            //            counterno = counterno & "|"                   ' counterno is a hidden variable holds the rs data joined with ~ and | 
+            //            counterno = counterno & "|"                   ' counterno is a hidden variable holds the dataTable data joined with ~ and | 
 
-            //            rs.Movenext
+            //            dataTable.Movenext
 
             //          loop
 
@@ -12313,7 +12310,7 @@ namespace Banking.Services
             //     end if
 
 
-            //     elseif Left(str1, 17) = "cCombinationQuery" then
+            //     elseif Left(strResult, 17) = "cCombinationQuery" then
             //        st = SPLIT(STR1, "|")
 
             //        myString = st(3)
@@ -12337,21 +12334,21 @@ namespace Banking.Services
             //        myString = Replace(myString, "lm.currencycode( )", "lm.currencycode(+)")
 
 
-            //        rs = obj.singleRecordSet(st(1), st(2), myString)     'st1,st2,st3 are the tables, fields and conditions respectively
+            //        dataTable = obj.singleRecordSet(st(1), st(2), myString)     'st1,st2,st3 are the tables, fields and conditions respectively
 
-            //    if not rs.EOF and not rs.bof then
+            //    if not dataTable.EOF and not dataTable.bof then
 
-            //          do while not rs.EOF
+            //          do while not dataTable.EOF
 
-            //            for i = 0 to rs.fields.count - 1
+            //            for i = 0 to dataTable.fields.count - 1
 
-            //              counterno = counterno & rs(i).value & "~"
+            //              counterno = counterno & dataTable(i).value & "~"
 
             //            next
 
-            //            counterno = counterno & "|"                   ' counterno is a hidden variable holds the rs data joined with ~ and | 
+            //            counterno = counterno & "|"                   ' counterno is a hidden variable holds the dataTable data joined with ~ and | 
 
-            //            rs.Movenext
+            //            dataTable.Movenext
 
             //          loop
 
@@ -12359,7 +12356,7 @@ namespace Banking.Services
             //                    counterno = "NO"
             //     end if
 
-            //elseif Left(str1, 7) = "IssBank" then  ' THIS IS CALLED FROM GEN\REMITTANCE.ASPX
+            //elseif Left(strResult, 7) = "IssBank" then  ' THIS IS CALLED FROM GEN\REMITTANCE.ASPX
 
             //        st = SPLIT(STR1, "|")
 
@@ -12406,46 +12403,46 @@ namespace Banking.Services
 
             //    end if
 
-            //        rs = obj.singleRecordSet(strTab, strflds, strCond)
+            //        dataTable = obj.singleRecordSet(strTab, strflds, strCond)
 
 
             //        COUNTERNO = ST(0) & "|"
 
-            //        if not rs.EOF and not rs.bof then
+            //        if not dataTable.EOF and not dataTable.bof then
 
-            //            counterno = counterno & rs(0).value
+            //            counterno = counterno & dataTable(0).value
 
             //        end if
-            //elseif Left(str1, 10) = "ADDIssBank" then  ' THIS IS CALLED FROM GEN\REMITTANCE.ASPX
+            //elseif Left(strResult, 10) = "ADDIssBank" then  ' THIS IS CALLED FROM GEN\REMITTANCE.ASPX
 
             //     st = SPLIT(STR1, "|")
-            //    rs = obj.singlerecordset("remtypemst", "issuedonbankdesc", "status='R' and remtype='" & st(2) & "' and issuedonbankcode='" & st(3) & "'")
+            //    dataTable = obj.singlerecordset("remtypemst", "issuedonbankdesc", "status='R' and remtype='" & st(2) & "' and issuedonbankcode='" & st(3) & "'")
 
 
             //    COUNTERNO = ST(0) & "|"
 
-            //        if not rs.EOF and not rs.bof then
+            //        if not dataTable.EOF and not dataTable.bof then
 
-            //            counterno = counterno & rs(0).value
+            //            counterno = counterno & dataTable(0).value
 
             //        end if
 
 
-            //elseif Left(str1, 10) = "RINVGlcode" then
+            //elseif Left(strResult, 10) = "RINVGlcode" then
 
-            //    k = split(str1, "|")
+            //    k = split(strResult, "|")
             //     if k(1) = "INS" then
-            //    rs = obj.singlerecordset("GenGlsheetmst", "distinct narration", "branchcode='" & k(2) & "' and moduleid='" & k(4) & "' and glcode='" & k(3) & "'")
+            //    dataTable = obj.singlerecordset("GenGlsheetmst", "distinct narration", "branchcode='" & k(2) & "' and moduleid='" & k(4) & "' and glcode='" & k(3) & "'")
             //    else
-            //                rs = obj.singlerecordset("REMISSUEBANKMST a,GenGlsheetmst b", _
+            //                dataTable = obj.singlerecordset("REMISSUEBANKMST a,GenGlsheetmst b", _
 
             //                                    "distinct b.narration", "a.branchcode='" & k(2) & "' and a.currencycode='" & k(3) & "' and a.remtype='" & k(4) & "' and a.OTHERBANKCODE='" & k(5) & "' AND a.OTHERBRANCHCODE='" & k(6) & "' and a.branchcode=b.branchcode  and a.invglcode=b.GLCODE and a.invglcode='" & k(7) & "'")
             //    end if
 
 
-            //        if not rs.EOF and not rs.bof then
+            //        if not dataTable.EOF and not dataTable.bof then
 
-            //            counterno = counterno & rs(0).value
+            //            counterno = counterno & dataTable(0).value
 
             //               else
             //                counterno = counterno & "NO"
@@ -12455,17 +12452,17 @@ namespace Banking.Services
 
 
 
-            //elseif Left(str1, 7) = "DELVIEW" then
+            //elseif Left(strResult, 7) = "DELVIEW" then
 
-            //    k = split(str1, "|")
-
-
-            //    rs = obj.singlerecordset("REMISSUEBANKMST a,GenGlsheetmst b,invmst c", "distinct a.invglcode,b.narration,a.invaccno,c.name", "a.branchcode=b.branchcode and a.invaccno=c.accno and a.invglcode=c.glcode and a.invglcode=b.glcode and a.remtype='ADD' and a.OTHERBANKCODE='" & k(4) & "' and a.OTHERBRANCHCODE='" & k(5) & "'  and a.BRANCHCODE='" & k(1) & "' and a.currencycode='" & k(2) & "'")
+            //    k = split(strResult, "|")
 
 
+            //    dataTable = obj.singlerecordset("REMISSUEBANKMST a,GenGlsheetmst b,invmst c", "distinct a.invglcode,b.narration,a.invaccno,c.name", "a.branchcode=b.branchcode and a.invaccno=c.accno and a.invglcode=c.glcode and a.invglcode=b.glcode and a.remtype='ADD' and a.OTHERBANKCODE='" & k(4) & "' and a.OTHERBRANCHCODE='" & k(5) & "'  and a.BRANCHCODE='" & k(1) & "' and a.currencycode='" & k(2) & "'")
 
-            //        if not rs.EOF and not rs.bof then
-            //counterno = counterno & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value
+
+
+            //        if not dataTable.EOF and not dataTable.bof then
+            //counterno = counterno & dataTable(0).value & "~" & dataTable(1).value & "~" & dataTable(2).value & "~" & dataTable(3).value
 
             //         else
             //                counterno = counterno & "NO"
@@ -12475,27 +12472,27 @@ namespace Banking.Services
 
 
 
-            //elseif Left(str1, 8) = "INVAccno" then  ' THIS IS CALLED FROM GEN\REMITTANCE.ASPX
+            //elseif Left(strResult, 8) = "INVAccno" then  ' THIS IS CALLED FROM GEN\REMITTANCE.ASPX
 
-            //    k = split(str1, "|")
+            //    k = split(strResult, "|")
 
 
             //    if k(1) = "INS" then
-            // rs = obj.singlerecordset("invmst", _
+            // dataTable = obj.singlerecordset("invmst", _
 
             //                        "distinct name", "branchcode='" & k(2) & "'and currencycode='" & k(3) & "' and glcode='" & k(4) & "' and status='R' and transtatus='A' and accno='" & k(5) & "'")
 
             //                        else
-            //                rs = obj.singlerecordset("REMISSUEBANKMST a,invmst b", _
+            //                dataTable = obj.singlerecordset("REMISSUEBANKMST a,invmst b", _
 
             //                "distinct b.name", "a.branchcode='" & k(2) & "' and a.currencycode='" & k(3) & "' and a.remtype='" & k(4) & "' and a.OTHERBANKCODE='" & k(5) & "' AND a.OTHERBRANCHCODE='" & k(6) & "' and a.invglcode='" & k(7) & "' and a.branchcode=b.branchcode  and a.invglcode=b.GLCODE and a.invaccno=b.accno and a.invaccno='" & k(8) & "'")
 
             //                        end if
 
 
-            //        if not rs.EOF and not rs.bof then
+            //        if not dataTable.EOF and not dataTable.bof then
 
-            //            counterno = counterno & rs(0).value
+            //            counterno = counterno & dataTable(0).value
 
             //               else
             //                counterno = counterno & "NO"
@@ -12503,7 +12500,7 @@ namespace Banking.Services
             //        end if
 
 
-            //elseif Left(str1, 9) = "IssBranch" then  ' THIS IS CALLED FROM GEN\REMITTANCE.ASPX
+            //elseif Left(strResult, 9) = "IssBranch" then  ' THIS IS CALLED FROM GEN\REMITTANCE.ASPX
 
             //        st = SPLIT(STR1, "|")
 
@@ -12540,36 +12537,36 @@ namespace Banking.Services
             //        end if
 
 
-            //        rs = obj.singleRecordSet(strTab, "TRIM(Upper(A.BRANCHNAME))", strCond)
+            //        dataTable = obj.singleRecordSet(strTab, "TRIM(Upper(A.BRANCHNAME))", strCond)
 
 
             //         COUNTERNO = ST(0) & "|"
 
-            //        if not rs.EOF and not rs.bof then
+            //        if not dataTable.EOF and not dataTable.bof then
 
-            //            counterno = counterno & rs(0).value
+            //            counterno = counterno & dataTable(0).value
 
             //        end if
 
 
-            //elseif Left(str1, 12) = "ADDIssBranch" then  ' THIS IS CALLED FROM GEN\REMITTANCE.ASPX
+            //elseif Left(strResult, 12) = "ADDIssBranch" then  ' THIS IS CALLED FROM GEN\REMITTANCE.ASPX
 
-            //    st = split(str1, "|")
+            //    st = split(strResult, "|")
 
 
-            //  rs = obj.singlerecordset("GENCORRESPBANKBRANCHESMST", "branchname", "status='R' and bankcode='" & st(2) & "' and branchcode='" & st(3) & "' and branchcode not in (select otherbranchcode from REMISSUEBANKMST where otherbankcode='" & st(2) & "')")
+            //  dataTable = obj.singlerecordset("GENCORRESPBANKBRANCHESMST", "branchname", "status='R' and bankcode='" & st(2) & "' and branchcode='" & st(3) & "' and branchcode not in (select otherbranchcode from REMISSUEBANKMST where otherbankcode='" & st(2) & "')")
 
 
             //    COUNTERNO = ST(0) & "|"
 
-            //        if not rs.EOF and not rs.bof then
+            //        if not dataTable.EOF and not dataTable.bof then
 
-            //            counterno = counterno & rs(0).value
+            //            counterno = counterno & dataTable(0).value
 
             //        end if
 
 
-            //elseif Left(str1, 12) = "BnkAccglcode" then  ' THIS IS CALLED FROM GEN\REMITTANCE.ASPX
+            //elseif Left(strResult, 12) = "BnkAccglcode" then  ' THIS IS CALLED FROM GEN\REMITTANCE.ASPX
 
             //        st = SPLIT(STR1, "|")
 
@@ -12608,19 +12605,19 @@ namespace Banking.Services
             //        end if
 
 
-            //        rs = obj.singleRecordSet(strTab, "DISTINCT TRIM(Upper(A.NARRATION))", strCond)
+            //        dataTable = obj.singleRecordSet(strTab, "DISTINCT TRIM(Upper(A.NARRATION))", strCond)
 
 
 
             //         COUNTERNO = ST(0) & "|"
 
-            //        if not rs.EOF and not rs.bof then
+            //        if not dataTable.EOF and not dataTable.bof then
 
-            //            counterno = counterno & rs(0).value
+            //            counterno = counterno & dataTable(0).value
 
             //        end if
 
-            //elseif Left(str1, 8) = "BnkAccno" then  ' THIS IS CALLED FROM GEN\REMITTANCE.ASPX
+            //elseif Left(strResult, 8) = "BnkAccno" then  ' THIS IS CALLED FROM GEN\REMITTANCE.ASPX
 
             //        st = SPLIT(STR1, "|")
 
@@ -12671,14 +12668,14 @@ namespace Banking.Services
             //        end if
 
 
-            //        rs = obj.singleRecordSet(strTab, "DISTINCT TRIM(Upper(A.NAME))", strCond)
+            //        dataTable = obj.singleRecordSet(strTab, "DISTINCT TRIM(Upper(A.NAME))", strCond)
 
 
             //         COUNTERNO = ST(0) & "|"
 
-            //        if not rs.EOF and not rs.bof then
+            //        if not dataTable.EOF and not dataTable.bof then
 
-            //            counterno = counterno & rs(0).value
+            //            counterno = counterno & dataTable(0).value
 
             //        end if
 
@@ -12687,15 +12684,15 @@ namespace Banking.Services
             //        st = SPLIT(STR1, "|")
 
 
-            //        rs = obj.singleRecordSet("GENGLSHEETMST", "NARRATION", "branchcode='" & st(1) & "' and  MODULEID='" & st(2) & "' and GLCODE='" & st(3) & "'")
+            //        dataTable = obj.singleRecordSet("GENGLSHEETMST", "NARRATION", "branchcode='" & st(1) & "' and  MODULEID='" & st(2) & "' and GLCODE='" & st(3) & "'")
 
 
             //        COUNTERNO = ST(0) & "|"
 
 
-            //        if not rs.EOF and not rs.bof then
+            //        if not dataTable.EOF and not dataTable.bof then
 
-            //             counterno = counterno & rs(0).value
+            //             counterno = counterno & dataTable(0).value
 
             //        end if
 
@@ -12704,7 +12701,7 @@ namespace Banking.Services
             //        st = SPLIT(STR1, "|")
 
 
-            //        rs = obj.singleRecordSet(st(2) & "MST", "NAME", "branchcode='" & st(1) _
+            //        dataTable = obj.singleRecordSet(st(2) & "MST", "NAME", "branchcode='" & st(1) _
             //        & "' and GLCODE='" & st(3) & "' AND ACCNO='" & st(4) & _
 
             //        "' and accno not in (select accno from pigmyagentmst where " & _
@@ -12717,9 +12714,9 @@ namespace Banking.Services
             //        COUNTERNO = ST(0) & "|"
 
 
-            //        if not rs.EOF and not rs.bof then
+            //        if not dataTable.EOF and not dataTable.bof then
 
-            //             counterno = counterno & rs(0).value
+            //             counterno = counterno & dataTable(0).value
 
             //        end if
 
@@ -12757,15 +12754,15 @@ namespace Banking.Services
             //            end if
 
 
-            //            rs = obj.singleRecordSet(kst(1), kst(2), kst(3))
+            //            dataTable = obj.singleRecordSet(kst(1), kst(2), kst(3))
 
 
             //        ''COUNTERNO = st(1) & "~"
 
 
-            //        'if not rs.EOF and not rs.bof then
+            //        'if not dataTable.EOF and not dataTable.bof then
 
-            //        '	counterno= counterno & rs(0).value 
+            //        '	counterno= counterno & dataTable(0).value 
 
             //        'else   
 
@@ -12774,11 +12771,11 @@ namespace Banking.Services
             //        'end if
 
 
-            //        if not rs.EOF and not rs.bof then
+            //        if not dataTable.EOF and not dataTable.bof then
 
-            //            for idx = 0 to rs.Fields.Count - 1
+            //            for idx = 0 to dataTable.Fields.Count - 1
 
-            //                counterno = counterno & rs(idx).value & "|"
+            //                counterno = counterno & dataTable(idx).value & "|"
 
             //            next
 
@@ -12791,13 +12788,13 @@ namespace Banking.Services
             //        COUNTERNO = COUNTERNO & "~" & st(1)
 
 
-            //elseif left(str1,14)= "LastIntCalDate"
+            //elseif left(strResult,14)= "LastIntCalDate"
 
 
             //        'LastIntCalDate~104~INR~PIGMYACCOUNTSMST~102040~1001~1~
 
 
-            //        st = split(str1, "~")
+            //        st = split(strResult, "~")
 
 
             //        dim typeMst, strLogCond
@@ -12821,33 +12818,33 @@ namespace Banking.Services
             //         "') and status='R' and transtatus='A'"
 
 
-            //        rs = server.CreateObject("adodb.recordset")
+            //        dataTable = server.CreateObject("adodb.recordset")
 
             //        rsGenActLog = server.CreateObject("adodb.recordset")
 
 
             //        'code commented by Radhika on 23 Jan 2009
 
-            //        'rs=Obj.SingleRecordset(typeMst,"to_char(LASTINTCALCDATE,'dd - MON - yyyy')", cstr(strCond))
+            //        'dataTable=Obj.SingleRecordset(typeMst,"to_char(LASTINTCALCDATE,'dd - MON - yyyy')", cstr(strCond))
 
             //        'New code is
 
-            //        rs = Obj.SingleRecordset(typeMst, "LASTINTCALCDATE,opdate", cstr(strCond))
+            //        dataTable = Obj.SingleRecordset(typeMst, "LASTINTCALCDATE,opdate", cstr(strCond))
 
 
             //        counterno = "Nothing"
 
 
-            //        if not rs.EOF and not rs.bof then
+            //        if not dataTable.EOF and not dataTable.bof then
 
 
             //            'If Last Int Calc Date is null then return "Opening Date"
 
-            //            if IsDBNull(rs(0).value) = true then
-            //                counterno = rs(1).value 'opdate
+            //            if IsDBNull(dataTable(0).value) = true then
+            //                counterno = dataTable(1).value 'opdate
 
             //            else
-            //                counterno = dateadd("d", 1, rs(0).value) 'Last Int Calc Date + 1 day
+            //                counterno = dateadd("d", 1, dataTable(0).value) 'Last Int Calc Date + 1 day
 
             //            end if
 
@@ -12856,7 +12853,7 @@ namespace Banking.Services
 
             //        end if
 
-            //elseif left(str1, 15) = "MonthlyInterest"
+            //elseif left(strResult, 15) = "MonthlyInterest"
 
 
             //    'MonthlyInterest|104|INR|PIGMY|102040|1002|4|11-JAN-2008|30-Mar-2008
@@ -12895,10 +12892,10 @@ namespace Banking.Services
             //    '	"  ORDER BY TO_CHAR(a.APPLICATIONDATE ,'MM')"
 
 
-            //    'rs=server.CreateObject("adodb.recordset")
+            //    'dataTable=server.CreateObject("adodb.recordset")
 
 
-            //    'rs=Obj.SingleRecordset(strTab,"DECODE(TO_CHAR(a.APPLICATIONDATE ,'MM'),'01'," & _	
+            //    'dataTable=Obj.SingleRecordset(strTab,"DECODE(TO_CHAR(a.APPLICATIONDATE ,'MM'),'01'," & _	
 
             //    '	"'JANUARY','02','FEBRUARY', '03','MARCH','04','APRIL','05','MAY','06'," & _
 
@@ -12913,30 +12910,30 @@ namespace Banking.Services
             //    'COUNTERNO=""
 
 
-            //    'if not rs.EOF and not rs.bof then
+            //    'if not dataTable.EOF and not dataTable.bof then
 
 
-            //    '	do while not rs.EOF
+            //    '	do while not dataTable.EOF
 
-            //    '		for idx=0 to rs.Fields.Count -1 
+            //    '		for idx=0 to dataTable.Fields.Count -1 
 
-            //    '			counterno= counterno & rs(idx).value & "~"   
+            //    '			counterno= counterno & dataTable(idx).value & "~"   
 
             //    '		next
 
             //    '		counterno= counterno & "|"
 
-            //    '		rs.MoveNext()
+            //    '		dataTable.MoveNext()
 
             //    '	loop
 
 
-            //    '	rs=nothing
+            //    '	dataTable=nothing
 
-            //    '	rs=server.CreateObject("adodb.recordset")
+            //    '	dataTable=server.CreateObject("adodb.recordset")
 
 
-            //    '	rs=Obj.SingleRecordset("PIGMYINTRATEMST a, PIGMYTYPEMST b","roi", _
+            //    '	dataTable=Obj.SingleRecordset("PIGMYINTRATEMST a, PIGMYTYPEMST b","roi", _
 
             //    '	"a.INTTYPE=b.INTMETHOD and a.GLCODE=b.GLCODE and a.GLCODE='" & cstr(st(4)) & "'")
 
@@ -12944,9 +12941,9 @@ namespace Banking.Services
 
             //    '	
 
-            //    '	if not rs.EOF and not rs.bof then
+            //    '	if not dataTable.EOF and not dataTable.bof then
 
-            //    '			counterno= counterno & rs(0).value    
+            //    '			counterno= counterno & dataTable(0).value    
 
             //    '	else
 
@@ -13002,10 +12999,10 @@ namespace Banking.Services
             //        " and OPDATE<='" & ToDt & "'"
 
 
-            //    rs = server.CreateObject("adodb.recordset")
+            //    dataTable = server.CreateObject("adodb.recordset")
 
 
-            //    rs = Obj.SingleRecordset(strTab, "LASTINTCALCDATE,nvl(Curbal,0),opdate,nvl(ROI,0)", _
+            //    dataTable = Obj.SingleRecordset(strTab, "LASTINTCALCDATE,nvl(Curbal,0),opdate,nvl(ROI,0)", _
 
             //    cstr(strCond))
 
@@ -13015,28 +13012,28 @@ namespace Banking.Services
             //    dim CurBal, sCols, str
 
 
-            //    if rs.EOF = true or rs.bof = true then
+            //    if dataTable.EOF = true or dataTable.bof = true then
             //        counterno = counterno & "No"
 
             //    else
-            //        if isdbnull(rs(0).value) = true then
+            //        if isdbnull(dataTable(0).value) = true then
 
             //        'Last INt Calc date is null
 
-            //            LastIntCalcDt = rs(2).value 'opdate 
+            //            LastIntCalcDt = dataTable(2).value 'opdate 
 
             //        else
-            //                LastIntCalcDt = dateadd("d", 1, rs(0).value) 'Last Int Calc date + 1 day
+            //                LastIntCalcDt = dateadd("d", 1, dataTable(0).value) 'Last Int Calc date + 1 day
 
             //        end if
 
             //        'LastIntCalcDt= cdate(format(LastIntCalcDt,"dd-MMM-yyyy"))
 
-            //        CurBal = rs(1).value
+            //        CurBal = dataTable(1).value
 
-            //        ROI = rs(3).value
+            //        ROI = dataTable(3).value
 
-            //        rs = nothing
+            //        dataTable = nothing
 
 
             //        if LastIntCalcDt >= cdate(ToDt) then
@@ -13074,13 +13071,13 @@ namespace Banking.Services
             //            sCols = "NVL(SUM(NVL(amount,0)),0)"
 
 
-            //            rs = Obj.SingleRecordset("vPigmyAccTran", sCols, strCond)
+            //            dataTable = Obj.SingleRecordset("vPigmyAccTran", sCols, strCond)
 
 
             //            SumOfTranAmts = 0
 
-            //            if rs.eof = false and rs.bof = false then
-            //                SumOfTranAmts = iif(isdbnull(rs(0).value), 0, rs(0).value)
+            //            if dataTable.eof = false and dataTable.bof = false then
+            //                SumOfTranAmts = iif(isdbnull(dataTable(0).value), 0, dataTable(0).value)
 
             //            end if
 
@@ -13098,14 +13095,14 @@ namespace Banking.Services
             //                "','DD-MON-YYYY')),'DD-MON-YYYY')) "
 
 
-            //            rs = Obj.SingleRecordset("dual", sCols, " ")
+            //            dataTable = Obj.SingleRecordset("dual", sCols, " ")
 
             //            MonthBal = 0
 
-            //            if rs.EOF = false and rs.bof = false then
+            //            if dataTable.EOF = false and dataTable.bof = false then
 
-            //                if ucase(mid(rs(0).value, 1, 5)) <> "ERROR" then
-            //                    MonthBal = cdbl(rs(0).value)
+            //                if ucase(mid(dataTable(0).value, 1, 5)) <> "ERROR" then
+            //                    MonthBal = cdbl(dataTable(0).value)
 
             //                end if
 
@@ -13150,13 +13147,13 @@ namespace Banking.Services
             //                sCols = "NVL(SUM(NVL(amount,0)),0)"
 
 
-            //                rs = Obj.SingleRecordset("vPigmyAccTran", sCols, strCond)
+            //                dataTable = Obj.SingleRecordset("vPigmyAccTran", sCols, strCond)
 
 
             //                SumOfTranAmts = 0
 
-            //                if rs.eof = false and rs.bof = false then
-            //                    SumOfTranAmts = iif(isdbnull(rs(0).value), 0, rs(0).value)
+            //                if dataTable.eof = false and dataTable.bof = false then
+            //                    SumOfTranAmts = iif(isdbnull(dataTable(0).value), 0, dataTable(0).value)
 
             //                end if
 
@@ -13187,21 +13184,21 @@ namespace Banking.Services
 
             //            'Reason: ROI is fetching from PigmyAccountsMst table
 
-            //            'rs=nothing
+            //            'dataTable=nothing
 
-            //            'rs=server.CreateObject("adodb.recordset")
+            //            'dataTable=server.CreateObject("adodb.recordset")
 
 
-            //            'rs=Obj.SingleRecordset("PIGMYINTRATEMST a, PIGMYTYPEMST b","roi", _
+            //            'dataTable=Obj.SingleRecordset("PIGMYINTRATEMST a, PIGMYTYPEMST b","roi", _
 
             //            '"a.INTTYPE=b.INTMETHOD and a.GLCODE=b.GLCODE and a.GLCODE='" & _
 
             //            'cstr(st(4)) & "'") 			'and a.INTTYPE='1'
 
 
-            //            'if not rs.EOF and not rs.bof then
+            //            'if not dataTable.EOF and not dataTable.bof then
 
-            //            '	counterno= counterno & rs(0).value    
+            //            '	counterno= counterno & dataTable(0).value    
 
             //            'else
 
@@ -13224,7 +13221,7 @@ namespace Banking.Services
             //    'End: New Code was Written by Radhika on 21 Jan 2009	
 
 
-            //elseif left(str1,21)= "MonthlyMinbalInterest"
+            //elseif left(strResult,21)= "MonthlyMinbalInterest"
 
 
             //        'MonthlyMinbalInterest|104|INR|PIGMY|102040|1002|4|11-JAN-2008|30-Mar-2008
@@ -13237,30 +13234,30 @@ namespace Banking.Services
 
             //          tStr = ""
 
-            //          rs = nothing
+            //          dataTable = nothing
 
 
-            //            rs = server.CreateObject("adodb.recordset")
+            //            dataTable = server.CreateObject("adodb.recordset")
 
 
-            //            rs = Obj.SingleRecordset("PIGMYTYPEMST", "MONTHLYMINBALDAY", "glcode='" & st(4) & "'")
+            //            dataTable = Obj.SingleRecordset("PIGMYTYPEMST", "MONTHLYMINBALDAY", "glcode='" & st(4) & "'")
 
 
             //        'select roi from PIGMYINTRATEMST a, PIGMYTYPEMST b where a.INTTYPE=b.INTMETHOD and a.GLCODE=b.GLCODE and a.GLCODE='102040' and a.INTTYPE='1'
 
 
-            //   if not rs.EOF and not rs.bof then
+            //   if not dataTable.EOF and not dataTable.bof then
 
 
-            //      if IsDBNull(rs(0).value) = true then
+            //      if IsDBNull(dataTable(0).value) = true then
             //        counterno = "No MinBalDay"
 
             //      else
-            //                mbday = rs(0).value
+            //                mbday = dataTable(0).value
 
-            //        'if IsDBNull(rs(0).value)=false then
+            //        'if IsDBNull(dataTable(0).value)=false then
 
-            //                'counterno= cstr(rs(0).value)    	
+            //                'counterno= cstr(dataTable(0).value)    	
 
             //            'end if	
 
@@ -13328,14 +13325,14 @@ namespace Banking.Services
             //            " c.EFFECTIVEDATE <='" & mbdate & "') GROUP BY b.EFFECTIVEDATE)"
 
 
-            //            rs = Obj.SingleRecordset("pigmyacctran A", "'" & mbdate & "', dayendbal,'BALANCE','INTEREST'", strCond)
+            //            dataTable = Obj.SingleRecordset("pigmyacctran A", "'" & mbdate & "', dayendbal,'BALANCE','INTEREST'", strCond)
 
 
-            //            if not rs.EOF and not rs.bof then
+            //            if not dataTable.EOF and not dataTable.bof then
 
-            //                for idx = 0 to rs.Fields.Count - 1
+            //                for idx = 0 to dataTable.Fields.Count - 1
 
-            //                    tStr = tStr & rs(idx).value & "~"
+            //                    tStr = tStr & dataTable(idx).value & "~"
 
             //                next
 
@@ -13357,21 +13354,21 @@ namespace Banking.Services
 
             //        loop
 
-            //        rs = nothing
+            //        dataTable = nothing
 
 
-            //        rs = server.CreateObject("adodb.recordset")
+            //        dataTable = server.CreateObject("adodb.recordset")
 
 
-            //        rs = Obj.SingleRecordset("PIGMYINTRATEMST a, PIGMYTYPEMST b", "roi", "a.INTTYPE=b.INTMETHOD and a.GLCODE=b.GLCODE and a.GLCODE='" & cstr(st(4)) & "' and a.INTTYPE='1'")
+            //        dataTable = Obj.SingleRecordset("PIGMYINTRATEMST a, PIGMYTYPEMST b", "roi", "a.INTTYPE=b.INTMETHOD and a.GLCODE=b.GLCODE and a.GLCODE='" & cstr(st(4)) & "' and a.INTTYPE='1'")
 
 
             //        'select roi from PIGMYINTRATEMST a, PIGMYTYPEMST b where a.INTTYPE=b.INTMETHOD and a.GLCODE=b.GLCODE and a.GLCODE='102040' and a.INTTYPE='1'
 
 
-            //        if not rs.EOF and not rs.bof then
+            //        if not dataTable.EOF and not dataTable.bof then
 
-            //            tStr = tStr & rs(0).value
+            //            tStr = tStr & dataTable(0).value
 
             //        else
             //                tStr = tStr & "0"
@@ -13389,36 +13386,36 @@ namespace Banking.Services
 
             //      end if
             //   end if
-            //elseif left(str1, 15) = "AgentCommission"
+            //elseif left(strResult, 15) = "AgentCommission"
 
             //        dim Comm, CommType
             //'AgentCommission|104|INR|PIGMY|102040|1002|1|11-JAN-2008|30-Mar-2008
 
             //    st = SPLIT(STR1, "|")
 
-            //    rs = nothing
+            //    dataTable = nothing
 
 
-            //    rs = server.CreateObject("adodb.recordset")
+            //    dataTable = server.CreateObject("adodb.recordset")
 
-            //    rs = Obj.SingleRecordset("PIGMYCOMMRATEMST a, PIGMYTYPEMST b", _
+            //    dataTable = Obj.SingleRecordset("PIGMYCOMMRATEMST a, PIGMYTYPEMST b", _
 
             //        "nvl(a.COMMRATE,0), nvl(a.COMMTYPE,0)", "a.COMMTYPE=b.COMMMETHOD and " & _
 
             //        "a.GLCODE=b.GLCODE and a.GLCODE='" & cstr(st(4)) & "'")
 
 
-            //    if not rs.EOF and not rs.BOF then
+            //    if not dataTable.EOF and not dataTable.BOF then
 
-            //        if rs(0).value = 0 or rs(1).value = 0 then
+            //        if dataTable(0).value = 0 or dataTable(1).value = 0 then
             //            COUNTERNO = "NoComm"
 
             //        else
-            //                Comm = rs(0).value
+            //                Comm = dataTable(0).value
 
-            //            CommType = rs(1).value
+            //            CommType = dataTable(1).value
 
-            //            if rs(1).value = 1 then
+            //            if dataTable(1).value = 1 then
 
             //                strTab = "PIGMYTRAN A, PIGMYCOMMRATEMST B"
 
@@ -13456,13 +13453,13 @@ namespace Banking.Services
             //                'strCond="upper(branchcode)='" & cstr(ucase(st(1))) & "' and upper(currencycode)='" & cstr(ucase(st(2))) & "' and upper(glcode)='" & cstr(ucase(st(4))) & "' and upper(accno)='" & cstr(ucase(st(6))) & "' AND TRANSTATUS='A' AND APPLICATIONDATE BETWEEN '" & cstr(st(7)) & "' AND '" & cstr(st(8)) & "' GROUP BY APPLICATIONDATE ORDER BY APPLICATIONDATE"
 
 
-            //                rs = nothing
+            //                dataTable = nothing
 
 
-            //                rs = server.CreateObject("adodb.recordset")
+            //                dataTable = server.CreateObject("adodb.recordset")
 
 
-            //                rs = Obj.SingleRecordset(cstr(strTab), cstr(strFlds), _
+            //                dataTable = Obj.SingleRecordset(cstr(strTab), cstr(strFlds), _
 
             //                                        cstr(strCond))
 
@@ -13470,19 +13467,19 @@ namespace Banking.Services
             //                COUNTERNO = ""
 
 
-            //                if not rs.EOF and not rs.BOF then
+            //                if not dataTable.EOF and not dataTable.BOF then
 
-            //                    do while not rs.EOF
+            //                    do while not dataTable.EOF
 
-            //                        for idx = 0 to rs.Fields.Count - 1
+            //                        for idx = 0 to dataTable.Fields.Count - 1
 
-            //                            counterno = counterno & rs(idx).value & "~"
+            //                            counterno = counterno & dataTable(idx).value & "~"
 
             //                        next
 
             //                        counterno = counterno & "|"
 
-            //                        rs.MoveNext()
+            //                        dataTable.MoveNext()
 
             //                    loop
 
@@ -13495,7 +13492,7 @@ namespace Banking.Services
             //                counterno = counterno & CommType
 
 
-            //            else if rs(1).value = 2 then
+            //            else if dataTable(1).value = 2 then
 
             //                strTab = "PIGMYTRAN"
 
@@ -13529,13 +13526,13 @@ namespace Banking.Services
             //                'strCond="upper(branchcode)='" & cstr(ucase(st(1))) & "' and upper(currencycode)='" & cstr(ucase(st(2))) & "' and upper(glcode)='" & cstr(ucase(st(4))) & "' and upper(accno)='" & cstr(ucase(st(6))) & "' AND TRANSTATUS='A' AND APPLICATIONDATE BETWEEN '" & cstr(st(7)) & "' AND '" & cstr(st(8)) & "' GROUP BY APPLICATIONDATE ORDER BY APPLICATIONDATE"
 
 
-            //                rs = nothing
+            //                dataTable = nothing
 
 
-            //                rs = server.CreateObject("adodb.recordset")
+            //                dataTable = server.CreateObject("adodb.recordset")
 
 
-            //                rs = Obj.SingleRecordset(cstr(strTab), cstr(strFlds), _
+            //                dataTable = Obj.SingleRecordset(cstr(strTab), cstr(strFlds), _
 
             //                                        cstr(strCond))
 
@@ -13543,19 +13540,19 @@ namespace Banking.Services
             //                COUNTERNO = ""
 
 
-            //                if not rs.EOF and not rs.BOF then
+            //                if not dataTable.EOF and not dataTable.BOF then
 
-            //                    do while not rs.EOF
+            //                    do while not dataTable.EOF
 
-            //                        for idx = 0 to rs.Fields.Count - 1
+            //                        for idx = 0 to dataTable.Fields.Count - 1
 
-            //                            counterno = counterno & rs(idx).value & "~"
+            //                            counterno = counterno & dataTable(idx).value & "~"
 
             //                        next
 
             //                        counterno = counterno & "|"
 
-            //                        rs.MoveNext()
+            //                        dataTable.MoveNext()
 
             //                    loop
 
@@ -13585,30 +13582,30 @@ namespace Banking.Services
             //                'strCond="upper(branchcode)='" & cstr(ucase(st(1))) & "' and upper(currencycode)='" & cstr(ucase(st(2))) & "' and upper(glcode)='" & cstr(ucase(st(4))) & "' and upper(accno)='" & cstr(ucase(st(6))) & "' AND TRANSTATUS='A' AND APPLICATIONDATE BETWEEN '" & cstr(st(7)) & "' AND '" & cstr(st(8)) & "' GROUP BY APPLICATIONDATE ORDER BY APPLICATIONDATE"
 
 
-            //                rs = nothing
+            //                dataTable = nothing
 
 
-            //                rs = server.CreateObject("adodb.recordset")
+            //                dataTable = server.CreateObject("adodb.recordset")
 
 
-            //                rs = Obj.SingleRecordset(cstr(strTab), cstr(strFlds), _
+            //                dataTable = Obj.SingleRecordset(cstr(strTab), cstr(strFlds), _
 
             //                                        cstr(strCond))
 
 
-            //                if not rs.EOF and not rs.BOF then
+            //                if not dataTable.EOF and not dataTable.BOF then
 
 
-            //                    do while not rs.EOF
+            //                    do while not dataTable.EOF
 
-            //                        strCommRt = strCommRt & rs(0).value & "-"
+            //                        strCommRt = strCommRt & dataTable(0).value & "-"
 
-            //                        strFrmRt = strFrmRt & rs(1).value & "-"
+            //                        strFrmRt = strFrmRt & dataTable(1).value & "-"
 
-            //                        strToRt = strToRt & rs(2).value & "-"
+            //                        strToRt = strToRt & dataTable(2).value & "-"
 
 
-            //                        rs.MoveNext()
+            //                        dataTable.MoveNext()
 
             //                    loop
 
@@ -13762,11 +13759,14 @@ namespace Banking.Services
             return grid;
         }
 
-        public async Task GenParameters(string searchString = "")
+        public async Task<string> GetGenParameters(string searchString = "")
         {
             string[] strVal = searchString.Split("~");
 
+            string strResult = "";
             DataRow row = null!;
+            DataTable dataTable = null!;
+            string accNo = "", catCode = "", strAccParam = "";
 
             string mode = strVal[0];
             string modId = strVal[1];
@@ -13776,35 +13776,35 @@ namespace Banking.Services
             string brCode = strVal[5];
             string userID = strVal[6];
             string machineID = strVal[7];
-            string accNo = "", catCode = "", strAccParam = "";
 
             if (mode == "CHQACCYESNO")
                 accNo = strVal[8];
 
-            DataTable dataTable = null!;
-            string strMODParam = string.Empty, strGLParam = "No Parameters";
-
             // Dim strMod,strVal,mode,batNo
             // dim strMODParam,strGLParam,strAccParam
-            // recGL = server.CreateObject("adodb.recordset")
-            // objGL = server.CreateObject("GeneralTranQueries.TransParameters")
 
             switch (mode)
             {
                 case "CHQYESNO":
                     dataTable = await _databaseFactory.SingleRecordSet("GENMODULEMST", "nvl(chequebookyn,'N')", "upper(moduleid)='" + 
                         modId.Trim().ToUpper() + "'");
+                    
                     if (dataTable.Rows.Count > 0)
-                        strMODParam = mode + "~" + Conversions.ToString(dataTable.Rows[0].ItemArray[0]);
+                        strResult = mode + "~" + Conversions.ToString(dataTable.Rows[0].ItemArray[0]);
+                    
                     BankingExtensions.ReleaseMemory(dataTable);
-                    break;
+                    return strResult; 
+
                 case "CHQACCYESNO":
                     dataTable = await _databaseFactory.SingleRecordSet(modId + "MST", "nvl(CHEQUEBOOK,'N')", "upper(glcode)='" + glCode + "' and accno='" +
                         accNo + "' and branchcode = '" + brCode + "'");
+
                     if (dataTable.Rows.Count > 0)
-                        strMODParam = mode + "~" + Conversions.ToString(dataTable.Rows[0].ItemArray[0]);
+                        strResult = mode + "~" + Conversions.ToString(dataTable.Rows[0].ItemArray[0]);
+
                     BankingExtensions.ReleaseMemory(dataTable);
-                    break;
+                    return strResult;
+
                 case "GL":
                     dataTable = await _databaseFactory.GLTransactionParameters(modId, glCode, TranDate, curCode, brCode, userID, machineID);
 
@@ -13815,7 +13815,7 @@ namespace Banking.Services
                         // For SB or CA module Parameters 
                         // Numbers left side of the code indicates array index used for java script code, Index starts with 0 to 18
                         if (modId.ToUpper() == "SB" || modId.ToUpper() == "CA" || modId.ToUpper() == "MISC")
-                            strGLParam = modId.ToUpper() + "~" + row["INTDEBITGLCODE"] + "~" + row["INTCREDITGLCODE"] + "~" + 
+                            strResult = modId.ToUpper() + "~" + row["INTDEBITGLCODE"] + "~" + row["INTCREDITGLCODE"] + "~" + 
                                 row["INTACCRUEDGLCODE"] + "~" + row["OVERDUEGLCODE"] + "~" + row["MISCACCNO"] + "~" + 
                                 row["INSURLINKEDYN"] + "~" + row["PREMIUMPPERACCT"] + "~" + row["PREMIUMFREQ"] + "~" + 
                                 row["MONTHLYMINBALDAY"] + "~" + row["MONMINBALCUTOFFDAY"] + "~" + row["DORMITORYPERIOD"] + "~" + 
@@ -13824,7 +13824,7 @@ namespace Banking.Services
                                 row["ACCTPERLEDGER"] + "~" + row["PERIODICITY"];
                         else if (modId.ToUpper() == "DEP")
                             // Numbers left side of the code indicates array index used for java script code, Index starts with 0 to 26
-                            strGLParam = modId.ToUpper() + "~" + row["INTDEBITGLCODE"] + "~" + row["INTCREDITGLCODE"] + "~" + 
+                            strResult = modId.ToUpper() + "~" + row["INTDEBITGLCODE"] + "~" + row["INTCREDITGLCODE"] + "~" + 
                                 row["INTACCRUEDGLCODE"] + "~" + row["OVERDUEGLCODE"] + "~" + row["INTPAYMETHOD"] + "~" + 
                                 row["FIXEDDAYOFMON"] + "~" + row["RENODDAMOUNTSYN"] + "~" + row["INTCOMPOUNDYN"] + "~" + 
                                 row["INTPAYPERIODICALLYYN"] + "~" + row["INTPERIODICITYPYMNT"] + "~" + row["INSTSYN"] + "~" + 
@@ -13834,23 +13834,20 @@ namespace Banking.Services
                                 row["TDSYN"] + "~" + row["INTROUNDOFFTO"] + "~" + row["MATDATEHOLIDAYPAID"] + "~" + 
                                 row["PNLINTFORPREMATCLOSUREYN"] + "~" + row["LOANONDEPOSITYN"];
                         else if (modId.ToUpper() == "LOAN" || modId.ToUpper() == "CC")
-                            strGLParam = modId.ToUpper() + "~" + row["INTDEBITGLCODE"] + "~" + row["INTCREDITGLCODE"] + "~" + 
+                            // Numbers left side of the code indicates array index used for java script code - Index starts with 0 to 14
+                            strResult = modId.ToUpper() + "~" + row["INTDEBITGLCODE"] + "~" + row["INTCREDITGLCODE"] + "~" + 
                                 row["INTACCRUEDGLCODE"] + "~" + row["MISCACCNO"] + "~" + row["LOANINTEREST"] + "~" + 
                                 row["PRODUCTMETHOD"] + "~" + row["LOANAPPLICABLE"] + "~" + row["INTERESTTYPE"] + "~" + 
                                 row["INTCOMPOUND"] + "~" + row["INTERESTAPPLIED"] + "~" + row["NPACLASSIFIABLEYN"] + "~" + 
                                 row["EMIYN"] + "~" + row["LOANNATURE"] + "~" + row["INTCHARGEDUPTO"];
-
-                        // Numbers left side of the code indicates array index used for java script code - Index starts with 0 to 14
-                        strGLParam = modId.ToUpper() + "~" + row["INTDEBITGLCODE "] + "~" + row["INTCREDITGLCODE"] + "~" + 
-                            row["INTACCRUEDGLCODE"] + "~" + row["MISCACCNO"] + "~" + row["LOANINTEREST"] + "~" + 
-                            row["PRODUCTMETHOD"] + "~" + row["LOANAPPLICABLE"] + "~" + row["INTERESTTYPE"] + "~" + 
-                            row["INTCOMPOUND"] + "~" + row["INTERESTAPPLIED"] + "~" + row["NPACLASSIFIABLEYN"] + "~" + 
-                            row["EMIYN"] + "~" + row["LOANNATURE"] + "~" + row["INTCHARGEDUPTO"];
-
-                        strGLParam = strGLParam + "~" + row["CASHDRYN"] + "~" + row["CASHCRYN"] + "~" + row["TRANSFERDRYN"] + "~" + 
-                            row["TRANSFERCRYN"] + "~" + row["CLEARINGDRYN"] + "~" + row["CLEARINGCRYN"] + "~" + row["DISCINTYN"];
                     }
-                    break;
+
+                    strResult = strResult + "~" + row["CASHDRYN"] + "~" + row["CASHCRYN"] + "~" + row["TRANSFERDRYN"] + "~" +
+                        row["TRANSFERCRYN"] + "~" + row["CLEARINGDRYN"] + "~" + row["CLEARINGCRYN"] + "~" + row["DISCINTYN"];
+
+                    BankingExtensions.ReleaseMemory(dataTable);
+                    return strResult;
+
                 case "ACCOUNT":
                     string accOrCat = strVal[9];
                     if (accOrCat.ToUpper() == "ACCNO")
@@ -13885,67 +13882,2058 @@ namespace Banking.Services
 
                     if (dataTable.Rows.Count > 0)
                     {
-                        int minprdmonths, minprdyears, minprddays, maxprdmonths, maxprdyears, maxprddays, minprdyers = 0;
-
                         if (modId.Substring(0, 2) == "FX")
+                        {
+                            int minprdmonths, minprdyears, minprddays, maxprdmonths, maxprdyears, maxprddays, minprdyers = 0;
+
                             strAccParam = row["MINAMOUNT"] + "~" + row["MAXAMOUNT"] + "~";
 
-                        if (Conversions.ToString(row["MINTERM"]) == "M")
-                            minprdmonths = Conversions.ToInt(row["MINPERIOD"]);
-                        else
-                            minprdmonths = 0;
+                            if (Conversions.ToString(row["MINTERM"]) == "M")
+                                minprdmonths = Conversions.ToInt(row["MINPERIOD"]);
+                            else
+                                minprdmonths = 0;
 
-                        if (Conversions.ToString(row["MINTERM"]) == "Y")
-                            minprdyears = Conversions.ToInt(row["MINPERIOD"]);
-                        else
-                            minprdyears = 0;
+                            if (Conversions.ToString(row["MINTERM"]) == "Y")
+                                minprdyears = Conversions.ToInt(row["MINPERIOD"]);
+                            else
+                                minprdyears = 0;
 
-                        if (Conversions.ToString(row["MINTERM"]) == "D")
-                            minprddays = Conversions.ToInt(row["MINPERIOD"]);
-                        else
-                            minprddays = 0;
+                            if (Conversions.ToString(row["MINTERM"]) == "D")
+                                minprddays = Conversions.ToInt(row["MINPERIOD"]);
+                            else
+                                minprddays = 0;
 
-                        if (Conversions.ToString(row["MAXTERM"]) == "M")
-                            maxprdmonths = Conversions.ToInt(row["MAXPERIOD"]);
-                        else
-                            maxprdmonths = 0;
+                            if (Conversions.ToString(row["MAXTERM"]) == "M")
+                                maxprdmonths = Conversions.ToInt(row["MAXPERIOD"]);
+                            else
+                                maxprdmonths = 0;
 
-                        if (Conversions.ToString(row["MAXTERM"]) == "Y")
-                            maxprdyears = Conversions.ToInt(row["MAXPERIOD"]);
-                        else
-                            maxprdyears = 0;
+                            if (Conversions.ToString(row["MAXTERM"]) == "Y")
+                                maxprdyears = Conversions.ToInt(row["MAXPERIOD"]);
+                            else
+                                maxprdyears = 0;
 
-                        if (Conversions.ToString(row["MAXTERM"]) == "D")
-                            maxprddays = Conversions.ToInt(row["MAXPERIOD"]);
-                        else
-                            maxprddays = 0;
+                            if (Conversions.ToString(row["MAXTERM"]) == "D")
+                                maxprddays = Conversions.ToInt(row["MAXPERIOD"]);
+                            else
+                                maxprddays = 0;
 
-                        //        if recGL.RecordCount > 0 then
-                        strAccParam = strAccParam + minprdyers + "~" + minprdmonths + "~" + minprddays + "~" + maxprdyears + "~" + maxprdmonths + "~" + maxprddays + "~" + "0" + "~" + "1";
+                            //        if recGL.RecordCount > 0 then
+                            strAccParam = strAccParam + minprdyers + "~" + minprdmonths + "~" + minprddays + "~" + maxprdyears + "~" + maxprdmonths + "~" + maxprddays + "~" + "0" + "~" + "1";
+                        }
+                        else
+                        {
+                            // Numbers left side of the code indicates array index used for java script code, Index starts at 0 till 83
+                            strAccParam = row["MINAMOUNT"] + "~" + row["MAXAMOUNT"] + "~" + row["MINPERIODYEARS"] + "~" + row["MINPERIODMON"] + "~" + row["MINPERIODDAYS"] + "~" +
+                                row["MAXPERIODYEARS"] + "~" + row["MAXPERIODMON"] + "~" + row["MAXPERIODDAYS"] + "~" + row["TDS"] + "~" + row["OUTRTNCHARGES"] + "~" +
+                                row["OUTRTNFREQ"] + "~" + row["OUTRTNCHARGEEXEMPT"] + "~" + row["OUTRTNGLCODE"] + "~" + row["INWRTNCHARGES"] + "~" + row["INWRTNFREQ"] + "~" +
+                                row["INWRTNCHARGESEXEMPT"] + "~" + row["INWRTNGLCODE"] + "~" + row["STOPPAYCHARGES"] + "~" + row["STOPPAYFREQ"] + "~" + row["STOPPAYCHARGESEXEMPT"] + "~" +
+                                row["STOPPAYGLCODE"] + "~" + row["ACCTCLOSCHARGES"] + "~" + row["ACCOUNTCLOSFREQ"] + "~" + row["ACCTCLOSCHARGESEXEMPT"] + "~" + row["ACCTCLOSGLCODE"] + "~" +
+                                row["MINTODCHARGES"] + "~" + row["MINTODFREQ"] + "~" + row["MINTODGLCODE"] + "~" + row["CHQISSUECHARGES"] + "~" + row["CHQISSUEFREQ"] + "~" +
+                                row["CHQISSUECHARGESEXEMPT"] + "~" + row["CHQISSUEGLCODE"] + "~" + row["STATEMENTCHARGES"] + "~" + row["STATEMENTCHRGFREQ"] + "~" +
+                                row["STATEMENTCHARGESEXEMPT"] + "~" + row["STATEMENTCHRGGLCODE"] + "~" + row["DUPSTATEMENTCHARGES"] + "~" + row["DUPSTATEMENTCHRGFREQ"] + "~" +
+                                row["DUPSTATEMENTCHARGESEXEMPT"] + "~" + row["DUPSTATEMENTGLCODE"] + "~" + row["CHARGESPERFOLIO"] + "~" + row["FOLIOCHARGESFREQ"] + "~" +
+                                row["ENTRIESPERFOLIO"] + "~" + row["FOLIOCHARGESGLCODE"] + "~" + row["EXEMPTEDFOLIOS"] + "~" + row["MINTODCHARGESEXEMPT"] + "~" + row["CHQVALIDPERIOD"] + "~" +
+                                row["OUTRTNCHARGEEXEMPTUNIT"] + "~" + row["INWRTNCHARGESEXEMPTUNIT"] + "~" + row["STOPPAYCHARGESEXEMPTUNIT"] + "~" + row["ACCTCLOSCHARGESEXEMPTUNIT"] + "~" +
+                                row["CHQISSUECHARGESEXEMPTUNIT"] + "~" + row["STATEMENTCHARGESEXEMPTUNIT"] + "~" + row["DUPSTATEMENTCHARGESEXEMPTUNIT"] + "~" +
+                                row["MINTODCHARGESEXEMPTUNIT"] + "~" + row["INWRTNFREQUNITS"] + "~" + row["OUTRTNFREQUNITS"] + "~" + row["STOPPAYFREQUNITS"] + "~" +
+                                row["ACCOUNTCLOSFREQUNITS"] + "~" + row["MINTODFREQUNITS"] + "~" + row["CHQISSUEFREQUNITS"] + "~" + row["STATEMENTCHRGFREQUNITS"] + "~" +
+                                row["DUPSTATEMENTCHRGFREQUNITS"] + "~" + row["FOLIOCHARGESFREQUNITS"] + "~" + row["OUTRTNINITIAL"] + "~" + row["OUTRTNINITIALUNITS"] + "~" +
+                                row["INWRTNINITIAL"] + "~" + row["INWRTNINITIALUNITS"] + "~" + row["STOPPAYINITIAL"] + "~" + row["STOPPAYINITIALUNITS"] + "~" +
+                                row["ACCOUNTCLOSINITIAL"] + "~" + row["ACCOUNTCLOSINITIALUNITS"] + "~" + row["MINTODINITIAL"] + "~" + row["MINTODINITIALUNITS"] + "~" +
+                                row["CHQISSUEINITIAL"] + "~" + row["CHQISSUEINITIALUNITS"] + "~" + row["STATEMENTINITIAL"] + "~" + row["STATEMENTINITIALUNITS"] + "~" +
+                                row["DUPSTATEMENTINITIAL"] + "~" + row["DUPSTATEMENTINITIALUNITS"] + "~" + row["FOLIOINITIAL"] + "~" + row["FOLIOINITIALUNITS"] + "~" +
+                                row["EXEMPTEDFOLIOSUNITS"] + "~" + row["MULTIPLESOF"];
+                        }
                     }
-                    else  // Numbers left side of the code indicates array index used for java script code, Index starts at 0 till 83
-                        strAccParam = row["MINAMOUNT"] + "~" + row["MAXAMOUNT"] + "~" + row["MINPERIODYEARS"] + "~" + row["MINPERIODMON"] + "~" + row["MINPERIODDAYS"] + "~" + 
-                            row["MAXPERIODYEARS"] + "~" + row["MAXPERIODMON"] + "~" + row["MAXPERIODDAYS"] + "~" + row["TDS"] + "~" + row["OUTRTNCHARGES"] + "~" + 
-                            row["OUTRTNFREQ"] + "~" + row["OUTRTNCHARGEEXEMPT"] + "~" + row["OUTRTNGLCODE"] + "~" + row["INWRTNCHARGES"] + "~" + row["INWRTNFREQ"] + "~" + 
-                            row["INWRTNCHARGESEXEMPT"] + "~" + row["INWRTNGLCODE"] + "~" + row["STOPPAYCHARGES"] + "~" + row["STOPPAYFREQ"] + "~" + row["STOPPAYCHARGESEXEMPT"] + "~" + 
-                            row["STOPPAYGLCODE"] + "~" + row["ACCTCLOSCHARGES"] + "~" + row["ACCOUNTCLOSFREQ"] + "~" + row["ACCTCLOSCHARGESEXEMPT"] + "~" + row["ACCTCLOSGLCODE"] + "~" + 
-                            row["MINTODCHARGES"] + "~" + row["MINTODFREQ"] + "~" + row["MINTODGLCODE"] + "~" + row["CHQISSUECHARGES"] + "~" + row["CHQISSUEFREQ"] + "~" + 
-                            row["CHQISSUECHARGESEXEMPT"] + "~" + row["CHQISSUEGLCODE"] + "~" + row["STATEMENTCHARGES"] + "~" + row["STATEMENTCHRGFREQ"] + "~" + 
-                            row["STATEMENTCHARGESEXEMPT"] + "~" + row["STATEMENTCHRGGLCODE"] + "~" + row["DUPSTATEMENTCHARGES"] + "~" + row["DUPSTATEMENTCHRGFREQ"] + "~" + 
-                            row["DUPSTATEMENTCHARGESEXEMPT"] + "~" + row["DUPSTATEMENTGLCODE"] + "~" + row["CHARGESPERFOLIO"] + "~" + row["FOLIOCHARGESFREQ"] + "~" + 
-                            row["ENTRIESPERFOLIO"] + "~" + row["FOLIOCHARGESGLCODE"] + "~" + row["EXEMPTEDFOLIOS"] + "~" + row["MINTODCHARGESEXEMPT"] + "~" + row["CHQVALIDPERIOD"] + "~" + 
-                            row["OUTRTNCHARGEEXEMPTUNIT"] + "~" + row["INWRTNCHARGESEXEMPTUNIT"] + "~" + row["STOPPAYCHARGESEXEMPTUNIT"] + "~" + row["ACCTCLOSCHARGESEXEMPTUNIT"] + "~" + 
-                            row["CHQISSUECHARGESEXEMPTUNIT"] + "~" + row["STATEMENTCHARGESEXEMPTUNIT"] + "~" + row["DUPSTATEMENTCHARGESEXEMPTUNIT"] + "~" + 
-                            row["MINTODCHARGESEXEMPTUNIT"] + "~" + row["INWRTNFREQUNITS"] + "~" + row["OUTRTNFREQUNITS"] + "~" + row["STOPPAYFREQUNITS"] + "~" + 
-                            row["ACCOUNTCLOSFREQUNITS"] + "~" + row["MINTODFREQUNITS"] + "~" + row["CHQISSUEFREQUNITS"] + "~" + row["STATEMENTCHRGFREQUNITS"] + "~" + 
-                            row["DUPSTATEMENTCHRGFREQUNITS"] + "~" + row["FOLIOCHARGESFREQUNITS"] + "~" + row["OUTRTNINITIAL"] + "~" + row["OUTRTNINITIALUNITS"] + "~" + 
-                            row["INWRTNINITIAL"] + "~" + row["INWRTNINITIALUNITS"] + "~" + row["STOPPAYINITIAL"] + "~" + row["STOPPAYINITIALUNITS"] + "~" + 
-                            row["ACCOUNTCLOSINITIAL"] + "~" + row["ACCOUNTCLOSINITIALUNITS"] + "~" + row["MINTODINITIAL"] + "~" + row["MINTODINITIALUNITS"] + "~" + 
-                            row["CHQISSUEINITIAL"] + "~" + row["CHQISSUEINITIALUNITS"] + "~" + row["STATEMENTINITIAL"] + "~" + row["STATEMENTINITIALUNITS"] + "~" + 
-                            row["DUPSTATEMENTINITIAL"] + "~" + row["DUPSTATEMENTINITIALUNITS"] + "~" + row["FOLIOINITIAL"] + "~" + row["FOLIOINITIALUNITS"] + "~" + 
-                            row["EXEMPTEDFOLIOSUNITS"] + "~" + row["MULTIPLESOF"];
+
+                    BankingExtensions.ReleaseMemory(dataTable);
+                    return strResult;
+            }
+
+            return strResult;
+        }
+
+        public async Task<string> MinimumBalanceCheck(string searchString = "")
+        {
+            if (string.IsNullOrWhiteSpace(searchString))
+                return string.Empty;
+
+            string[] strVal = searchString.Split("~");
+            string mode = strVal[0];
+
+            string strcts = "";
+
+            //<% Dim strMod,strVal,mode,batNo
+            //dim fldnms,WhrCond,strresult,blnChqNo
+            //dim fldnames,WhrCnd,strrslt,blnChqSer,fldTab
+            //dim cfldnms,cWhrCond,cstrresult,GLcode
+            //Dim Rslt,loantrn
+            //Dim ArrTran(1, 4),objDelete,strWhCnd,strDelete
+            //dim RLimit,Rfldnms,RwhrCond
+            //dim DayCash
+            //dim recDisp,dispRslt,objDisp,dispWhr, rsBrParam
+            //Dim ArrTrandel(1, 4),objDel
+            //strMod = Request.QueryString("strparam")
+            //dim objrep
+            //dim strcts
+            //dim dataTable, objcts
+
+            DataTable dataTable = null!;
+            
+            dataTable = await _databaseFactory.SingleRecordSet("genconfigmst", "impyn", "code='CTS'");
+
+            if (dataTable.Rows.Count > 0)
+                strcts = Conversions.ToString(dataTable.Rows[0].ItemArray[0]);
+
+            BankingExtensions.ReleaseMemory(dataTable);
+
+            switch (mode)
+            {
+                case "ABBAPPLDATE":
+                        string strWhr = "upper(BRANCHCODE)='" + strVal[1]!.Trim().ToUpper() + "'";
+                        string strFld = "to_char(applicationdate,'dd-Mon-yyyy')";
+                        dataTable = await _databaseFactory.SingleRecordSet("GENAPPLICATIONDATEMST", strFld, strWhr);
+                        return (dataTable.Rows.Count > 0) ? Conversions.ToString(dataTable.Rows[0].ItemArray[0]) : "NOAPPLDT";
+
+                case "CHQVALIDPERIOD":
+                    {
+                        //        rsBrParam = server.CreateObject("adodb.recordset")
+                        //        objChq = server.CreateObject("queryrecordsets.fetchrecordsets")
+                        //        ''WhrCond = "upper(trim(BRANCHCODE))='" & ucase(trim(strVal(1))) & "' and MODULEID='" & session("module") & "'"
+                        //        WhrCond = "MODULEID='" & session("module") & "'"
+                        //        rsBrParam = objChq.SingleRecordSet("GENMODULETYPESMST", "CHQLENGHT", _
+                        //        cstr(WhrCond))
+                        //        if rsBrParam.eof = false and rsBrParam.bof = false then
+                        //            blnChqNo = session("ChequeValidPeriod")
+                        //            blnChqNo = blnChqNo & "~" & _
+                        //                iif(isdbnull(rsBrParam(0).value), "6", rsBrParam(0).value)
+                        //        else
+                        //                        blnChqNo = "6~6"
+                        //        end if
+                        //        rsBrParam = nothing
+                        //        objChq = nothing
+                    }
+                    break;
+                case "CHQVALIDPERIODLENDY":
+                    {
+                        //        rsBrParam = server.CreateObject("adodb.recordset")
+                        //        objChq = server.CreateObject("queryrecordsets.fetchrecordsets")
+                        //        WhrCond = "upper(trim(BRANCHCODE))='" & ucase(trim(strVal(1))) & "' and MODULEID='" & ucase(trim(strVal(2))) & "'"
+                        //        rsBrParam = objChq.SingleRecordSet("GENMODULETYPESMST", "CHQLENGHT", _
+                        //        cstr(WhrCond))
+                        //        if rsBrParam.eof = false and rsBrParam.bof = false then
+                        //            blnChqNo = session("ChequeValidPeriod")
+                        //            blnChqNo = blnChqNo & "~" & _
+                        //                iif(isdbnull(rsBrParam(0).value), "6", rsBrParam(0).value)
+                        //        else
+                        //                        blnChqNo = "6~6"
+                        //        end if
+                        //        rsBrParam = nothing
+                        //        objChq = nothing
+                    }
+                    break;
+                case "BALANCEATCASHIER":
+                    {
+                        //        rsBrParam = server.CreateObject("adodb.recordset")
+                        //        objChq = server.CreateObject("queryrecordsets.fetchrecordsets")
+                        //        WhrCond = "upper(trim(BRANCHCODE))='" & ucase(trim(strVal(1))) & "'" & _
+                        //             " and upper(trim(currencycode))='" & ucase(trim(strVal(2))) & "'" & _
+                        //             " and upper(trim(cashierid))='" & ucase(trim(strVal(3))) & "'"
+                        //        rsBrParam = objChq.SingleRecordSet("CASHCASHIERPOSMST", "nvl(totamount,0)", _
+                        //        cstr(WhrCond))
+                        //        if rsBrParam.eof = false and rsBrParam.bof = false then
+                        //            blnChqNo = iif(isdbnull(rsBrParam(0).value), "0", rsBrParam(0).value)
+                        //        else
+                        //                        blnChqNo = "0"
+                        //        end if
+                        //        rsBrParam = nothing
+                        //        objChq = nothing
+                    }
+                    break;
+                case "CASHIERSCROLLNO":
+                    {
+                        //        dim sTableName, sColumns
+                        //        sTableName = ""
+                        //        sColumns = ""
+                        //        If ucase(trim(strVal(4))) = "PAY" or ucase(trim(strVal(4))) = "REC" then
+                        //            If ucase(trim(strVal(4))) = "PAY" then
+                        //                sTableName = "CASHPAYMENTSTRN"
+                        //                sColumns = "NVL(MAX(paymentscrollno),0)"
+                        //            elseIf ucase(trim(strVal(4)))= "REC" then
+                        //                sTableName = "CASHRECEIPTSTRN"
+                        //                sColumns = "NVL(MAX(RECEIPTSCROLLNO),0)"
+                        //            end if
+                        //            WhrCond = "upper(trim(branchcode))='" & ucase(trim(strVal(1))) & "'" & _
+                        //                " and upper(trim(currencycode))='" & ucase(trim(strVal(2))) & "'" & _
+                        //                " and upper(trim(cashierid))='" & ucase(trim(strVal(3))) & "'"
+                        //            rsBrParam = server.CreateObject("adodb.recordset")
+                        //            objChq = server.CreateObject("queryrecordsets.fetchrecordsets")
+                        //            rsBrParam = objChq.SingleRecordSet(sTableName, sColumns, cstr(WhrCond))
+                        //            if rsBrParam.eof = false and rsBrParam.bof = false then
+                        //                blnChqNo = iif(isdbnull(rsBrParam(0).value), 0, rsBrParam(0).value)
+                        //                blnChqNo = val(blnChqNo) + 1
+                        //            else
+                        //                        blnChqNo = 1
+                        //            end if
+                        //            rsBrParam = nothing
+                        //            objChq = nothing
+                        //        else
+                        //                        blnChqNo = 1
+                        //        end if
+                    }
+                        break;
+                case "DISBURSEAMT":
+                    {
+                        //       fldnms = "nvl(disbursementamount,'')"
+                        //       WhrCond = " UPPER(trim(branchcode))='" & cstr(ucase(trim(strVal(1)))) & "'" & _
+                        //        " AND UPPER(trim(currencycode))='" & cstr(ucase(trim(strVal(2)))) & "'" & _
+                        //        " AND UPPER(trim(glcode))='" & cstr(ucase(trim(strVal(3)))) & "'" & _
+                        //        " AND accno = '" & cstr(ucase(trim(strVal(4)))) & "'" & _
+                        //        " AND DISBURSMENETSTATUS ='P' AND installmentno  IN " & _
+                        //        "  (SELECT MIN(installmentno) FROM  LOANDISBURSEMENTDTLS where " & _
+                        //        "   UPPER(trim(branchcode))='" & cstr(ucase(trim(strVal(1)))) & "'" & _
+                        //        "   AND UPPER(trim(currencycode))='" & cstr(ucase(trim(strVal(2)))) & "'" & _
+                        //        "   AND UPPER(trim(glcode))='" & cstr(ucase(trim(strVal(3)))) & "'" & _
+                        //        "   AND accno = '" & cstr(ucase(trim(strVal(4)))) & "'" & _
+                        //        "   AND DISBURSMENETSTATUS ='P')"
+                        //        'response.write("<br> WhrCond=" & WhrCond)
+                        //        'response.end
+                        //        recChq = server.CreateObject("adodb.recordset")
+                        //        objChq = server.CreateObject("queryrecordsets.fetchrecordsets")
+                        //        recChq = objChq.SingleRecordSet("LOANDISBURSEMENTDTLS", Cstr(fldnms), cstr(WhrCond))
+                        //        if recChq.RecordCount > 0 then
+                        //            blnChqNo = recChq(0).value
+                        //        else
+                        //                                blnChqNo = ""
+                        //        end if
+                        //        objChq = nothing
+                        //        recChq = nothing
+                        //        'response.write("<br><br> blnChqNo=" & blnChqNo)
+                        //        'response.end
+                    }
+                        break;
+                case "CHQN":
+                    {
+                        //        'Posibility of Return Values from this process
+
+
+                        //        'Code altered by Radhika on 20-Feb-2008
+                        //        'Reason: Cheque numbers storage process was changed.
+
+                        //        '        Earlier cheque numbers were stored individually i.e. if you give 
+
+                        //        '        Chq No.s range 100000 to 100007 then 8 rows will be inserted.
+
+                        //        '        But now only one row with chequeno = 100000 and ToChequeno = 100007
+
+
+                        //        fldnms = "chequeno"
+                        //        if strcts = "Y" then
+
+                        //        'WhrCond=" upper(branchcode)='" & cstr(ucase(trim(strVal(1)))) & "'" & _
+                        //        '        " and upper(currencycode)='" & cstr(ucase(trim(strVal(2)))) & "'" & _
+                        //        '        " and upper(moduleid)='" & cstr(ucase(trim(strVal(3)))) & "'" & _
+                        //        '        " and upper(glcode)='" & cstr(ucase(trim(strVal(4)))) & "'" & _
+                        //        '        " and upper(accno)='" & cstr(ucase(trim(strVal(5)))) & "'" & _
+                        //        '        " and upper(INSTRTYPE) ='"&  cstr(ucase(trim(strVal(7)))) &"'" & _
+                        //        '        " AND TO_NUMBER('" & trim(strVal(6)) & "') " & _
+                        //        '        " BETWEEN TO_NUMBER(trim(chequeno)) AND TO_NUMBER(trim(TOCHEQUENO)) and status='A'"
+                        //        WhrCond = " upper(currencycode)='" & cstr(ucase(trim(strVal(2)))) & "'" & _
+
+                        //                " and upper(branchcode)='" & cstr(ucase(trim(strVal(1)))) & "'" & _
+                        //                " and upper(moduleid)='" & cstr(ucase(trim(strVal(3)))) & "'" & _
+                        //                " and upper(glcode)='" & cstr(ucase(trim(strVal(4)))) & "'" & _
+                        //                " and upper(accno)='" & cstr(ucase(trim(strVal(5)))) & "'" & _
+                        //                " and upper(INSTRTYPE) ='" & cstr(ucase(trim(strVal(7)))) & "'" & _
+                        //                " AND TO_NUMBER('" & trim(strVal(6)) & "') " & _
+                        //                " BETWEEN TO_NUMBER(trim(chequeno)) AND TO_NUMBER(trim(TOCHEQUENO)) and status='A'"
+
+
+
+
+                        //                ''" and TO_NUMBER(trim(chequeno)) >=" & trim(strVal(6)) & _
+                        //                ''" and " & trim(strVal(6)) & " <= TO_NUMBER(trim(TOCHEQUENO))"
+                        //                else if strcts = "N" then
+
+
+                        //        'WhrCond=" upper(branchcode)='" & cstr(ucase(trim(strVal(1)))) & "'" & _
+                        //        '        " and upper(currencycode)='" & cstr(ucase(trim(strVal(2)))) & "'" & _
+                        //        '        " and upper(moduleid)='" & cstr(ucase(trim(strVal(3)))) & "'" & _
+                        //        '        " and upper(glcode)='" & cstr(ucase(trim(strVal(4)))) & "'" & _
+                        //        '        " and upper(accno)='" & cstr(ucase(trim(strVal(5)))) & "'" & _
+                        //        '        " AND TO_NUMBER('" & trim(strVal(6)) & "') " & _
+                        //        '        " BETWEEN TO_NUMBER(trim(chequeno)) AND TO_NUMBER(trim(TOCHEQUENO)) and status='A'"
+
+
+                        //        WhrCond = " upper(currencycode)='" & cstr(ucase(trim(strVal(2)))) & "'" & _
+
+                        //                " and upper(branchcode)='" & cstr(ucase(trim(strVal(1)))) & "'" & _
+                        //                " and upper(moduleid)='" & cstr(ucase(trim(strVal(3)))) & "'" & _
+                        //                " and upper(glcode)='" & cstr(ucase(trim(strVal(4)))) & "'" & _
+                        //                " and upper(accno)='" & cstr(ucase(trim(strVal(5)))) & "'" & _
+                        //                " AND TO_NUMBER('" & trim(strVal(6)) & "') " & _
+                        //                " BETWEEN TO_NUMBER(trim(chequeno)) AND TO_NUMBER(trim(TOCHEQUENO)) and status='A'"
+                        //                end if
+
+
+                        //        recChq = server.CreateObject("adodb.recordset")
+                        //        objChq = server.CreateObject("queryrecordsets.fetchrecordsets")
+                        //        recChq = objChq.SingleRecordSet("GENCHEQUEDTLS", Cstr(fldnms), cstr(WhrCond))
+
+
+                        //        'Verify whether cheque was already paid or not
+
+                        //        fldnms = "CHQEQUENO"
+
+                        //        if strcts = "Y" then
+
+                        //        'WhrCond=" upper(branchcode)='" & cstr(ucase(trim(strVal(1)))) & "'" & _
+                        //        '    " and upper(currencycode)='" & cstr(ucase(trim(strVal(2)))) & "'" & _
+                        //        '    " and upper(moduleid)='" & cstr(ucase(trim(strVal(3)))) & "'" & _
+                        //        '    " and upper(glcode)='" & cstr(ucase(trim(strVal(4)))) & "'" & _
+                        //        '    " and upper(INSTRTYPE) ='"&  cstr(ucase(trim(strVal(7)))) &"'" & _
+                        //        '    " and (trim(CHQEQUENO)='" & VAL(strVal(6)) & "' OR " & _
+                        //        '   			"trim(CHQEQUENO)='0" & VAL(strVal(6)) & "' OR " & _
+                        //        '   			"trim(CHQEQUENO)='00" & VAL(strVal(6)) & "' OR " & _
+                        //        '   			"trim(CHQEQUENO)='000" & VAL(strVal(6)) & "' OR " & _
+                        //        '   			"trim(CHQEQUENO)='0000" & VAL(strVal(6)) & "' OR " & _
+                        //        '  			"trim(CHQEQUENO)='00000" & VAL(strVal(6)) & "' OR " & _
+                        //        '   			"trim(CHQEQUENO)='000000" & VAL(strVal(6)) & "' OR " & _
+                        //        '   			"trim(CHQEQUENO)='0000000" & VAL(strVal(6)) & "' OR " & _
+                        //        '   			"trim(CHQEQUENO)='00000000" & VAL(strVal(6)) & "' OR " & _
+
+                        //        '			"trim(CHQEQUENO)='000000000" & VAL(strVal(6)) & "')"   
+
+
+                        //        WhrCond = " upper(currencycode)='" & cstr(ucase(trim(strVal(2)))) & "'" & _
+
+                        //            " and upper(branchcode)='" & cstr(ucase(trim(strVal(1)))) & "'" & _
+                        //            " and upper(moduleid)='" & cstr(ucase(trim(strVal(3)))) & "'" & _
+                        //            " and upper(glcode)='" & cstr(ucase(trim(strVal(4)))) & "'" & _
+                        //            " and upper(accno)='" & cstr(ucase(trim(strVal(5)))) & "'" & _
+                        //            " and upper(INSTRTYPE) ='" & cstr(ucase(trim(strVal(7)))) & "'" & _
+                        //            " and (trim(CHQEQUENO)='" & VAL(strVal(6)) & "' OR " & _
+
+                        //                       "trim(CHQEQUENO)='0" & VAL(strVal(6)) & "' OR " & _
+
+                        //                       "trim(CHQEQUENO)='00" & VAL(strVal(6)) & "' OR " & _
+
+                        //                       "trim(CHQEQUENO)='000" & VAL(strVal(6)) & "' OR " & _
+
+                        //                       "trim(CHQEQUENO)='0000" & VAL(strVal(6)) & "' OR " & _
+
+                        //                       "trim(CHQEQUENO)='00000" & VAL(strVal(6)) & "' OR " & _
+
+                        //                       "trim(CHQEQUENO)='000000" & VAL(strVal(6)) & "' OR " & _
+
+                        //                       "trim(CHQEQUENO)='0000000" & VAL(strVal(6)) & "' OR " & _
+
+                        //                       "trim(CHQEQUENO)='00000000" & VAL(strVal(6)) & "' OR " & _
+
+                        //                    "trim(CHQEQUENO)='000000000" & VAL(strVal(6)) & "')"
+
+
+                        //     '       " and upper(accno)='" & cstr(ucase(trim(strVal(5)))) & "'" & _       
+
+                        //          else if strcts = "N" then
+
+
+                        //          'WhrCond=" upper(branchcode)='" & cstr(ucase(trim(strVal(1)))) & "'" & _
+                        //          '  " and upper(currencycode)='" & cstr(ucase(trim(strVal(2)))) & "'" & _
+                        //          '  " and upper(moduleid)='" & cstr(ucase(trim(strVal(3)))) & "'" & _
+                        //          '  " and upper(glcode)='" & cstr(ucase(trim(strVal(4)))) & "'" & _
+                        //          '  " and (trim(CHQEQUENO)='" & VAL(strVal(6)) & "' OR " & _
+                        //          ' 			"trim(CHQEQUENO)='0" & VAL(strVal(6)) & "' OR " & _
+                        //          ' 			"trim(CHQEQUENO)='00" & VAL(strVal(6)) & "' OR " & _
+                        //          ' 			"trim(CHQEQUENO)='000" & VAL(strVal(6)) & "' OR " & _
+                        //          ' 			"trim(CHQEQUENO)='0000" & VAL(strVal(6)) & "' OR " & _
+                        //          ' 			"trim(CHQEQUENO)='00000" & VAL(strVal(6)) & "' OR " & _
+                        //          ' 			"trim(CHQEQUENO)='000000" & VAL(strVal(6)) & "' OR " & _
+                        //          ' 			"trim(CHQEQUENO)='0000000" & VAL(strVal(6)) & "' OR " & _
+                        //          ' 			"trim(CHQEQUENO)='00000000" & VAL(strVal(6)) & "' OR " & _
+
+                        //          '		"trim(CHQEQUENO)='000000000" & VAL(strVal(6)) & "')"         
+
+
+                        //          WhrCond = " upper(currencycode)='" & cstr(ucase(trim(strVal(2)))) & "'" & _
+
+                        //            " and upper(branchcode)='" & cstr(ucase(trim(strVal(1)))) & "'" & _
+                        //            " and upper(moduleid)='" & cstr(ucase(trim(strVal(3)))) & "'" & _
+                        //            " and upper(glcode)='" & cstr(ucase(trim(strVal(4)))) & "'" & _
+                        //            " and upper(accno)='" & cstr(ucase(trim(strVal(5)))) & "'" & _
+                        //            " and (trim(CHQEQUENO)='" & VAL(strVal(6)) & "' OR " & _
+
+                        //                       "trim(CHQEQUENO)='0" & VAL(strVal(6)) & "' OR " & _
+
+                        //                       "trim(CHQEQUENO)='00" & VAL(strVal(6)) & "' OR " & _
+
+                        //                       "trim(CHQEQUENO)='000" & VAL(strVal(6)) & "' OR " & _
+
+                        //                       "trim(CHQEQUENO)='0000" & VAL(strVal(6)) & "' OR " & _
+
+                        //                       "trim(CHQEQUENO)='00000" & VAL(strVal(6)) & "' OR " & _
+
+                        //                       "trim(CHQEQUENO)='000000" & VAL(strVal(6)) & "' OR " & _
+
+                        //                       "trim(CHQEQUENO)='0000000" & VAL(strVal(6)) & "' OR " & _
+
+                        //                       "trim(CHQEQUENO)='00000000" & VAL(strVal(6)) & "' OR " & _
+
+                        //                    "trim(CHQEQUENO)='000000000" & VAL(strVal(6)) & "')"
+
+
+                        //          end if
+
+
+                        //        dim recChqPaid
+
+                        //        recChqPaid = server.CreateObject("adodb.recordset")
+
+                        //        objChq = server.CreateObject("queryrecordsets.fetchrecordsets")
+
+                        //        recChqPaid = objChq.SingleRecordSet("GENCHEQUEPAIDDTLS", Cstr(fldnms), cstr(WhrCond))
+
+
+                        //        if recChqPaid.eof = true then
+
+                        //            'verify cheque paid details in GenTempTransLog
+
+                        //            if strcts = "Y" then
+
+                        //            'recChqPaid=objChq.SingleRecordSet("GENTEMPTRANSLOG","chqno", _
+
+                        //            '	" upper(trim(branchcode))='" &  cstr(ucase(trim(strVal(1)))) & _
+
+                        //            '	"' AND upper(trim(currencycode))= '" & cstr(ucase(trim(strVal(2)))) & _
+
+                        //            '	"' AND upper(trim(moduleid))= '" & cstr(ucase(trim(strVal(3)))) & _
+
+                        //            '	"' AND upper(trim(glcode))= '" & cstr(ucase(trim(strVal(4)))) & _
+
+                        //            '	"' AND upper(trim(accno)) = '" & cstr(ucase(trim(strVal(5)))) & _
+
+                        //            '	"' and upper(C64) = '"&  cstr(ucase(trim(strVal(7)))) & _
+
+                        //            '	"' AND trim(chqno)= '" & cstr(trim(strVal(6))) & "'")		
+
+
+                        //            recChqPaid = objChq.SingleRecordSet("GENTEMPTRANSLOG", "chqno", _
+
+                        //                "  upper(trim(currencycode))='" & cstr(ucase(trim(strVal(2)))) & _
+
+                        //                "' and upper(branchcode)='" & cstr(ucase(trim(strVal(1)))) & _
+
+                        //                "' AND upper(trim(moduleid))='" & cstr(ucase(trim(strVal(3)))) & _
+
+                        //                "' AND upper(trim(glcode))='" & cstr(ucase(trim(strVal(4)))) & _
+
+                        //                "' AND upper(trim(accno)) ='" & cstr(ucase(trim(strVal(5)))) & _
+
+                        //                "' and upper(C64) ='" & cstr(ucase(trim(strVal(7)))) & _
+
+                        //                "' AND trim(chqno)='" & cstr(trim(strVal(6))) & "'")
+
+
+                        //            else if strcts = "N" then
+
+                        //            'recChqPaid=objChq.SingleRecordSet("GENTEMPTRANSLOG","chqno", _
+
+                        //            '	" upper(trim(branchcode))='" &  cstr(ucase(trim(strVal(1)))) & _
+
+                        //            '	"' AND upper(trim(currencycode))= '" & cstr(ucase(trim(strVal(2)))) & _
+
+                        //            '	"' AND upper(trim(moduleid))= '" & cstr(ucase(trim(strVal(3)))) & _
+
+                        //            '	"' AND upper(trim(glcode))= '" & cstr(ucase(trim(strVal(4)))) & _
+
+                        //            '	"' AND upper(trim(accno)) = '" & cstr(ucase(trim(strVal(5)))) & _
+
+                        //            '	"' AND trim(chqno)= '" & cstr(trim(strVal(6))) & "'")		
+
+
+                        //            recChqPaid = objChq.SingleRecordSet("GENTEMPTRANSLOG", "chqno", _
+
+                        //                "  upper(trim(currencycode))='" & cstr(ucase(trim(strVal(2)))) & _
+
+                        //                "' and upper(branchcode)='" & cstr(ucase(trim(strVal(1)))) & _
+
+                        //                "' AND upper(trim(moduleid))='" & cstr(ucase(trim(strVal(3)))) & _
+
+                        //                "' AND upper(trim(glcode))='" & cstr(ucase(trim(strVal(4)))) & _
+
+                        //                "' AND upper(trim(accno)) ='" & cstr(ucase(trim(strVal(5)))) & _
+
+                        //                "' AND trim(chqno)='" & cstr(trim(strVal(6))) & "'")
+
+                        //            end if
+
+                        //        end if
+
+
+                        //        if recChq.eof = true then
+
+                        //        'Given Cheue does not belongs to given A/C
+
+                        //            if recChqPaid.eof = false then
+                        //                blnChqNo = "NOTVALID" & "~" & "ALREADYPAID"
+
+                        //            else
+                        //                                blnChqNo = "NOTVALID" & "~" & "NOTVALID"
+
+                        //            end if
+
+                        //        else
+                        //                                    'If Given Cheque number belongs to the given a/c then check
+
+                        //            'whether it was already paid or not
+
+                        //            if recChqPaid.eof = false then
+                        //                blnChqNo = "VALID" & "~" & "D"  'i.e. valid Cheque and has been already paid
+
+                        //            else
+                        //                                'Cheque was not paid. So verify whether any stop payments exists or not.
+
+                        //                fldnms = "nvl(stopstatus,'') stopstatus"
+
+
+                        //                if strcts = "Y" then
+
+
+                        //                '		WhrCond=" upper(branchcode)='" & cstr(ucase(trim(strVal(1)))) & "'" & _
+
+                        //                '	" and upper(currencycode)='" & cstr(ucase(trim(strVal(2)))) & "'" & _
+
+                        //                '	" and upper(moduleid)='" & cstr(ucase(trim(strVal(3)))) & "'" & _
+
+                        //                '	" and upper(glcode)='" & cstr(ucase(trim(strVal(4)))) & "'" & _
+
+                        //                '	" and upper(accno)='" & cstr(ucase(trim(strVal(5)))) & "'" & _
+
+                        //                '	" and upper(INSTRTYPE) ='"&  cstr(ucase(trim(strVal(7)))) &"'" & _
+
+                        //                '	" and trim(FROMCHQNO)=TO_NUMBER('" & cstr(trim(strVal(6))) & "')" & _
+
+                        //                '	" and nvl(stopstatus,'')='R'"			
+
+
+                        //                WhrCond = " upper(currencycode)='" & cstr(ucase(trim(strVal(2)))) & "'" & _
+
+                        //                    " and upper(branchcode)='" & cstr(ucase(trim(strVal(1)))) & "'" & _
+
+                        //                    " and upper(moduleid)='" & cstr(ucase(trim(strVal(3)))) & "'" & _
+
+                        //                    " and upper(glcode)='" & cstr(ucase(trim(strVal(4)))) & "'" & _
+
+                        //                    " and upper(accno)='" & cstr(ucase(trim(strVal(5)))) & "'" & _
+
+                        //                    " and upper(INSTRTYPE) ='" & cstr(ucase(trim(strVal(7)))) & "'" & _
+
+                        //                    " and trim(FROMCHQNO)=TO_NUMBER('" & cstr(trim(strVal(6))) & "')" & _
+
+                        //                    " and nvl(stopstatus,'')='R'"
+
+
+                        //                    else if strcts = "N" then
+
+
+                        //                '		WhrCond=" upper(branchcode)='" & cstr(ucase(trim(strVal(1)))) & "'" & _
+
+                        //                '	" and upper(currencycode)='" & cstr(ucase(trim(strVal(2)))) & "'" & _
+
+                        //                '	" and upper(moduleid)='" & cstr(ucase(trim(strVal(3)))) & "'" & _
+
+                        //                '	" and upper(glcode)='" & cstr(ucase(trim(strVal(4)))) & "'" & _
+
+                        //                '	" and upper(accno)='" & cstr(ucase(trim(strVal(5)))) & "'" & _
+
+                        //                '	" and trim(FROMCHQNO)=TO_NUMBER('" & cstr(trim(strVal(6))) & "')" & _
+
+                        //                '	" and nvl(stopstatus,'')='R'"			
+
+
+                        //                WhrCond = " upper(currencycode)='" & cstr(ucase(trim(strVal(2)))) & "'" & _
+
+                        //                    " and upper(branchcode)='" & cstr(ucase(trim(strVal(1)))) & "'" & _
+
+                        //                    " and upper(moduleid)='" & cstr(ucase(trim(strVal(3)))) & "'" & _
+
+                        //                    " and upper(glcode)='" & cstr(ucase(trim(strVal(4)))) & "'" & _
+
+                        //                    " and upper(accno)='" & cstr(ucase(trim(strVal(5)))) & "'" & _
+
+                        //                    " and trim(FROMCHQNO)=TO_NUMBER('" & cstr(trim(strVal(6))) & "')" & _
+
+                        //                    " and nvl(stopstatus,'')='R'"
+
+
+                        //                end if
+
+
+                        //                recChq = server.CreateObject("adodb.recordset")
+
+                        //                objChq = server.CreateObject("queryrecordsets.fetchrecordsets")
+
+                        //                recChq = objChq.SingleRecordSet("GENSTOPPAYMST", Cstr(fldnms), cstr(WhrCond))
+
+
+                        //                if recChq.eof = true then
+                        //                    blnChqNo = "VALID~"  'valid Cheque, not paid and no stop payment exists
+
+                        //                else
+                        //                                blnChqNo = "S~" 'Valid Cheue,not paid but stop payment exists.
+
+                        //                end if
+
+                        //            end if
+
+                        //        end if
+                        //        recChq = nothing
+                        //        objChq = nothing
+                    }
+                        break;
+                case "CHQS":
+                    {
+                        //       fldnames = "chqseriesno,chequeno"
+                        //       WhrCnd = "upper(branchcode)='" & cstr(ucase(trim(strVal(1)))) & "' and upper(currencycode)='" & _
+                        //                cstr(ucase(trim(strVal(2)))) & "' and upper(moduleid)='" & cstr(ucase(trim(strVal(3)))) & _
+                        //                "' and upper(glcode)='" & cstr(ucase(trim(strVal(4)))) & _
+                        //                "' and upper(accno)='" & cstr(ucase(trim(strVal(5)))) & _
+                        //                "' and upper(status)='A'"
+                        //                ' and (upper(stopstatus)='C' OR stopstatus is null) " 
+                        //                '"' and chqseriesno = '" & cstr(trim(strVal(6))) & _
+
+
+                        //         recChqSer = server.CreateObject("adodb.recordset")
+                        //         objChqSer = server.CreateObject("queryrecordsets.fetchrecordsets")
+                        //         recChqSer = objChqSer.SingleRecordSet("GENCHEQUEDTLS", Cstr(fldnames), cstr(WhrCnd))
+
+
+                        //           if recChqSer.RecordCount > 0 then
+                        //              blnChqSer = "VALID"
+                        //              else
+                        //                                blnChqSer = "NOTVALID"
+                        //           end if
+                        //         objChqSer = nothing
+                    }
+                        break;
+                case "DTVL":
+                    {
+                        //        chqDt = cdate(trim(strVal(1)))
+                        //        chqPrd = val(trim(strVal(2)))
+                        //        applDt = session("applicationdate")
+                        //        chqVldDt = dateadd("M", chqPrd, chqDt)
+                        //        chqVldDays = datediff("D", applDt, chqVldDt)
+                        //        'response.write("<BR>chqDt=" & chqDt)
+                        //        'response.write("<BR>chqPrd=" & chqPrd)
+                        //        'response.write("<BR>applDt=" & applDt)
+                        //        'response.write("<BR>chqVldDt=" & chqVldDt)
+                        //        'response.write("<BR>chqVldDays=" & chqVldDays)
+                        //        'response.end
+
+
+                        //        if chqVldDays > 0 then
+                        //            vldChqDt = "VALID"
+                        //        else
+                        //                                vldChqDt = "INVALID"
+                        //        end if
+                    }
+                        break;
+                case "OPDATECHK":
+                    {
+                        //        chqDt = cdate(trim(strVal(1)))
+                        //        chqPrd = val(trim(strVal(2)))
+                        //        applDt = session("applicationdate")
+                        //        chqVldDt = dateadd("M", chqPrd, chqDt)
+                        //        chqVldDays = datediff("D", applDt, chqVldDt)
+
+
+                        //        fldnames = "opdate"
+                        //        fldTab = strVal(3) & "MST"
+                        //        WhrCnd = "upper(branchcode)='" & cstr(ucase(trim(strVal(6)))) & "' and upper(glcode)='" & cstr(ucase(trim(strVal(4)))) & _
+                        //                "' and upper(accno)='" & cstr(ucase(trim(strVal(5)))) & _
+                        //                "' "
+
+
+                        //      'SELECT opdate FROM sbmst WHERE glcode='102020' AND accno='123' AND branchcode = '101'
+                        //         recChqSer = server.CreateObject("adodb.recordset")
+                        //         objChqSer = server.CreateObject("queryrecordsets.fetchrecordsets")
+                        //         recChqSer = objChqSer.SingleRecordSet(Cstr(fldTab), Cstr(fldnames), cstr(WhrCnd))
+
+
+                        //           if recChqSer.RecordCount > 0 then
+                        //              blnChqSer = recChqSer(0).value
+                        //           end if
+                        //         objChqSer = nothing
+
+
+
+                        //        if blnChqSer <= chqDt then
+                        //           vldChqDt = "VALID"
+                        //        else
+                        //                                            vldChqDt = "INVALID"
+                        //        end if
+                    }
+                    break;
+                case "DELTR":
+                    {
+                        //            batNo = strVal(1)
+
+                        //            trnNo = strVal(2)
+
+                        //            brCode = strVal(3)
+
+                        //            accNoYN = strVal(4)
+
+                        //            abbYN = strVal(5)
+
+                        //            redim ArrTran(100,4)
+
+                        //   'code added by Radhika on 16 sep 2008
+
+                        //            dim batchno, userid, appdate, machineid, strBatchnos
+
+                        //            dim accno, sDepAccLastIntCalcdate, sbfields, sbvalues, sbcondition
+
+                        //            dim rsTemp, objfetch, rsclosedepdet, rsmatdepdet
+
+                        //            dim AccBrCode
+
+
+                        //            userid = session("userid")
+
+                        //            appdate = session("applicationdate")
+
+                        //            machineid = session("machineid")
+
+                        //            batchno = trim(batNo)
+
+
+                        //            objfetch = server.CreateObject("queryrecordsets.fetchrecordsets")
+
+                        //            rstemp = server.createobject("adodb.recordset")
+
+
+                        //            'First Get Linked Batch Numbers too, if batchno specified
+
+                        //            'if batchno <> "" and trnNo="" and abbYN<>"Y" then 
+
+                        //            if batchno<> "" then
+
+                        //                strWhCnd = "branchcode='" & ucase(brCode) & "'" & _
+
+                        //                " and applicationdate='" & appdate & "'" & _
+
+                        //                " AND (parentbatchno=" & batchno & " OR parentbatchno IN " & _
+
+                        //                " (SELECT parentbatchno FROM GENLINKBATCHTEMP WHERE " & _
+
+                        //                " childbatchno = " & BatchNo & _
+
+                        //                " and branchcode='" & ucase(brCode) & "' )) "
+
+
+                        //                '" AND status='P'"
+
+
+                        //                rsTemp = objfetch.SingleRecordSet("GENLINKBATCHTEMP", _
+
+                        //                "parentbatchno,CHILDBATCHNO", cstr(strWhCnd))
+
+
+                        //                if rstemp.eof = false then
+
+                        //                    batchno = rsTemp(0).value
+
+                        //                    strBatchnos = batchno
+
+
+                        //                    do while rsTemp.eof = false
+
+                        //                        strBatchnos = strBatchnos & "," & rsTemp(1).value
+
+                        //                        rstemp.movenext
+
+                        //                    loop
+
+                        //                else
+                        //                                                strBatchnos = batchno
+
+                        //                end if
+
+                        //                rstemp = nothing
+
+                        //                batchno = strBatchnos
+
+                        //            end if
+
+                        //            'end of code added by Radhika on 16 sep 2008
+
+
+                        //            'code added by Radhika on 19 sep 2008
+
+                        //            'Reason: Reject single Transaction deletion from a batch
+
+                        //            '        ,when the selected transaction is a part of a A/C Closing Batch
+
+                        //            if trnNo<> "" then
+
+                        //                'then verify whether selected transaction is a part of a/c closing batch 
+
+                        //                'or not
+
+
+                        //                if abbYN = "Y" then
+                        //                    strWhCnd = "upper(abbbranchcode)='" & ucase(trim(brCode)) & "'"
+
+                        //                else
+                        //                                                strWhCnd = "upper(branchcode)='" & ucase(trim(brCode)) & "'"
+
+                        //                end if
+
+
+                        //                strWhCnd = strWhCnd & " and batchno in (" & batchno & ")" & _
+
+                        //                        " and serviceid=4 "
+
+
+                        //                rsTemp = objfetch.SingleRecordSet("GENTEMPTRANSLOG", _
+
+                        //                    "*", cstr(strWhCnd))
+
+
+                        //                if rstemp.eof = false then
+
+                        //                    Rslt = "Selected Transaction is a part of Account Closing Batch." & _
+
+                        //                        "So, It should be deleted as a Batch Deletion only." & "|"
+
+                        //                    rstemp = nothing
+
+                        //                    objfetch = nothing
+
+                        //                    Goto EndOfBatchNTranDel
+
+                        //                end if
+
+                        //                objfetch = nothing
+
+                        //                rstemp = nothing
+
+                        //            end if
+
+                        //            'end of code added by Radhika on 19 sep 2008			
+
+
+                        //            objDelete = server.CreateObject("GeneralTransactions.DBTransactions")
+
+                        //               if trnNo = "" then
+
+                        //                   if abbYN<>"Y" then
+                        //                    strWhCnd = "upper(branchcode)='" & ucase(trim(brCode)) & _
+
+                        //                        "' and batchno in (" & batchno & ")"
+
+                        //                else
+                        //                                                strWhCnd = "upper(abbbranchcode)='" & ucase(trim(brCode)) & _
+
+                        //                        "' and batchno in (" & batchno & ")"
+
+                        //                end if
+
+                        //            else
+                        //                if abbYN<>"Y" then
+                        //                    strWhCnd = "upper(branchcode)='" & ucase(trim(brCode)) & _
+
+                        //                        "' and batchno='" & trim(batNo) & "' and tranno='" & _
+
+                        //                        trim(trnNo) & "'"
+
+                        //                else
+                        //                                                strWhCnd = "upper(abbbranchcode)='" & ucase(trim(brCode)) & _
+
+                        //                        "' and batchno='" & trim(batNo) & "' and tranno='" & _
+
+                        //                        trim(trnNo) & "'"
+
+                        //                end if
+
+                        //            end if
+
+
+                        //            dim idx
+
+
+                        //            ArrTran(0, 0) = "D"
+
+                        //            ArrTran(0, 1) = "GENTEMPTRANSLOG" 'passing the table name
+
+                        //            ArrTran(0, 2) = ""
+
+                        //            ArrTran(0, 3) = ""
+
+                        //            ArrTran(0, 4) = strWhCnd 'passing where condition 
+
+                        //            idx = 1
+
+
+                        //            if accNoYN = "Y" and abbYN<>"Y" then
+                        //               fldnames = "batchno,tranno"
+
+                        //               fldvalues = "''~''"
+
+
+                        //               rsTemp = objfetch.SingleRecordSet("GENDISPOSALDTLSTEMP", _
+
+                        //                "*", cstr(strWhCnd))
+
+                        //               if rsTemp.eof = false then
+
+                        //                    ArrTran(idx, 0) = "U"
+
+                        //                    ArrTran(idx, 1) = "GENDISPOSALDTLSTEMP" 'passing the table name
+
+                        //                    ArrTran(idx, 2) = fldnames
+
+                        //                    ArrTran(idx, 3) = fldvalues
+
+                        //                    ArrTran(idx, 4) = strWhCnd 'passing where condition 
+
+                        //                    idx = idx + 1
+
+                        //                end if
+
+                        //                rsTemp = nothing
+
+                        //            end if
+
+
+                        //        'Code added by Radhika on 16 sep 2008
+
+                        //        if batchno<> "" and trnNo = "" then
+
+                        //            '***** Get required details from GenTempTransLog Table
+
+
+                        //            strWhCnd = "upper(branchcode)='" & ucase(trim(brCode)) & "' and " & _
+
+                        //                 " applicationdate='" & appdate & "' and Moduleid='DEP' " & _
+
+                        //                 " and serviceid=4 and batchno  in (" & strBatchnos & ")"
+
+
+                        //            rstemp = objfetch.SingleRecordSet("GENTEMPTRANSLOG", "distinct " & _
+
+                        //                "glcode,accno,C61", cstr(strWhCnd))
+
+
+                        //            if rstemp.eof = false then
+
+                        //                do while rstemp.eof = false
+
+                        //                    'batchno = rstemp(0).value
+
+                        //                    glcode = rstemp(0).value
+
+                        //                    accno = rstemp(1).value
+
+
+                        //                    sDepAccLastIntCalcdate = ""
+
+                        //                    sbfields = "STATUS,TRANSTATUS,USERID,MACHINEID,CLOSEDATE"
+
+
+                        //                    sbvalues = "'R'~'A'~'" & userid & "'~'" & machineid & _
+
+                        //                    "'~null"
+
+
+                        //                    sbcondition = "upper(branchcode)='" & brCode & "'" & _
+
+                        //                    " and GLCODE='" & glcode & "' and ACCNO='" & accno & "'"
+
+
+                        //                    if isdbnull(rstemp(2).value) = false then
+                        //                        sDepAccLastIntCalcdate = rstemp(2).value
+
+                        //                        sbfields = sbfields & ",LASTINTCALCDATE"
+
+                        //                        sbvalues = sbvalues & "~'" & sDepAccLastIntCalcdate & "'"
+
+                        //                    end if
+
+
+                        //                    ArrTran(Idx, 0) = "U"
+
+                        //                    ArrTran(Idx, 1) = "depmst"
+
+                        //                    ArrTran(Idx, 2) = sbfields
+
+                        //                    ArrTran(Idx, 3) = sbvalues
+
+                        //                    ArrTran(Idx, 4) = cstr(sbcondition)
+
+                        //                    Idx = Idx + 1
+
+
+                        //                    rsclosedepdet = Server.CreateObject("adodb.recordset")
+
+                        //                    rsclosedepdet = objfetch.SingleRecordSet("GENCLOSEDACCOUNTSMST", _
+
+                        //                    "nvl(count(*),0)", cstr(sbcondition))
+
+                        //                    If rsclosedepdet(0).value > 0 Then
+
+                        //                        ArrTran(Idx, 0) = "D"
+
+                        //                        ArrTran(Idx, 1) = "GENCLOSEDACCOUNTSMST"
+
+                        //                        ArrTran(Idx, 2) = ""
+
+                        //                        ArrTran(Idx, 3) = ""
+
+                        //                        ArrTran(Idx, 4) = cstr(sbcondition)
+
+                        //                        Idx = Idx + 1
+
+                        //                    end if
+
+                        //                    rsclosedepdet = nothing
+
+
+                        //                    rsmatdepdet = Server.CreateObject("adodb.recordset")
+
+                        //                    If glcode<> "" And accno<> "" Then
+
+                        //                        sbcondition = "branchcode='" & brCode & "' and " & _
+
+                        //                        " moduleid='DEP' and GLCODE='" & glcode & "' and " & _
+
+                        //                        " accno='" & accno & "'"
+
+
+                        //                        rsmatdepdet = objfetch.SingleRecordSet("DEPMATDEPOSITSMST", _
+
+                        //                        "nvl(count(*),0)", sbcondition)
+
+
+                        //                        If rsmatdepdet(0).value > 0 Then
+
+                        //                            ArrTran(Idx, 0) = "U"
+
+                        //                            ArrTran(Idx, 1) = "DEPMATDEPOSITSMST"
+
+                        //                            ArrTran(Idx, 2) = "CLOSEORREN, CLOSEORRENDATE, STATUS"
+
+                        //                            ArrTran(Idx, 3) = "''~''~'R'"
+
+                        //                            ArrTran(Idx, 4) = sbcondition
+
+                        //                            Idx += 1
+
+                        //                        End If
+
+                        //                    End If
+
+                        //                    rsmatdepdet = nothing
+
+
+                        //                    rstemp.movenext
+                        //                loop
+
+                        //            end if
+
+
+                        //            'Get the whole data from GenTempTransLog Table
+
+                        //            strWhCnd = "upper(branchcode)='" & brCode & "' and " & _
+
+                        //                 " applicationdate='" & appdate & "'" & _
+
+                        //                 " and batchno in (" & strBatchnos & ")" & _
+
+                        //                 " and moduleid in " & _
+
+                        //                 " (select distinct moduleid from GENBLINDDELDTLS) "
+
+
+                        //            'rstemp = objfetch.SingleRecordSet("GENTEMPTRANSLOG", "distinct batchno," & _
+
+                        //            '	"glcode,accno,MODULEID", cstr(strWhCnd))
+
+                        //            rstemp = objfetch.SingleRecordSet("GENTEMPTRANSLOG", "distinct " & _
+
+                        //                "glcode,accno,MODULEID", cstr(strWhCnd))
+
+
+                        //            do while rstemp.eof = false
+
+
+                        //                'batchno = rstemp(0).value
+
+                        //                glcode = rstemp(0).value
+
+                        //                accno = rstemp(1).value
+
+                        //                moduleid = rstemp(2).value
+
+
+                        //                'Get Tables list from which data isto be deleted
+
+                        //                strWhCnd = "moduleid='" & moduleid & "'"
+
+
+                        //                rsclosedepdet = objfetch.SingleRecordSet("GENBLINDDELDTLS", _
+
+                        //                "tablename", cstr(strWhCnd))
+
+
+                        //                do while rsclosedepdet.eof = false
+
+
+                        //                    sbcondition = "BRANCHCODE='" & brCode & "'" & _
+
+                        //                        " and GLCODE='" & glcode & "' and ACCNO='" & _
+
+                        //                        accno & "' and BATCHNO in (" & strBatchnos & _
+
+                        //                        ") and APPLICATIONDATE='" & appdate & "'"
+
+
+                        //                    'Check whether data exists in respective table for blind deletion or not
+
+                        //                    rsmatdepdet = objfetch.SingleRecordSet(cstr(rsclosedepdet(0).value), _
+
+                        //                    "*", sbcondition)
+
+
+                        //                    if rsmatdepdet.eof = false then
+
+                        //                        ArrTran(idx, 0) = "D"
+
+                        //                        ArrTran(idx, 1) = cstr(rsclosedepdet(0).value)
+
+                        //                        ArrTran(idx, 2) = ""
+
+                        //                        ArrTran(idx, 3) = ""
+
+                        //                        ArrTran(idx, 4) = cstr(sbcondition)
+
+                        //                        idx += 1
+
+                        //                    end if
+
+                        //                    rsmatdepdet = nothing
+
+
+                        //                    rsclosedepdet.movenext
+                        //                loop
+
+                        //                rsclosedepdet = nothing
+
+
+                        //                rstemp.movenext
+                        //            loop
+
+                        //            rstemp = nothing
+
+
+                        //            if trim(strBatchnos) <> "" then
+                        //                batNo = strBatchnos
+
+                        //            end if
+
+
+                        //        end if
+
+                        //        'end of code added by Radhika on 16 sep 2008
+
+
+                        //        strDelete = objDelete.DataTransactions(ArrTran) 'Deleting Record  
+
+
+                        //        If strDelete = "Transaction Sucessful." then
+                        //            Rslt = "DEL" & "|" & batNo & "|" & trnNo
+
+                        //        else
+                        //                                                Rslt = strDelete & "|"
+
+                        //        end if
+
+                        //EndOfBatchNTranDel:	    
+
+                        //     objDel = nothing
+                    }
+                        break;
+                case "DELETEROW":
+                    {
+                        //          batNo = strVal(1)
+                        //          trnNo = strVal(2)
+                        //          brCode = strVal(3)
+                        //          accNoYN = strVal(4)
+                        //          abbYN = strVal(5)
+
+
+                        //       Dim ArrTrand(1,4)   
+                        //         objDelete = server.CreateObject("GeneralTransactions.DBTransactions")
+
+
+                        //            if trnNo = "" then
+
+                        //                  if abbYN<>"Y" then
+                        //                  strWhCnd = "upper(branchcode)='" & ucase(trim(brCode)) & _
+
+                        //                           "' and batchno='" & trim(batNo) & "'"
+
+                        //               else
+                        //                                                strWhCnd = "upper(abbbranchcode)='" & ucase(trim(brCode)) & _
+
+                        //                           "' and batchno='" & trim(batNo) & "'"
+
+                        //               end if
+
+                        //            else
+                        //               if abbYN<>"Y" then
+                        //                  strWhCnd = "upper(branchcode)='" & ucase(trim(brCode)) & _
+
+                        //                           "' and batchno='" & trim(batNo) & "' and " & trnNo
+
+                        //               else
+                        //                                                strWhCnd = "upper(abbbranchcode)='" & ucase(trim(brCode)) & _
+
+                        //                           "' and batchno='" & trim(batNo) & "' and " & trnNo
+
+                        //               end if
+
+                        //            end if
+
+
+                        //              ArrTrand(0, 0) = "D"
+
+                        //            ArrTrand(0, 1) = "GENTEMPTRANSLOG" 'passing the table name
+
+                        //            ArrTrand(0, 2) = ""
+
+                        //            ArrTrand(0, 3) = ""
+
+                        //            ArrTrand(0, 4) = strWhCnd 'passing where condition 
+
+
+                        //            if accNoYN = "Y" then
+                        //               fldnames = "batchno,tranno"
+
+                        //               fldvalues = "''~''"
+
+
+                        //               ArrTrand(1, 0) = "U"
+
+                        //               ArrTrand(1, 1) = "GENDISPOSALDTLSTEMP" 'passing the table name
+
+                        //               ArrTrand(1, 2) = fldnames
+
+                        //               ArrTrand(1, 3) = fldvalues
+
+                        //               ArrTrand(1, 4) = strWhCnd 'passing where condition 
+
+
+                        //            end if
+
+                        //                strDeld = objDelete.DataTransactions(ArrTrand) 'Deleting Record  
+
+
+                        //                If strDeld = "Transaction Sucessful." then
+                        //                   Rslt = "Delete"
+
+                        //                   else
+                        //                                                Rslt = strDeld
+
+                        //                end if
+
+                        //         objDelete = nothing
+                    }
+                        break;
+                case "CASHGL":
+                    {
+                        //       fldnms = "glcode,narration"
+                        //       WhrCond = "upper(branchcode)='" & cstr(ucase(trim(strVal(1)))) & _
+                        //               "' and upper(moduleid)='CASH' and upper(status)='R'"
+
+
+                        //         recGL = server.CreateObject("adodb.recordset")
+                        //         objGL = server.CreateObject("queryrecordsets.fetchrecordsets")
+                        //         recGL = objGL.SingleRecordSet("GENGLSHEETMST", Cstr(fldnms), cstr(WhrCond))
+
+
+                        //           if recGL.RecordCount > 0 then
+                        //              GLcode = recGL(0).value & "~" & recGL(1).value
+                        //              else
+                        //                                                GLcode = "NOGLCODE"
+                        //           end if
+                        //        objGL = nothing
+                    }
+                    break;
+                case "LOANTRANTYPE":
+                    {
+                        //         dim recloantrantype
+
+
+                        //           recloantrantype = server.CreateObject("adodb.recordset")
+                        //           objLmt = server.CreateObject("queryrecordsets.fetchrecordsets")
+                        //           recloantrantype = objLmt.SingleRecordset("loantransactiontype", "description", "UPPER(description)!='NPA'")
+                        //         if recloantrantype.RecordCount > 0 then
+                        //         while not recloantrantype.EOF
+                        //         loantrn = loantrn & "~" & recloantrantype(0).value
+                        //         recloantrantype.MoveNext
+                        //         END WHILE
+
+
+                        //         else
+                        //                                                loantrn = ""
+                        //         end if
+                    }
+                        break;
+                case "CLGTYPES":
+                    {
+                        //          recClear = server.CreateObject("adodb.recordset")
+                        //         objClear = server.CreateObject("queryrecordsets.fetchrecordsets")
+                        //         recClear = objClear.SingleRecordset("CLGINWARDBATCHDTLS b," & _
+
+                        //                                "clgclearingtypepmt c", _
+
+                        //                                "distinct(b.clearingtype),c.clearingtype", _
+
+                        //                                "b.clearingtype=c.clearingcode and upper(trim(b.status))='O' and " & _
+
+                        //                                "upper(trim(b.branchcode))='" & strVal(1) & "' and " & _
+
+                        //                                "upper(trim(b.currencycode))='" & strVal(2) & "' and " & _
+
+                        //                                "b.applicationdate=to_date('" & session("applicationdate") & "','dd-mm-yyyy') and " & _
+
+                        //                                "c.branchcode='" & strVal(1) & "' and " & _
+
+                        //                                "upper(trim(b.currencycode))='" & strVal(2) & "'")' and " & _
+
+                        //                                '"b.clearingtype in (select clearingtype from " & _
+
+                        //                                '"CLGLODGEMENTVOUCHERDTLS  where status='P' and " & _
+
+                        //                                '"presentationdate=to_date('" & session("applicationdate") &"','dd - mm - yyyy') and " & _
+
+                        //                                '"upper(trim(branchcode))='" & strVal(1) &"' and " & _
+
+                        //                                '"upper(trim(currencycode))='" & strVal(2) &"')")
+
+                        //                                if not recClear.eof and not recClear.bof then
+
+                        //                                do until RecClear.EOF
+
+                        //                                    ClearingTypes = ClearingTypes & RecClear(0).value & _
+
+                        //                                                  "*" & RecClear(1).value & "|"
+
+                        //                                    RecClear.MoveNext
+                        //                                loop
+
+                        //                                end if
+
+                        //                            ClearingTypes = ClearingTypes & "~" & RecClear.RecordCount - 1
+
+
+                        // '------------------------------------------------  
+                        // ''----outward return clearing---------------------------------------------------- -
+                    }
+                    break;
+                case "CLGPARAM":
+                    {
+                        //          recClear = server.CreateObject("adodb.recordset")
+                        //         objClear = server.CreateObject("queryrecordsets.fetchrecordsets")
+                        //         recClear = objClear.SingleRecordset("CLGACOUNTPMT a,genglsheetmst g," & _
+
+                        //                    "genmoduletypesmst m", _
+
+                        //                    "a.RETURNMODULEID,a.RETURNGLCODE,a.RETURNACCNO,a.returnAccName," & _
+
+                        //                    "m.narration,g.narration", _
+
+                        //                    "upper(trim(a.branchcode))='" & strVal(1) & "' and " & _
+
+                        //                    "upper(trim(a.currencycode))='" & strVal(2) & "' and " & _
+
+                        //                    "g.moduleid=a.returnmoduleid and " & _
+
+                        //                    "m.moduleid=a.returnmoduleid and upper(m.IMPLEMENTEDYN)='Y' AND " & _
+                        //" G.GLCODE = A.RETURNGLCODE")
+
+                        //    aa = "upper(trim(a.branchcode))='" & strVal(1) & "' and " & _
+
+                        //                    "upper(trim(a.currencycode))='" & strVal(2) & "' and " & _
+
+                        //                    "g.moduleid=a.returnmoduleid and " & _
+
+                        //                    "m.moduleid=a.returnmoduleid"
+
+
+                        //                     if not recClear.eof and not recClear.bof then
+
+                        //                    ClearParam = recclear(0).value & "*" & recclear(1).value & _
+
+                        //                                "*" & recclear(2).value & "*" & recclear(3).value & "*" & recclear(4).value & "*" & recclear(5).value
+
+
+                        //                    end if
+                    }
+                        break;
+                case "RPLMT":
+                    {
+                        //         Rfldnms = "Receiptlimit,paymentlimit,tellerpaymentlimit," & _
+                        //                 "tellerreceiptlimit,maxcashlimit"
+                        //         RwhrCond = "upper(branchcode)='" & cstr(ucase(trim(strVal(1)))) & _
+                        //                  "' and upper(currencycode)='" & cstr(ucase(trim(strVal(2)))) & _
+                        //                  "' and upper(cashierid)='" & cstr(ucase(trim(strVal(3)))) & "'"
+
+
+                        //           recLmt = server.CreateObject("adodb.recordset")
+                        //           objLmt = server.CreateObject("queryrecordsets.fetchrecordsets")
+                        //           recLmt = objLmt.SingleRecordset("CASHCOUNTERMST", cstr(Rfldnms), cstr(RwhrCond))
+
+
+                        //            if recLmt.RecordCount > 0 then
+                        //               RLimit = recLmt("Receiptlimit").value & "~" & recLmt("paymentlimit").value & _
+                        //                      "~" & recLmt("tellerreceiptlimit").value & "~" & recLmt("tellerpaymentlimit").value & _
+                        //                      "~" & recLmt("maxcashlimit").value
+                        //            else
+                        //                                                        RLimit = "NORECLMT"
+                        //            end if
+                    }
+                        break;
+                case "STDAYLMT":
+                    {
+                        //        dim rsDat, rs1, rs2, obj1, obj2, obj3, sqlStr, sqlStr1, sqlStr2
+
+
+                        //        obj1 = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+                        //        obj2 = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+                        //        obj3 = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+                        //        rsDat = server.CreateObject("adodb.recordset")
+
+                        //        rs1 = server.CreateObject("adodb.recordset")
+
+                        //        rs2 = server.CreateObject("adodb.recordset")
+
+
+                        //        sqlStr = "SELECT DISTINCT MODULEID FROM CUSTLNKMODULE" ''for table name
+
+
+                        //        rsDat = obj1.SingleSelectStat(sqlStr)
+
+
+                        //        if obj1.ConnError = "Connected" then
+
+                        //            if not rsDat.BOF and not rsDat.EOF then
+
+                        //                do until rsDat.EOF
+
+
+                        //                    sqlStr1 = ""
+
+
+                        //                    sqlStr1 = " SELECT GLCODE, ACCNO, BRANCHCODE FROM " & rsDat(0).value & "MST WHERE customerid = (SELECT customerid FROM " & cstr(ucase(trim(strVal(1)))) & "MST WHERE ACCNO='" & cstr(ucase(trim(strVal(3)))) & "' AND GLCODE='" & cstr(ucase(trim(strVal(2)))) & "' AND BRANCHCODE='" & cstr(ucase(trim(strVal(5)))) & "') ORDER BY TO_NUMBER(GLCODE),TO_NUMBER(ACCNO) " ''for table GLCODE, accno ,branchcode
+
+
+                        //                    rs1 = obj2.SingleSelectStat(sqlStr1)
+
+
+                        //                    if obj2.ConnError = "Connected" then
+
+                        //                        if not rs1.BOF and not rs1.EOF then
+
+                        //                            do until rs1.EOF
+
+
+                        //                                sqlStr2 = ""
+
+
+                        //                                if rsDat(0).value<> "LOCKER" then
+
+                        //                                if rsDat(0).value<> "SHARES" then
+
+
+                        //                                    'sqlStr2  = " SELECT NVL(SUM(AMOUNT),0)amt FROM CASHPAYMENTSTRN WHERE ACCNO='" & rs1(1).value & "' AND GLCODE='" & rs1(0).value & "' AND  BRANCHCODE='" & rs1(2).value & "' AND APPLICATIONDATE='" & cstr(ucase(trim(strVal(6)))) & "' "
+
+                        //                                    sqlStr2 = "SELECT SUM(abs(NVL(amount,0))) amount FROM GENTRANSLOG WHERE MODEOFTRAN = 1 AND CASHPAIDYN = 'Y' AND ACCNO ='" & rs1(1).value & "' AND GLCODE = '" & rs1(0).value & "' AND BRANCHCODE ='" & rs1(2).value & "' AND APPLICATIONDATE='" & cstr(ucase(trim(strVal(6)))) & "'"
+
+
+                        //                                    rs2 = obj3.SingleSelectStat(sqlStr2)
+
+
+                        //                                    if obj3.ConnError = "Connected" then
+
+                        //                                        if not rs2.BOF and not rs2.EOF then
+
+                        //                                            do until rs2.EOF
+
+                        //                                            amt = 0
+
+                        //                                                if isdbnull(rs2(0).value) then
+                        //                                                amt = 0
+
+                        //                                                else
+                        //                                                        amt = rs2(0).value
+
+                        //                                                end if
+
+                        //                                                strRest = strRest & amt & "|"
+
+
+                        //                                            rs2.movenext()
+
+                        //                                            loop
+                        //                                        end if
+
+                        //                                    end if
+
+                        //                                    rs2 = nothing ''end of balance
+
+                        //                                end if
+
+                        //                                end if
+
+                        //                            rs1.movenext()
+
+                        //                            loop
+                        //                        end if
+
+                        //                    end if
+
+                        //                    rs1 = nothing '' end of accno
+
+
+                        //                rsDat.movenext()
+
+                        //                loop
+
+                        //            end if
+
+                        //        end if
+
+
+
+                        //         if strRest<> "" then
+                        //            strRest = mid(strRest, 1, strRest.length - 1)
+                        //         else
+                        //                                                        strRest = "No Amount"
+                        //         end if
+                    }
+                        break;
+                case "STWEKLMT":
+                    {
+                        //        dim rsDat, rs1, rs2, obj1, obj2, obj3, sqlStr, sqlStr1, sqlStr2
+                        //        dim startdate, enddate, tempstartdate, tempenddate
+                        //        obj1 = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+                        //        obj2 = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+                        //        obj3 = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+                        //        rsDat = server.CreateObject("adodb.recordset")
+
+                        //        rs1 = server.CreateObject("adodb.recordset")
+
+                        //        rs2 = server.CreateObject("adodb.recordset")
+                        //        startdate = "10-Nov-2016"
+                        //        ''startdate = "08-OCT-2016"
+                        //        enddate = "30-Dec-2016"
+                        //        tempstartdate = ""
+                        //        tempenddate = ""
+                        //        tempstartdate1 = ""
+                        //        tempenddate1 = ""
+
+
+                        //        pappdate = strVal(6)
+
+
+                        //        Do While CDate(startdate) < CDate(enddate)
+                        //        tempenddate1 = DateAdd("d", 6, CDate(startdate))
+                        //        If CDate(pappdate) >= CDate(startdate) And CDate(pappdate) <= CDate(tempenddate1) Then
+                        //        tempstartdate = Format(cdate(startdate), "dd-MMM-yyyy")
+                        //        tempenddate = Format(cdate(tempenddate1), "dd-MMM-yyyy")
+                        //        Exit Do
+                        //        End If
+                        //        startdate = DateAdd("d", 7, CDate(startdate))
+                        //        Loop
+
+
+                        //        sqlStr = "SELECT DISTINCT MODULEID FROM CUSTLNKMODULE" ''for table name
+
+
+                        //        rsDat = obj1.SingleSelectStat(sqlStr)
+
+
+                        //        if obj1.ConnError = "Connected" then
+
+                        //            if not rsDat.BOF and not rsDat.EOF then
+
+                        //                do until rsDat.EOF
+
+
+                        //                    sqlStr1 = ""
+
+
+                        //                    sqlStr1 = " SELECT GLCODE, ACCNO, BRANCHCODE FROM " & rsDat(0).value & "MST WHERE customerid = (SELECT customerid FROM " & cstr(ucase(trim(strVal(1)))) & "MST WHERE ACCNO='" & cstr(ucase(trim(strVal(3)))) & "' AND GLCODE='" & cstr(ucase(trim(strVal(2)))) & "' AND BRANCHCODE='" & cstr(ucase(trim(strVal(5)))) & "') ORDER BY TO_NUMBER(GLCODE),TO_NUMBER(ACCNO) " ''for table GLCODE, accno ,branchcode
+
+
+                        //                    rs1 = obj2.SingleSelectStat(sqlStr1)
+
+
+                        //                    if obj2.ConnError = "Connected" then
+
+                        //                        if not rs1.BOF and not rs1.EOF then
+
+                        //                            do until rs1.EOF
+
+
+                        //                                sqlStr2 = ""
+
+
+                        //                                if rsDat(0).value<> "LOCKER" then
+
+                        //                                if rsDat(0).value<> "SHARES" then
+
+
+                        //                                    'sqlStr2 = "SELECT SUM(a.amount) FROM ( SELECT SUM(abs(NVL(amount,0))) amount FROM GENTRANSLOG WHERE MODEOFTRAN = 1 AND CASHPAIDYN = 'Y' AND ACCNO ='" & rs1(1).value & "' AND GLCODE = '" & rs1(0).value & "' AND BRANCHCODE ='" & rs1(2).value & "' AND  APPLICATIONDATE >= '"& tempstartdate &"' AND  APPLICATIONDATE <= '"& tempenddate &"'" & _ 
+
+
+                        //                                    if strVal(7) = "Y" then
+
+                        //                                        sqlStr2 = "SELECT SUM(a.amount) FROM ( SELECT SUM(abs(NVL(amount,0))) amount FROM GENTRANSLOG WHERE MODEOFTRAN = 1 AND CASHPAIDYN = 'Y' AND ACCNO ='" & rs1(1).value & "' AND GLCODE = '" & rs1(0).value & "' AND BRANCHCODE ='" & rs1(2).value & "' AND  APPLICATIONDATE >= '" & tempstartdate & "' AND  APPLICATIONDATE <= '" & tempenddate & "'" & _
+                        //" UNION ALL " & _
+                        //" SELECT SUM(abs(NVL(amount,0))) FROM GENTRANSLOGBKP WHERE MODEOFTRAN = 1 AND CASHPAIDYN = 'Y' AND ACCNO ='" & rs1(1).value & "' AND GLCODE = '" & rs1(0).value & "' AND BRANCHCODE ='" & rs1(2).value & "' AND  APPLICATIONDATE >= '" & tempstartdate & "' AND  APPLICATIONDATE <= '" & tempenddate & "') a  "
+
+
+                        //                                    else
+
+                        //                                                                sqlStr2 = "SELECT SUM(a.amount) FROM ( SELECT SUM(abs(NVL(amount,0))) amount FROM GENTRANSLOG WHERE MODEOFTRAN = 1 AND ACCNO ='" & rs1(1).value & "' AND GLCODE = '" & rs1(0).value & "' AND BRANCHCODE ='" & rs1(2).value & "' AND  APPLICATIONDATE >= '" & tempstartdate & "' AND  APPLICATIONDATE <= '" & tempenddate & "'" & _
+                        //" UNION ALL " & _
+                        //" SELECT SUM(abs(NVL(amount,0))) FROM GENTRANSLOGBKP WHERE MODEOFTRAN = 1 AND CASHPAIDYN = 'Y' AND ACCNO ='" & rs1(1).value & "' AND GLCODE = '" & rs1(0).value & "' AND BRANCHCODE ='" & rs1(2).value & "' AND  APPLICATIONDATE >= '" & tempstartdate & "' AND  APPLICATIONDATE <= '" & tempenddate & "') a  "
+
+
+                        //                                    end if
+
+
+
+                        //                                    rs2 = obj3.SingleSelectStat(sqlStr2)
+
+
+                        //                                    if obj3.ConnError = "Connected" then
+
+                        //                                        if not rs2.BOF and not rs2.EOF then
+
+                        //                                            do until rs2.EOF
+
+                        //                                                amt = 0
+
+                        //                                                if isdbnull(rs2(0).value) then
+                        //                                                amt = 0
+
+                        //                                                else
+                        //                                                                amt = rs2(0).value
+
+                        //                                                end if
+
+                        //                                                strRest = strRest & amt & "|"
+
+
+                        //                                            rs2.movenext()
+
+                        //                                            loop
+                        //                                        end if
+
+                        //                                    end if
+
+                        //                                    rs2 = nothing ''end of balance
+
+                        //                                end if
+
+                        //                                end if
+
+                        //                            rs1.movenext()
+
+                        //                            loop
+                        //                        end if
+
+                        //                    end if
+
+                        //                    rs1 = nothing '' end of accno
+
+
+                        //                rsDat.movenext()
+
+                        //                loop
+
+                        //            end if
+
+                        //        end if
+
+
+
+                        //         if strRest<> "" then
+                        //            strRest = mid(strRest, 1, strRest.length - 1)
+                        //         else
+                        //                                                                strRest = "No Amount"
+                        //         end if
+                    }
+                        break;
+                case "DISPBATCH":
+                    {
+                        //           recDisp = server.CreateObject("adodb.recordset")
+                        //           objDisp = server.CreateObject("queryrecordsets.fetchrecordsets")
+                        //             dispWhr = "D.branchcode='" & strVal(1) & "' and D.currencycode='" & strVal(2) & _
+                        //                 "' and D.MODULEID ='" & strVal(3) & "' AND D.GLCODE='" & strVal(4) & _
+                        //                 "' and D.ACCNO='" & strVal(5) & _
+                        //                 "'  and " & _
+                        //                 " T.disposalbatchno=D.disposalbatchno and " & _
+                        //                 "T.disposaltranno=D.disposaltranno and upper(T.transtatus)='P'"
+                        //           recDisp = objDisp.singlerecordset("GENTEMPTRANSLOG T,GENDISPOSALDTLSTEMP D", "T.batchno", cstr(dispWhr))
+
+
+                        //         if recDisp.RecordCount > 0 then
+                        //            dispRslt = recDisp(0)
+                        //         else
+                        //                                                                dispRslt = "Proceed"
+                        //         end if
+                        //         Response.Write(disprslt)
+                        //  '''-------------------------------   and D.TRANNO IS NULL and D.BATCHNO IS NULL
+                    }
+                        break;
+                case "EXCPAMT":
+                    {
+                        //        excpWhr = "upper(currencycode)='" & cstr(ucase(trim(strVal(1)))) & _
+                        //                "' and upper(moduleid)='" & cstr(ucase(trim(strVal(2)))) & _
+                        //                "' and upper(glcode)='" & cstr(ucase(trim(strVal(3)))) & _
+                        //                "' and modeoftran=" & trim(strVal(4))
+
+
+                        //          recExcp = server.CreateObject("adodb.recordset")
+
+                        //          objExcp = server.CreateObject("queryrecordsets.fetchrecordsets")
+
+                        //          recExcp = objExcp.SingleRecordSet("GENEXCEPTIONALAMTMST", "amount", cstr(excpWhr))
+
+
+                        //        if recExcp.RecordCount > 0 then
+                        //           excpAmt = recExcp(0).value
+                        //        else
+                        //                                                                excpAmt = "NODATA"
+                        //        end if
+                    }
+                        break;
+                case "CREDITACCNO":
+                    {
+                        //       mstWhr = "upper(moduleid)='" & cstr(ucase(trim(strVal(1)))) & "'"
+                        //         recMst = server.CreateObject("adodb.recordset")
+                        //         objmst = server.CreateObject("queryrecordsets.fetchrecordsets")
+                        //         recMst = objmst.SingleRecordSet("GENMODULEMST", "creditpurposeaccnoyn", cstr(mstWhr))
+
+
+                        //       if recMst.RecordCount > 0 then
+                        //          mstTab = recMst(0).value
+                        //       end if
+                    }
+                        break;
+                case "MASTTAB":
+                    {
+                        //       mstWhr = "upper(moduleid)='" & cstr(ucase(trim(strVal(1)))) & "'"
+                        //         recMst = server.CreateObject("adodb.recordset")
+                        //         objmst = server.CreateObject("queryrecordsets.fetchrecordsets")
+
+
+                        //         recMst = objmst.SingleRecordSet("GENMODULEMST", _
+
+                        //            "nvl(ACCNOREQUIREDYN,'N')", cstr(mstWhr))
+
+
+                        //       if recMst.RecordCount > 0 then
+                        //          mstTab = recMst(0).value
+                        //       end if
+                    }
+                    break;
+                case "SIGLCODE":
+                    {
+                        //          obj = server.CreateObject("queryrecordsets.fetchrecordsets")
+
+                        //          dataTable = server.CreateObject("adodb.recordset")
+
+                        //          dataTable = obj.SingleRecordSet("GENGLSHEETMST", "GLCODE," & _
+
+                        //        "NARRATION", "upper(BRANCHCODE)='" & cstr(ucase(trim(strVal(1)))) & "' AND " & _
+
+                        //        "upper(MODULEID)='" & cstr(ucase(trim(strVal(2)))) & _
+
+                        //        "'AND upper(STATUS)='R' AND GLACCTYPE='5'")
+
+                        //        if dataTable.RecordCount > 0 then
+                        //        sigl = dataTable(0).value & "|" & dataTable(1).value
+
+                        //        else
+                        //                                                                                        sigl = "NOGLCODE"
+
+                        //        end if
+                    }
+                        break;
+                case "FXRATETYPES":
+                    {
+                        //            objFxRates = server.CreateObject("queryrecordsets.fetchrecordsets")
+
+                        //          recFxRates = server.CreateObject("adodb.recordset")
+
+                        //          recFxRates = objFxRates.SingleRecordSet("FXGENRATETYPESMST", "CODE," & _
+
+                        //        "NARRATION", "upper(status)='R'")
+
+
+                        //        if not recFxRates.eof and not recFxRates.bof then
+
+                        //           do until recFxRates.EOF
+
+                        //              FxRateTypes = FxRateTypes & recFxRates(0).value & "*" & recFxRates(1).value & "|"
+
+                        //              recFxRates.MoveNext
+                        //           loop
+
+                        //        end if
+
+                        //           FxRateTypes = FxRateTypes & "~" & recFxRates.RecordCount - 1
+                    }
+                        break;
+                case "DELTRCASH":
+                    {
+                        //           batNo = strVal(1)
+                        //           trnNo = strVal(2)
+                        //           brCode = strVal(3)
+                        //           accNoYN = strVal(4)
+
+
+                        //         objDel = server.CreateObject("GeneralTransactions.DBTransactions")
+
+                        //                   if trnNo = "" then
+                        //                strWhCnd = "upper(branchcode)='" & ucase(trim(brCode)) & _
+
+                        //                         "' and batchno in" & trim(batNo) & ""
+
+                        //                end if
+
+                        //            strWhCnd1 = "upper(branchcode)='" & ucase(trim(brCode)) & _
+
+                        //                         "' and parentbatchno in" & trim(batNo) & ""
+
+                        //            ArrTrandel(0, 0) = "D"
+
+                        //            ArrTrandel(0, 1) = "GENTEMPTRANSLOG" 'passing the table name
+
+                        //            ArrTrandel(0, 2) = ""
+
+                        //            ArrTrandel(0, 3) = ""
+
+                        //            ArrTrandel(0, 4) = strWhCnd 'passing where condition 
+
+                        //            ArrTrandel(1, 0) = "D"
+
+                        //            ArrTrandel(1, 1) = "GENLINKBATCHTEMP" 'passing the table name
+
+                        //            ArrTrandel(1, 2) = ""
+
+                        //            ArrTrandel(1, 3) = ""
+
+                        //            ArrTrandel(1, 4) = strWhCnd1 'passing where condition 
+                        //            strDelete = objDel.DataTransactions(ArrTrandel) 'Deleting Record  
+
+
+                        //            If strDelete = "Transaction Sucessful." then
+                        //               Rslt = "DEL" & "|" & batNo & "|" & trnNo
+
+                        //               else
+                        //                                                                                                        Rslt = strDelete & "|"
+
+                        //            end if
+
+                        //              objDel = nothing
+                    }
                         break;
             }
+
+            return string.Empty;
+        }
+
+        public async Task<string> GetBalanceDetails(string searchString = "", string applicationDate = "")
+        {
+            string[] strMand = searchString.Split("~");
+            string strResult = string.Empty;
+
+            DataTable dataTable = null!;
+
+            string appdate = string.Format("dd-MMM-yyyy", Conversions.ToString(applicationDate));
+
+            if (strMand[0]!.Length > 0 && strMand[1]!.Length > 0 && strMand[2]!.Length > 0 && strMand[3]!.Length > 0 && strMand[4]!.Length > 0)
+            {
+                dataTable = await _databaseFactory.SingleRecordSet(strMand[2] + "mst", "accno", " status = 'R' and transtatus = 'A' and branchcode='" + strMand[0] + 
+                    "' and currencycode='" + strMand[1] + "' and glcode='" + strMand[3] + "' and accno='" + strMand[4] + "'");
+
+                if (dataTable.Rows.Count > 0)
+                {
+                    //            obj = Server.CreateObject("accountdetails.accdetails")
+                    //            strResult = obj.accountdetail(cstr(strMand(0)), cstr(strMand(1)), cstr(strMand(2)), cstr(strMand(3)), cstr(strMand(4)))
+                }
+                else
+                    strResult = "";
+
+                if (strMand[2] == "SB" || strMand[2] == "CA" || strMand[2] == "CC")
+                {
+                    string msg = await _generalValidationService.GetDebitCreditByYealrly(strMand[0], strMand[2], strMand[3], strMand[4], applicationDate);
+                    strResult = strResult + "|" + msg.Replace("-", "");
+                }
+
+                if (strMand[2] == "CC")
+                {
+                    DataTable rstod = null!, rsLim = null!;
+
+                    string strSqltod = "SELECT NVL(TODLIMITAMT,0) FROM genlimitlnk WHERE LINKEDACCNO = '" + strMand[4] + "' AND LINKEDGLCODE='" + strMand[3] + "' AND " +
+                        "LINKEDMODULEID='" + strMand[2] + "' AND BRANCHCODE= '" + strMand[0] + "' AND CURRENCYCODE='" + strMand[1] + "' AND EXPIRYDATE<= '" + appdate + "'";
+
+                    rsLim = await _databaseFactory.ProcessQueryAsync(strSqltod);
+
+                    if (rsLim.Rows.Count > 0)
+                        strResult = strResult + "|0";
+                    else
+                    {
+                        strSqltod = "SELECT NVL(TODLIMITAMT,0) FROM genlimitlnk WHERE LINKEDACCNO = '" + strMand[4] + "' AND LINKEDGLCODE='" + strMand[3] + 
+                            "' AND LINKEDMODULEID='" + strMand[2] + "' AND BRANCHCODE= '" + strMand[0] + "' AND CURRENCYCODE='" + strMand[1] + "' AND TODEXPDATE >= '" + 
+                            appdate + "' AND TODEXPDATE IS NOT NULL ";
+
+                        rstod = await _databaseFactory.ProcessQueryAsync(strSqltod);
+
+                        if (rstod.Rows.Count > 0)
+                            strResult = strResult + "|" + Conversions.ToString(rstod.Rows[0].ItemArray[0]);
+                        else
+                            strResult = strResult + "|0";
+
+                        BankingExtensions.ReleaseMemory(rstod);
+                    }
+
+                    // Limit expiry date
+                    string strsqlexpdt = "SELECT to_char(expirydate,'dd-Mon-yyyy') expirydate FROM genlimitlnk WHERE BRANCHCODE= '" + strMand[0] + "' AND CURRENCYCODE='"
+                        + strMand[1] + "' AND LINKEDMODULEID ='" + strMand[2] + "' AND linkedaccno = '" + strMand[4] + "'  AND LINKEDGLCODE='" + strMand[3] + "' AND " +
+                        "status = 'R' AND expirydate = (SELECT MAX(expirydate) FROM genlimitlnk WHERE BRANCHCODE= '" + strMand[0] + "' AND CURRENCYCODE='" + strMand[1] +
+                        "' AND LINKEDMODULEID ='" + strMand[2] + "' AND linkedaccno = '" + strMand[4] + "' AND LINKEDGLCODE='" + strMand[3] + "' AND status = 'R')";
+
+                    DataTable rsexpdt = await _databaseFactory.ProcessQueryAsync(strsqlexpdt);
+
+                    if (rsexpdt.Rows.Count > 0)
+                        strResult = strResult + "|" + Conversions.ToString(rsexpdt.Rows[0].ItemArray[0]);
+                    else
+                        strResult = strResult + "|";
+
+                    // NPA status
+                    string strsqlccnpa = "SELECT nvl(NPASTATUS,'P') FROM ccmst where BRANCHCODE= '" + strMand[0] + "' AND CURRENCYCODE='" + strMand[1] + "' AND accno = '" +
+                        strMand[4] + "' AND GLCODE='" + strMand[3] + "'";
+
+                    DataTable rsccnpa = await _databaseFactory.ProcessQueryAsync(strsqlccnpa);
+
+                    if (rsccnpa.Rows.Count > 0)
+                        strResult = strResult + "|" + Conversions.ToString(rsccnpa.Rows[0].ItemArray[0]);
+                    else
+                        strResult = strResult + "|";
+                }
+
+                if (strMand[2] == "LOAN")
+                {
+                    // NPA status and installment amount
+                    double dblinstamt = 0;
+
+                    string strsqlloannpa = "SELECT nvl(NPASTATUS,'P'),INSTALMENTAMT FROM loanmst where BRANCHCODE= '" + strMand[0] + "' AND CURRENCYCODE='" + strMand[1] +
+                        "' AND accno = '" + strMand[4] + "' AND GLCODE='" + strMand[3] + "'";
+
+                    DataTable rsloannpa = await _databaseFactory.ProcessQueryAsync(strsqlloannpa);
+
+                    if (rsloannpa.Rows.Count > 0)
+                    {
+                        strResult = strResult + "|" + Conversions.ToString(rsloannpa.Rows[0].ItemArray[0]) + "|" + Conversions.ToString(rsloannpa.Rows[0].ItemArray[1]);
+                        dblinstamt = Convert.ToDouble(Conversions.ToString(rsloannpa.Rows[0].ItemArray[1]));
+                    }
+                    else
+                    {
+                        strResult = strResult + "|" + "|0";
+                        dblinstamt = 0;
+                    }
+
+                    // No of Pending Intstallments
+                    string[] strval = strResult.Split("|");
+                    double dbloverduebal = Convert.ToDouble(strval[10]);
+                    int noofpendins = 0;
+
+                    if (dbloverduebal > 0)
+                    {
+                        if (dblinstamt > 0)
+                        {
+                            // noofpendins = Math.Round((dbloverduebal / dblinstamt))
+                            string strsqlfloor = "SELECT FLOOR(" + (dbloverduebal / dblinstamt) + ") noofpendins FROM dual";
+                            DataTable rsfloor = await _databaseFactory.ProcessQueryAsync(strsqlfloor);
+
+                            if (rsfloor.Rows.Count > 0)
+                                noofpendins = Convert.ToInt32(Conversions.ToString(rsfloor.Rows[0].ItemArray[0]));
+                            else
+                                noofpendins = 0;
+                        }
+                        else
+                            noofpendins = 0;
+                    }
+                    else
+                        noofpendins = 0;
+
+                    if (noofpendins > 0)
+                        strResult = strResult + "|" + noofpendins;
+                    else
+                        strResult = strResult + "|0";
+                }
+
+                if (strMand[2] == "REM")
+                {
+                    string stGsval = "";
+
+                    string strGstqry = "select nvl(gstin,'0') gstin from gencustinfomst where CUSTOMERID = (SELECT CUSTOMERID From " + strMand[2] + "MST where accno='"
+                        + strMand[4] + "' and glcode='" + strMand[3] + "' and branchcode='" + strMand[0] + "')";
+
+                    DataTable rsGst = await _databaseFactory.ProcessQueryAsync(strGstqry);
+
+                    if (rsGst.Rows.Count > 0)
+                        stGsval = Conversions.ToString(rsGst.Rows[0].ItemArray[0]);
+                    else
+                        stGsval = "0";
+
+                    strResult = strResult + "|" + stGsval;
+                }
+            }
+
+            return strResult;
+        }
+
+        public async Task<string> GetMessageCount(string searchString = "", string applicationDate = "", string groupCode = "")
+        {
+            if (searchString.Length > 0)
+            {
+                string strCondition = "upper(customerid)='" + searchString.ToUpper() + "' and upper(status)='R' and messagevaliddate >= to_date('" + applicationDate +
+                    "','dd-Mon-yyyy') and upper(groupcode)='" + groupCode + "'";
+
+                DataTable dataTable = await _databaseFactory.SingleRecordSet("GencustMessageDtls", "count(*)", strCondition);
+
+                if (dataTable.Rows.Count > 0)
+                    return Conversions.ToString(dataTable.Rows[0].ItemArray[0]);
+            }
+
+            return string.Empty;
         }
 
         public void GetDetails1()
@@ -13960,7 +15948,7 @@ namespace Banking.Services
 //dim strAckFilename
 //dim objctr
 
-//rs = Server.CreateObject("adodb.recordset")
+//dataTable = Server.CreateObject("adodb.recordset")
 //rs1 = Server.CreateObject("adodb.recordset")
 //rscheck = Server.CreateObject("adodb.recordset")
 //rsgengl = Server.CreateObject("adodb.recordset")
@@ -14020,18 +16008,18 @@ namespace Banking.Services
 
 //         end if
 
-//        rs = obj.SingleSelectStat(sqlStr)
+//        dataTable = obj.SingleSelectStat(sqlStr)
 
 
 //        if obj.ConnError = "Connected" then
 
-//            if not rs.BOF and not rs.EOF then
+//            if not dataTable.BOF and not dataTable.EOF then
 
-//                do until rs.EOF
+//                do until dataTable.EOF
 
-//                    strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "~" & rs(7).value & "~" & rs(8).value & "~" & rs(9).value & "~" & rs(10).value & "~" & rs(11).value & "~" & rs(12).value & "~" & rs(13).value & "|"
+//                    strResult = strResult & dataTable(0).value & "~" & dataTable(1).value & "~" & dataTable(2).value & "~" & dataTable(3).value & "~" & dataTable(4).value & "~" & dataTable(5).value & "~" & dataTable(6).value & "~" & dataTable(7).value & "~" & dataTable(8).value & "~" & dataTable(9).value & "~" & dataTable(10).value & "~" & dataTable(11).value & "~" & dataTable(12).value & "~" & dataTable(13).value & "|"
 
-//                    rs.movenext()
+//                    dataTable.movenext()
 
 //                loop
 //                strResult = mid(strResult, 1, strResult.length - 1)
@@ -14040,7 +16028,7 @@ namespace Banking.Services
 
 //        end if
 
-//    rs = nothing
+//    dataTable = nothing
 //elseif strArr(0)= "GETRDAMOUNTCHECK" then
 //strResult = ""
 
@@ -14059,28 +16047,28 @@ namespace Banking.Services
 
 //    obj1 = Server.CreateObject("accountdetails.accdetails")
 
-//            str1 = obj1.accountdetail(cstr(strArr(1)), cstr(strArr(2)), cstr(strArr(3)), cstr(strArr(4)), cstr(strArr(5)))
+//            strResult = obj1.accountdetail(cstr(strArr(1)), cstr(strArr(2)), cstr(strArr(3)), cstr(strArr(4)), cstr(strArr(5)))
 
-//            arrval = split(str1, "|")
+//            arrval = split(strResult, "|")
 
 //            dblcuramt = arrval(0)
 
 //         sqlStr = "SELECT MONINSTAMOUNT, MATURITYDATE, DEPPRDMONS noofinstall  FROM depmst WHERE branchcode = '" & strArr(1) & "' AND glcode = '" & strArr(4) & "' and accno = '" & strArr(5) & "' AND status = 'R'"
 
 
-//        rs = obj.SingleSelectStat(sqlStr)
+//        dataTable = obj.SingleSelectStat(sqlStr)
 
 
 //        if obj.ConnError = "Connected" then
 
-//            if not rs.BOF and not rs.EOF then
+//            if not dataTable.BOF and not dataTable.EOF then
 
 
-//                strMONINSTAMOUNT = rs(0).value
+//                strMONINSTAMOUNT = dataTable(0).value
 
-//                strMATURITYDATE = rs(1).value
+//                strMATURITYDATE = dataTable(1).value
 
-//                strDEPPRDMONS = rs(2).value
+//                strDEPPRDMONS = dataTable(2).value
 
 
 
@@ -14106,7 +16094,7 @@ namespace Banking.Services
 
 //        strResult = strmessage
 
-//    rs = nothing
+//    dataTable = nothing
 //elseif strArr(0)= "LCKRENTPAIDTLS" then
 //    strResult = ""
 
@@ -14118,18 +16106,18 @@ namespace Banking.Services
 //         sqlStr = "SELECT to_char(opdate,'dd-Mon-yyyy') opdate,lockerno,m.accno,lockersize,name,nvl((SELECT rentamount FROM LOCKERRENTMST WHERE branchcode = m.branchcode AND sizecode= m.lockersize),0) rentamt, l.paidamount,to_char(l.paidupto,'dd-Mon-yyyy') paidupto FROM lockermst m, (SELECT branchcode,glcode,accno, SUM(amount) paidamount,MAX(todate) paidupto FROM LOCKERRENTDTLS GROUP BY branchcode,glcode,accno) l WHERE m.branchcode= l.branchcode AND m.glcode= l.glcode AND m.accno = l.accno " & strArr(4) & " " & strArr(5) & " AND m.branchcode='" & strArr(1) & "' ORDER BY TO_NUMBER(m.accno)"
 
 
-//        rs = obj.SingleSelectStat(sqlStr)
+//        dataTable = obj.SingleSelectStat(sqlStr)
 
 
 //        if obj.ConnError = "Connected" then
 
-//            if not rs.BOF and not rs.EOF then
+//            if not dataTable.BOF and not dataTable.EOF then
 
-//                do until rs.EOF
+//                do until dataTable.EOF
 
-//                    strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "~" & rs(7).value & "|"
+//                    strResult = strResult & dataTable(0).value & "~" & dataTable(1).value & "~" & dataTable(2).value & "~" & dataTable(3).value & "~" & dataTable(4).value & "~" & dataTable(5).value & "~" & dataTable(6).value & "~" & dataTable(7).value & "|"
 
-//                    rs.movenext()
+//                    dataTable.movenext()
 
 //                loop
 //                strResult = mid(strResult, 1, strResult.length - 1)
@@ -14138,7 +16126,7 @@ namespace Banking.Services
 
 //        end if
 
-//    rs = nothing
+//    dataTable = nothing
 
 
 //elseif strArr(0)= "ATMCARDTLS" then
@@ -14150,18 +16138,18 @@ namespace Banking.Services
 
 //        sqlStr = " SELECT REFNUM, TITLE, FAMILYNAME, ACCOUNT1, SUBSTR(ACCOUNT1,4,6) glcode, (CASE WHEN ACCOUNT1TYPE = '10' THEN 'SB' WHEN ACCOUNT1TYPE = '20' THEN 'CA' END ) MOD, (ADDRESS1||''|| ADDRESS2||''||ADDRESS3||''||ADDRESS4||' '||CITYCODE||' '||ZIPCODE||' '||COUNTRYCODE) Addres, (MAILINGADDRESS1 ||''|| MAILINGADDRESS2 ||''|| MAILINGADDRESS3 ||''|| MAILINGADDRESS4 ||' '|| MAILINGZIPCODE ||' '|| MAILINGCITYCODE ||' '|| MAILINGCOUNTRYCODE) MailAddres,EMBOSSEDNAME,CARDNUMBER FROM atmcrddtls WHERE TRANSTATUS = 'P' AND branchcode='" & strArr(1) & "' order by to_number(REFNUM)"
 
-//        rs = obj.SingleSelectStat(sqlStr)
+//        dataTable = obj.SingleSelectStat(sqlStr)
 
 //        if obj.ConnError = "Connected" then
 
-//            if not rs.BOF and not rs.EOF then
+//            if not dataTable.BOF and not dataTable.EOF then
 
 
-//                do until rs.EOF
+//                do until dataTable.EOF
 
-//                strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "~" & rs(7).value & "~" & rs(8).value & "~" & rs(9).value & "|"
+//                strResult = strResult & dataTable(0).value & "~" & dataTable(1).value & "~" & dataTable(2).value & "~" & dataTable(3).value & "~" & dataTable(4).value & "~" & dataTable(5).value & "~" & dataTable(6).value & "~" & dataTable(7).value & "~" & dataTable(8).value & "~" & dataTable(9).value & "|"
 
-//                rs.movenext()
+//                dataTable.movenext()
 
 //                loop
 //            end if
@@ -14178,7 +16166,7 @@ namespace Banking.Services
 //        end if
 
 
-//    rs = nothing
+//    dataTable = nothing
 
 
 
@@ -14212,21 +16200,21 @@ namespace Banking.Services
 //end if
 
 
-// rs = obj.SingleSelectStat(sqlStr)
+// dataTable = obj.SingleSelectStat(sqlStr)
 
 
 //        if obj.ConnError = "Connected" then
 
-//            if not rs.BOF and not rs.EOF then
+//            if not dataTable.BOF and not dataTable.EOF then
 
-//                do until rs.EOF
-
-
-
-//                    strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "~" & rs(7).value & "~" & rs(8).value & "~" & rs(9).value & "|"
+//                do until dataTable.EOF
 
 
-//                    rs.movenext()
+
+//                    strResult = strResult & dataTable(0).value & "~" & dataTable(1).value & "~" & dataTable(2).value & "~" & dataTable(3).value & "~" & dataTable(4).value & "~" & dataTable(5).value & "~" & dataTable(6).value & "~" & dataTable(7).value & "~" & dataTable(8).value & "~" & dataTable(9).value & "|"
+
+
+//                    dataTable.movenext()
 
 //                loop
 //                strResult = mid(strResult, 1, strResult.length - 1)
@@ -14242,7 +16230,7 @@ namespace Banking.Services
 
 
 
-//    rs = nothing
+//    dataTable = nothing
 //elseif strArr(0)= "CustIntProjByCust" then
 //obj = server.CreateObject("ReportPurposeOnly.Reportonly")
 //strResult = ""
@@ -14313,20 +16301,20 @@ namespace Banking.Services
 
 
 
-//                    rs = obj.SingleSelectStat(sqlStr)
+//                    dataTable = obj.SingleSelectStat(sqlStr)
 //                    If obj.ConnError = "Connected" Then
-//                        If Not rs.BOF And Not rs.EOF Then
-//                            Do Until rs.EOF
+//                        If Not dataTable.BOF And Not dataTable.EOF Then
+//                            Do Until dataTable.EOF
 
-//                                strResult2 = strResult2 & "'" & rs(0).value & "','" & rs(1).value & "','" & rs(2).value & "','" & rs(3).value & "','" & rs(4).value & "','" & rs(5).value & "','" & rs(6).value & "','" & rs(7).value & "','" & rs(8).value & "','" & rs(9).value & "','" & rs(10).value & "'|"
+//                                strResult2 = strResult2 & "'" & dataTable(0).value & "','" & dataTable(1).value & "','" & dataTable(2).value & "','" & dataTable(3).value & "','" & dataTable(4).value & "','" & dataTable(5).value & "','" & dataTable(6).value & "','" & dataTable(7).value & "','" & dataTable(8).value & "','" & dataTable(9).value & "','" & dataTable(10).value & "'|"
 
-//                                rs.movenext()
+//                                dataTable.movenext()
 //                            Loop
 //                        End If
-//                         if rs.state = 1 then
+//                         if dataTable.state = 1 then
 
-//                            rs.close
-//                            rs = nothing
+//                            dataTable.close
+//                            dataTable = nothing
 
 //                            end if
 //                    End If
@@ -14583,20 +16571,20 @@ namespace Banking.Services
 
 
 
-//                    rs = obj.SingleSelectStat(sqlStr)
+//                    dataTable = obj.SingleSelectStat(sqlStr)
 //                    If obj.ConnError = "Connected" Then
-//                        If Not rs.BOF And Not rs.EOF Then
-//                            Do Until rs.EOF
+//                        If Not dataTable.BOF And Not dataTable.EOF Then
+//                            Do Until dataTable.EOF
 
-//                                strResult2 = strResult2 & "'" & rs(0).value & "','" & rs(1).value & "','" & rs(2).value & "','" & rs(3).value & "','" & rs(4).value & "','" & rs(5).value & "','" & rs(6).value & "','" & rs(7).value & "','" & rs(8).value & "','" & rs(9).value & "','" & rs(10).value & "'|"
+//                                strResult2 = strResult2 & "'" & dataTable(0).value & "','" & dataTable(1).value & "','" & dataTable(2).value & "','" & dataTable(3).value & "','" & dataTable(4).value & "','" & dataTable(5).value & "','" & dataTable(6).value & "','" & dataTable(7).value & "','" & dataTable(8).value & "','" & dataTable(9).value & "','" & dataTable(10).value & "'|"
 
-//                                rs.movenext()
+//                                dataTable.movenext()
 //                            Loop
 //                        End If
-//                         if rs.state = 1 then
+//                         if dataTable.state = 1 then
 
-//                            rs.close
-//                            rs = nothing
+//                            dataTable.close
+//                            dataTable = nothing
 
 //                            end if
 //                    End If
@@ -14900,13 +16888,13 @@ namespace Banking.Services
 //        sqlStr = "SELECT SUM(amount) FROM ( SELECT nvl(SUM(nvl(amount,0)),0)  amount FROM  " & rsmstall(2).value & "tranday WHERE modeoftran = 1 AND branchcode = '" & rsmstall(0).value & "' AND glcode = '" & rsmstall(3).value & "' AND accno = '" & rsmstall(4).value & "' AND applicationdate BETWEEN '" & frmfinyr & "' AND '" & tofinyr & "' UNION ALL SELECT nvl(SUM(nvl(amount,0)),0) amount FROM  " & rsmstall(2).value & "tran WHERE  modeoftran = 1 AND branchcode = '" & rsmstall(0).value & "' AND glcode = '" & rsmstall(3).value & "' AND accno = '" & rsmstall(4).value & "' AND applicationdate BETWEEN '" & frmfinyr & "' AND '" & tofinyr & "') a"
 
 
-//        rs = obj.SingleSelectStat(sqlStr)
+//        dataTable = obj.SingleSelectStat(sqlStr)
 
 //        if obj.ConnError = "Connected" then
 
-//            if not rs.BOF and not rs.EOF then
+//            if not dataTable.BOF and not dataTable.EOF then
 
-//                dblTranAmt = dblTranAmt + iif(isdbnull(rs(0).value), 0, rs(0).value)
+//                dblTranAmt = dblTranAmt + iif(isdbnull(dataTable(0).value), 0, dataTable(0).value)
 
 //            end if
 
@@ -14952,43 +16940,43 @@ namespace Banking.Services
 //strreturnfileyn = "D"
 //if strPanno<> "" then
 //sqlStr = "select RTNFILE  from TDSRETURNFILEDTLS where TRANSTATUS = 'A' and panno =  '" & strPanno & "'   AND fromdate >= '" & format(cdate(frm3finyr), "dd-MMM-yyyy") & "' AND todate <= '" & tofinyr & "'"
-// rs = obj.SingleSelectStat(sqlStr)
+// dataTable = obj.SingleSelectStat(sqlStr)
 
 //        if obj.ConnError = "Connected" then
 
-//            if not rs.BOF and not rs.EOF then
+//            if not dataTable.BOF and not dataTable.EOF then
 
-//            strreturnfileyn = iif(isdbnull(rs(0).value), "N", rs(0).value)
+//            strreturnfileyn = iif(isdbnull(dataTable(0).value), "N", dataTable(0).value)
 
 //            end if
 
 //        end if
 
 
-//    if rs.state = 1 then
+//    if dataTable.state = 1 then
 
-//    rs.close
-//    rs = nothing
+//    dataTable.close
+//    dataTable = nothing
 
 //    end if
 //end if ''strPanno<> ""
 
 //sqlStr = "SELECT RATE, nonpanrate FROM TDSPARM t where status = 'R'   and ( category = '" & strcustomertype & "' or category = '99') AND EFFECTIVEDATE = (SELECT MAX(EFFECTIVEDATE) FROM TDSPARM where status = 'R'   and category = t.category AND effectivedate <= '" & frmfinyr & "')"
-//rs = obj.SingleSelectStat(sqlStr)
+//dataTable = obj.SingleSelectStat(sqlStr)
 
 //        if obj.ConnError = "Connected" then
 
-//            if not rs.BOF and not rs.EOF then
+//            if not dataTable.BOF and not dataTable.EOF then
 
-//            strnonpanrate = iif(isdbnull(rs(1).value), "0", rs(1).value)
+//            strnonpanrate = iif(isdbnull(dataTable(1).value), "0", dataTable(1).value)
 
 //            end if
 
 //        end if
 
-//if rs.state = 1 then
-//rs.close
-//rs = nothing
+//if dataTable.state = 1 then
+//dataTable.close
+//dataTable = nothing
 //end if
 
 //strcategorycode = "A"
@@ -15002,23 +16990,23 @@ namespace Banking.Services
 //''tds rate, toamount
 //sqlStr = "SELECT tdsrate,fromamt,toamt FROM gentdsdedslab WHERE CATEGORYCODE = '" & strcategorycode & "' and fromamt <= " & dblcummamt & "  AND EFFECTIVEDATE = (SELECT MAX(EFFECTIVEDATE) FROM gentdsdedslab WHERE CATEGORYCODE = '" & strcategorycode & "' and fromamt <= " & dblcummamt & " AND effectivedate <= '" & frmfinyr & "')"
 //i = 0
-//rs = obj.SingleSelectStat(sqlStr)
+//dataTable = obj.SingleSelectStat(sqlStr)
 
 //        if obj.ConnError = "Connected" then
 
-//            if not rs.BOF and not rs.EOF then
+//            if not dataTable.BOF and not dataTable.EOF then
 
-//            while not rs.eof
+//            while not dataTable.eof
 
-//            arrtdsrates(i) = iif(isdbnull(rs(0).value), 0, rs(0).value)
+//            arrtdsrates(i) = iif(isdbnull(dataTable(0).value), 0, dataTable(0).value)
 
-//            arrfrmamt(i) = iif(isdbnull(rs(1).value), 0, rs(1).value)
+//            arrfrmamt(i) = iif(isdbnull(dataTable(1).value), 0, dataTable(1).value)
 
-//            arrtoamt(i) = iif(isdbnull(rs(2).value), 0, rs(2).value)
+//            arrtoamt(i) = iif(isdbnull(dataTable(2).value), 0, dataTable(2).value)
 
 //            i = i + 1
 
-//            rs.movenext()
+//            dataTable.movenext()
 
 //            end while
 
@@ -15031,9 +17019,9 @@ namespace Banking.Services
 
 //        end if
 
-//if rs.state = 1 then
-//rs.close
-//rs = nothing
+//if dataTable.state = 1 then
+//dataTable.close
+//dataTable = nothing
 //end if
 //if  Math.Abs(cdbl(dblTranAmt)) > dblFrmAmt then
 //dblamtpaid = dblAmount
@@ -15054,13 +17042,13 @@ namespace Banking.Services
 //sqlStr = "SELECT nvl(SUM(nvl(amount,0)),0) amount FROM tdsdtls WHERE ITFORM = '194N'  AND fromdate >= '" & frmfinyr & "' AND todate <= '" & tofinyr & "' and customerid in (select customerid from " & strArr(5) & "mst where branchcode = '" & strArr(1) & "' AND currencycode = '" & strArr(2) & "' and  glcode = '" & strArr(3) & "' AND accno = '" & strArr(4) & "')"
 
 //end if
-//rs = obj.SingleSelectStat(sqlStr)
+//dataTable = obj.SingleSelectStat(sqlStr)
 
 //        if obj.ConnError = "Connected" then
 
-//            if not rs.BOF and not rs.EOF then
+//            if not dataTable.BOF and not dataTable.EOF then
 
-//            dblExistingTdsAmt = iif(isdbnull(rs(0).value), 0, rs(0).value)
+//            dblExistingTdsAmt = iif(isdbnull(dataTable(0).value), 0, dataTable(0).value)
 
 //            else
 //                dblExistingTdsAmt = 0
@@ -15069,9 +17057,9 @@ namespace Banking.Services
 
 //        end if
 
-//if rs.state = 1 then
-//rs.close
-//rs = nothing
+//if dataTable.state = 1 then
+//dataTable.close
+//dataTable = nothing
 //end if
 
 
@@ -15080,13 +17068,13 @@ namespace Banking.Services
 //dblBalance = 0
 //sqlStr = "SELECT GETANYDAYBAL('" & strArr(1) & "','" & strArr(2) & "','" & strArr(5) & "','" & strArr(3) & "','" & strArr(4) & "','" & strAppdate1 & "') FROM DUAL"
 
-//    rs = obj.SingleSelectStat(sqlStr)
+//    dataTable = obj.SingleSelectStat(sqlStr)
 
 //    if obj.ConnError = "Connected" then
 
-//        if not rs.BOF and not rs.EOF then
+//        if not dataTable.BOF and not dataTable.EOF then
 
-//            dblBalance = iif(isdbnull(rs(0).value), 0, rs(0).value)
+//            dblBalance = iif(isdbnull(dataTable(0).value), 0, dataTable(0).value)
 
 //            dblBalance = Math.Abs(cdbl(dblBalance))
 
@@ -15097,9 +17085,9 @@ namespace Banking.Services
 
 //    end if
 
-//if rs.state = 1 then
-//rs.close
-//rs = nothing
+//if dataTable.state = 1 then
+//dataTable.close
+//dataTable = nothing
 //end if
 //'' current tds
 //i = 0
@@ -15308,7 +17296,7 @@ namespace Banking.Services
 //if resDtls1.recordcount > 0 then
 //do until resDtls1.eof
 
-//rs = objctr.singlerecordset("DEPTYPEMST", "INTCOMPOUNDYN, COMPINTACCRREVSEYN, INSTSYN", "glcode='" & resDtls1(0).value & "'")
+//dataTable = objctr.singlerecordset("DEPTYPEMST", "INTCOMPOUNDYN, COMPINTACCRREVSEYN, INSTSYN", "glcode='" & resDtls1(0).value & "'")
 
 
 //    '	INTCOMPOUNDYN, COMPINTACCRREVSEYN, INSTSYN
@@ -15322,7 +17310,7 @@ namespace Banking.Services
 //    '			<>'N' 		AND 'N' 		AND 'N' -- COMPOUND   DEPTRAN
 
 
-//    if ((rs(0).value = "N" and rs(1).value = "N" and rs(2).value = "N" ) or(rs(0).value<> "N" and rs(1).value = "Y" and rs(2).value = "N") or(rs(0).value<> "N" and rs(1).value = "N" and rs(2).value = "Y")) then
+//    if ((dataTable(0).value = "N" and dataTable(1).value = "N" and dataTable(2).value = "N" ) or(dataTable(0).value<> "N" and dataTable(1).value = "Y" and dataTable(2).value = "N") or(dataTable(0).value<> "N" and dataTable(1).value = "N" and dataTable(2).value = "Y")) then
 
 
 
@@ -15372,7 +17360,7 @@ namespace Banking.Services
 //        end if
 
 
-//        end if  ''((rs(0).value = "N" and rs(1).value = "N" and rs(2).value = "N") or(rs(0).value<> "N" and rs(1).value = "Y" and rs(2).value = "N") or(rs(0).value<> "N" and rs(1).value = "N" and rs(2).value = "Y"))
+//        end if  ''((dataTable(0).value = "N" and dataTable(1).value = "N" and dataTable(2).value = "N") or(dataTable(0).value<> "N" and dataTable(1).value = "Y" and dataTable(2).value = "N") or(dataTable(0).value<> "N" and dataTable(1).value = "N" and dataTable(2).value = "Y"))
 		
 //		rsmain = obj.SingleSelectStat(sqlStr)
 
@@ -15584,7 +17572,7 @@ namespace Banking.Services
 //if resDtls1.recordcount > 0 then
 //do until resDtls1.eof
 
-//rs = objctr.singlerecordset("DEPTYPEMST", "INTCOMPOUNDYN, COMPINTACCRREVSEYN, INSTSYN", "glcode='" & resDtls1(0).value & "'")
+//dataTable = objctr.singlerecordset("DEPTYPEMST", "INTCOMPOUNDYN, COMPINTACCRREVSEYN, INSTSYN", "glcode='" & resDtls1(0).value & "'")
 
 
 //    '	INTCOMPOUNDYN, COMPINTACCRREVSEYN, INSTSYN
@@ -15598,7 +17586,7 @@ namespace Banking.Services
 //    '			<>'N' 		AND 'N' 		AND 'N' -- COMPOUND   DEPTRAN
 
 
-//    if ((rs(0).value = "N" and rs(1).value = "N" and rs(2).value = "N" ) or(rs(0).value<> "N" and rs(1).value = "Y" and rs(2).value = "N") or(rs(0).value<> "N" and rs(1).value = "N" and rs(2).value = "Y")) then
+//    if ((dataTable(0).value = "N" and dataTable(1).value = "N" and dataTable(2).value = "N" ) or(dataTable(0).value<> "N" and dataTable(1).value = "Y" and dataTable(2).value = "N") or(dataTable(0).value<> "N" and dataTable(1).value = "N" and dataTable(2).value = "Y")) then
 
 
 //        if strArr(6) = "0" then
@@ -15644,7 +17632,7 @@ namespace Banking.Services
 //        end if
 
 
-//        end if  ''((rs(0).value = "N" and rs(1).value = "N" and rs(2).value = "N") or(rs(0).value<> "N" and rs(1).value = "Y" and rs(2).value = "N") or(rs(0).value<> "N" and rs(1).value = "N" and rs(2).value = "Y"))
+//        end if  ''((dataTable(0).value = "N" and dataTable(1).value = "N" and dataTable(2).value = "N") or(dataTable(0).value<> "N" and dataTable(1).value = "Y" and dataTable(2).value = "N") or(dataTable(0).value<> "N" and dataTable(1).value = "N" and dataTable(2).value = "Y"))
 //		rsmain = obj.SingleSelectStat(sqlStr)
 
 
@@ -15851,7 +17839,7 @@ namespace Banking.Services
 //if resDtls1.recordcount > 0 then
 //do until resDtls1.eof
 
-//rs = objctr.singlerecordset("DEPTYPEMST", "INTCOMPOUNDYN, COMPINTACCRREVSEYN, INSTSYN", "glcode='" & resDtls1(0).value & "'")
+//dataTable = objctr.singlerecordset("DEPTYPEMST", "INTCOMPOUNDYN, COMPINTACCRREVSEYN, INSTSYN", "glcode='" & resDtls1(0).value & "'")
 
 
 //    '	INTCOMPOUNDYN, COMPINTACCRREVSEYN, INSTSYN
@@ -15865,7 +17853,7 @@ namespace Banking.Services
 //    '			<>'N' 		AND 'N' 		AND 'N' -- COMPOUND   DEPTRAN
 
 
-//    if ((rs(0).value = "N" and rs(1).value = "N" and rs(2).value = "N" ) or(rs(0).value<> "N" and rs(1).value = "Y" and rs(2).value = "N") or(rs(0).value<> "N" and rs(1).value = "N" and rs(2).value = "Y")) then
+//    if ((dataTable(0).value = "N" and dataTable(1).value = "N" and dataTable(2).value = "N" ) or(dataTable(0).value<> "N" and dataTable(1).value = "Y" and dataTable(2).value = "N") or(dataTable(0).value<> "N" and dataTable(1).value = "N" and dataTable(2).value = "Y")) then
 
 
 //        if strArr(6) = "0" then
@@ -15915,7 +17903,7 @@ namespace Banking.Services
 //        end if
 
 
-//        end if  ''((rs(0).value = "N" and rs(1).value = "N" and rs(2).value = "N") or(rs(0).value<> "N" and rs(1).value = "Y" and rs(2).value = "N") or(rs(0).value<> "N" and rs(1).value = "N" and rs(2).value = "Y"))
+//        end if  ''((dataTable(0).value = "N" and dataTable(1).value = "N" and dataTable(2).value = "N") or(dataTable(0).value<> "N" and dataTable(1).value = "Y" and dataTable(2).value = "N") or(dataTable(0).value<> "N" and dataTable(1).value = "N" and dataTable(2).value = "Y"))
 
 		
 //		rsmain = obj.SingleSelectStat(sqlStr)
@@ -16024,21 +18012,21 @@ namespace Banking.Services
 //        end if
 
 
-//        rs = obj.SingleSelectStat(sqlStr)
+//        dataTable = obj.SingleSelectStat(sqlStr)
 
 
 //            if obj.ConnError = "Connected" then
 
-//                if not rs.BOF and not rs.EOF then
+//                if not dataTable.BOF and not dataTable.EOF then
 
 
-//                    do until rs.EOF
+//                    do until dataTable.EOF
 
 
-//                    strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "~" & rs(7).value & "~" & rs(8).value & "~" & rs(9).value & "~" & rs(10).value & "~" & rs(11).value & "~" & rs(12).value & "~" & rs(13).value & "~" & rs(14).value & "~" & rs(15).value & "~" & rs(16).value & "~" & rs(17).value & "|"
+//                    strResult = strResult & dataTable(0).value & "~" & dataTable(1).value & "~" & dataTable(2).value & "~" & dataTable(3).value & "~" & dataTable(4).value & "~" & dataTable(5).value & "~" & dataTable(6).value & "~" & dataTable(7).value & "~" & dataTable(8).value & "~" & dataTable(9).value & "~" & dataTable(10).value & "~" & dataTable(11).value & "~" & dataTable(12).value & "~" & dataTable(13).value & "~" & dataTable(14).value & "~" & dataTable(15).value & "~" & dataTable(16).value & "~" & dataTable(17).value & "|"
 
 
-//                    rs.movenext()
+//                    dataTable.movenext()
 
 //                    loop
 //                end if
@@ -16055,7 +18043,7 @@ namespace Banking.Services
 //        end if
 
 
-//    rs = nothing
+//    dataTable = nothing
 
 //               elseif strArr(0) = "SFTREP" then
 //dim blncheck
@@ -16089,16 +18077,16 @@ namespace Banking.Services
 //            end if
 
 
-//            rs = obj.SingleSelectStat(sqlStr)
+//            dataTable = obj.SingleSelectStat(sqlStr)
 
 //            blncheck = "NO"
 
 //            if obj.ConnError = "Connected" then
 
-//                if not rs.BOF and not rs.EOF then
+//                if not dataTable.BOF and not dataTable.EOF then
 
 
-//                    do until rs.EOF
+//                    do until dataTable.EOF
 
 
 //                    if strArr(4) = ""
@@ -16107,7 +18095,7 @@ namespace Banking.Services
 
 //                dblpaidcash = 0
 
-//                sqlStr = "  SELECT DISTINCT branchcode,glcode,accno  FROM deptran WHERE MODEOFTRAN IN (1,3,5) AND serviceid=4 AND customerid='" & rs(0).value & "' AND " & strArr(2) & ""
+//                sqlStr = "  SELECT DISTINCT branchcode,glcode,accno  FROM deptran WHERE MODEOFTRAN IN (1,3,5) AND serviceid=4 AND customerid='" & dataTable(0).value & "' AND " & strArr(2) & ""
 
 //                 rs1 = obj.SingleSelectStat(sqlStr)
 
@@ -16116,7 +18104,7 @@ namespace Banking.Services
 //                            if not rs1.BOF and not rs1.EOF then
 
 //                            while not rs1.eof
-//                    sqlStr = " SELECT remarks  FROM deptran WHERE MODEOFTRAN  IN (1,3,5) AND serviceid=4 and branchcode = '" & rs1(0).value & "' and glcode = '" & rs1(1).value & "' and accno = '" & rs1(2).value & "' AND  customerid='" & rs(0).value & "' AND " & strArr(2) & ""
+//                    sqlStr = " SELECT remarks  FROM deptran WHERE MODEOFTRAN  IN (1,3,5) AND serviceid=4 and branchcode = '" & rs1(0).value & "' and glcode = '" & rs1(1).value & "' and accno = '" & rs1(2).value & "' AND  customerid='" & dataTable(0).value & "' AND " & strArr(2) & ""
 
 //                    rscheck = obj.SingleSelectStat(sqlStr)
 
@@ -16167,12 +18155,12 @@ namespace Banking.Services
 
 
 //                            if blncheck = "YES" then
-//                            sqlStr = "SELECT SUM(amount) FROM deptran t WHERE MODEOFTRAN IN (1,3,5) AND serviceid=4 AND customerid='" & rs(0).value & "' AND " & strArr(2) & "  AND applicationdate IN ( SELECT closedate FROM depmst WHERE customerid = '" & rs(0).value & "' and branchcode = t.branchcode and glcode = t.glcode and accno = t.accno ) and branchcode = '" & rs1(0).value & "' and glcode = '" & rs1(1).value & "' and accno = '" & rs1(2).value & "'"
+//                            sqlStr = "SELECT SUM(amount) FROM deptran t WHERE MODEOFTRAN IN (1,3,5) AND serviceid=4 AND customerid='" & dataTable(0).value & "' AND " & strArr(2) & "  AND applicationdate IN ( SELECT closedate FROM depmst WHERE customerid = '" & dataTable(0).value & "' and branchcode = t.branchcode and glcode = t.glcode and accno = t.accno ) and branchcode = '" & rs1(0).value & "' and glcode = '" & rs1(1).value & "' and accno = '" & rs1(2).value & "'"
 
 //                            else
-//                    ''sqlStr = " SELECT SUM(amount)  FROM deptran WHERE MODEOFTRAN  IN (1,3,5) AND serviceid=4 AND customerid='" & rs(0).value & "' AND " & strArr(2) & ""
+//                    ''sqlStr = " SELECT SUM(amount)  FROM deptran WHERE MODEOFTRAN  IN (1,3,5) AND serviceid=4 AND customerid='" & dataTable(0).value & "' AND " & strArr(2) & ""
 
-//                            sqlStr = "SELECT SUM(amount) FROM deptran t WHERE MODEOFTRAN IN (1,3,5) AND serviceid=4 AND customerid='" & rs(0).value & "' AND " & strArr(2) & "  AND applicationdate IN ( SELECT closedate FROM depmst WHERE customerid = '" & rs(0).value & "' and branchcode = t.branchcode and glcode = t.glcode and accno = t.accno ) and branchcode = '" & rs1(0).value & "' and glcode = '" & rs1(1).value & "' and accno = '" & rs1(2).value & "'"
+//                            sqlStr = "SELECT SUM(amount) FROM deptran t WHERE MODEOFTRAN IN (1,3,5) AND serviceid=4 AND customerid='" & dataTable(0).value & "' AND " & strArr(2) & "  AND applicationdate IN ( SELECT closedate FROM depmst WHERE customerid = '" & dataTable(0).value & "' and branchcode = t.branchcode and glcode = t.glcode and accno = t.accno ) and branchcode = '" & rs1(0).value & "' and glcode = '" & rs1(1).value & "' and accno = '" & rs1(2).value & "'"
 
 //                            end if
 
@@ -16220,7 +18208,7 @@ namespace Banking.Services
 
 //                    end if
 
-//                        strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "~" & rs(7).value & "~" & rs(8).value & "~" & rs(9).value & "~" & rs(10).value & "~" & rs(11).value & "~" & rs(12).value & "~" & rs(13).value & "~" & rs(14).value & "~" & rs(15).value & "~" & Math.Abs(dblpaidcash) & "~" & rs(17).value & "|"
+//                        strResult = strResult & dataTable(0).value & "~" & dataTable(1).value & "~" & dataTable(2).value & "~" & dataTable(3).value & "~" & dataTable(4).value & "~" & dataTable(5).value & "~" & dataTable(6).value & "~" & dataTable(7).value & "~" & dataTable(8).value & "~" & dataTable(9).value & "~" & dataTable(10).value & "~" & dataTable(11).value & "~" & dataTable(12).value & "~" & dataTable(13).value & "~" & dataTable(14).value & "~" & dataTable(15).value & "~" & Math.Abs(dblpaidcash) & "~" & dataTable(17).value & "|"
 
 
 
@@ -16228,13 +18216,13 @@ namespace Banking.Services
 //                    elseif strArr(4) = "ACCOUNTWISE"
 
 
-//                        strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "|"
+//                        strResult = strResult & dataTable(0).value & "~" & dataTable(1).value & "~" & dataTable(2).value & "~" & dataTable(3).value & "~" & dataTable(4).value & "~" & dataTable(5).value & "|"
 
 
 //                    end if
 
 
-//                    rs.movenext()
+//                    dataTable.movenext()
 
 //                    loop
 //                end if
@@ -16251,7 +18239,7 @@ namespace Banking.Services
 //            end if
 
 
-//        rs = nothing
+//        dataTable = nothing
 
 
 //       elseif strArr(0)= "TOPDEPLOAN" then
@@ -16267,21 +18255,21 @@ namespace Banking.Services
 //            sqlStr = " SELECT b.branchcode,b.glcode,b.accno,b.name,b.amount FROM ( SELECT a.branchcode,a.glcode,a.accno,a.name,a.amount,RANK() OVER (ORDER BY TO_NUMBER(a.amount) DESC) accrank FROM ( SELECT branchcode,glcode,accno,SUBSTR(name,1,25) name,opbal amount FROM depmst m WHERE " & strArr(4) & " applicationdate <= '" & strArr(2) & "' AND (closedate IS NULL OR closedate > '" & strArr(2) & "') ) A ) b WHERE accrank <=" & strArr(3) & " "
 
 
-//            rs = obj.SingleSelectStat(sqlStr)
+//            dataTable = obj.SingleSelectStat(sqlStr)
 
 
 //        if obj.ConnError = "Connected" then
 
-//            if not rs.BOF and not rs.EOF then
+//            if not dataTable.BOF and not dataTable.EOF then
 
 
-//                do until rs.EOF
+//                do until dataTable.EOF
 
 
-//                strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "|"
+//                strResult = strResult & dataTable(0).value & "~" & dataTable(1).value & "~" & dataTable(2).value & "~" & dataTable(3).value & "~" & dataTable(4).value & "|"
 
 
-//                rs.movenext()
+//                dataTable.movenext()
 
 //                loop
 
@@ -16294,19 +18282,19 @@ namespace Banking.Services
 //                        sqlStr = " SELECT b.customerid,b.panno,b.name,b.amount,b.maturitydate FROM ( SELECT a.customerid,a.name,a.panno,a.amount,a.maturitydate,RANK() OVER (ORDER BY TO_NUMBER(a.amount) DESC) accrank FROM ( SELECT customerid,(SELECT panno FROM gencustinfomst WHERE customerid =  m.customerid) panno,SUBSTR(name,1,25) name,opbal amount,to_char(maturitydate,'dd-Mon-yyyy') maturitydate FROM depmst m WHERE " & strArr(4) & " applicationdate <= '" & strArr(2) & "' AND (closedate IS NULL OR closedate > '" & strArr(2) & "') ) A ) b WHERE accrank <=" & strArr(3) & " "
 
 
-//            rs = obj.SingleSelectStat(sqlStr)
+//            dataTable = obj.SingleSelectStat(sqlStr)
 
 
 //        if obj.ConnError = "Connected" then
 
-//            if not rs.BOF and not rs.EOF then
+//            if not dataTable.BOF and not dataTable.EOF then
 
 
-//                do until rs.EOF
+//                do until dataTable.EOF
 
-//                strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "|"
+//                strResult = strResult & dataTable(0).value & "~" & dataTable(1).value & "~" & dataTable(2).value & "~" & dataTable(3).value & "~" & dataTable(4).value & "|"
 
-//                rs.movenext()
+//                dataTable.movenext()
 
 //                loop
 //            end if
@@ -16319,7 +18307,7 @@ namespace Banking.Services
 //            strResult = mid(strResult, 1, strResult.length - 1)
 
 
-//    rs = nothing
+//    dataTable = nothing
 
 
 //        elseif strArr(1)= "LOAN" then
@@ -16414,18 +18402,18 @@ namespace Banking.Services
 //        sqlStr = " SELECT b.branchcode,b.glcode," & strfullaccno & " accno ,b.name,round(b.amount,2),ROUND(((b.amount/" & dblclsbal & ") * 100),2) || '%' totadvan,round(b.outbal,2),b.modid FROM ( SELECT  a.branchcode,a.glcode,a.accno,a.name,a.amount,A.OUTBAL,a.modid, RANK() OVER (ORDER BY TO_NUMBER(a.amount) DESC) accrank,ROW_NUMBER() OVER (ORDER BY TO_NUMBER(a.amount) DESC ) AS ROW_NUM1  FROM ( SELECT branchcode,glcode,accno,SUBSTR(name,1,25) name,SANCTIONEDAMT amount,TO_NUMBER(ABS(GETANYDAYBAL(M.BRANCHCODE,M.CURRENCYCODE,'LOAN',M.GLCODE,M.ACCNO,'" & strArr(2) & "'))) OUTBAL,'LOAN' modid FROM loanmst M WHERE " & strArr(4) & "  applicationdate <= '" & strArr(2) & "' AND (closedate IS NULL OR closedate > '" & strArr(2) & "') UNION ALL SELECT m.branchcode, m.glcode, m.accno,m.name, NVL((SELECT MIN(LINKEDAMOUNT) FROM ( SELECT branchcode,LINKEDGLCODE,LINKEDACCNO,linkedamount,expirydate FROM genlimitlnk UNION ALL SELECT branchcode,LINKEDGLCODE,LINKEDACCNO,linkedamount,expirydate FROM genlimitlnkhist) g WHERE  expirydate = (SELECT MIN(expirydate) FROM ( SELECT branchcode,LINKEDGLCODE,LINKEDACCNO,linkedamount,expirydate FROM genlimitlnk UNION ALL SELECT branchcode,LINKEDGLCODE,LINKEDACCNO,linkedamount,expirydate FROM genlimitlnkhist) WHERE expirydate >= '" & strArr(2) & "' AND branchcode = g.branchcode AND LINKEDGLCODE = g.LINKEDGLCODE AND linkedaccno = g.linkedaccno ) AND  branchcode =  m.branchcode AND linkedglcode = m.glcode AND linkedaccno = m.accno GROUP BY branchcode,linkedglcode,linkedaccno),0) linkedamount ,(SELECT ABS(getanydaybal(M.branchcode,'INR','CC',M.glcode,M.accno,'" & strArr(2) & "'))  FROM DUAL) OUTBAL,'CC' modid  FROM  ccmst m WHERE  " & strArr(4) & "  (m.closedate IS NULL OR m.closedate > '" & strArr(2) & "') GROUP BY m.branchcode,m.glcode, m.accno,M.NAME )  A WHERE a.outbal <> 0) b WHERE " & strnoofrec & " <=" & strArr(3) & ""
 
 
-//    rs = obj.SingleSelectStat(sqlStr)
+//    dataTable = obj.SingleSelectStat(sqlStr)
 
 
 //        if obj.ConnError = "Connected" then
 
-//            if not rs.BOF and not rs.EOF then
+//            if not dataTable.BOF and not dataTable.EOF then
 
 
-//                do until rs.EOF
+//                do until dataTable.EOF
 
 
-//                sqlStr = "  SELECT CASE WHEN assetstatus  = 'S' THEN  'Standard' WHEN assetstatus  = 'SS' THEN  'Sub Standard' WHEN assetstatus  = 'Loss Assets' THEN  'LA' WHEN assetstatus  = 'D1' THEN  'Doubtfull One' WHEN assetstatus  = 'D2'  THEN  'Doubtfull Two'WHEN assetstatus  = 'D3'  THEN  'Doubtfull Three' END FROM " & rs(7).value & "mst WHERE branchcode||glcode||LPAD(accno,7,'0') = '" & rs(2).value & "'"
+//                sqlStr = "  SELECT CASE WHEN assetstatus  = 'S' THEN  'Standard' WHEN assetstatus  = 'SS' THEN  'Sub Standard' WHEN assetstatus  = 'Loss Assets' THEN  'LA' WHEN assetstatus  = 'D1' THEN  'Doubtfull One' WHEN assetstatus  = 'D2'  THEN  'Doubtfull Two'WHEN assetstatus  = 'D3'  THEN  'Doubtfull Three' END FROM " & dataTable(7).value & "mst WHERE branchcode||glcode||LPAD(accno,7,'0') = '" & dataTable(2).value & "'"
 
 
 //                rs1 = obj.SingleSelectStat(sqlStr)
@@ -16456,10 +18444,10 @@ namespace Banking.Services
 
 //                end if
 
-//                strResult = strResult & rs(0).value & "~" & rs(1).value & "~" & rs(2).value & "~" & rs(3).value & "~" & rs(4).value & "~" & rs(5).value & "~" & rs(6).value & "~" & strAssetClass & "|"
+//                strResult = strResult & dataTable(0).value & "~" & dataTable(1).value & "~" & dataTable(2).value & "~" & dataTable(3).value & "~" & dataTable(4).value & "~" & dataTable(5).value & "~" & dataTable(6).value & "~" & strAssetClass & "|"
 
 
-//                rs.movenext()
+//                dataTable.movenext()
 
 //                loop
 
@@ -16472,9 +18460,9 @@ namespace Banking.Services
 
 
 
-//        if rs.state = 1 then
-//        rs.close
-//        rs = nothing
+//        if dataTable.state = 1 then
+//        dataTable.close
+//        dataTable = nothing
 //        end if
 
 
@@ -17068,7 +19056,7 @@ namespace Banking.Services
             //%>
 
             //dim connerr
-            //dim obj, rs, rsNew
+            //dim obj, dataTable, rsNew
             //dim cnt
             //dim objrep
             //'dim disp,brCode,glcode,crCode
@@ -17078,7 +19066,7 @@ namespace Banking.Services
             //    'modid=disp(2)
             //    'glcode=disp(3)
             //    'crCode=disp(4)
-            //   rs = server.CreateObject("adodb.recordset")
+            //   dataTable = server.CreateObject("adodb.recordset")
             //   rs1 = server.CreateObject("adodb.recordset")
             //   obj = server.CreateObject("queryrecordsets.fetchrecordsets")
             //   objbr = server.CreateObject("GeneralTranQueries.TransactionQueries")
@@ -17088,35 +19076,35 @@ namespace Banking.Services
             //     objrep = server.CreateObject("ReportPurposeOnly.Reportonly")
             //if strType = "Branch" then
 
-            //     rs = obj.singlerecordset("GENBANKBRANCHMST", "Branchcode,narration")
+            //     dataTable = obj.singlerecordset("GENBANKBRANCHMST", "Branchcode,narration")
 
 
             //elseif strType = "BLevel" then
-            //     rs = obj.singlerecordset("GENBANKLEVELMST", "code,narration")
+            //     dataTable = obj.singlerecordset("GENBANKLEVELMST", "code,narration")
 
 
             //elseif strType = "Bruser" then
-            //     rs = objbr.BranchCodes(cstr(userid))
+            //     dataTable = objbr.BranchCodes(cstr(userid))
 
 
             //elseif left(strType,6)= "Userid" then
             //    atype = mid(strType, 7, len(strType))
-            //     rs = obj.singlerecordset("genusermst", "userid,name", "branchcode='" & atype & "'")
+            //     dataTable = obj.singlerecordset("genusermst", "userid,name", "branchcode='" & atype & "'")
 
             //elseif strType = "Currency" then
-            //     rs = obj.singlerecordset("GENCURRENCYTYPEMST", "currencycode,narration")
+            //     dataTable = obj.singlerecordset("GENCURRENCYTYPEMST", "currencycode,narration")
 
             //elseif strType = "Curr" then
 
-            //     rs = obj.singlerecordset("GENCURRENCYTYPEMST", "currencycode,narration,precision")
+            //     dataTable = obj.singlerecordset("GENCURRENCYTYPEMST", "currencycode,narration,precision")
             //elseif strType = "FxCurr" then
 
-            //     rs = obj.singlerecordset("GENCURRENCYTYPEMST", "currencycode,narration,precision")
+            //     dataTable = obj.singlerecordset("GENCURRENCYTYPEMST", "currencycode,narration,precision")
 
             //elseif left(strType,12)= "Tellermodule" then
             //    obj = server.CreateObject("GeneralTranQueries.TransactionQueries")
             //    k = split(strType, "|")
-            //     rs = obj.ModuleID(cstr(k(1)), "")
+            //     dataTable = obj.ModuleID(cstr(k(1)), "")
 
             //elseif left(strType,11)= "Telleraccno" then
 
@@ -17127,10 +19115,10 @@ namespace Banking.Services
             //    'Response.Write k(5)
 
             //    if cstr(k(2)) = "FXREM" then
-            //         rs = obj.AccountNumbers(cstr(k(1)), cstr(k(2)), cstr(k(3)), cstr(k(4)),,, cstr(k(6)))
+            //         dataTable = obj.AccountNumbers(cstr(k(1)), cstr(k(2)), cstr(k(3)), cstr(k(4)),,, cstr(k(6)))
 
             //    else
-            //                rs = obj.AccountNumbers(cstr(k(1)), cstr(k(2)), cstr(k(3)), cstr(k(4)),,,, cstr(hidsearch))
+            //                dataTable = obj.AccountNumbers(cstr(k(1)), cstr(k(2)), cstr(k(3)), cstr(k(4)),,,, cstr(hidsearch))
 
             //    end if
 
@@ -17149,31 +19137,31 @@ namespace Banking.Services
 
             //    k = split(strType, "|")
 
-            //     rs = obj.GLCodes(cstr(k(1)), cstr(k(2)))
+            //     dataTable = obj.GLCodes(cstr(k(1)), cstr(k(2)))
 
 
             //elseif strType = "Module" then
-            //     rs = obj.singlerecordset("genmoduletypesmst", "moduleid,Narration", "implementedyn='Y'")
+            //     dataTable = obj.singlerecordset("genmoduletypesmst", "moduleid,Narration", "implementedyn='Y'")
 
 
             //elseif left(strType,6)= "Glcode" then
             //   'stname=left(strType,2)
             //   'atype=mid(strType,7,len(strType))
-            //    rs = obj.singlerecordset("genglsheetmst", "glcode,NARRATION", "moduleid='" & atype & "'")
+            //    dataTable = obj.singlerecordset("genglsheetmst", "glcode,NARRATION", "moduleid='" & atype & "'")
             //elseif left(strType,14)= "PigTelleraggno" then
             //   k = split(strType, "|")
-            //    rs = obj.singlerecordset("pigmyagentmst", "agentcode,agentname", "branchcode='" & k(1) & "' and moduleid='" & k(2) & "' and glcode='" & k(3) & "' and accno='" & k(4) & "' and status='R'")
+            //    dataTable = obj.singlerecordset("pigmyagentmst", "agentcode,agentname", "branchcode='" & k(1) & "' and moduleid='" & k(2) & "' and glcode='" & k(3) & "' and accno='" & k(4) & "' and status='R'")
 
 
             //  elseif left(strType,14)= "PigTelleraccno" then
             //   k = split(strType, "|")
-            //    rs = obj.singlerecordset("pigmyaccountsmst", "accno,name,LIENSTATUS", "branchcode='" & k(1) & "' and currencycode='" & k(2) & "' and glcode='" & k(3) & "' and agentcode='" & k(4) & "' and status='R' order by to_number(accno)")
+            //    dataTable = obj.singlerecordset("pigmyaccountsmst", "accno,name,LIENSTATUS", "branchcode='" & k(1) & "' and currencycode='" & k(2) & "' and glcode='" & k(3) & "' and agentcode='" & k(4) & "' and status='R' order by to_number(accno)")
             //elseif left(strType,5)= "Accno" then
             //    'stname=left(strType,5)
             //    'atype=mid(strType,6,len(strType))
             //    dim objTrn
             //    objTrn = Server.CreateObject("GeneralTranQueries.TransactionQueries")
-            //    rs = objTrn.AccountNumbers(cstr(brchCd), cstr(Modid), cstr(atype))
+            //    dataTable = objTrn.AccountNumbers(cstr(brchCd), cstr(Modid), cstr(atype))
 
             //     objTrn = nothing
 
@@ -17182,14 +19170,14 @@ namespace Banking.Services
             //dim stname
             //    stname = left(strType, 4)
             //    atype = mid(strType, 7)
-            //     rs = obj.singlerecordset("GENCUSTINFOMST", "customerid,custname", "")
+            //     dataTable = obj.singlerecordset("GENCUSTINFOMST", "customerid,custname", "")
 
 
             //elseif left(strType,7)= "TransNo" then
             //dim stname
             //    stname = left(strType, 5)
             //    atype = mid(strType, 8)
-            //     rs = obj.singlerecordset("translog", "tranno,amount", "glcode='" & atype & "'", "tranno")
+            //     dataTable = obj.singlerecordset("translog", "tranno,amount", "glcode='" & atype & "'", "tranno")
 
 
             //elseif left(strType,11)= "Cashiertype" then
@@ -17198,7 +19186,7 @@ namespace Banking.Services
 
             //    k = split(strType, "*")
 
-            //     rs = obj.singlerecordset("CASHCASHIERTYPEMST", "cashiertypeid,narration", "BRANCHCODE='" & k(1) & "'", "cashiertypeid")
+            //     dataTable = obj.singlerecordset("CASHCASHIERTYPEMST", "cashiertypeid,narration", "BRANCHCODE='" & k(1) & "'", "cashiertypeid")
             //elseif strType = "Cashier" then
             //dim stname,strcond,strfld,strtab
 
@@ -17210,7 +19198,7 @@ namespace Banking.Services
 
             //    strtab = "GENWORKALLOTMENTMST W,GENUSERMST U"
 
-            //     rs = obj.singlerecordset(cstr(strtab), cstr(strfld), cstr(strcond))
+            //     dataTable = obj.singlerecordset(cstr(strtab), cstr(strfld), cstr(strcond))
 
 
             //elseif left(strType,9)= "Cashierid" then
@@ -17219,13 +19207,13 @@ namespace Banking.Services
 
             //    k = split(strType, "*")
 
-            //     rs = obj.singlerecordset("cashcashierposmst cash,genusermst gen", "cash.cashierid,gen.name", "cash.cashierid=gen.userid and cash.cashierid <> '" & cstr(userid) & "' ")
+            //     dataTable = obj.singlerecordset("cashcashierposmst cash,genusermst gen", "cash.cashierid,gen.name", "cash.cashierid=gen.userid and cash.cashierid <> '" & cstr(userid) & "' ")
 
 
             //elseif left(strType,6)= "CashID" then
             //    k = split(strType, "|")
 
-            //     rs = obj.singlerecordset("cashcountermst cash,genusermst gen", "distinct(cash.cashierid),gen.name", "cash.cashierid=gen.userid and upper(trim(cash.cashierid)) <> '" & ucase(trim(cstr(userid))) & "' and gen.branchcode='" & k(1) & "'")
+            //     dataTable = obj.singlerecordset("cashcountermst cash,genusermst gen", "distinct(cash.cashierid),gen.name", "cash.cashierid=gen.userid and upper(trim(cash.cashierid)) <> '" & ucase(trim(cstr(userid))) & "' and gen.branchcode='" & k(1) & "'")
 
 
             //elseif left(strType,14)= "AllotedCashier" then
@@ -17233,36 +19221,36 @@ namespace Banking.Services
             //    stname = strType
 
             //    cash = split(stname, "*")
-            //     rs = obj.singlerecordset("CASHALLOTMENTSTRN CASH,GENUSERMST GEN", "DISTINCT(CASH.CASHIERID),GEN.NAME", "CASH.CASHIERID=GEN.USERID AND CASH.BRANCHCODE='" & CASH(1) & "' AND CASH.CURRENCYCODE='" & CASH(2) & "'", "CASH.CASHIERID")
+            //     dataTable = obj.singlerecordset("CASHALLOTMENTSTRN CASH,GENUSERMST GEN", "DISTINCT(CASH.CASHIERID),GEN.NAME", "CASH.CASHIERID=GEN.USERID AND CASH.BRANCHCODE='" & CASH(1) & "' AND CASH.CURRENCYCODE='" & CASH(2) & "'", "CASH.CASHIERID")
 
 
             //elseif left(strType,9)= "Allotment" then
             //    k = split(strType, "*")
 
 
-            //     rs = obj.singlerecordset("cashallotmentstrn", "Allotmentno", "cashierid='" & k(1) & "' and counterno = '" & k(2) & "' and status='P'", "allotmentno")
+            //     dataTable = obj.singlerecordset("cashallotmentstrn", "Allotmentno", "cashierid='" & k(1) & "' and counterno = '" & k(2) & "' and status='P'", "allotmentno")
 
 
             //elseif strtype = "Bankcode" then
-            //     rs = obj.singlerecordset("Genbankmst", "Bankname,BANKCODE")
+            //     dataTable = obj.singlerecordset("Genbankmst", "Bankname,BANKCODE")
 
 
             //elseif left(strtype,10)= "Cashiermgt" then
             //    k = split(strtype, "*")
 
-            //     rs = obj.singlerecordset("cashcountermst cash,genusermst gen", "distinct(cash.cashierid),gen.name", "cash.branchcode='" & k(1) & "' and cash.currencycode='" & k(2) & "' and cash.cashierid=gen.userid and cash.cashierid not in ('" & ucase(userid) & "')")
+            //     dataTable = obj.singlerecordset("cashcountermst cash,genusermst gen", "distinct(cash.cashierid),gen.name", "cash.branchcode='" & k(1) & "' and cash.currencycode='" & k(2) & "' and cash.cashierid=gen.userid and cash.cashierid not in ('" & ucase(userid) & "')")
 
 
             //elseif left(strtype,16)= "Cashrefundaccept" then
             //    k = split(strtype, "*")
 
-            //     rs = obj.singlerecordset("cashrefundstrn cash,genusermst gen", "distinct(cash.REFUNDEDUSERID),gen.name", "cash.branchcode='" & k(1) & "' and cash.currencycode='" & k(2) & "' and cash.REFUNDEDUSERID=gen.userid  and cash.status='P' and cash.USERID <> '" & userid & "'")
+            //     dataTable = obj.singlerecordset("cashrefundstrn cash,genusermst gen", "distinct(cash.REFUNDEDUSERID),gen.name", "cash.branchcode='" & k(1) & "' and cash.currencycode='" & k(2) & "' and cash.REFUNDEDUSERID=gen.userid  and cash.status='P' and cash.USERID <> '" & userid & "'")
 
 
             //elseif left(strtype,7)= "Cashacc" then
             //    k = split(strtype, "*")
 
-            //     rs = obj.singlerecordset("CASHTRANSBTCASHIERSTRN cash,genusermst gen", "distinct(cash.fromcashierid),gen.name", "cash.branchcode='" & k(1) & "' and cash.currencycode='" & k(2) & "' and cash.FROMcashierid=gen.userid and cash.status='P' and cash.tocashierid='" & cstr(userid) & "'", "cash.fromcashierid")
+            //     dataTable = obj.singlerecordset("CASHTRANSBTCASHIERSTRN cash,genusermst gen", "distinct(cash.fromcashierid),gen.name", "cash.branchcode='" & k(1) & "' and cash.currencycode='" & k(2) & "' and cash.FROMcashierid=gen.userid and cash.status='P' and cash.tocashierid='" & cstr(userid) & "'", "cash.fromcashierid")
 
 
             //' Suspence Start
@@ -17271,7 +19259,7 @@ namespace Banking.Services
             //    k = split(strtype, "|")
 
 
-            //     rs = obj.singlerecordset("SCRCATEGORYMST", "DISTINCT CATEGORYCODE,CATEGORYNAME")
+            //     dataTable = obj.singlerecordset("SCRCATEGORYMST", "DISTINCT CATEGORYCODE,CATEGORYNAME")
             //' Suspence End
 
             //elseif left(strtype,11)= "CutsoiledNo" then
@@ -17279,7 +19267,7 @@ namespace Banking.Services
             //    k = split(strtype, "|")
 
 
-            //     rs = obj.singlerecordset("CASHCUTNSPOILNOTESMST", "CUTSOILTRANNO,custid,RECEIVEDFROM", "UPPER(TRIM(branchcode))='" & UCASE(TRIM(k(1))) & "' and UPPER(TRIM(currencycode))='" & UCASE(TRIM(k(2))) & "'")
+            //     dataTable = obj.singlerecordset("CASHCUTNSPOILNOTESMST", "CUTSOILTRANNO,custid,RECEIVEDFROM", "UPPER(TRIM(branchcode))='" & UCASE(TRIM(k(1))) & "' and UPPER(TRIM(currencycode))='" & UCASE(TRIM(k(2))) & "'")
 
             //'-------prsrem
 
@@ -17288,20 +19276,20 @@ namespace Banking.Services
 
             //      ''' for fetching the remtype from the remittypemst for selected glcode
 
-            //    'rs=obj.singlerecordset("REMTYPEMST","REMTYPE","upper(REMGLCODE)='"&k(1)&"' and " & _
+            //    'dataTable=obj.singlerecordset("REMTYPEMST","REMTYPE","upper(REMGLCODE)='"&k(1)&"' and " & _
 
             //    '						" upper(NATIVAORAGENCY)='A' and upper(status)='R'")
 
-            //    rs = obj.singlerecordset("REMTYPEMST", "REMTYPE,upper(NATIVAORAGENCY)", _
+            //    dataTable = obj.singlerecordset("REMTYPEMST", "REMTYPE,upper(NATIVAORAGENCY)", _
 
             //        "upper(REMGLCODE)='" & k(1) & "' and upper(status)='R'")
 
 
-            //    if not rs.EOF and not rs.BOF then
+            //    if not dataTable.EOF and not dataTable.BOF then
 
-            //          if rs(0).value = "ADD" or rs(0).value = "TC" then
+            //          if dataTable(0).value = "ADD" or dataTable(0).value = "TC" then
 
-            //            'rs=obj.singlerecordset("GENOTHERBANKMST","Bankcode,BANKNAME", _
+            //            'dataTable=obj.singlerecordset("GENOTHERBANKMST","Bankcode,BANKNAME", _
 
             //            '"upper(status)='R'")
 
@@ -17323,7 +19311,7 @@ namespace Banking.Services
 
             //            '" upper(trim(CURRENCYCODE))='" & trim(k(3)) & "' " & _
 
-            //            '" AND upper(trim(REMTYPE))='" & trim(rs(0).value) & "' AND status='R')"
+            //            '" AND upper(trim(REMTYPE))='" & trim(dataTable(0).value) & "' AND status='R')"
 
 
             //            'response.write("<br><br> strCond=" & strCond)
@@ -17331,7 +19319,7 @@ namespace Banking.Services
             //            'response.end
 
 
-            //            'rs=obj.singlerecordset("GENOTHERBANKMST","BANKCODE,BANKNAME", _
+            //            'dataTable=obj.singlerecordset("GENOTHERBANKMST","BANKCODE,BANKNAME", _
 
             //            'strCond)		 
 
@@ -17344,81 +19332,81 @@ namespace Banking.Services
 
             //                trim(k(3)) & "' AND UPPER(trim(REMTYPE))='" & _
 
-            //                 trim(rs(0).value) & "' AND status='R')"
+            //                 trim(dataTable(0).value) & "' AND status='R')"
 
 
-            //            rs = obj.singlerecordset("GENCORRESPBANKSMST", "BANKCODE,BANKNAME", _
+            //            dataTable = obj.singlerecordset("GENCORRESPBANKSMST", "BANKCODE,BANKNAME", _
 
             //            strCond)
 
 
-            //        elseif rs(0).value = "DD" or rs(0).value = "TT" or rs(0).value = "MT"  _
-            //            or rs(0).value = "BC" or rs(0).value = "GC" or rs(0).value = "PO" then
-            //            rs = obj.singleRecordSet("GENBANKPARM", "BANKCODE,bankname", "")
+            //        elseif dataTable(0).value = "DD" or dataTable(0).value = "TT" or dataTable(0).value = "MT"  _
+            //            or dataTable(0).value = "BC" or dataTable(0).value = "GC" or dataTable(0).value = "PO" then
+            //            dataTable = obj.singleRecordSet("GENBANKPARM", "BANKCODE,bankname", "")
 
             //        else
-            //                rs = obj.singleRecordSet("GENBANKPARM", "BANKCODE,bankname", "")
+            //                dataTable = obj.singleRecordSet("GENBANKPARM", "BANKCODE,bankname", "")
 
             //        end if
 
             //    else
-            //                    rs = obj.singleRecordSet("GENBANKPARM", "BANKCODE,bankname", "")
+            //                    dataTable = obj.singleRecordSet("GENBANKPARM", "BANKCODE,bankname", "")
 
             //    end if
 
             //elseif left(strType, 9) = "nftsonbnk" or left(strType,12)= "Matnftsonbnk" or left(strType,13)= "Autonftsonbnk" then
 
-            //rs = obj.singlerecordset("GENCORRESPBANKSMST", "BANKCODE,BANKNAME", "status = 'R'")
+            //dataTable = obj.singlerecordset("GENCORRESPBANKSMST", "BANKCODE,BANKNAME", "status = 'R'")
 
             //elseif left(strType,8)= "IMPSBank" then
 
             //sqlStr = "SELECT DISTINCT bank bank ,bank bank1 FROM BANKIFSCDTLS ORDER BY bank"
-            //rs = objrep.SingleSelectStat(sqlStr)
+            //dataTable = objrep.SingleSelectStat(sqlStr)
 
 
             //elseif left(strType,9)= "IMPSState" then
             //k = split(strType, "~")
             //sqlStr = "select distinct state state , state state1 from BANKIFSCDTLS where bank = '" & k(1) & "' order by state"
-            //rs = objrep.SingleSelectStat(sqlStr)
+            //dataTable = objrep.SingleSelectStat(sqlStr)
 
             //elseif left(strType,12)= "IMPSDistrict" then
 
             //k = split(strType, "~")
             //sqlStr = "select distinct DISTRICT DISTRICT,DISTRICT DISTRICT1 from BANKIFSCDTLS where bank = '" & k(1) & "' and state ='" & k(2) & "' order by DISTRICT"
-            //rs = objrep.SingleSelectStat(sqlStr)
+            //dataTable = objrep.SingleSelectStat(sqlStr)
 
             //elseif left(strType,8)= "IMPSCity" then
 
             //k = split(strType, "~")
             //sqlStr = "select distinct CITY CITY,CITY CITY1 from BANKIFSCDTLS where bank = '" & k(1) & "' and state ='" & k(2) & "' and district = '" & k(3) & "' order by CITY"
-            //rs = objrep.SingleSelectStat(sqlStr)
+            //dataTable = objrep.SingleSelectStat(sqlStr)
 
 
             //elseif left(strType,10)= "IMPSBranch" then
 
             //k = split(strType, "~")
             //sqlStr = "select distinct BRANCH BRANCH,BRANCH BRANCH1 from BANKIFSCDTLS where bank = '" & k(1) & "' and state ='" & k(2) & "' and district = '" & k(3) & "' and CITY = '" & k(4) & "' order by BRANCH"
-            //rs = objrep.SingleSelectStat(sqlStr)
+            //dataTable = objrep.SingleSelectStat(sqlStr)
 
 
             //elseif left(strType,12)= "nftsonbranch" or left(strType,15)= "Matnftsonbranch" or left(strType,16)= "Autonftsonbranch" then
 
             //k = split(strType, "~")
-            //rs = obj.singlerecordset("GENCORRESPBANKBRANCHESMST", "BRANCHCODE, BRANCHNAME", "BANKCODE = '" & k(1) & "' and status = 'R'")
+            //dataTable = obj.singlerecordset("GENCORRESPBANKBRANCHESMST", "BRANCHCODE, BRANCHNAME", "BANKCODE = '" & k(1) & "' and status = 'R'")
 
             //elseif left(strType,11)= "nftsacctype" or left(strType,14)= "Matnftsacctype"  or left(strType,15)= "Autonftsacctype" then
 
-            //rs = obj.singlerecordset("CLGMICRINSTRTYPEMST", "MICRINSTRCODE, MICRINSTRDESC", "ACTIVEYN= 'Y' AND status = 'R'")
+            //dataTable = obj.singlerecordset("CLGMICRINSTRTYPEMST", "MICRINSTRCODE, MICRINSTRDESC", "ACTIVEYN= 'Y' AND status = 'R'")
 
             //elseif left(strType,12)= "stopissonbnk" then
             //   k = split(strType, "~")
 
 
             //      if k(1) = "ADD" then
-            //        rs = obj.singlerecordset("GENCORRESPBANKSMST", "Bankcode,BANKNAME", "upper(status)='R'")
+            //        dataTable = obj.singlerecordset("GENCORRESPBANKSMST", "Bankcode,BANKNAME", "upper(status)='R'")
 
             //    else
-            //                rs = obj.singleRecordSet("GENBANKPARM", "BANKCODE,bankname", "")
+            //                dataTable = obj.singleRecordSet("GENBANKPARM", "BANKCODE,bankname", "")
 
 
             //    end if
@@ -17428,7 +19416,7 @@ namespace Banking.Services
 
             //        'original code commented by radhika on 14 may 2008
 
-            //     'rs=obj.singlerecordset("GENBANKBRANCHMST","BRANCHCODE,BRANCHNAME")	
+            //     'dataTable=obj.singlerecordset("GENBANKBRANCHMST","BRANCHCODE,BRANCHNAME")	
 
 
             //     'new code is
@@ -17439,12 +19427,12 @@ namespace Banking.Services
             //        strCond = "status='R' AND upper(trim(BANKCODE))='" & trim(bankcode(2)) & "'"
 
 
-            //        rs = obj.singlerecordset("GENCORRESPBANKBRANCHESMST", "BRANCHCODE, BRANCHNAME", _
+            //        dataTable = obj.singlerecordset("GENCORRESPBANKBRANCHESMST", "BRANCHCODE, BRANCHNAME", _
 
             //        strCond)
 
             //     else
-            //                rs = obj.singlerecordset("GENBANKBRANCHMST", "BRANCHCODE,BRANCHNAME")
+            //                dataTable = obj.singlerecordset("GENBANKBRANCHMST", "BRANCHCODE,BRANCHNAME")
 
             //     end if
 
@@ -17456,7 +19444,7 @@ namespace Banking.Services
 
 
             //    if bankcode(1) = "ADD" or bankcode(1)= "TC" then
-            //'		 rs=obj.singlerecordset("GENOTHERBRANCHMST", _
+            //'		 dataTable=obj.singlerecordset("GENOTHERBRANCHMST", _
             //'		"BRANCHCODE,BRANCHNAME","UPPER(BANKCODE)='" & ucase(trim(bankcode(2))) & _
             //'		"' ")	
 
@@ -17478,7 +19466,7 @@ namespace Banking.Services
             //        '" AND status='R')"
 
 
-            //         'rs=obj.singlerecordset("GENOTHERBRANCHMST", "BRANCHCODE, BRANCHNAME",strCond)
+            //         'dataTable=obj.singlerecordset("GENOTHERBRANCHMST", "BRANCHCODE, BRANCHNAME",strCond)
 
 
             //        'new code is 
@@ -17486,21 +19474,21 @@ namespace Banking.Services
             //        strCond = "status='R' AND upper(trim(BANKCODE))='" & trim(bankcode(2)) & "'"
 
 
-            //        rs = obj.singlerecordset("GENCORRESPBANKBRANCHESMST", "BRANCHCODE, BRANCHNAME", _
+            //        dataTable = obj.singlerecordset("GENCORRESPBANKBRANCHESMST", "BRANCHCODE, BRANCHNAME", _
 
             //        strCond)
 
 
             //    elseif bankcode(1)= "AOB" then
-            //         rs = obj.singlerecordset("GENBANKBRANCHMST", _
+            //         dataTable = obj.singlerecordset("GENBANKBRANCHMST", _
 
             //        "BRANCHCODE,BRANCHNAME", "UPPER(BANKCODE)='" & trim(bankcode(2)) & "' and status='R'")
 
             //    elseif bankcode(1)= "OthBrs" then
-            //    rs = obj.singlerecordset("GENCORRESPBANKBRANCHESMST", "BRANCHCODE,BRANCHNAME", "STATUS='R' AND UPPER(BANKCODE)='" & ucase(trim(bankcode(2))) & "'")
+            //    dataTable = obj.singlerecordset("GENCORRESPBANKBRANCHESMST", "BRANCHCODE,BRANCHNAME", "STATUS='R' AND UPPER(BANKCODE)='" & ucase(trim(bankcode(2))) & "'")
 
             //    else
-            //                rs = obj.singlerecordset("GENBANKBRANCHMST", _
+            //                dataTable = obj.singlerecordset("GENBANKBRANCHMST", _
            
             //                   "BRANCHCODE,BRANCHNAME", "UPPER(BANKCODE)='" & ucase(trim(bankcode(2))) & "' " & _
            
@@ -17518,11 +19506,11 @@ namespace Banking.Services
             // dim strWhr
             //    strWhr = "upper(moduleid)='" & ucase(trim(modid)) & "'"
             //     '''or  upper(M.accno)=upper(D.disposalaccno)
-            //     rs = obj.singlerecordset("GENMODULEMST", "mastertable", cstr(strWhr))
-            //    if rs.RecordCount > 0 then
+            //     dataTable = obj.singlerecordset("GENMODULEMST", "mastertable", cstr(strWhr))
+            //    if dataTable.RecordCount > 0 then
             //    dim table1,tables
-            //        table1 = rs(0).value
-            //        tables = rs(0).value & " M,GENDISPOSALDTLSTEMP D"
+            //        table1 = dataTable(0).value
+            //        tables = dataTable(0).value & " M,GENDISPOSALDTLSTEMP D"
 
 
             //        strWhr = "upper(D.branchcode)='" & ucase(trim(brCode)) & "' and upper(D.currencycode)='" & _
@@ -17541,7 +19529,7 @@ namespace Banking.Services
 
 
             //        'and upper(M.moduleid)=upper(D.moduleid) 
-            //         rs = obj.singlerecordset(cstr(tables), _
+            //         dataTable = obj.singlerecordset(cstr(tables), _
             //        "distinct(nvl(D.accno,D.disposalaccno)),M.name", cstr(strWhr))
 
 
@@ -17560,7 +19548,7 @@ namespace Banking.Services
 
 
 
-            //  rs = obj.singlerecordset("GENDISPOSALDTLSTEMP D", "distinct(nvl(D.accno,D.disposalaccno))", cstr(strWhr))
+            //  dataTable = obj.singlerecordset("GENDISPOSALDTLSTEMP D", "distinct(nvl(D.accno,D.disposalaccno))", cstr(strWhr))
 
             // end if
 
@@ -17574,7 +19562,7 @@ namespace Banking.Services
             //    k = split(strType, "|")
 
 
-            //     rs = obj.ModuleID(cstr(k(1)), "N", "N")
+            //     dataTable = obj.ModuleID(cstr(k(1)), "N", "N")
 
 
             //elseif left(strType,9)= "LnkGlcode" then
@@ -17582,7 +19570,7 @@ namespace Banking.Services
 
             //    k = split(strType, "|")
 
-            //     rs = obj.GLCodes(cstr(k(1)), cstr(k(2)))
+            //     dataTable = obj.GLCodes(cstr(k(1)), cstr(k(2)))
 
 
             //elseif left(strType,8)= "LnkAccno" then
@@ -17593,22 +19581,22 @@ namespace Banking.Services
             //    if modId<>"TM" then
             //       obj = server.CreateObject("GeneralTranQueries.TransactionQueries")
 
-            //       rs = obj.AccountNumbers(cstr(k(1)), cstr(modId), cstr(glCode), cstr(k(4)))
+            //       dataTable = obj.AccountNumbers(cstr(k(1)), cstr(modId), cstr(glCode), cstr(k(4)))
 
             //    else
             //                dim strWhr
 
             //       strWhr = "upper(glcode)='" & glCode & "' and upper(status)='R'"
 
-            //        rs = obj.singlerecordset("TMGENTYPEMST", "upper(mastertable) mstTab", cstr(strWhr))
+            //        dataTable = obj.singlerecordset("TMGENTYPEMST", "upper(mastertable) mstTab", cstr(strWhr))
 
-            //       if rs.RecordCount > 0 and rs("mstTab")<> "" then
+            //       if dataTable.RecordCount > 0 and dataTable("mstTab")<> "" then
             //       dim mstTab
-            //          mstTab = rs("mstTab")
+            //          mstTab = dataTable("mstTab")
 
             //          strWhr = "upper(status)='R'"
 
-            //         rs = obj.singlerecordset(cstr(mstTab), "accno", cstr(strWhr), "to_number(accno)")
+            //         dataTable = obj.singlerecordset(cstr(mstTab), "accno", cstr(strWhr), "to_number(accno)")
 
             //       end if
 
@@ -17636,7 +19624,7 @@ namespace Banking.Services
             //    k = split(strType, "|")
 
 
-            //     rs = obj.ModuleID(cstr(k(1)), "N", "N")
+            //     dataTable = obj.ModuleID(cstr(k(1)), "N", "N")
             //''' for clearing glcode
 
             //elseif left(strType,9)= "CLGGlcode" then
@@ -17644,7 +19632,7 @@ namespace Banking.Services
 
             //    k = split(strType, "|")
 
-            //     rs = obj.GLCodes(cstr(k(1)), cstr(k(2)))
+            //     dataTable = obj.GLCodes(cstr(k(1)), cstr(k(2)))
 
             //elseif left(strType,8)= "CLGAccno" then
 
@@ -17652,7 +19640,7 @@ namespace Banking.Services
 
             //     obj = server.CreateObject("GeneralTranQueries.TransactionQueries")
 
-            //     rs = obj.AccountNumbers(cstr(k(1)), cstr(k(2)), cstr(k(3)), cstr(k(4)))
+            //     dataTable = obj.AccountNumbers(cstr(k(1)), cstr(k(2)), cstr(k(3)), cstr(k(4)))
 
 
             //    connerr = obj.ConnError
@@ -17673,7 +19661,7 @@ namespace Banking.Services
 
             //     'obj=server.CreateObject("GeneralTranQueries.TransactionQueries")
 
-            //     'rs=obj.AccountNumbers(cstr(k(1)),cstr(k(2)),cstr(k(3)),cstr(k(4)))
+            //     'dataTable=obj.AccountNumbers(cstr(k(1)),cstr(k(2)),cstr(k(3)),cstr(k(4)))
 
             //    modid1 = k(2) & "MST"
 
@@ -17682,20 +19670,20 @@ namespace Banking.Services
             //'sqlstr= "SELECT ACCNO,Name,Customerid,status FROM " & modid1 & " WHERE UPPER(trim(branchcode))='"& k(1) &"' AND UPPER(trim(glcode))='"& k(3) &"' AND  transtatus IN ('A') AND UPPER(trim(currencycode))='"& k(4) &"'  ORDER BY to_number(accno)"
             //sqlstr = "SELECT ACCNO,Name,Customerid FROM " & modid1 & " WHERE UPPER(trim(branchcode))='" & k(1) & "' AND UPPER(trim(glcode))='" & k(3) & "' AND  transtatus IN ('A') AND UPPER(trim(currencycode))='" & k(4) & "'  ORDER BY to_number(accno)"
 
-            //rs = objaccno.SingleSelectStat(sqlstr)
+            //dataTable = objaccno.SingleSelectStat(sqlstr)
             //if not hidsearch = "" then
             //        searchby = split(hidsearch, "|")
 
             //            if searchby(0) = "name" then
             //        sqlstr = "SELECT ACCNO,Name,Customerid FROM " & modid1 & " WHERE UPPER(trim(branchcode))='" & k(1) & "' AND UPPER(trim(glcode))='" & k(3) & "' AND  transtatus IN ('A') AND UPPER(trim(currencycode))='" & k(4) & "' and name like '" & Ucase(searchby(1)) & "%' ORDER BY to_number(accno)"
 
-            //        rs = objaccno.SingleSelectStat(sqlstr)
+            //        dataTable = objaccno.SingleSelectStat(sqlstr)
 
 
             //            else if searchby(0) = "num" then
             //        sqlstr = "SELECT ACCNO,Name,Customerid FROM " & modid1 & " WHERE UPPER(trim(branchcode))='" & k(1) & "' AND UPPER(trim(glcode))='" & k(3) & "' AND  transtatus IN ('A') AND UPPER(trim(currencycode))='" & k(4) & "' and accno like '" & Ucase(searchby(1)) & "%' ORDER BY to_number(accno)"
 
-            //        rs = objaccno.SingleSelectStat(sqlstr)
+            //        dataTable = objaccno.SingleSelectStat(sqlstr)
 
 
             //            end if
@@ -17720,7 +19708,7 @@ namespace Banking.Services
 
             //    k = split(strType, "|")
 
-            //     rs = obj.singlerecordset("GENOTHERBANKMST", "BANKCODE,BANKNAME", _
+            //     dataTable = obj.singlerecordset("GENOTHERBANKMST", "BANKCODE,BANKNAME", _
 
             //    "ourbranchcode='" & k(1) & "'", "BANKCODE")
 
@@ -17737,7 +19725,7 @@ namespace Banking.Services
 
             //    k = split(strType, "|")
 
-            //     rs = obj.singlerecordset("GENOTHERBRANCHMST", "BRANCHCODE,BRANCHNAME", _
+            //     dataTable = obj.singlerecordset("GENOTHERBRANCHMST", "BRANCHCODE,BRANCHNAME", _
 
             //    "BANKCODE='" & k(1) & "' and ourbranchcode='" & k(2) & "'", "BANKCODE")
 
@@ -17754,7 +19742,7 @@ namespace Banking.Services
 
             //    k = split(strType, "|")
 
-            //     rs = obj.singlerecordset("CLGRETURNREASONMST", "CODE,DESCRIPTION", "", "CODE")
+            //     dataTable = obj.singlerecordset("CLGRETURNREASONMST", "CODE,DESCRIPTION", "", "CODE")
 
             //    if obj.connerror<>"" then
             //        kstr = "Norecords"
@@ -17778,7 +19766,7 @@ namespace Banking.Services
             //       whcond = "Code in('1')"
             //    end if
 
-            //     rs = obj.singlerecordset("GENSERVICETYPESPMT", "CODE,NARRATION", cstr(whcond), "CODE")
+            //     dataTable = obj.singlerecordset("GENSERVICETYPESPMT", "CODE,NARRATION", cstr(whcond), "CODE")
 
 
             //elseif left(strType,14)= "ChargeModuleid" then
@@ -17787,25 +19775,25 @@ namespace Banking.Services
             //   atype = Split(strType, "|")
 
 
-            //    rs = obj1.ModuleID(cstr(atype(1)), "")
+            //    dataTable = obj1.ModuleID(cstr(atype(1)), "")
 
 
             //  if atype(2) = "4" and atype(3)= "1" then
 
 
-            //    rs.Filter = "moduleid<>'CLG'"
+            //    dataTable.Filter = "moduleid<>'CLG'"
 
 
             //  elseif atype(2)= "4" and atype(3)= "2" then
 
 
-            //    rs.Filter = "moduleid='CA' or moduleid='DEP' or  moduleid='SB'"
+            //    dataTable.Filter = "moduleid='CA' or moduleid='DEP' or  moduleid='SB'"
 
 
             // elseif atype(2)= "3" and atype(3)= "1" then
 
 
-            //    rs.Filter = "moduleid<>'CLG' AND moduleid<>'DEP' " & _
+            //    dataTable.Filter = "moduleid<>'CLG' AND moduleid<>'DEP' " & _
 
             //    "AND moduleid<>'FXDEP' AND moduleid<>'FXREM' AND moduleid<>'REM' " & _
 
@@ -17818,7 +19806,7 @@ namespace Banking.Services
             // elseif left(strType,14)= "ContraModuleid" then
             //    atype = Split(strType, "|")
 
-            //        rs = obj1.ModuleID(cstr(atype(1)), "")
+            //        dataTable = obj1.ModuleID(cstr(atype(1)), "")
 
 
             // ''' for contra glcodes,description
@@ -17826,7 +19814,7 @@ namespace Banking.Services
             //    elseif left(strType,12)= "ContraGlcode" then
             // dim strflds
             //   strflds = split(strtype, "|")
-            //       rs = obj.singlerecordset(cstr(strflds(2)) & "typemst", _
+            //       dataTable = obj.singlerecordset(cstr(strflds(2)) & "typemst", _
 
             //             strflds(3) & ",(select narration from genglsheetmst where " & _
 
@@ -17836,25 +19824,25 @@ namespace Banking.Services
             //  elseif left(strtype,13)= "ContraAccCode" then
 
             //        k = split(strtype, "|")
-            //       rs = obj1.AccountNumbers(cstr(k(1)), cstr(k(2)), cstr(k(3)), cstr(k(4)))
+            //       dataTable = obj1.AccountNumbers(cstr(k(1)), cstr(k(2)), cstr(k(3)), cstr(k(4)))
             //elseif left(strtype,12)= "ChargeGlcode" then
 
             //      k = split(strtype, "|")
-            //        rs = obj1.GLCodes(cstr(k(1)), cstr(k(2)))
+            //        dataTable = obj1.GLCodes(cstr(k(1)), cstr(k(2)))
 
 
             //elseif left(strtype,13)= "ChargeAccCode" then
 
             //        k = split(strtype, "|")
-            //       rs = obj1.AccountNumbers(cstr(k(1)), cstr(k(2)), cstr(k(3)), cstr(k(4)))
+            //       dataTable = obj1.AccountNumbers(cstr(k(1)), cstr(k(2)), cstr(k(3)), cstr(k(4)))
 
 
             //elseif strType = "catcode" then
-            //      rs = obj.singlerecordset("GENCATEGORYMST", "CATEGORYCODE,NARRATION", "categorycode<>'99'")
+            //      dataTable = obj.singlerecordset("GENCATEGORYMST", "CATEGORYCODE,NARRATION", "categorycode<>'99'")
 
 
             //elseif strType = "remcode" then
-            //      rs = obj.singlerecordset("FXREMTYPEMST a,FXGENMODEOFREMITTANCEMST b", _
+            //      dataTable = obj.singlerecordset("FXREMTYPEMST a,FXGENMODEOFREMITTANCEMST b", _
 
             //             "a.modeofremittance, narration", "a.modeofremittance=b.modeofremittance")
 
@@ -17870,19 +19858,19 @@ namespace Banking.Services
 
 
             //     if strValue(1) = "C" then
-            //         rs = obj.singlerecordset("FXGENCARDRATECATEGORIESMST b,FXGENCARDRATESPMT a", _
+            //         dataTable = obj.singlerecordset("FXGENCARDRATECATEGORIESMST b,FXGENCARDRATESPMT a", _
 
             //                        "category,NARRATION,rate", cstr(strWhr))
             //     elseif strValue(1)= "N" then
             //        strWhr = "currencycode='" & strValue(2) & "' AND a.category=b.category and upper(a.status)='R'"
-            //         rs = obj.singlerecordset("FXGENNOTIONALCATEGORIESMST b,FXGENNOTIONALRATESPMT a", _
+            //         dataTable = obj.singlerecordset("FXGENNOTIONALCATEGORIESMST b,FXGENNOTIONALRATESPMT a", _
             //        " a.category,NARRATION,rate", cstr(strWhr))
             //     elseif strValue(1)= "D" then
             //        strWhr = "status='R'"
-            //         rs = obj.singlerecordset("FXDEALINGROOMMST", "CODE,NARRATION,'0'", cstr(strWhr))
+            //         dataTable = obj.singlerecordset("FXDEALINGROOMMST", "CODE,NARRATION,'0'", cstr(strWhr))
             //     elseif strValue(1)= "F" then
             //        strWhr = "upper(status)='R' and upper(transtatus)='A'"
-            //         rs = obj.singlerecordset("FXFCMST", "accno,name,rate", cstr(strWhr))
+            //         dataTable = obj.singlerecordset("FXFCMST", "accno,name,rate", cstr(strWhr))
             //     end if
 
 
@@ -17916,7 +19904,7 @@ namespace Banking.Services
             //    "and approvedmachine is null " & whrAdd
 
 
-            //     rs = obj.singlerecordset("GENTRANSLOG", "distinct(BATCHNO)", cstr(whrCond), "batchno")
+            //     dataTable = obj.singlerecordset("GENTRANSLOG", "distinct(BATCHNO)", cstr(whrCond), "batchno")
             //'------Code Added by Monica-25-NOV-09 to display Name along with the BatchNo----------ORG----------	 
 
             //     rsNew = Nothing
@@ -17979,7 +19967,7 @@ namespace Banking.Services
             //    "and approvedmachine is null " & whrAdd
 
 
-            //     rs = obj.singlerecordset("GENTRANSLOG", "distinct(BATCHNO)", cstr(whrCond), "batchno")
+            //     dataTable = obj.singlerecordset("GENTRANSLOG", "distinct(BATCHNO)", cstr(whrCond), "batchno")
             //'------Code Added by Monica-25-NOV-09 to display Name along with the BatchNo----------ORG----------	 
 
             //     rsNew = Nothing
@@ -18041,7 +20029,7 @@ namespace Banking.Services
             //    "and DELETEDAPPROVEDMACHINE  is null "
 
 
-            //     rs = obj.singlerecordset("GENDELETEDTRANSLOG", "distinct(BATCHNO)", cstr(whrCond), "batchno")
+            //     dataTable = obj.singlerecordset("GENDELETEDTRANSLOG", "distinct(BATCHNO)", cstr(whrCond), "batchno")
 
 
             //     rsNew = Nothing
@@ -18184,7 +20172,7 @@ namespace Banking.Services
             //    end if
 
 
-            //     rs = obj.singlerecordset(cstr(strTab), cstr(strFld), cstr(whrCond), "batchno")
+            //     dataTable = obj.singlerecordset(cstr(strTab), cstr(strFld), cstr(whrCond), "batchno")
 
 
             //     '------Code Added by Monica-27-NOV-09 to display Name along with the BatchNo--------------------	 
@@ -18279,7 +20267,7 @@ namespace Banking.Services
             //    end if
 
 
-            //     rs = obj.singlerecordset("GENTRANSLOG", "distinct(BATCHNO)", cstr(whrCond), "batchno")
+            //     dataTable = obj.singlerecordset("GENTRANSLOG", "distinct(BATCHNO)", cstr(whrCond), "batchno")
 
             //'------Code Added by Monica-26-NOV-09 to display Name along with the BatchNo--------------------	 
 
@@ -18368,7 +20356,7 @@ namespace Banking.Services
             //    end if
 
 
-            //     rs = obj.singlerecordset("GENTRANSLOG", "distinct(BATCHNO)", cstr(whrCond), "batchno")
+            //     dataTable = obj.singlerecordset("GENTRANSLOG", "distinct(BATCHNO)", cstr(whrCond), "batchno")
 
             //'------Code Added by Monica-26-NOV-09 to display Name along with the BatchNo--------------------	 
 
@@ -18437,7 +20425,7 @@ namespace Banking.Services
             //        ucase(trim(crcode)) & "' " & whrAdd
 
 
-            //         rs = obj.singlerecordset("GENTRANSLOGDEM", "distinct(BATCHNO)", cstr(whrCond), "batchno")
+            //         dataTable = obj.singlerecordset("GENTRANSLOGDEM", "distinct(BATCHNO)", cstr(whrCond), "batchno")
 
 
             //        rsNew = Nothing
@@ -18500,27 +20488,27 @@ namespace Banking.Services
             //             " WHERE moduleid='DEP' AND serviceid='" & trim(serId) & "')"
 
 
-            //      rs = obj.singlerecordset("GENTEMPTRANSLOG", "DISTINCT(linkaccno),linkaccname", cstr(whrCond), "linkaccname")
+            //      dataTable = obj.singlerecordset("GENTEMPTRANSLOG", "DISTINCT(linkaccno),linkaccname", cstr(whrCond), "linkaccname")
 
 
             //elseif left(strType,10)= "GETSCHOOLS" then
             //    strVal = split(strType, "|")
 
             //    if strVal(1) = "CASH" then
-            //        rs = obj.singlerecordset("SCHOOLBATCHDTLS A, SCHOOLMST V", "A.ACCNO, V.NAME, A.CASHBATCHNO", "NVL(A.CASHBATCHSTATUS, 'O')='O' AND A.APPLICATIONDATE='" & session("applicationdate") & "' AND A.ACCNO=V.ACCNO AND V.GLCODE=A.GLCODE AND V.BRANCHCODE=A.BRANCHCODE AND V.CURRENCYCODE=A.CURRENCYCODE", "TO_NUMBER(A.ACCNO)")
+            //        dataTable = obj.singlerecordset("SCHOOLBATCHDTLS A, SCHOOLMST V", "A.ACCNO, V.NAME, A.CASHBATCHNO", "NVL(A.CASHBATCHSTATUS, 'O')='O' AND A.APPLICATIONDATE='" & session("applicationdate") & "' AND A.ACCNO=V.ACCNO AND V.GLCODE=A.GLCODE AND V.BRANCHCODE=A.BRANCHCODE AND V.CURRENCYCODE=A.CURRENCYCODE", "TO_NUMBER(A.ACCNO)")
 
             //    else
-            //                rs = obj.singlerecordset("SCHOOLBATCHDTLS A, SCHOOLMST V", "A.ACCNO, V.NAME, A.TRANSFERBATCHNO", "NVL(A.TRANSFERBATCHSTATUS, 'O')='O' AND A.APPLICATIONDATE='" & session("applicationdate") & "' AND A.ACCNO=V.ACCNO AND V.GLCODE=A.GLCODE AND V.BRANCHCODE=A.BRANCHCODE AND V.CURRENCYCODE=A.CURRENCYCODE", "TO_NUMBER(A.ACCNO)")
+            //                dataTable = obj.singlerecordset("SCHOOLBATCHDTLS A, SCHOOLMST V", "A.ACCNO, V.NAME, A.TRANSFERBATCHNO", "NVL(A.TRANSFERBATCHSTATUS, 'O')='O' AND A.APPLICATIONDATE='" & session("applicationdate") & "' AND A.ACCNO=V.ACCNO AND V.GLCODE=A.GLCODE AND V.BRANCHCODE=A.BRANCHCODE AND V.CURRENCYCODE=A.CURRENCYCODE", "TO_NUMBER(A.ACCNO)")
 
             //    end if
             //elseif left(strType, 11) = "GETBRANCHES" then
             //    strVal = split(strType, "|")
 
             //    if strVal(4) = "CASH" then
-            //        rs = obj.singlerecordset("SCHOOLBRANCHMST", "SCHOOLBRANCHID, SCHBRANCHNAME", "SCHOOLACCNO='" & strVal(1) & "' AND (SCHOOLACCNO, GLCODE)=(SELECT ACCNO, GLCODE FROM SCHOOLBATCHDTLS WHERE CASHBATCHNO='" & strVal(2) & "' AND APPLICATIONDATE='" & strVal(3) & "')")
+            //        dataTable = obj.singlerecordset("SCHOOLBRANCHMST", "SCHOOLBRANCHID, SCHBRANCHNAME", "SCHOOLACCNO='" & strVal(1) & "' AND (SCHOOLACCNO, GLCODE)=(SELECT ACCNO, GLCODE FROM SCHOOLBATCHDTLS WHERE CASHBATCHNO='" & strVal(2) & "' AND APPLICATIONDATE='" & strVal(3) & "')")
 
             //    else
-            //                rs = obj.singlerecordset("SCHOOLBRANCHMST", "SCHOOLBRANCHID, SCHBRANCHNAME", "SCHOOLACCNO='" & strVal(1) & "' AND (SCHOOLACCNO, GLCODE)=(SELECT ACCNO, GLCODE FROM SCHOOLBATCHDTLS WHERE TRANSFERBATCHNO='" & strVal(2) & "' AND APPLICATIONDATE='" & strVal(3) & "')")
+            //                dataTable = obj.singlerecordset("SCHOOLBRANCHMST", "SCHOOLBRANCHID, SCHBRANCHNAME", "SCHOOLACCNO='" & strVal(1) & "' AND (SCHOOLACCNO, GLCODE)=(SELECT ACCNO, GLCODE FROM SCHOOLBATCHDTLS WHERE TRANSFERBATCHNO='" & strVal(2) & "' AND APPLICATIONDATE='" & strVal(3) & "')")
 
             //    end if
 
@@ -18529,10 +20517,10 @@ namespace Banking.Services
             //    strVal = split(strType, "|")
 
             //    if strVal(3) = "CASH" then
-            //        rs = obj.singlerecordset("SCHOOLSTUDENTINFOMST", "STUDENTID, NAME", "(SCHOOLACCNO, GLCODE)=(SELECT ACCNO, GLCODE FROM SCHOOLBATCHDTLS WHERE CASHBATCHNO='" & strVal(1) & "' AND APPLICATIONDATE='" & strVal(2) & "') AND SCHOOLBRANCHID='" & strVal(4) & "'")
+            //        dataTable = obj.singlerecordset("SCHOOLSTUDENTINFOMST", "STUDENTID, NAME", "(SCHOOLACCNO, GLCODE)=(SELECT ACCNO, GLCODE FROM SCHOOLBATCHDTLS WHERE CASHBATCHNO='" & strVal(1) & "' AND APPLICATIONDATE='" & strVal(2) & "') AND SCHOOLBRANCHID='" & strVal(4) & "'")
 
             //    else
-            //                rs = obj.singlerecordset("SCHOOLSTUDENTINFOMST", "STUDENTID, NAME", "(SCHOOLACCNO, GLCODE)=(SELECT ACCNO, GLCODE FROM SCHOOLBATCHDTLS WHERE TRANSFERBATCHNO='" & strVal(1) & "' AND APPLICATIONDATE='" & strVal(2) & "') AND SCHOOLBRANCHID='" & strVal(4) & "'")
+            //                dataTable = obj.singlerecordset("SCHOOLSTUDENTINFOMST", "STUDENTID, NAME", "(SCHOOLACCNO, GLCODE)=(SELECT ACCNO, GLCODE FROM SCHOOLBATCHDTLS WHERE TRANSFERBATCHNO='" & strVal(1) & "' AND APPLICATIONDATE='" & strVal(2) & "') AND SCHOOLBRANCHID='" & strVal(4) & "'")
 
             //    end if
 
@@ -19206,11 +21194,11 @@ namespace Banking.Services
 
 
 
-            //dim obj, rs, r, strCond
+            //dim obj, dataTable, r, strCond
             //dim strsql
             //dim objfetch
 
-            //  rs = server.CreateObject("adodb.recordset")
+            //  dataTable = server.CreateObject("adodb.recordset")
             //  rs1 = server.CreateObject("adodb.recordset")
             //  obj = server.CreateObject("queryrecordsets.fetchrecordsets")
             //  objbr = server.CreateObject("GeneralTranQueries.TransactionQueries")
@@ -19218,52 +21206,52 @@ namespace Banking.Services
 
 
             //if strType = "Branch" or strType = "Branch1" or strType = "TrBranch"  or strType = "MatTrBranch" or strType = "AutoTrBranch" or strType = "MatBranch1" or strType = "AutoBranch1" then
-            //    rs = obj.singlerecordset("GENBANKBRANCHMST", "Branchcode,narration")
+            //    dataTable = obj.singlerecordset("GENBANKBRANCHMST", "Branchcode,narration")
 
             //elseif strType = "BLevel" then
-            //    rs = obj.singlerecordset("GENBANKLEVELMST", "code,narration")
+            //    dataTable = obj.singlerecordset("GENBANKLEVELMST", "code,narration")
 
 
             //elseif strType = "Bruser" then
-            //    rs = objbr.BranchCodes(cstr(userid))
+            //    dataTable = objbr.BranchCodes(cstr(userid))
 
 
             //elseif left(strType,6)= "Userid" then
             //   atype = mid(strType, 7, len(strType))
-            //   rs = obj.singlerecordset("genusermst", "userid,name", "branchcode='" & atype & "'")
+            //   dataTable = obj.singlerecordset("genusermst", "userid,name", "branchcode='" & atype & "'")
 
             //elseif strType = "Currency" then
-            //    rs = obj.singlerecordset("GENCURRENCYTYPEMST", "currencycode,narration")
+            //    dataTable = obj.singlerecordset("GENCURRENCYTYPEMST", "currencycode,narration")
             //elseif strType = "Curr"  then
-            //    rs = obj.singlerecordset("GENCURRENCYTYPEMST", "currencycode,narration,precision")
+            //    dataTable = obj.singlerecordset("GENCURRENCYTYPEMST", "currencycode,narration,precision")
             //elseif left(strType,5)= "Curr1" OR left(strType,5)= "Curr2" OR left(strType,5)= "Curr3" OR left(strType,5)= "Curr4"  then
             //   k = split(strType, "|")
-            //   rs = obj.singlerecordset("GENCURRENCYTYPEMST", "currencycode,narration,precision", cstr(k(1)))
+            //   dataTable = obj.singlerecordset("GENCURRENCYTYPEMST", "currencycode,narration,precision", cstr(k(1)))
 
             //elseif strType = "Module" or strType = "Module1" or strType = "Module2" or strType = "Module3" or strType = "Module4" or strType = "Module5" or strType = "Module6" then
-            //    rs = obj.singlerecordset("genmoduletypesmst", "moduleid,Narration", "implementedyn='Y'")
+            //    dataTable = obj.singlerecordset("genmoduletypesmst", "moduleid,Narration", "implementedyn='Y'")
 
             //elseif left(strType, 5) = "Accno" then
             //    dim objTrn
             //    objTrn = Server.CreateObject("GeneralTranQueries.TransactionQueries")
-            //    rs = objTrn.AccountNumbers(cstr(brchCd), cstr(Modid), cstr(atype))
+            //    dataTable = objTrn.AccountNumbers(cstr(brchCd), cstr(Modid), cstr(atype))
             //    objTrn = nothing
 
             //elseif left(strType,6)= "CustID" then
             //    stname = left(strType, 4)
             //    atype = mid(strType, 7)
-            //    rs = obj.singlerecordset("GENCUSTINFOMST", "customerid,custname", "")
+            //    dataTable = obj.singlerecordset("GENCUSTINFOMST", "customerid,custname", "")
 
 
             //elseif left(strType,7)= "TransNo" then
             //    stname = left(strType, 5)
             //    atype = mid(strType, 8)
-            //    rs = obj.singlerecordset("translog", "tranno,amount", "glcode='" & atype & "'", "tranno")
+            //    dataTable = obj.singlerecordset("translog", "tranno,amount", "glcode='" & atype & "'", "tranno")
 
 
             //elseif left(strtype,8)= "cashtype" then
             //    cashType = split(strtype, "|")
-            //    rs = obj.singlerecordset("CASHCASHIERTYPEMST", "cashiertypeid,narration", "STATUS is null and (currencycode='" & cashType(2) & "' and branchcode='" & cashType(1) & "')")
+            //    dataTable = obj.singlerecordset("CASHCASHIERTYPEMST", "cashiertypeid,narration", "STATUS is null and (currencycode='" & cashType(2) & "' and branchcode='" & cashType(1) & "')")
 
 
             //elseif left(strType,11)= "Cashiertype" then
@@ -19271,7 +21259,7 @@ namespace Banking.Services
 
             //    k = split(strType, "*")
 
-            //    rs = obj.singlerecordset("CASHCASHIERTYPEMST", "cashiertypeid,narration", "BRANCHCODE='" & k(1) & "'", "cashiertypeid")
+            //    dataTable = obj.singlerecordset("CASHCASHIERTYPEMST", "cashiertypeid,narration", "BRANCHCODE='" & k(1) & "'", "cashiertypeid")
 
 
             //elseif left(strType,10)= "Cashiercou" then
@@ -19286,9 +21274,9 @@ namespace Banking.Services
             //    strtab = "GENUSERMST U"
 
 
-            //    rs = obj.singlerecordset(cstr(strtab), cstr(strfld), cstr(strcond))
+            //    dataTable = obj.singlerecordset(cstr(strtab), cstr(strfld), cstr(strcond))
             //elseif left(strType,9)= "ModGlcode" then
-            //    rs = obj.singlerecordset("GenGlMastMst", _
+            //    dataTable = obj.singlerecordset("GenGlMastMst", _
 
             //                        "distinct glcode,gldescription", "moduleid='DEP'  and " & _
 
@@ -19300,67 +21288,67 @@ namespace Banking.Services
 
             //    k = split(strType, "*")
 
-            //    rs = obj.singlerecordset("cashcashierposmst cash,genusermst gen", "cash.cashierid,gen.name", "cash.cashierid=gen.userid and cash.cashierid <> '" & cstr(userid) & "' ")
+            //    dataTable = obj.singlerecordset("cashcashierposmst cash,genusermst gen", "cash.cashierid,gen.name", "cash.cashierid=gen.userid and cash.cashierid <> '" & cstr(userid) & "' ")
 
 
             //elseif left(strType,6)= "CashID" then
             //    k = split(strType, "|")
 
-            //    rs = obj.singlerecordset("cashcountermst cash,genusermst gen", "distinct(cash.cashierid),gen.name", "cash.cashierid=gen.userid and upper(trim(cash.cashierid)) <> '" & ucase(trim(cstr(userid))) & "' and gen.branchcode='" & k(1) & "'")
+            //    dataTable = obj.singlerecordset("cashcountermst cash,genusermst gen", "distinct(cash.cashierid),gen.name", "cash.cashierid=gen.userid and upper(trim(cash.cashierid)) <> '" & ucase(trim(cstr(userid))) & "' and gen.branchcode='" & k(1) & "'")
 
 
             //elseif left(strType,14)= "AllotedCashier" then
             //    stname = strType
 
             //    cash = split(stname, "*")
-            //    rs = obj.singlerecordset("CASHALLOTMENTSTRN CASH,GENUSERMST GEN", "DISTINCT(CASH.CASHIERID),GEN.NAME", "CASH.CASHIERID=GEN.USERID AND CASH.BRANCHCODE='" & CASH(1) & "' AND CASH.CURRENCYCODE='" & CASH(2) & "'", "CASH.CASHIERID")
+            //    dataTable = obj.singlerecordset("CASHALLOTMENTSTRN CASH,GENUSERMST GEN", "DISTINCT(CASH.CASHIERID),GEN.NAME", "CASH.CASHIERID=GEN.USERID AND CASH.BRANCHCODE='" & CASH(1) & "' AND CASH.CURRENCYCODE='" & CASH(2) & "'", "CASH.CASHIERID")
 
 
             //elseif left(strType,9)= "Allotment" then
 
             //    k = split(strType, "*")
 
-            //    rs = obj.singlerecordset("cashallotmentstrn", "Allotmentno", "cashierid='" & k(1) & "' and counterno = '" & k(2) & "' and status='P'", "allotmentno")
+            //    dataTable = obj.singlerecordset("cashallotmentstrn", "Allotmentno", "cashierid='" & k(1) & "' and counterno = '" & k(2) & "' and status='P'", "allotmentno")
 
 
             //elseif strtype = "BankCodes" or strtype = "MatBankCodes" or strtype = "AutoBankCodes" then
-            //    rs = obj.singlerecordset("GENOTHERBANKMST", "BANKCODE,BANKNAME", "STATUS='R'")
+            //    dataTable = obj.singlerecordset("GENOTHERBANKMST", "BANKCODE,BANKNAME", "STATUS='R'")
 
             //elseif left(strtype,10)= "Cashiermgt" then
 
             //    k = split(strtype, "*")
 
 
-            //    rs = obj.singlerecordset("cashcountermst cash,genusermst gen", "distinct(cash.cashierid),gen.name", "cash.branchcode='" & k(1) & "' and cash.currencycode='" & k(2) & "' and cash.cashierid=gen.userid and cash.cashierid not in ('" & ucase(userid) & "')")
+            //    dataTable = obj.singlerecordset("cashcountermst cash,genusermst gen", "distinct(cash.cashierid),gen.name", "cash.branchcode='" & k(1) & "' and cash.currencycode='" & k(2) & "' and cash.cashierid=gen.userid and cash.cashierid not in ('" & ucase(userid) & "')")
 
 
             //elseif left(strtype,16)= "Cashrefundaccept" then
 
             //    k = split(strtype, "*")
 
-            //    rs = obj.singlerecordset("cashrefundstrn cash,genusermst gen", "distinct(cash.REFUNDEDUSERID),gen.name", "cash.branchcode='" & k(1) & "' and cash.currencycode='" & k(2) & "' and cash.REFUNDEDUSERID=gen.userid  and cash.status='P' and cash.USERID <> '" & userid & "'")
+            //    dataTable = obj.singlerecordset("cashrefundstrn cash,genusermst gen", "distinct(cash.REFUNDEDUSERID),gen.name", "cash.branchcode='" & k(1) & "' and cash.currencycode='" & k(2) & "' and cash.REFUNDEDUSERID=gen.userid  and cash.status='P' and cash.USERID <> '" & userid & "'")
 
 
             //elseif left(strtype,7)= "Cashacc" then
 
             //    k = split(strtype, "*")
 
-            //    rs = obj.singlerecordset("CASHTRANSBTCASHIERSTRN cash,genusermst gen", "distinct(cash.fromcashierid),gen.name", "cash.branchcode='" & k(1) & "' and cash.currencycode='" & k(2) & "' and cash.FROMcashierid=gen.userid and cash.status='P' and cash.tocashierid='" & cstr(userid) & "'", "cash.fromcashierid")
+            //    dataTable = obj.singlerecordset("CASHTRANSBTCASHIERSTRN cash,genusermst gen", "distinct(cash.fromcashierid),gen.name", "cash.branchcode='" & k(1) & "' and cash.currencycode='" & k(2) & "' and cash.FROMcashierid=gen.userid and cash.status='P' and cash.tocashierid='" & cstr(userid) & "'", "cash.fromcashierid")
 
 
             //elseif left(strtype,11)= "CutsoiledNo" then
             //    k = split(strtype, "|")
 
-            //    rs = obj.singlerecordset("CASHCUTNSPOILNOTESMST", "CUTSOILTRANNO,customerid,RECEIVEDFROM", "UPPER(TRIM(branchcode))='" & UCASE(TRIM(k(1))) & "' and UPPER(TRIM(currencycode))='" & UCASE(TRIM(k(2))) & "'")
+            //    dataTable = obj.singlerecordset("CASHCUTNSPOILNOTESMST", "CUTSOILTRANNO,customerid,RECEIVEDFROM", "UPPER(TRIM(branchcode))='" & UCASE(TRIM(k(1))) & "' and UPPER(TRIM(currencycode))='" & UCASE(TRIM(k(2))) & "'")
 
             //elseif left(strtype,5)= "Group" then
             //    k = split(strtype, "|")
 
-            //    rs = obj.singlerecordset("GENBANKUSERGROUPMST", "GROUPCODE,NARRATION", "STATUS='A'")
+            //    dataTable = obj.singlerecordset("GENBANKUSERGROUPMST", "GROUPCODE,NARRATION", "STATUS='A'")
             //elseif left(strtype,6)= "Groups" then
             //    k = split(strtype, "|")
 
-            //    rs = obj.singlerecordset("GENBANKUSERGROUPMST", "GROUPCODE,NARRATION", "STATUS='A'")
+            //    dataTable = obj.singlerecordset("GENBANKUSERGROUPMST", "GROUPCODE,NARRATION", "STATUS='A'")
             //elseif left(strtype,10)= "DepDlAccno" then
             //    k = split(strtype, "|")
 
@@ -19368,14 +21356,14 @@ namespace Banking.Services
             //    'Code commented by Radhika on 24 Mar 2008
 
             //    'Reason: We are not filling Link related fileds while closing a Dep A/C
-            //'	rs=obj.singlerecordset("GENTEMPTRANSLOG G","DISTINCT(G.LINKACCNO),G.LINKACCNAME","G.'branchcode = '" & ucase(trim(k(1))) & "' and " & _
+            //'	dataTable=obj.singlerecordset("GENTEMPTRANSLOG G","DISTINCT(G.LINKACCNO),G.LINKACCNAME","G.'branchcode = '" & ucase(trim(k(1))) & "' and " & _
             //'	"upper(trim(G.LINKmoduleid))='DEP' AND G.CURRENCYCODE='" & ucase(trim(k(2))) & "' AND' " & _
             //'	"G.LINKGLCODE='" & ucase(trim(k(3))) & "' AND G.SERVICEID='4' and " & _
             //'	"G.SYSTEMGENERATEDYN='Y' AND G.BATCHNO  not in " & _
             //'   "(SELECT DISTINCT(batchno) from v3.gentranslog)")
 
 
-            //    rs = obj.singlerecordset("GENTEMPTRANSLOG G", "DISTINCT(G.ACCNO),G.NAME", "G.branchcode='" & ucase(trim(k(1))) & "' and " & _
+            //    dataTable = obj.singlerecordset("GENTEMPTRANSLOG G", "DISTINCT(G.ACCNO),G.NAME", "G.branchcode='" & ucase(trim(k(1))) & "' and " & _
 
             //    "upper(trim(G.moduleid))='DEP' AND G.CURRENCYCODE='" & ucase(trim(k(2))) & "' AND " & _
 
@@ -19387,7 +21375,7 @@ namespace Banking.Services
             //elseif left(strtype,12)= "AcclistDepDl" then
             //    k = split(strtype, "|")
 
-            //    rs = obj.singlerecordset("GENTEMPTRANSLOG G", "DISTINCT(G.ACCNO),G.NAME", "G.branchcode='" & ucase(trim(k(1))) & "' and " & _
+            //    dataTable = obj.singlerecordset("GENTEMPTRANSLOG G", "DISTINCT(G.ACCNO),G.NAME", "G.branchcode='" & ucase(trim(k(1))) & "' and " & _
 
             //    "upper(trim(G.moduleid))='DEP' AND G.CURRENCYCODE='" & ucase(trim(k(2))) & "' AND " & _
 
@@ -19400,51 +21388,51 @@ namespace Banking.Services
             //elseif left(strtype,4)= "User" then
             //    k = split(strtype, "|")
 
-            //    rs = obj.singlerecordset("GENusermst", "userid,name", "STATUS='A'")
+            //    dataTable = obj.singlerecordset("GENusermst", "userid,name", "STATUS='A'")
             //elseif left(strtype,5)= "Query" then
 
             //    if right(strtype, 1) = "N" then
-            //        rs = obj.singlerecordset("GENUSERMST", "Userid,Name")
+            //        dataTable = obj.singlerecordset("GENUSERMST", "Userid,Name")
 
             //    else
-            //                rs = obj.singlerecordset("GENUSERMST", "Userid,Name", "status='P'")
+            //                dataTable = obj.singlerecordset("GENUSERMST", "Userid,Name", "status='P'")
 
             //    end if
             //elseif strType = "Groupid" then
-            //    rs = obj.singlerecordset("GENBANKUSERGROUPMST", "Groupcode,narration", "status='A'")
+            //    dataTable = obj.singlerecordset("GENBANKUSERGROUPMST", "Groupcode,narration", "status='A'")
             //elseif strType = "Remtype" or strType = "MatRemtype" then
-            //    rs = obj.singlerecordset("REMTYPEMST", "REMTYPE", "")
+            //    dataTable = obj.singlerecordset("REMTYPEMST", "REMTYPE", "")
             //elseif left(strType,6)= "Userid" then
             //   atype = mid(strType, 7, len(strType))
-            //   rs = obj.singlerecordset("genusermst", "userid,name", "branchcode='" & atype & "' and status='A'")
+            //   dataTable = obj.singlerecordset("genusermst", "userid,name", "branchcode='" & atype & "' and status='A'")
             //elseif strType = "AppGroupid" then
-            //    rs = obj.singlerecordset("GENBANKUSERGROUPMST", "Groupcode,narration", "groupcode in(select distinct(Groupcode) from gengroupformsmst where status<>'A')")
+            //    dataTable = obj.singlerecordset("GENBANKUSERGROUPMST", "Groupcode,narration", "groupcode in(select distinct(Groupcode) from gengroupformsmst where status<>'A')")
             //elseif left(strType,9)= "AppUserid" then
             //   atype = mid(strType, 7, len(strType))
-            //   rs = obj.singlerecordset("genworkallotmentmst", "userid,username", "status<>'A'")
+            //   dataTable = obj.singlerecordset("genworkallotmentmst", "userid,username", "status<>'A'")
             //elseif left(strtype,11)= "ALLCASHIERS" then
             //    k = split(strType, "|")
 
-            //    rs = obj.singlerecordset("cashcountermst cash,genusermst gen", "distinct(cash.cashierid), gen.name, cash.counterno ", " cash.branchcode='" & k(1) & "' and cash.currencycode='" & k(2) & "' and cash.cashierid=gen.userid", " gen.name")
+            //    dataTable = obj.singlerecordset("cashcountermst cash,genusermst gen", "distinct(cash.cashierid), gen.name, cash.counterno ", " cash.branchcode='" & k(1) & "' and cash.currencycode='" & k(2) & "' and cash.cashierid=gen.userid", " gen.name")
             //elseif left(strtype,8)= "DepAccno" then
             //    k = split(strType, "|")
 
-            //    rs = obj.singlerecordset("DEPMST", "ACCNO,NAME", "branchcode='" & k(1) & "' and currencycode='" & k(2) & "' and GLCODE='" & k(3) & "'")
+            //    dataTable = obj.singlerecordset("DEPMST", "ACCNO,NAME", "branchcode='" & k(1) & "' and currencycode='" & k(2) & "' and GLCODE='" & k(3) & "'")
 
             //elseif left(strtype,8)= "GetAccno" then
             //    k = split(strType, "|")
 
-            //    rs = obj.singlerecordset("DEPMST m ,DEPINTPAYCASHDTLS d ", "m.ACCNO,m.NAME", "d.branchcode='" & k(1) & "' and d.GLCODE='" & k(2) & "' and m.accno = d.accno and m.glcode = d.glcode and m.branchcode = d.branchcode and d.status = 'R' and d.PAIDDATE IS NULL AND d.PAIDBATCHNO IS NULL")
+            //    dataTable = obj.singlerecordset("DEPMST m ,DEPINTPAYCASHDTLS d ", "m.ACCNO,m.NAME", "d.branchcode='" & k(1) & "' and d.GLCODE='" & k(2) & "' and m.accno = d.accno and m.glcode = d.glcode and m.branchcode = d.branchcode and d.status = 'R' and d.PAIDDATE IS NULL AND d.PAIDBATCHNO IS NULL")
 
 
             //elseif left(strtype,11)= "ModDepAccno" then
             //    k = split(strType, "|")
 
-            //    rs = obj.singlerecordset("DEPMST", "ACCNO,NAME", "branchcode='" & k(1) & "' and currencycode='" & k(2) & "' and GLCODE='" & k(3) & "' and STATUS='R' AND TRANSTATUS='P'")
+            //    dataTable = obj.singlerecordset("DEPMST", "ACCNO,NAME", "branchcode='" & k(1) & "' and currencycode='" & k(2) & "' and GLCODE='" & k(3) & "' and STATUS='R' AND TRANSTATUS='P'")
             //elseif left(strtype,17)= "ChgMatInsDepAccno" then
             //    k = split(strType, "|")
 
-            //    rs = obj.singlerecordset("DEPMST", "ACCNO,NAME", "branchcode='" & k(1) & "' and currencycode='" & k(2) & "' and GLCODE='" & k(3) & "' and STATUS='R' AND TRANSTATUS='A'")
+            //    dataTable = obj.singlerecordset("DEPMST", "ACCNO,NAME", "branchcode='" & k(1) & "' and currencycode='" & k(2) & "' and GLCODE='" & k(3) & "' and STATUS='R' AND TRANSTATUS='A'")
 
 
             //    if not hidsearch = "" then
@@ -19459,7 +21447,7 @@ namespace Banking.Services
             //            " UPPER(trim(status)) IN ('R') AND transtatus IN ('A') and name like '%" & Ucase(searchby(1)) & "%' order by	to_number(accno)"
 
 
-            //            rs = objfetch.SingleSelectStat(strsql)
+            //            dataTable = objfetch.SingleSelectStat(strsql)
 
 
             //            else if searchby(0) = "num" then
@@ -19471,7 +21459,7 @@ namespace Banking.Services
             //            " UPPER(trim(status)) IN ('R') AND transtatus IN ('A') and accno like '" & Ucase(searchby(1)) & "%' order by to_number(accno)"
 
 
-            //            rs = objfetch.SingleSelectStat(strsql)
+            //            dataTable = objfetch.SingleSelectStat(strsql)
 
 
             //            end if
@@ -19481,7 +21469,7 @@ namespace Banking.Services
             //elseif left(strtype, 7) = "OtherBr" or left(strtype,10)= "MatOtherBr" or left(strtype,11)= "AutoOtherBr" then
             //    k = split(strType, "|")
 
-            //    rs = obj.singlerecordset("GENOTHERBRANCHMST", "BRANCHCODE,BRANCHNAME", "BANKCODE='" & k(1) & "'")
+            //    dataTable = obj.singlerecordset("GENOTHERBRANCHMST", "BRANCHCODE,BRANCHNAME", "BANKCODE='" & k(1) & "'")
 
 
             //elseif left(strType,12)= "Tellermodule" or left(strType,8)= "Trmodule" then
@@ -19494,10 +21482,10 @@ namespace Banking.Services
             //    strWhcon = " gmt.MODULEID in ('SB','CA','LOAN','MISC','CC','INV','PL','REM')"
 
             //    if left(strType, 8) = "Trmodule" then
-            //        rs = obj.ModuleID(cstr(k(1)), "Y", "", "", strWhcon)
+            //        dataTable = obj.ModuleID(cstr(k(1)), "Y", "", "", strWhcon)
 
             //    else
-            //                rs = obj.ModuleID(cstr(k(1)), "N", "N")
+            //                dataTable = obj.ModuleID(cstr(k(1)), "N", "N")
 
             //    end if
             //elseif left(strType, 9) = "Intmodule" or left(strType,9)= "Remmodule" or left(strType,12)= "MatIntmodule" or left(strType,13)= "AutoIntmodule" then
@@ -19508,7 +21496,7 @@ namespace Banking.Services
             //    k = split(strType, "|")
 
 
-            //    rs = obj.ModuleID(cstr(k(1)), "N", "N")
+            //    dataTable = obj.ModuleID(cstr(k(1)), "N", "N")
 
 
             //elseif left(strType,11)= "Telleraccno"  or left(strType,12)= "Accruedaccno" or left(strType,12)= "Pendingaccno" or left(strType,10)= "Debitaccno" or left(strType,11)= "Creditaccno" or left(strType,14)= "MatTelleraccno" or left(strType,15)= "AutoTelleraccno" or left(strType,12)= "Pendintaccno" then
@@ -19516,7 +21504,7 @@ namespace Banking.Services
 
             //    obj = server.CreateObject("GeneralTranQueries.TransactionQueries")
 
-            //    rs = obj.AccountNumbers(cstr(k(1)), cstr(k(2)), cstr(k(3)), cstr(k(4)))
+            //    dataTable = obj.AccountNumbers(cstr(k(1)), cstr(k(2)), cstr(k(3)), cstr(k(4)))
 
 
             //    if obj.connerror<>"" then
@@ -19530,7 +21518,7 @@ namespace Banking.Services
             //elseif left(strType, 17) = "chgMatTelleraccno" or left(strType,18)= "chgAutoTelleraccno" then
             //    k = split(strType, "|")
 
-            //    rs = obj.singlerecordset(k(2) & "MST", "ACCNO,NAME", "branchcode='" & k(1) & "' and currencycode='" & k(4) & "' and GLCODE='" & k(3) & "' and STATUS='R' AND TRANSTATUS='A'")
+            //    dataTable = obj.singlerecordset(k(2) & "MST", "ACCNO,NAME", "branchcode='" & k(1) & "' and currencycode='" & k(4) & "' and GLCODE='" & k(3) & "' and STATUS='R' AND TRANSTATUS='A'")
 
 
             //    if not hidsearch = "" then
@@ -19545,7 +21533,7 @@ namespace Banking.Services
             //            " UPPER(trim(status)) IN ('R') AND transtatus IN ('A') and name like '%" & Ucase(searchby(1)) & "%' order by to_number(accno)"
 
 
-            //            rs = objfetch.SingleSelectStat(strsql)
+            //            dataTable = objfetch.SingleSelectStat(strsql)
 
 
             //            else if searchby(0) = "num" then
@@ -19557,7 +21545,7 @@ namespace Banking.Services
             //            " UPPER(trim(status)) IN ('R') AND transtatus IN ('A') and accno like '" & Ucase(searchby(1)) & "%' order by to_number(accno)"
 
 
-            //            rs = objfetch.SingleSelectStat(strsql)
+            //            dataTable = objfetch.SingleSelectStat(strsql)
 
 
             //            end if
@@ -19571,10 +21559,10 @@ namespace Banking.Services
             //    if cstr(k(5)) = "1" then
             //        obj = server.CreateObject("GeneralTranQueries.TransactionQueries")
 
-            //        rs = obj.AccountNumbers(cstr(k(1)), cstr(k(2)), cstr(k(3)), cstr(k(4)), "R,P OR A")
+            //        dataTable = obj.AccountNumbers(cstr(k(1)), cstr(k(2)), cstr(k(3)), cstr(k(4)), "R,P OR A")
 
             //    else
-            //                rs = obj.singlerecordset("GENCATEGORYMST", "CATEGORYCODE,NARRATION", "categorycode<>'99'")
+            //                dataTable = obj.singlerecordset("GENCATEGORYMST", "CATEGORYCODE,NARRATION", "categorycode<>'99'")
             //    end if
             //elseif  left(strType, 8) = "STraccno"then
             //    k = split(strtype, "|")
@@ -19582,7 +21570,7 @@ namespace Banking.Services
 
             //    obj = server.CreateObject("GeneralTranQueries.TransactionQueries")
 
-            //    rs = obj.AccountNumbers(cstr(k(1)), cstr(k(2)), cstr(k(3)), cstr(k(4)))
+            //    dataTable = obj.AccountNumbers(cstr(k(1)), cstr(k(2)), cstr(k(3)), cstr(k(4)))
 
             //elseif left(strType,12)= "Tellerglcode" or left(strType,9)= "RemGlcode" or _
             //left(strType, 8) = "Trglcode" or left(strType,15)= "MatTellerglcode" or left(strType,16)= "AutoTellerglcode" or left(strType,12)= "MatRemGlcode" or left(strType,11)= "MatTrglcode" or left(strType,12)= "AutoTrglcode" or left(strType,13)= "AutoRemGlcode" or left(strType,16)= "TrNEFTRTGSglcode" then
@@ -19594,7 +21582,7 @@ namespace Banking.Services
 
             //    if (ucase(cstr(k(2))) = "SCR" and left(strType,8)= "Trglcode") or(ucase(cstr(k(2))) = "SCR" and left(strType, 11) = "MatTrglcode") then
 
-            //        rs = obj.singlerecordset("genglsheetmst", "glcode,Narration", _
+            //        dataTable = obj.singlerecordset("genglsheetmst", "glcode,Narration", _
 
             //        "moduleid='SCR' and trim(branchcode)='" & cstr(k(1)) & "'" & _
 
@@ -19609,13 +21597,13 @@ namespace Banking.Services
             //        strsql = "SELECT glcode,(SELECT gldescription FROM genglmastmst WHERE moduleid = p.moduleid AND glcode = p.glcode AND ROWNUM = 1) gldesc FROM NEFTRTGSTYPEPMT p WHERE moduleid = '" & cstr(k(2)) & "' AND  SUBSTR(trantype,0,4) ='" & cstr(k(3)) & "' AND SUBSTR(TRANTYPE,5,2) = 'OW'"
 
 
-            //rs = objfetch.SingleSelectStat(strsql)
+            //dataTable = objfetch.SingleSelectStat(strsql)
 
 
             //    else
             //                obj = server.CreateObject("GeneralTranQueries.TransactionQueries")
 
-            //        rs = obj.GLCodes(cstr(k(1)), cstr(k(2)))
+            //        dataTable = obj.GLCodes(cstr(k(1)), cstr(k(2)))
 
             //    end if
 
@@ -19626,20 +21614,20 @@ namespace Banking.Services
 
             //        if (ucase(cstr(k(2))) = "SB") or(ucase(cstr(k(2))) = "CA") then
 
-            //            rs = obj.singlerecordset("GenGlMastMst", "glcode,GLDESCRIPTION", "moduleid='" & k(2) & "' AND glcode NOT IN (SELECT overdueglcode FROM " & k(2) & "typemst WHERE overdueglcode IS NOT NULL) AND glcategory='A'")
+            //            dataTable = obj.singlerecordset("GenGlMastMst", "glcode,GLDESCRIPTION", "moduleid='" & k(2) & "' AND glcode NOT IN (SELECT overdueglcode FROM " & k(2) & "typemst WHERE overdueglcode IS NOT NULL) AND glcategory='A'")
 
 
             //        else
             //                obj = server.CreateObject("GeneralTranQueries.TransactionQueries")
 
-            //            rs = obj.GLCodes(cstr(k(1)), cstr(k(2)))
+            //            dataTable = obj.GLCodes(cstr(k(1)), cstr(k(2)))
 
             //        end if
 
 
             //'----------------------------- Deposits
             //elseif left(strType,9)= "GlcodeIns" then
-            //    rs = obj.singlerecordset("GenGlMastMst", _
+            //    dataTable = obj.singlerecordset("GenGlMastMst", _
 
             //                        "distinct glcode,gldescription", "moduleid='DEP'  and " & _
 
@@ -19648,19 +21636,19 @@ namespace Banking.Services
 
 
             //elseif left(strType,6)= "Glcode" then
-            //    rs = obj.singlerecordset("genbanklevelmst", "branchtype", "hierarchy='1'")
+            //    dataTable = obj.singlerecordset("genbanklevelmst", "branchtype", "hierarchy='1'")
 
-            //     if rs.RecordCount > 0 then
+            //     if dataTable.RecordCount > 0 then
             //            dim brType
-            //            brType = rs(0).value
+            //            brType = dataTable(0).value
 
-            //        rs = obj.singlerecordset("genbankbranchmst", "branchcode", "upper(trim(branchtype))='" & ucase(trim(brType)) & "'")
+            //        dataTable = obj.singlerecordset("genbankbranchmst", "branchcode", "upper(trim(branchtype))='" & ucase(trim(brType)) & "'")
 
-            //        if rs.RecordCount > 0 then
+            //        if dataTable.RecordCount > 0 then
             //            dim brCode
-            //            brCode = rs(0).value
+            //            brCode = dataTable(0).value
 
-            //            rs = obj.singlerecordset("genglsheetmst", "glcode,NARRATION", "upper(trim(branchcode))='" & ucase(trim(brCode)) & "' and upper(trim(moduleid))='DEP'")
+            //            dataTable = obj.singlerecordset("genglsheetmst", "glcode,NARRATION", "upper(trim(branchcode))='" & ucase(trim(brCode)) & "' and upper(trim(moduleid))='DEP'")
 
             //        end if
 
@@ -19668,20 +21656,20 @@ namespace Banking.Services
             //elseif left(strType, 5) = "DepGl" then
             //    k = split(strType, "|")
 
-            //    rs = obj.singlerecordset("GenGlsheetmst", _
+            //    dataTable = obj.singlerecordset("GenGlsheetmst", _
 
             //                        "distinct(glcode),narration", "upper(trim(branchcode))='" & k(1) & "' and moduleid='" & k(2) & "'")
             //elseif left(strType,8)= "DepIntTr" then
             //    k = split(strType, "|")
 
-            //    rs = obj.singlerecordset("DEPTYPEMST", _
+            //    dataTable = obj.singlerecordset("DEPTYPEMST", _
 
             //                        "distinct(glcode),narration", "INTPAYPERIODICALLYYN = 'Y' AND status='R'")
 
             //elseif left(strType,10)= "Dep2Glcode" then
             //    k = split(strType, "|")
 
-            //    rs = obj.singlerecordset("GenGlsheetmst", _
+            //    dataTable = obj.singlerecordset("GenGlsheetmst", _
 
             //                        "distinct(glcode),narration", "upper(trim(branchcode))='" & k(1) & "' and moduleid='" & k(2) & "'")
 
@@ -19693,7 +21681,7 @@ namespace Banking.Services
             //    " UPPER(trim(b.branchcode))='" & k(1) & "' AND b.moduleid='" & k(2) & "' AND a.glcode = b.glcode and b.glcode != 104270"
 
 
-            //    rs = objfetch.SingleSelectStat(strsql)
+            //    dataTable = objfetch.SingleSelectStat(strsql)
 
 
 
@@ -19701,28 +21689,28 @@ namespace Banking.Services
             //    k = split(strType, "|")
 
 
-            //    rs = obj.singlerecordset("GenGlsheetmst", _
+            //    dataTable = obj.singlerecordset("GenGlsheetmst", _
 
             //    "distinct(glcode),narration", "upper(trim(branchcode))='" & k(1) & "' and moduleid='" & k(2) & "' and glcode in(select glcode from deptypemst where INSTSYN='N')")
             //elseif left(strType,7)= "DCAccno" then
             //    k = split(strType, "|")
             //   dim str = "branchcode='" & k(1) & "' and currencycode='" & k(2) & "' and glcode = '" & k(3) & "' and applicationdate='" & k(4) & "' and transtatus='A' order by to_number(accno)"
-            //    'rs=obj.singlerecordset(modi & "mst","accno,name",str)
-            //    rs = obj.singlerecordset("depmst", "accno,name", str)
+            //    'dataTable=obj.singlerecordset(modi & "mst","accno,name",str)
+            //    dataTable = obj.singlerecordset("depmst", "accno,name", str)
 
 
             //elseif left(strType,2)= "Gl" then
-            //   ' swetha  rs=obj.singlerecordset("genbanklevelmst","branchtype","hierarchy='1'")
+            //   ' swetha  dataTable=obj.singlerecordset("genbanklevelmst","branchtype","hierarchy='1'")
 
-            //        'if rs.RecordCount>0 then
+            //        'if dataTable.RecordCount>0 then
 
             //            'dim brType
 
-            //           ' brType=rs(0).value
+            //           ' brType=dataTable(0).value
 
-            //        'rs=obj.singlerecordset("genbankbranchmst","branchcode","upper(trim(branchtype))='" & ucase(trim(brType)) & "'")
+            //        'dataTable=obj.singlerecordset("genbankbranchmst","branchcode","upper(trim(branchtype))='" & ucase(trim(brType)) & "'")
 
-            //            'if rs.RecordCount>0 then
+            //            'if dataTable.RecordCount>0 then
 
 
             //            dim brCode
@@ -19732,45 +21720,45 @@ namespace Banking.Services
             //            'loan on deposityn condition is removed said by damodar sir
 
             //            if strDEPCERTIFICATE = "SALUR" then
-            //            rs = obj.singlerecordset("genglsheetmst", "glcode,NARRATION", "upper(trim(branchcode))='" & ucase(trim(brCode)) & "' and upper(trim(moduleid))='DEP' and glcode in(select glcode from deptypemst where  depsubnature   IN ('FST','MIS','FCD') and  (instsyn= 'N' or instsyn is null) and OVERDUEGLCODE is not null and status='R')")
+            //            dataTable = obj.singlerecordset("genglsheetmst", "glcode,NARRATION", "upper(trim(branchcode))='" & ucase(trim(brCode)) & "' and upper(trim(moduleid))='DEP' and glcode in(select glcode from deptypemst where  depsubnature   IN ('FST','MIS','FCD') and  (instsyn= 'N' or instsyn is null) and OVERDUEGLCODE is not null and status='R')")
 
             //            else
 
-            //                rs = obj.singlerecordset("genglsheetmst", "glcode,NARRATION", "upper(trim(branchcode))='" & ucase(trim(brCode)) & "' and upper(trim(moduleid))='DEP' and glcode in(select glcode from deptypemst where (instsyn= 'N' or instsyn is null) and OVERDUEGLCODE is not null and status='R')")
+            //                dataTable = obj.singlerecordset("genglsheetmst", "glcode,NARRATION", "upper(trim(branchcode))='" & ucase(trim(brCode)) & "' and upper(trim(moduleid))='DEP' and glcode in(select glcode from deptypemst where (instsyn= 'N' or instsyn is null) and OVERDUEGLCODE is not null and status='R')")
 
             //            end if
             //elseif left(strType, 9) = "autorengl" then
-            //   ' swetha  rs=obj.singlerecordset("genbanklevelmst","branchtype","hierarchy='1'")
+            //   ' swetha  dataTable=obj.singlerecordset("genbanklevelmst","branchtype","hierarchy='1'")
 
-            //        'if rs.RecordCount>0 then
+            //        'if dataTable.RecordCount>0 then
 
             //            'dim brType
 
-            //           ' brType=rs(0).value
+            //           ' brType=dataTable(0).value
 
-            //        'rs=obj.singlerecordset("genbankbranchmst","branchcode","upper(trim(branchtype))='" & ucase(trim(brType)) & "'")
+            //        'dataTable=obj.singlerecordset("genbankbranchmst","branchcode","upper(trim(branchtype))='" & ucase(trim(brType)) & "'")
 
-            //            'if rs.RecordCount>0 then
+            //            'if dataTable.RecordCount>0 then
 
 
             //            dim brCode
 
             //            brCode = mid(strType, 11)
 
-            //            rs = obj.singlerecordset("genglsheetmst", "glcode,NARRATION", "upper(trim(branchcode))='" & ucase(trim(brCode)) & "' and upper(trim(moduleid))='DEP' and glcode in(select glcode from deptypemst where (instsyn= 'N' or instsyn is null) and AUTORENEWALYN='Y' and status='R')")
+            //            dataTable = obj.singlerecordset("genglsheetmst", "glcode,NARRATION", "upper(trim(branchcode))='" & ucase(trim(brCode)) & "' and upper(trim(moduleid))='DEP' and glcode in(select glcode from deptypemst where (instsyn= 'N' or instsyn is null) and AUTORENEWALYN='Y' and status='R')")
 
             //elseif left(strType,15)= "matinsautorengl" then
 
             //            dim brCode
             //            brCode = mid(strType, 11)
 
-            //            rs = obj.singlerecordset("genglsheetmst", "glcode,NARRATION", "upper(trim(branchcode))='" & ucase(trim(brCode)) & "' and upper(trim(moduleid))='DEP' and glcode in(select glcode from deptypemst where status='R')")
+            //            dataTable = obj.singlerecordset("genglsheetmst", "glcode,NARRATION", "upper(trim(branchcode))='" & ucase(trim(brCode)) & "' and upper(trim(moduleid))='DEP' and glcode in(select glcode from deptypemst where status='R')")
 
 
             //elseif left(strType,11)= "DepClsAccno" then
             //    k = split(strType, "|")
 
-            //    rs = obj.singlerecordset("DEPMST D", "D.ACCNO,D.NAME", "D.branchcode='" & k(1) & "' and " & _
+            //    dataTable = obj.singlerecordset("DEPMST D", "D.ACCNO,D.NAME", "D.branchcode='" & k(1) & "' and " & _
             //"D.currencycode='" & k(2) & "' and D.GLCODE='" & k(3) & "' and " & _
             //"D.STATUS='R' AND D.TRANSTATUS='A' AND D.ACCNO NOT IN(SELECT LINKACCNO FROM GENTEMPTRANSLOG G " & _
             //"WHERE G.LINKMODULEID='DEP' AND G.SERVICEID='4' AND G.SYSTEMGENERATEDYN='Y')")
@@ -19781,7 +21769,7 @@ namespace Banking.Services
 
             //    vAppdate = session("applicationdate")
 
-            //    rs = obj.singlerecordset("DEPMST D", "D.ACCNO,D.NAME", "D.branchcode='" & k(1) & "' and " & _
+            //    dataTable = obj.singlerecordset("DEPMST D", "D.ACCNO,D.NAME", "D.branchcode='" & k(1) & "' and " & _
 
             //    "D.currencycode='" & k(2) & "' and D.GLCODE='" & k(3) & "' and " & _
 
@@ -19802,16 +21790,16 @@ namespace Banking.Services
             //    strCond = "branchcode='" & k(1) & "' and STATUS='R'and currencycode='" & k(2) & "' and GLCODE='" & k(3) & "' and MATURITYDATE>to_date('" & appdate & "') and ACCNO NOT IN (SELECT LINKACCNO FROM GENTEMPTRANSLOG G WHERE G.LINKMODULEID='DEP' AND G.SERVICEID='4' AND G.SYSTEMGENERATEDYN='Y')"
 
 
-            //    rs = obj.singlerecordset("DEPMST", "ACCNO,NAME", cstr(strCond))
+            //    dataTable = obj.singlerecordset("DEPMST", "ACCNO,NAME", cstr(strCond))
 
 
 
             //elseif left(strType,12)= "CustCategory" then
-            //    rs = obj.singlerecordset("GENCATEGORYMST", "Categorycode,narration", "categorycode=categorycode order by NARRATION")
+            //    dataTable = obj.singlerecordset("GENCATEGORYMST", "Categorycode,narration", "categorycode=categorycode order by NARRATION")
             //elseif left(strType,8)= "DbGlcode" then
             //    k = split(strType, "|")
 
-            //    rs = obj.singlerecordset("GenGlMastMst ", _
+            //    dataTable = obj.singlerecordset("GenGlMastMst ", _
 
             //                        "distinct(glcode),gldescription", "(glacctype=3 or glacctype=4) " & _
 
@@ -19819,28 +21807,28 @@ namespace Banking.Services
             //elseif left(strType,8)= "CrGlcode" then
             //    k = split(strType, "|")
 
-            //    rs = obj.singlerecordset("GenGlMastMst ", _
+            //    dataTable = obj.singlerecordset("GenGlMastMst ", _
 
             //                        "distinct(glcode),gldescription", "(glacctype=3 or glacctype=4) " & _
 
             //                        " and glcategory='A'  AND MODULEID='" & K(1) & "' order by gldescription")
             //elseif left(strType,10)= "AIntGlcode" or left(strType,10)= "PIntGlcode" then
             //    k = split(strType, "|")
-            //    rs = obj.singlerecordset("GenGlMastMst ", _
+            //    dataTable = obj.singlerecordset("GenGlMastMst ", _
 
             //                        "distinct(glcode),gldescription", "upper(moduleid)='" & k(1) & "'" & _
 
             //                        "  and glcategory='A'  order by gldescription")
             //elseif left(strType,9)= "PendingGl" then
             //    k = split(strType, "|")
-            //    rs = obj.singlerecordset("GenGlMastMst ", _
+            //    dataTable = obj.singlerecordset("GenGlMastMst ", _
 
             //                        "distinct(glcode),gldescription", "upper(moduleid)='" & k(1) & "'" & _
 
             //                        "  and glcategory='A'  order by gldescription")
             //elseif left(strType,8)= "ODGlcode" then
             //   k = split(strType, "|")
-            //   rs = obj.singlerecordset("GenGlSheetMst ", _
+            //   dataTable = obj.singlerecordset("GenGlSheetMst ", _
 
             //                        "distinct(glcode),narration", "upper(moduleid)='" & k(1) & "'")
             //elseif left(strType,10)= "RDepGlcode" then
@@ -19848,13 +21836,13 @@ namespace Banking.Services
 
             //    k = split(strType, "|")
 
-            //    'rs=obj.GLCodes(cstr(k(1)),cstr(k(2)))
+            //    'dataTable=obj.GLCodes(cstr(k(1)),cstr(k(2)))
 
 
             //   strCond = " upper(moduleid)= 'DEP' and branchcode='" & k(1) & "' and glcode in(select glcode from deptypemst where (instsyn= 'N' OR instsyn is null) AND (unitsyn= 'N' OR unitsyn is null) and status='R')"
 
 
-            //   rs = obj.singlerecordset("GENGLSHEETMST", "distinct(glcode),narration", cstr(strCond))
+            //   dataTable = obj.singlerecordset("GENGLSHEETMST", "distinct(glcode),narration", cstr(strCond))
 
 
             //elseif left(strType,9)= "depGlcode" then
@@ -19864,7 +21852,7 @@ namespace Banking.Services
             //    strsql = "SELECT a.GLCODE, a.NARRATION,b.DEPSUBNATURE FROM GENGLSHEETMST a , deptypemst b WHERE a.moduleid = '" & k(2) & "' AND a.branchcode = '" & k(1) & "' AND a.STATUS = 'R' AND a.glcode =  b.GLCODE"
 
 
-            //    rs = objfetch.SingleSelectStat(strsql)
+            //    dataTable = objfetch.SingleSelectStat(strsql)
 
 
             //elseif left(strType,13)= "DepUnitGlcode" then
@@ -19872,40 +21860,40 @@ namespace Banking.Services
 
             //    k = split(strType, "|")
 
-            //    'rs=obj.GLCodes(cstr(k(1)),cstr(k(2)))
+            //    'dataTable=obj.GLCodes(cstr(k(1)),cstr(k(2)))
 
 
             //   strCond = " upper(moduleid)= 'DEP' and branchcode='" & k(1) & "' and glcode in(select glcode from deptypemst where (intpayperiodicallyyn ='N' and (instsyn= 'N' OR instsyn is null) AND unitsyn='Y') and status='R')"
 
 
-            //   rs = obj.singlerecordset("GENGLSHEETMST", "distinct(glcode),narration", cstr(strCond))
+            //   dataTable = obj.singlerecordset("GENGLSHEETMST", "distinct(glcode),narration", cstr(strCond))
             //elseif left(strType,11)= "RDDepGlcode" then
             //   'obj=server.CreateObject("GeneralTranQueries.TransactionQueries")
 
             //    k = split(strType, "|")
 
-            //    'rs=obj.GLCodes(cstr(k(1)),cstr(k(2)))
+            //    'dataTable=obj.GLCodes(cstr(k(1)),cstr(k(2)))
 
 
             //   strCond = " upper(moduleid)= 'DEP' and branchcode='" & k(1) & "' and glcode in(select glcode from deptypemst where instsyn= 'Y' and status='R')"
-            //   rs = obj.singlerecordset("GENGLSHEETMST", "distinct(glcode),narration", cstr(strCond))
+            //   dataTable = obj.singlerecordset("GENGLSHEETMST", "distinct(glcode),narration", cstr(strCond))
 
             //elseif strType = "ToBranch" then
-            //    rs = obj.singlerecordset("GENBANKBRANCHMST", "Branchcode,narration")
+            //    dataTable = obj.singlerecordset("GENBANKBRANCHMST", "Branchcode,narration")
             //elseif strType = "Service" then
-            //    rs = obj.singlerecordset("DEPMST", "ACCNO,NAME")
+            //    dataTable = obj.singlerecordset("DEPMST", "ACCNO,NAME")
             //elseif strType = "ServiceId" then
             //    dim ser,whcond
             //    whcond = "Code in('1','2')"
 
 
-            //     rs = obj.singlerecordset("GENSERVICETYPESPMT", "CODE,NARRATION", cstr(whcond), "CODE")
+            //     dataTable = obj.singlerecordset("GENSERVICETYPESPMT", "CODE,NARRATION", cstr(whcond), "CODE")
             //     elseif strType = "tdsServiceId" then
             //    dim ser,whcond
             //    whcond = "Code in('1')"
 
 
-            //     rs = obj.singlerecordset("GENSERVICETYPESPMT", "CODE,NARRATION", cstr(whcond), "CODE")
+            //     dataTable = obj.singlerecordset("GENSERVICETYPESPMT", "CODE,NARRATION", cstr(whcond), "CODE")
 
 
             //elseif left(strType,12)= "lienMatAccno" then
@@ -19925,7 +21913,7 @@ namespace Banking.Services
             //    vAppdate & "' and upper(status)='R' and transtatus='A' and ((upper(MATDETAILSYN)='N') or (upper(MATDETAILSYN)) is null) and (upper(LIENSTATUS)='N' or upper(LIENSTATUS) is null) "
             //    end if
 
-            //    rs = obj.singlerecordset("DEPMST", "accno,name", cstr(strWhr))
+            //    dataTable = obj.singlerecordset("DEPMST", "accno,name", cstr(strWhr))
 
 
             //elseif left(strType,15)= "AutoRenMatAccno" then '' auto renewal
@@ -19933,7 +21921,7 @@ namespace Banking.Services
             //vAppdate = session("applicationdate")
             //strsql = "SELECT a.accno,a.name FROM DEPMST a,DEPTYPEMST b WHERE a.ONMATURITY = 'AR' and a.BRANCHCODE='" & trim(k(1)) & "' AND a.CURRENCYCODE='" & cstr(ucase(trim(k(4)))) & "' AND UPPER(trim(a.GLCODE))='" & cstr(ucase(trim(k(3)))) & "' AND a.maturitydate<'" & k(6) & "' AND UPPER(a.status)='R' AND b.INSTSYN = 'N'  AND a.GLCODE=b.glcode AND (UPPER(a.LIENSTATUS)='N' OR UPPER(a.LIENSTATUS) IS NULL) AND a.glcode != 104270"
 
-            //rs = objfetch.SingleSelectStat(strsql)
+            //dataTable = objfetch.SingleSelectStat(strsql)
 
             //elseif left(strType,10)= "TransAccno" then  '' transfer account
             //k = split(strType, "|")
@@ -19945,7 +21933,7 @@ namespace Banking.Services
             //                strsql = "SELECT a.accno,a.name FROM DEPMST a,DEPTYPEMST b,DEPMATURITYINSTDTLS C WHERE a.ONMATURITY = 'TR' and c.MATURITYTYPE = 'TR' and a.BRANCHCODE='" & trim(k(1)) & "' AND a.CURRENCYCODE='" & cstr(ucase(trim(k(4)))) & "' AND UPPER(trim(a.GLCODE))='" & cstr(ucase(trim(k(3)))) & "' AND a.maturitydate<'" & k(6) & "' AND UPPER(a.status)='R' AND b.INSTSYN = 'N'  AND a.GLCODE=b.glcode AND (UPPER(a.LIENSTATUS)='N' OR UPPER(a.LIENSTATUS) IS NULL) AND a.glcode != 104270 AND a.accno = c.accno AND a.glcode = c.glcode AND a.branchcode = c.branchcode AND a.currencycode = c.currencycode"
             //end if
 
-            //rs = objfetch.SingleSelectStat(strsql)
+            //dataTable = objfetch.SingleSelectStat(strsql)
 
             //elseif left(strType,8)= "MatAccno" then
             //    k = split(strType, "|")
@@ -19957,7 +21945,7 @@ namespace Banking.Services
             //    "' and maturitydate<'" & _
             //    vAppdate & "' and upper(status)='R' and transtatus='A' and ((upper(MATDETAILSYN)='N') or (upper(MATDETAILSYN)) is null) and (upper(LIENSTATUS)='N' or upper(LIENSTATUS) is null) "
 
-            //    rs = obj.singlerecordset("DEPMST", "accno,name", cstr(strWhr))
+            //    dataTable = obj.singlerecordset("DEPMST", "accno,name", cstr(strWhr))
 
 
 
@@ -19967,7 +21955,7 @@ namespace Banking.Services
 
             //    strCond = " upper(moduleid)= 'DEP' and glcode in(select glcode from deptypemst where intpayperiodicallyyn ='N' and instsyn= 'N' and status='R')"
 
-            //   rs = obj.singlerecordset("GenGlMastMst", "glcode,GLDESCRIPTION", cstr(strCond))
+            //   dataTable = obj.singlerecordset("GenGlMastMst", "glcode,GLDESCRIPTION", cstr(strCond))
 
 
             //end if

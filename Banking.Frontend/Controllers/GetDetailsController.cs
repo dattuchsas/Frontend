@@ -111,9 +111,33 @@ namespace Banking.Frontend.Controllers
             return Json(item);
         }
 
-        public async Task GenParameter()
+        public async Task<IActionResult> GetGenParameter(string searchString = "")
         {
+            var item = await _getDetailsService.GetGenParameters(searchString);
 
+            return Json(item);
+        }
+
+        public async Task<IActionResult> MinimumBalanceCheck(string searchString = "")
+        {
+            var item = await _getDetailsService.MinimumBalanceCheck(searchString);
+
+            return Json(item);
+        }
+
+        public async Task<IActionResult> GetBalanceDetails(string searchString = "")
+        {
+            var item = await _getDetailsService.GetBalanceDetails(searchString);
+
+            return Json(item);
+        }
+
+        public async Task<IActionResult> GetMessageCount(string searchString = "")
+        {
+            var item = await _getDetailsService.GetMessageCount(searchString, Conversions.ToString(session.GetString(SessionConstants.ApplicationDate)), 
+                Conversions.ToString(session.GetString(SessionConstants.GroupCode)));
+
+            return Json(item);
         }
     }
 }

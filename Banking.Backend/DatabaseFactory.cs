@@ -10,6 +10,8 @@ namespace Banking.Backend
         private string _dataLink = ""; // "@DBLINK"; // TODO: Move to settings if needed
         private readonly OracleRetryHelper _oracleRetryHelper;
         private readonly TransactionalFactory _transactionalFactory;
+        private string strParamFlds = string.Empty;
+        private string strParamVals = string.Empty;
 
         public DatabaseFactory(DatabaseSettings databaseSettings)
         {
@@ -1008,7 +1010,7 @@ namespace Banking.Backend
             DataTable RsGLParam = null!, Rstemp = null!, RSModule = null!;
 
             string strDelimiter = "~";
-            string strTabName = "", strQuery = "", strParamFlds = "", strParamVals = "";
+            string strTabName = "", strQuery = "";
 
             string strModuleCode = ModuleCode.Trim().ToUpper();
             string strGLCode = GLcode.Trim().ToUpper();
@@ -1028,7 +1030,7 @@ namespace Banking.Backend
 
             // Calling private function for Gl Parameters from the Moduleparameter table based on the effective date.
 
-            await ModuleParameterRecord(strTabName);
+            await ModuleParameterRecord(strTabName, "", "", strGLCode, TrannDate, "", "");
 
             string[] skipColumns = { "BRANCHCODE","CURRENCYCODE","MODULEID","GLCODE","EFFECTIVEDATE","STATUS","APPLICATIONDATE","USERID","MACHINEID","VERIFIEDBY",
                 "VERIFIEDMACHINE","APPROVEDBY","APPROVEDMACHINE","SYSTEMDATE" };
@@ -1058,7 +1060,7 @@ namespace Banking.Backend
             string strCondition = " currencycode='" + StrCurCode + "'";
 
             await ParameterRecord("GENTRANTYPEMST", strQuery, "GENTRANTYPEMSTHIST", strCondition, strModuleCode, strGLCode, 
-                StrCurCode, TrannDate, strParamVals, strParamFlds, strDelimiter);
+                StrCurCode, TrannDate, strDelimiter);
 
             // If ConnError<> "Connected" Then GoTo errhand
 
@@ -1099,7 +1101,7 @@ namespace Banking.Backend
             DataTable RsGLParam = null!, Rstemp = null!, RSModule = null!;
             string StrFxMinMAxTab = "", strFxMinMaxFlds, strFxNotinalCat;
 
-            string strTabName = "", strQuery = "", strParamFlds = "", strParamVals = "";
+            string strTabName = "", strQuery = "";
 
             string strDelimiter = "~";
 
@@ -1134,7 +1136,7 @@ namespace Banking.Backend
 
             // Parameter table name retrieved, calling private function for Gl Parameters from the Moduleparameter table based on the effective date.
 
-            await ModuleParameterRecord(strTabName);
+            await ModuleParameterRecord(strTabName, "", "", strGLCode, TrannDate, Accno, strBranchCode);
 
             string[] skipColumns = { "BRANCHCODE","CURRENCYCODE","MODULEID","GLCODE","EFFECTIVEDATE","STATUS","APPLICATIONDATE","USERID","MACHINEID","VERIFIEDBY",
                 "VERIFIEDMACHINE","APPROVEDBY","APPROVEDMACHINE","TRANSTATUS", "SYSTEMDATE", "FCURRENCYCODE" };
@@ -1163,7 +1165,8 @@ namespace Banking.Backend
             strQuery = "CASHDRYN, CASHCRYN, TRANSFERDRYN, TRANSFERCRYN, CLEARINGDRYN, CLEARINGCRYN";
             string strCondition = " currencycode='" + StrCurCode + "'";
 
-            await ParameterRecord("GENTRANTYPEMST", strQuery, "GENTRANTYPEMSTHIST", strCondition);
+            await ParameterRecord("GENTRANTYPEMST", strQuery, "GENTRANTYPEMSTHIST", strCondition, StrModuleCode, strGLCode,
+                StrCurCode, TrannDate, strDelimiter);
 
             strParamTabs = strParamTabs + ",GENTRANTYPEMST";
 
@@ -1272,7 +1275,7 @@ namespace Banking.Backend
             string[] arrModuleQuery;
 
             string strDelimiter = "~";
-            string strQuery = "", strBrCatCode = "", strParamFlds = "", strParamVals = "", TDSYN = "";
+            string strQuery = "", strBrCatCode = "", TDSYN = "";
 
             string StrModuleCode = ModuleCode.Trim().ToUpper();
             string strGLCode = GLcode.Trim().ToUpper();
@@ -1346,7 +1349,8 @@ namespace Banking.Backend
             string strCondition = " (CATEGORYCODE='" + CatCode + "' or CATEGORYCODE='99') and (BRANCHCATCODE='" + strBrCatCode + "' or BRANCHCATCODE='99') and currencycode='" + 
                 strCurCode + "'";
 
-            await ParameterRecord("GENMINMAXBALANCEMST", strQuery, "GENMINMAXBALANCEMSTHIST", strCondition);
+            await ParameterRecord("GENMINMAXBALANCEMST", strQuery, "GENMINMAXBALANCEMSTHIST", strCondition, StrModuleCode, strGLCode,
+                strCurCode, TrannDate, strDelimiter);
 
             strParamTabs = "GENMINMAXBALANCEMST,";
 
@@ -1364,7 +1368,8 @@ namespace Banking.Backend
 
             strCondition = " (CATEGORYCODE='" + CatCode + "' or CATEGORYCODE='99') and (BRANCHCATCODE='" + strBrCatCode + "' or BRANCHCATCODE='99') and currencycode='" + strCurCode + "'";
 
-            await ParameterRecord("GENCHARGESMST", strQuery, "GENCHARGESMSTHIST", strCondition);
+            await ParameterRecord("GENCHARGESMST", strQuery, "GENCHARGESMSTHIST", strCondition, StrModuleCode, strGLCode,
+                strCurCode, TrannDate, strDelimiter);
 
             strParamTabs = strParamTabs + "GENCHARGESMST";
 
@@ -1374,7 +1379,8 @@ namespace Banking.Backend
             if (StrModuleCode == "DEP")
             {
                 strCondition = " (CATEGORYCODE='" + CatCode + "' or CATEGORYCODE='99') and currencycode='" + strCurCode + "'";
-                await ParameterRecord("DEPPENALINTDTLS", "PNLINTPCNT", "DEPPENALINTDTLSHIST", strCondition);
+                await ParameterRecord("DEPPENALINTDTLS", "PNLINTPCNT", "DEPPENALINTDTLSHIST", strCondition, StrModuleCode,
+                    strGLCode, strCurCode, TrannDate, strDelimiter);
                 strParamTabs = strParamTabs + ",DEPPENALINTDTLS";
             }
 
@@ -1450,8 +1456,8 @@ namespace Banking.Backend
         //    return RecordsetCollectionRet;
         //}
 
-        private async Task ModuleParameterRecord(string ModulePMTtable, string ModuleMSTtable = "", string Condition = "", string strGLCode = "", string tranDate = "",
-            string strAccNo = "", string strBranchCode = "")
+        private async Task ModuleParameterRecord(string ModulePMTtable, string ModuleMSTtable = "", string Condition = "", string strGLCode = "", 
+            string tranDate = "", string strAccNo = "", string strBranchCode = "")
         {
             string CatCode = "";
 
@@ -1494,8 +1500,8 @@ namespace Banking.Backend
             //    objErrlog.LogError "GeneralTranQueries", "ModuleParameterRecord", Err.Number, Err.Description
         }
 
-        private async Task ParameterRecord(string PmtDtlsTabName, string PmtFields, string PmtDtlsHistTabName, string Condition, string strModuleCode = "",
-            string strGLCode = "", string strCurCode = "", string tranDate = "", string strParamVals = "", string strParamFlds = "", string strDelimiter = "")
+        private async Task ParameterRecord(string PmtDtlsTabName, string PmtFields, string PmtDtlsHistTabName, string Condition,
+            string strModuleCode = "", string strGLCode = "", string strCurCode = "", string tranDate = "", string strDelimiter = "")
         {
             string strQuery = "";
 

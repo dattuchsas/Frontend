@@ -62,3 +62,4 @@ function BindDropdown(element, list) {
 function HandleAjaxError(error) {
 	console.log(error);
 }
+
