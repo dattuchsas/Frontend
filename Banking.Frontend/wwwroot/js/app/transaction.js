@@ -81,13 +81,6 @@ $(function () {
   //var mode = "ADD";
   //var chkNull = "true";
 
-  //if (vModule == "CLG")
-  //{
-  //  window.document.all['divRadDebit'].style.display = "none";
-  //  window.document.all['divRadCredit'].style.display = "none";
-  //  window.document.all['divRadClg'].style.display = "block";
-  //}
-
   //$("#TransactionMode input[type='checkbox']:checked").on("change click", function () {
   //  TranMode(vMode, bdt);
   //  ModeChange(bdt);
@@ -324,7 +317,7 @@ function ControlOnBlur(txtName) { // , vUserid, vModuleCode, vGLCode, vAccNo, vC
       $("#CheckABB").prop('checked', false);
       // window.document.frmTrans.chkDispAccNo.disabled = true
     }
-    AbbApplDtBr()
+    AbbApplDtBr();
   }
   else if (txtName == "AccountNumber") {
     if (vBranchCode != "" && vModuleCode != "" && vGLCode.trim() != "" && vAccNo != "") {
@@ -1131,6 +1124,21 @@ function GetAccountDetails(vModuleId, vBranchCode, vAccountNumber) {
 
   var kstr = "CHQACCYESNO" + "~" + vModuleId + "~" + st[1] + "~~" + "INR" + "~" + vBranchCode + "~~~" + vAccountNumber + "~";
   // window.document.all['getAccDet'].src = '<%="http://" & session("moduledir")& "/GEN/"%>' + "genParameters.aspx?strparam=" + kstr
+
+  $.ajax({
+    url: '/GetDetails/GetGenParameter',
+    type: 'GET',
+    data: {
+      searchString: kstr
+    },
+    success: function (response) {
+      debugger;
+      ModParamReturn(response);
+    },
+    error: function (err) {
+      HandleAjaxError(err);
+    }
+  });
 }
 
 function SuspenceCallback(kstr) {
@@ -1198,19 +1206,443 @@ function SuspenceCallback(kstr) {
   }
 }
 
+function ModParamReturn(str) {	//alert("md param="+str)
+  var vals = str.split("~");
+  if (vals[0] == "CHQACCYESNO") {
+    if (vals[1] == "Y")
+      $("#CheckCheque").prop("checked", true);
+    else
+      $("#CheckCheque").prop("checked", false);
+    Cheque();
+  }
+}
+
+function Cheque() {
+  if ($("#CheckCheque").is(":checked") == true) {
+    // window.document.all['ChqDtl'].style.display = "block";
+  }
+
+  if ($("#CheckCheque").is(":checked") == false) {
+    $("#ChequeDate").val($("#ApplicationDate").val());
+
+    if (mode != "MODIFY") {
+      excpChqSrs = "";
+      excpChqNo = "";
+    }
+  }
+}
+
+function AbbApplDtBr() {
+  var aBrCode1 = $("#BranchCode").val();
+
+  if (($("#Branch").val().length > 0) && ($("#Branch").val().length != aBrCode1)) { //&& (window.document.frmTrans.Mfgpaydt.Rows > 1)) {
+    if (true) { //window.document.frmTrans.Mfgpaydt.TextMatrix(1, 100) == 'N') {
+      var strpm = "ABBAPPLDATE" + "~" + $("#Branch").val();
+      // window.document.all['iCommon'].src = '<%="http://" & session("moduledir")& "/GEN/"%>' + "minBalChk.aspx?strparam=" + strpm
+
+      $.ajax({
+        url: '/GetDetails/MinimumBalanceCheck',
+        type: 'GET',
+        data: {
+          searchString: strpm
+        },
+        success: function (response) {
+          debugger;
+          AbbApplDtRtn(response);
+        },
+        error: function (err) {
+          HandleAjaxError(err);
+        }
+      });
+
+    }
+  }
+}
+
+function AbbApplDtRtn(appDt) {
+
+  if ((appDt != "NOAPPLDT") || (appDt != "")) {
+    if (appDt != vAppDate) {
+      bankingAlert("Application date of selected Branch should same as Application date of Logged in User's Branch");
+      $("#Branch").val('');
+      $("#CheckABB").prop('checked', false);
+    }
+    else {
+      $("#EffectiveDate").val(appDt);
+
+      //code copied from Branchcode(str) method by Radhika on 19 may 2008 
+      //Reason: Without fetching ABB appl date execution is going on 
+      ClearAlert("Brn");
+      GetBranchParams(window.document.frmTrans.txtbranchcode.value);
+    }
+  }
+  else {
+    bankingAlert("No Application Date set for this Branch");
+    $("#Branch").val('');
+    $("#CheckABB").prop('checked', false);
+  }
+}
+
+function ClearAlert(code) {
+  if (window.document.frmTrans.Mfgpaydt.Rows > 1) {
+    var confm
+    if (code == "Cur") {
+      confm = confirm("Changing of Currency Code  at this stage will clear off already entered data..."
+        + "\n" + "\n" + "Do you want to Continue ?")
+      if (confm == true) {
+        Cancel() // if(confm==false)
+      }
+      else {
+
+        window.document.frmTrans.txtcurrencycode.value = curCode
+        window.document.frmTrans.txtcurrencydesc.value = curDesc
+      }
+    } // vAbbuser.toUpperCase()!="Y"
+    else if ((code == "Brn") && ((window.document.frmTrans.Mfgpaydt.Rows > 1) &&
+      (window.document.frmTrans.Mfgpaydt.TextMatrix(1, 45) == ""))) {
+      confm = confirm("Changing of Branch Code at this stage will clear off already entered data..."
+        + "\n" + "\n" + "Do you want to Continue ?")
+      if (confm == true) {
+        Cancel()   //if(confm==false)
+      }
+      else {
+        window.document.frmTrans.txtbranchcode.value = brCode
+        window.document.frmTrans.txtbranchdesc.value = brDesc
+      }
+    }
+  }
+  else if (vAbbuser.toUpperCase() != "Y") {
+    formClear()
+  }
+}
+
+function GetBranchParams(strBrCode) {
+  var strpm = "";
+  var strBrid = window.document.frmTrans.txtModId.value.toUpperCase();
+  if (strBrCode.length > 0) {
+    strpm = "CHQVALIDPERIODLENDY" + "~" + strBrCode + "~" + strBrid;
+    // window.document.all['iCommon'].src = '<%="http://" & session("moduledir") & "/GEN/"%>' + "minBalChk.aspx?strparam=" + strpm
+  }
+}
+
+function AccountParameters(AccNoOrCatCode, AccOrCat, vModuleId, vAppDate, vBrCode, vCurrencyCode, vGLCode) {
+  debugger;
+  if (vModuleId != "SB" && vModuleId != "CA" && vModuleId != "DEP" && vModuleId != "LOAN" && vModuleId != "CC")
+    return;
+  if ((vBrCode == "") || (vCurrencyCode == "") || (vAppDate == "") || (vModuleId == "") || (strsessionflds[8] == "") ||
+    (vGLCode == "") || (strsessionflds[0] == "") || (AccNoOrCatCode == "")) {
+    return;
+  }
+  var strPrm = "ACCOUNT" + "~" + vModuleId + "~" + vGLCode + "~" + vAppDate + "~" + vCurrencyCode + "~" + vBrCode + "~" + strsessionflds[0] + "~" + strsessionflds[8] + "~" + AccNoOrCatCode + "~" + AccOrCat;
+  // window.document.all['iPrm'].src = '<%="http://" & session("moduledir")& "/GEN/"%>' + "genparameters.aspx?strparam=" + strPrm
+
+  $.ajax({
+    url: '/GetDetails/GetGenParameter',
+    type: 'GET',
+    data: {
+      searchString: strPrm
+    },
+    success: function (response) {
+      debugger;
+      AccountParameterReturn(response);
+    },
+    error: function (err) {
+      HandleAjaxError(err);
+    }
+  });
+}
+
+function AccountParameterReturn(strRslt) {
+  pMinAmt = ""; pMaxAmt = ""; pMinPrdYrs = ""; pMinPrdMons = "";
+  pMinPrdDays = ""; pMaxPrdYrs = ""; pMaxPrdMons = ""; pMaxPrdDays = "";
+  pMultplesOf = "";
+
+  var arrInd
+  if (strRslt == "No Parameters") {
+    alert("No Parameters Specified ")
+    return
+  }
+
+  var parmVal = strRslt.split("~")
+
+  if (parmVal[0] == 0 || parmVal[1] == 0) {
+    alert("No Parameters Specified ")
+    return
+  }
+
+  pMinAmt = parmVal[0]; pMaxAmt = parmVal[1]; pMinPrdYrs = parmVal[2]; pMinPrdMons = parmVal[3];
+  pMinPrdDays = parmVal[4]; pMaxPrdYrs = parmVal[5]; pMaxPrdMons = parmVal[6];
+  pMaxPrdDays = parmVal[7];
+  pMultplesOf = parmVal[83];
+}
+
+function BalanceDetails(vServiceId, vBrCode, vModuleId, vGLCode, vAccNo, vCurrencyCode) {
+  if (eval(vServiceId != "8")) {
+    if (vBrCode > 0 && vCurrencyCode > 0 && vModuleId > 0 && vGLCode > 0 && vAccNo > 0) {
+      var kstr = vBrCode + "~" + vCurrencyCode + "~" + vModuleId + "~" + vGLCode + "~" + vAccNo + "~";
+      if (eval(window.document.frmTrans.txtServiceId.value != "2")) {
+        // window.document.all['iCommon'].src = '<%="http://" & session("moduledir")& "/GEN/"%>' + "balDetDisplay.aspx?kstr=" + kstr
+
+        $.ajax({
+          url: '/GetDetails/GetBalanceDetails',
+          type: 'GET',
+          data: {
+            searchString: kstr
+          },
+          success: function (response) {
+            debugger;
+            Display(response);
+          },
+          error: function (err) {
+            HandleAjaxError(err);
+          }
+        });
+
+      }
+    }
+  }
+
+  //if (eval(vServiceId == "8")) {
+  //  if (vBrCode > 0 && vCurrencyCode > 0 && frmTrans.txtCLGModId.value.length > 0 && frmTrans.txtCLGGLcode.value.length > 0 && frmTrans.txtCLGAccNo.value.length > 0) {
+  //    kstr = vBrCode + "~" + vCurrencyCode + "~" + txtCLGModId.value + "~" + txtCLGGLcode.value + "~" + txtCLGAccNo.value + "~";
+  //    // window.document.all['iCommon'].src = '<%="http://" & session("moduledir")& "/GEN/"%>' + "balDetDisplayret.aspx?kstr=" + kstr
+  //  }
+  //}
+}
+
+function GetPendingInterest(vModuleId, vBrCode, vGLCode, vAccNo) {
+  if ((vModuleId == "LOAN") && ($("#TransactionMode input[type='checkbox']:checked").val() == "Credit")) {
+    st = vBrCode + "|" + "INR" + "|LOAN|" + vGLCode + "|" + vAccNo;
+
+    // window.document.all['idetails'].src = '<%="http://" & session("moduledir")& "/Loan/"%>' + "loanrenewintcalc.aspx?st=" + st;
+  }
+}
+
+function Check206AA206AB(vBrCode, vModuleId, vAccNo, vGLCode) {
+  var st = "Check206AA206AB" + "|" + vBrCode + "|" + vModuleId + "|" + vGLCode + "|" + vAccNo + "|INR";
+  // window.document.all["iBatch"].src = "../GENSBCA/querydisplay.aspx?st=" + st
+}
+
+function SetCCDrCrLienYN(vModuleId, vBrCode, vAccNo, vAppDate, vGLCode) {
+  if ((vModuleId.toUpperCase() != "CC")) {
+    return;
+  }
+  var st = "GETCCDRCRLIENYN|" + vBrCode + "|INR|" + vModuleId.toUpperCase() + "|" + vGLCode + "|" + vAccNo + "|" + vAppDate;
+  // window.document.all['iGetDtls'].src = "getDtls.aspx?st=" + st
+}
+
+//This function was written to display account holder details like Current Balance,... coming from server page
+function Display(kstr) {
+  if (kstr == "") {
+    return;
+  }
+
+  balstr = kstr.split("|");
+
+  if ($("#ModuleCode").val().toUpperCase() != "SCR") {
+    AssignAndShow('ClearBalance', precision(balstr[2], $("#Hidden_Precision").val()));
+  }
+
+  AssignAndShow('GSTIN', (balstr[11] != "0") ? balstr[11] : '');
+  AssignAndShow('UnclearBalance', precision(balstr[1], $("#Hidden_Precision").val()));
+
+  if (eval(balstr[1]) > 0) {
+    lblUnclrbal.href = "#";
+  }
+  else {
+    lblUnclrbal;
+  }
+
+  AssignAndShow('AccountBalance', precision(balstr[0], $("#Hidden_Precision").val()));
+  AssignAndShow('CustomerId', balstr[3]);
+  AssignAndShow('OperatedBy', balstr[4]);
+  AssignAndShow('OperationInstruction', balstr[5]);
+
+  if (($("#ModuleCode").val().toUpperCase() == "SB") || ($("#ModuleCode").val().toUpperCase() == "CA")) {
+    AssignAndShow('PendingBalance', precision(balstr[7], $("#Hidden_Precision").val()));
+    AssignAndShow('TotalCashDebited', parseFloat(balstr[8]).toFixed(2));
+    AssignAndShow('TotalCashCredited', parseFloat(balstr[9]).toFixed(2));
+    $("#Hidden_MaxAmount").val(parseFloat(balstr[10]).toFixed(2));
+  }
+
+  if ($("#ModuleCode").val().toUpperCase() == "PL" || $("#ModuleCode").val().toUpperCase() == "MISC" || $("#ModuleCode").val().toUpperCase() == "BILLS") {
+    AssignAndShow('PendingBalance', precision(balstr[6], $("#Hidden_Precision").val()));
+  }
+
+  if ($("#ModuleCode").val().toUpperCase() == "CC") {
+    AssignAndShow('PendingBalance', precision(balstr[9], $("#Hidden_Precision").val()));
+    AssignAndShow('TotalCashDebited', parseFloat(balstr[10]).toFixed(2));
+    AssignAndShow('TotalCashCredited', parseFloat(balstr[11]).toFixed(2));
+    $("#Hidden_MaxAmount").val(parseFloat(balstr[12]).toFixed(2));
+  }
+
+  if ($("#ModuleCode").val().toUpperCase() == "CC") {
+    AssignAndShow('LimitAmount', precision(balstr[7], $("#Hidden_Precision").val()));
+    AssignAndShow('TODLimit', balstr[13]);
+
+    var avalLmt = parseFloat(parseFloat(balstr[7]) + parseFloat(balstr[13]) + parseFloat(balstr[2])).toFixed(2);
+    AssignAndShow('AvailableLimit', avalLmt);
+
+    AssignAndShow('LimitExpiryDate', balstr[14]);
+
+    if (balstr[15] == "P") {
+      // spannpadispmsg.innerHTML = ""
+    }
+    else {
+      // spannpadispmsg.innerHTML = "Account Is NPA";
+    }
+  }
+
+  strValues = balstr[3];
+
+  // window.document.all['iMsg'].src = '<%="http://" & session("moduledir")& "/GEN/"%>' + "msgcnt.aspx?strVal=" + strValues
+
+  if ($("#ModuleCode").val().toUpperCase() == "LOAN") {
+
+    AssignAndShow('AccountBalance', precision(balstr[0], $("#Hidden_Precision").val()));
+
+    if ($("#TransactionMode").val() == "Credit") {
+      if (isNaN(parseFloat(window.document.frmTrans.txtIntPendAmt.value)) == false) {
+        var loanAccBal = parseFloat(balstr[0]) - parseFloat($("#PendingIntAmount").text());
+        AssignAndShow('AccountBalance', loanAccBal);
+      }
+      else {
+        AssignAndShow('AccountBalance', $("#PendingIntAmount").text());
+        AssignAndShow('PendingIntAmount', precision(0, $("#Hidden_Precision").val()));
+      }
+    }
+
+    AssignAndShow('ClearBalance', precision(balstr[2], $("#Hidden_Precision").val()));
+    AssignAndShow('CustomerId', balstr[3]);
+    AssignAndShow('DisbursementAmount', precision(balstr[8], $("#Hidden_Precision").val()));
+    AssignAndShow('OperatedBy', balstr[4]);
+    AssignAndShow('SanctionAmount', precision(balstr[7], $("#Hidden_Precision").val()));
+    AssignAndShow('UnclearBalance', precision(balstr[1], $("#Hidden_Precision").val()));
+
+    if (eval($("#UnclearBalance").text()) > 0) {
+      lblLoanUnclrbal.href = "#"
+    }
+    else {
+      lblLoanUnclrbal
+    }
+
+    AssignAndShow('AvailableLimit', precision((balstr[7] - balstr[8]), $("#Hidden_Precision").val()));
+    AssignAndShow('PendingBalance', precision(balstr[11], $("#Hidden_Precision").val()));
+
+    if (balstr[12] == "P") {
+      // spannpadispmsg.innerHTML = ""
+    }
+    else {
+      // spannpadispmsg.innerHTML = "Account Is NPA";
+    }
+
+    AssignAndShow('InterestAmount', precision(balstr[13], $("#Hidden_Precision").val()));
+    AssignAndShow('PendingInstallments', balstr[14]);
+  }
+  else if ($("#ModuleCode").val() == "DEP" && $("#ServiceCode").val() != "2") {
+    Deppopaccnodetails();
+  }
+
+  if ($("#TransactionMode").val() == "Credit") {
+    if ($("#ModuleCode").val().toUpperCase() == "SB" || $("#ModuleCode").val().toUpperCase() == "CA") {
+      SetDrCrLienYN();
+    }
+  }
+}
+
+function SetDrCrLienYN() {
+  var strModeDrCr = "";
+
+  if ($("#ModuleCode").val() != "SB" && $("#ModuleCode").val() != "CA") {
+    return;
+  }
+
+  if ($("#TransactionMode").val() == "Debit") {
+    strModeDrCr = "Dr";
+  }
+  else if ($("#TransactionMode").val() == "Credit") {
+    strModeDrCr = "Cr";
+  }
+
+  var st = "GETDRCRLIENYN|" + strModeDrCr + "|" + $("#Branch").val() + "|INR|" + $("#ModuleCode").val() + "|" + $("#GLCode").val() + "|" + $("#AccountNumber").val() + "|" + $("#Amount").val() + "|" + $("#ApplicationDate").val();
+  // window.document.all['iGetDtls'].src = "getDtls.aspx?st=" + st
+
+  $.ajax({
+    url: '/GetDetails/GetDetails',
+    type: 'GET',
+    data: {
+      searchString: st
+    },
+    success: function (response) {
+      debugger;
+      GETDRCRLIENYN1(response);
+    },
+    error: function (err) {
+      HandleAjaxError(err);
+    }
+  });
 
+}
 
+// This function is used to display deposit account details like current amount,maturity amount
+function Deppopaccnodetails() {
 
+  AssignAndShow('RD_OpAmount', precision(balstr[1], $("#Hidden_Precision").val()));
+  AssignAndShow('RD_CurrAmount', precision(balstr[0], $("#Hidden_Precision").val()));
+  AssignAndShow('RD_MaturityAmount', precision(balstr[2], $("#Hidden_Precision").val()));
 
+  var deprendiffamt = eval(window.document.frmTrans.txtDMatAmt.value) - eval(window.document.frmTrans.txtDOpAmt.value);
 
+  AssignAndShow('CustomerId', balstr[3]);
+  AssignAndShow('RD_OpDate', balstr[4]);
 
+  AssignAndShow('RD_EffectiveDate', balstr[5]);
+  AssignAndShow('RD_MaturityDate', balstr[6]);
+  AssignAndShow('OperatedBy', balstr[7]);
+  AssignAndShow('RD_ROI', balstr[8]);
+  AssignAndShow('OperationInstruction', balstr[9]);
 
+  AssignAndShow('RD_IntAccr', precision(balstr[10], $("#Hidden_Precision").val()));
+  AssignAndShow('RD_IntPaidUpto', balstr[10]);
 
+  AssignAndShow('PendingBalance', precision(balstr[12], $("#Hidden_Precision").val()));
 
+  // window.document.all['iMsg'].src = '<%="http://" & session("moduledir")& "/GEN/"%>' + "msgcnt.aspx?strVal=" + strValues
 
+  $.ajax({
+    url: '/GetDetails/GetMessageCount',
+    type: 'GET',
+    data: {
+      searchString: balstr[3]
+    },
+    success: function (response) {
+      debugger;
+      // GETDRCRLIENYN1(response);
+    },
+    error: function (err) {
+      HandleAjaxError(err);
+    }
+  });
 
+}
 
+function GETDRCRLIENYN1(str) {
+  var kStr = str.split("|");
+  if (kStr[1] == "Y") {
+    if ($("#TransactionMode").val() == "Debit") {
+      bankingAlert("This A/c is marked for debit Lien Rs :" + kStr[2]);
+    }
+    else if ($("#TransactionMode").val() == "Credit") {
+      bankingAlert("This A/c is marked for Credit Lien");
+    }
+  }
+  Check206AA206AB();
+}
 
+function AssignAndShow(element, value) {
+  $('"#' + element + '"').text(value);
+  $('".' + element + "'").removeClass('d-none');
+}
 
 
 
@@ -1267,35 +1699,7 @@ function SuspenceCallback(kstr) {
 
 
 
-
-
-
-/****************** Callback Functions ********************/
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+/****************** Unused Functions ********************/
 
 // function for displaying the div "DIVDrCr" tag if service id is '5' - i.e inward clearing
 function CLGDivCrDr() {
@@ -1470,77 +1874,6 @@ function DepDivClear() {
 //  }
 //}
 
-function AccountParameters(AccNoOrCatCode, AccOrCat, vModuleId, vAppDate, vBrCode, vCurrencyCode, vGLCode) {
-  debugger;
-
-  var strPrm = "";
-  if (vModuleId != "SB" && vModuleId != "CA" && vModuleId != "DEP" && vModuleId != "LOAN" && vModuleId != "CC")
-    return;
-  if ((vBrCode == "") || (vCurrencyCode == "") || (vAppDate == "") || (vModuleId == "") || (strsessionflds[8] == "") ||
-    (vGLCode == "") || (strsessionflds[0] == "") || (AccNoOrCatCode == "")) {
-    return;
-  }
-  strPrm = "ACCOUNT" + "~" + vModuleId + "~" + vGLCode + "~" + vAppDate + "~" + vCurrencyCode + "~" + vBrCode + "~" + strsessionflds[0] + "~" + strsessionflds[8] + "~" + AccNoOrCatCode + "~" + AccOrCat;
-  // window.document.all['iPrm'].src = '<%="http://" & session("moduledir")& "/GEN/"%>' + "genparameters.aspx?strparam=" + strPrm
-}
-
-function BalanceDetails(vServiceId, vBrCode, vModuleId, vGLCode, vAccNo, vCurrencyCode) {
-  if (eval(vServiceId != "8")) {
-    if (vBrCode > 0 && vCurrencyCode > 0 && vModuleId > 0 && vGLCode > 0 && vAccNo > 0) {
-      var kstr = vBrCode + "~" + vCurrencyCode + "~" + vModuleId + "~" + vGLCode + "~" + vAccNo + "~";
-      if (eval(window.document.frmTrans.txtServiceId.value != "2")) {
-        // window.document.all['iCommon'].src = '<%="http://" & session("moduledir")& "/GEN/"%>' + "balDetDisplay.aspx?kstr=" + kstr
-      }
-    }
-  }
-
-  //if (eval(vServiceId == "8")) {
-  //  if (vBrCode > 0 &&
-  //    vCurrencyCode > 0 &&
-  //    window.document.frmTrans.txtCLGModId.value.length > 0 &&
-  //    window.document.frmTrans.txtCLGGLcode.value.length > 0 &&
-  //    window.document.frmTrans.txtCLGAccNo.value.length > 0) {
-
-  //    kstr = vBrCode + "~" + vCurrencyCode + "~";
-  //    kstr = kstr + window.document.frmTrans.txtCLGModId.value + "~";
-  //    kstr = kstr + window.document.frmTrans.txtCLGGLcode.value + "~";
-  //    kstr = kstr + window.document.frmTrans.txtCLGAccNo.value + "~";
-
-  //    // window.document.all['iCommon'].src = '<%="http://" & session("moduledir")& "/GEN/"%>' + "balDetDisplayret.aspx?kstr=" + kstr
-  //  }
-  //}
-}
-
-function GetPendingInterest(vModuleId, vBrCode, vGLCode, vAccNo) {
-  if ((vModuleId == "LOAN") && ($("#TransactionMode input[type='checkbox']:checked").val() == "Credit")) {
-    st = vBrCode + "|" + "INR" + "|LOAN|" + vGLCode + "|" + vAccNo;
-
-    // window.document.all['idetails'].src = '<%="http://" & session("moduledir")& "/Loan/"%>' + "loanrenewintcalc.aspx?st=" + st;
-  }
-}
-
-
-
-function Check206AA206AB(vBrCode, vModuleId, vAccNo, vGLCode) {
-  var st = "Check206AA206AB" + "|" + vBrCode + "|" + vModuleId + "|" + vGLCode + "|" + vAccNo + "|INR";
-
-  // window.document.all["iBatch"].src = "../GENSBCA/querydisplay.aspx?st=" + st
-}
-
-function SetCCDrCrLienYN(vModuleId, vBrCode, vAccNo, vAppDate, vGLCode) {
-  if ((vModuleId.toUpperCase() != "CC")) {
-    return;
-  }
-  var st = "GETCCDRCRLIENYN|" + vBrCode + "|INR|" + vModuleId.toUpperCase() + "|" + vGLCode + "|" + vAccNo + "|" + vAppDate;
-  // window.document.all['iGetDtls'].src = "getDtls.aspx?st=" + st
-}
-
-
-
-
-
-
-
 // Account Details
 function AccDetails(vBrCode, vModuleId, vGLCode, vAccNo) {
   if (vBrCode == "") {
@@ -1596,11 +1929,6 @@ function AccDetails(vBrCode, vModuleId, vGLCode, vAccNo) {
 //  document.getElementById("divPhSign").style.display = 'none';
 //}
 
-
-
-
-/*******************************************/
-
 function ServiceCode(vMode, mode) {
   debugger;
   if (((vMode == "REC") || (vMode == "PAY")) && (mode != "MODIFY")) { //&& (window.document.frmTrans.Mfgpaydt.Rows > 1)
@@ -1636,5 +1964,3 @@ function ServiceCode(vMode, mode) {
     }
   });
 }
-
-

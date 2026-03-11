@@ -354,6 +354,80 @@ function bankingModal(response) {
   $("#errorModal").modal('show');
 }
 
+function precision(number, pr) {
+  var i, j, k, n, m, v;
+  var textvalue = number.value;
+  if (number.value) {
+    if (isNaN(number.value)) {
+      bankingAlert("Invalid Amount.");
+      number.value = "";
+      return;
+    }
+  }
+  if (pr.length == 0) {
+    p = 2;
+  }
+  else {
+    p = eval(pr);
+  }
+  j = 0;
+  k = 0;
+  n = 0;
+  if (textvalue == "") {
+    number.value = "0.00";
+    return;
+  }
+  for (i = 1; i < eval(p); i++) {
+    j = j + "0";
+  }
+  m = "." + j;
+  if (textvalue != "") {
+    var dotindex = textvalue.indexOf('.');
+    if (dotindex == -1) {
+      number.value = eval(textvalue) + m;
+      if (number.value > 9999999999999.999) {
+        bankingAlert("Value too large");
+        number.value = "";
+      }
+      else if (number.value == 0) {
+        number.value = "0" + m;
+      }
+      return;
+    }
+    else if (dotindex > -1) {
+      var dotafterchars = textvalue.substring(dotindex + 1);
+      k = dotafterchars.length;
+      if (k < p) {
+        t = eval(p) - eval(k);
+        for (i = 0; i < t - 1; i++) {
+          n = n + "0";
+        }
+        number.value = eval(textvalue);
+        number.value = number.value + n;
+        if (number.value > 9999999999999.999) {
+          bankingAlert("Value too large");
+          number.value = "";
+        }
+        else if (number.value == 0) {
+          number.value = "0" + m;
+        }
+        return;
+      }
+      else {
+        number.value = textvalue.substr(0, dotindex) + textvalue.substr(dotindex, p + 1)
+        if (number.value > 9999999999999.999) {
+          bankingAlert("Value too large");
+          number.value = "";
+        }
+        else if (number.value == 0) {
+          number.value = "0" + m;
+        }
+        return;
+      }
+    }
+  }
+}
+
 
 /******************* Idle Timeout Logic ******************/
 
