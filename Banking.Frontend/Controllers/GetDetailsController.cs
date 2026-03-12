@@ -120,7 +120,7 @@ namespace Banking.Frontend.Controllers
 
         public async Task<IActionResult> MinimumBalanceCheck(string searchString = "")
         {
-            var item = await _getDetailsService.MinimumBalanceCheck(searchString);
+            var item = await _getDetailsService.MinimumBalanceCheck(searchString, Conversions.ToString(session.GetString(SessionConstants.ChequeValidPeriod)));
 
             return Json(item);
         }

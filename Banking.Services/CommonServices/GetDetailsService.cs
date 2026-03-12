@@ -191,7 +191,7 @@ namespace Banking.Services
         public async Task<string> GetDetails(string searchString = "")
         {
             DataTable dataTable = null!;
-            string strResult = string.Empty;
+            string strResult = string.Empty, strErrMessage = "";
             string[] strArr = searchString.Split("|");
 
             if (strArr.Length <= 0)
@@ -210,6 +210,10 @@ namespace Banking.Services
             {
                 strResult = await _generalValidationService.GetSBCADrCrLienYN(strArr[1], strArr[2], strArr[3], strArr[4], strArr[5], strArr[6],
                     Convert.ToDouble(strArr[7]), Convert.ToDateTime(strArr[8]));
+            }
+            else if (strArr[0].Equals("GETCCDRCRLIENYN", StringComparison.OrdinalIgnoreCase))
+            {
+                strResult = await _generalValidationService.GetCCDrCrLienYN(strArr[1], strArr[2], strArr[3], strArr[4], strArr[5], strArr[6]);
             }
 
             return strResult;
@@ -1745,10 +1749,6 @@ namespace Banking.Services
             //        strResult = blnThresHoldCheck
 
 
-            //elseif strArr(0)= "GETCCDRCRLIENYN"  then
-            //        strResult = ""
-
-            //        strResult = objgenval.GetCCDrCrLienYN(strArr(1), strArr(2), strArr(3), strArr(4), strArr(5), strArr(6), strerrMessage)
 
 
             //    elseif strArr(0)= "GETMINPERIOD" then
@@ -12096,6 +12096,86 @@ namespace Banking.Services
                 if (dataTable.Rows.Count > 0)
                     counterNo = Conversions.ToString(dataTable.Rows[0].ItemArray[0]);
             }
+            else if (searchString.Substring(0, 12).Equals("GETMINPERIOD", StringComparison.OrdinalIgnoreCase))
+            {
+                //    st = SPLIT(STR1, "|")
+                //    counterno = ""
+                //    dim intMinDays as integer
+                //    intMinDays = 0
+                //    obj = server.CreateObject("ReportPurposeOnly.Reportonly")
+                //    sqlStr = "SELECT (SELECT APPLICATIONDATE FROM GENAPPLICATIONDATEMST WHERE BRANCHCODE='" & st(1) & "' AND ((DAYBEGINSTATUS='O' AND DAYENDSTATUS='N' AND HODAYBEGINSTATUS='O' AND HODAYENDSTATUS='N') OR (DAYBEGINSTATUS='O' AND DAYENDSTATUS='O' AND HODAYBEGINSTATUS='O' AND HODAYENDSTATUS='N')))-(SELECT ADD_MONTHS((SELECT SANCTIONEDDATE FROM LOANMST WHERE ACCNO='" & st(4) & "' AND GLCODE='" & st(3) & "' AND BRANCHCODE='" & st(1) & "'),(SELECT NVL(MINPERIODMON,0) FROM GENMINMAXBALANCEMST WHERE GLCODE='" & st(3) & "'))+(SELECT NVL(MINPERIODDAYS,0) FROM GENMINMAXBALANCEMST WHERE GLCODE='" & st(3) & "') REQDATE FROM DUAL) FROM DUAL"
+                //    dataTable = obj.SingleSelectStat(sqlStr)
+                //    if obj.ConnError = "Connected" then
+                //        if not dataTable.BOF and not dataTable.EOF then
+                //            intMinDays = cDbl(dataTable(0).value)
+                //        end if
+                //    end if
+                //    dataTable = nothing
+                //    if (intMinDays < 0)
+                //                        sqlStr = "SELECT TO_NUMBER((SELECT ADD_MONTHS(SYSDATE,(SELECT NVL(MINPERIODMON,0) FROM GENMINMAXBALANCEMST WHERE GLCODE='" & st(3) & "'))+(SELECT NVL(MINPERIODDAYS,0) FROM GENMINMAXBALANCEMST WHERE GLCODE='" & st(3) & "') REQDATE FROM DUAL)-SYSDATE)*(SELECT ROI FROM LOANMST WHERE ACCNO='" & st(4) & "' AND GLCODE='" & st(3) & "' AND BRANCHCODE='" & st(1) & "' AND CURRENCYCODE='" & st(2) & "')/36500 FROM DUAL"
+                //        dataTable = obj.SingleSelectStat(sqlStr)
+                //        if obj.ConnError = "Connected" then
+                //            if not dataTable.BOF and not dataTable.EOF then
+                //                counterno = intMinDays & "|" & dataTable(0).value
+                //            end if
+                //        end if
+                //        dataTable = nothing
+                //        sqlStr = "SELECT NVL(SUM(AMOUNT), 0) AMT FROM LOANTRAN WHERE ACCNO='" & st(4) & "' AND GLCODE='" & st(3) & "' AND BRANCHCODE='" & st(1) & "' AND CHQFVG='IC'"
+                //        dataTable = obj.SingleSelectStat(sqlStr)
+                //        if obj.ConnError = "Connected" then
+                //            if not dataTable.BOF and not dataTable.EOF then
+                //                counterno = counterno & "|" & dataTable(0).value
+                //            else
+                //                counterno = counterno & "|0"
+                //            end if
+                //        end if
+                //        dataTable = nothing
+                //    else
+                //                        counterno = intMinDays & "|" & "0|0"
+                //    end if
+            }
+            else if (searchString.Substring(0, 12).Equals("RDMATAMTCALC", StringComparison.OrdinalIgnoreCase))
+            {
+                //    st = SPLIT(STR1, "~")
+                //    vAppdate = session("applicationdate")
+                //    prinamt = st(1)
+                //    years = st(2)
+                //    months = st(3)
+                //    rdmatdate = st(4)
+                //    intrate = st(5)
+                //    days = st(6)
+                //     if years = "" then
+                //        years = 0
+                //     end if
+                //     if months = "" then
+                //        months = 0
+                //     end if
+                //     if days = "" then
+                //        days = 0
+                //     end if
+                //    objMat = server.CreateObject("MaturityValueCalc.MatValue")
+                //     Prd = years & "|" & months & "|" & days
+                //    msg = objMat.GetMaturityvalue(cstr(Prd), cstr(vAppdate), cstr(rdmatdate), cdbl(prinamt), "", "Y", cdbl(intrate))
+                //    counterno = msg
+            }
+            else if (searchString.Substring(0, 8).Equals("Category", StringComparison.OrdinalIgnoreCase))
+            {
+                //        st = SPLIT(STR1, "~!~")
+                //        dataTable = obj.singleRecordSet("SCRCATEGORYMST", "CATEGORYNAME", "branchcode='" & st(1) & "' and  currencycode='" & st(2) & "' and CATEGORYCODE='" & st(3) & "'")
+                //        if not dataTable.EOF and not dataTable.bof then
+                //            counterno = dataTable(0).value
+                //        end if
+            }
+            else if (searchString.Substring(0, 12).Equals("GETMINPERIOD", StringComparison.OrdinalIgnoreCase))
+            {
+            }
+            else if (searchString.Substring(0, 12).Equals("GETMINPERIOD", StringComparison.OrdinalIgnoreCase))
+            {
+            }
+            else if (searchString.Substring(0, 12).Equals("GETMINPERIOD", StringComparison.OrdinalIgnoreCase))
+            {
+            }
+
 
             return counterNo;
 
@@ -12106,183 +12186,31 @@ namespace Banking.Services
 
             // if LEFT(STR1, 8) = "SUSPENCE" then
             // elseif LEFT(STR1,12)= "GETMINPERIOD" then
-            //    st = SPLIT(STR1, "|")
-
-            //    counterno = ""
-
-            //    dim intMinDays as integer
-
-            //    intMinDays = 0
-
-            //    obj = server.CreateObject("ReportPurposeOnly.Reportonly")
-
-            //    sqlStr = "SELECT (SELECT APPLICATIONDATE FROM GENAPPLICATIONDATEMST WHERE BRANCHCODE='" & st(1) & "' AND ((DAYBEGINSTATUS='O' AND DAYENDSTATUS='N' AND HODAYBEGINSTATUS='O' AND HODAYENDSTATUS='N') OR (DAYBEGINSTATUS='O' AND DAYENDSTATUS='O' AND HODAYBEGINSTATUS='O' AND HODAYENDSTATUS='N')))-(SELECT ADD_MONTHS((SELECT SANCTIONEDDATE FROM LOANMST WHERE ACCNO='" & st(4) & "' AND GLCODE='" & st(3) & "' AND BRANCHCODE='" & st(1) & "'),(SELECT NVL(MINPERIODMON,0) FROM GENMINMAXBALANCEMST WHERE GLCODE='" & st(3) & "'))+(SELECT NVL(MINPERIODDAYS,0) FROM GENMINMAXBALANCEMST WHERE GLCODE='" & st(3) & "') REQDATE FROM DUAL) FROM DUAL"
-
-
-            //    dataTable = obj.SingleSelectStat(sqlStr)
-
-            //    if obj.ConnError = "Connected" then
-
-            //        if not dataTable.BOF and not dataTable.EOF then
-
-            //            intMinDays = cDbl(dataTable(0).value)
-
-            //        end if
-
-            //    end if
-
-            //    dataTable = nothing
-
-            //    if (intMinDays < 0)
-            //                        sqlStr = "SELECT TO_NUMBER((SELECT ADD_MONTHS(SYSDATE,(SELECT NVL(MINPERIODMON,0) FROM GENMINMAXBALANCEMST WHERE GLCODE='" & st(3) & "'))+(SELECT NVL(MINPERIODDAYS,0) FROM GENMINMAXBALANCEMST WHERE GLCODE='" & st(3) & "') REQDATE FROM DUAL)-SYSDATE)*(SELECT ROI FROM LOANMST WHERE ACCNO='" & st(4) & "' AND GLCODE='" & st(3) & "' AND BRANCHCODE='" & st(1) & "' AND CURRENCYCODE='" & st(2) & "')/36500 FROM DUAL"
-
-
-            //        dataTable = obj.SingleSelectStat(sqlStr)
-
-            //        if obj.ConnError = "Connected" then
-
-            //            if not dataTable.BOF and not dataTable.EOF then
-
-            //                counterno = intMinDays & "|" & dataTable(0).value
-
-            //            end if
-
-            //        end if
-
-            //        dataTable = nothing
-
-
-            //        sqlStr = "SELECT NVL(SUM(AMOUNT), 0) AMT FROM LOANTRAN WHERE ACCNO='" & st(4) & "' AND GLCODE='" & st(3) & "' AND BRANCHCODE='" & st(1) & "' AND CHQFVG='IC'"
-
-            //        dataTable = obj.SingleSelectStat(sqlStr)
-
-            //        if obj.ConnError = "Connected" then
-
-            //            if not dataTable.BOF and not dataTable.EOF then
-
-            //                counterno = counterno & "|" & dataTable(0).value
-
-            //            else
-            //                counterno = counterno & "|0"
-
-            //            end if
-
-            //        end if
-
-            //        dataTable = nothing
-
-            //    else
-            //                        counterno = intMinDays & "|" & "0|0"
-
-            //    end if
-
-
             // elseif LEFT(STR1, 12) = "RDMATAMTCALC" then
-            //    st = SPLIT(STR1, "~")
-
-            //    vAppdate = session("applicationdate")
-
-            //    prinamt = st(1)
-
-            //    years = st(2)
-
-            //    months = st(3)
-
-            //    rdmatdate = st(4)
-
-            //    intrate = st(5)
-
-            //    days = st(6)
-
-
-
-            //     if years = "" then
-            //        years = 0
-            //     end if
-            //     if months = "" then
-            //        months = 0
-            //     end if
-            //     if days = "" then
-            //        days = 0
-            //     end if
-
-
-            //    'matdate= dateadd("d",cdbl(totdays),cdate(vAppdate)) 
-
-            //    'rdmatdate = format(matdate,"dd-MMM-yyyy")
-
-            //    objMat = server.CreateObject("MaturityValueCalc.MatValue")
-
-
-            //     Prd = years & "|" & months & "|" & days
-
-
-            //    msg = objMat.GetMaturityvalue(cstr(Prd), cstr(vAppdate), cstr(rdmatdate), cdbl(prinamt), "", "Y", cdbl(intrate))
-
-            //    counterno = msg
-
-            //    'response.write(msg)
-            // 'response.write(cstr(Prd) & cstr(vAppdate) & cstr(rdmatdate) & cdbl(prinamt)  & cdbl(intrate))
-            //'response.end
             // elseif LEFT(STR1,8)= "Category" then
-
-            //        st = SPLIT(STR1, "~!~")
-
-
-            //        dataTable = obj.singleRecordSet("SCRCATEGORYMST", "CATEGORYNAME", "branchcode='" & st(1) & "' and  currencycode='" & st(2) & "' and CATEGORYCODE='" & st(3) & "'")
-
-            //        if not dataTable.EOF and not dataTable.bof then
-
-            //            counterno = dataTable(0).value
-
-            //        end if
-
-
-
-            //'--------------------------------------------------------sharath----------------
-
             //'the following condition recieves a query string with tables, display fields and conditions as one string we r spliting it into an array then passing to component 
-
             //elseif Left(strResult,16)= "CombinationQuery" then
             //    st = SPLIT(STR1, "|")
-
             //    myString = st(3)
-
             //    myString = Replace(myString, "~", "%")
-
             //    dataTable = obj.singleRecordSet(st(1), st(2), myString)     'st1,st2,st3 are the tables, fields and conditions respectively
-
             //    if not dataTable.EOF and not dataTable.bof then
-
             //          do while not dataTable.EOF
-
             //            for i = 0 to dataTable.fields.count - 1
-
             //              counterno = counterno & dataTable(i).value & "~"
-
             //            next
-
             //            counterno = counterno & "|"                   ' counterno is a hidden variable holds the dataTable data joined with ~ and | 
-
             //            dataTable.Movenext
-
             //          loop
-
             //        else
             //                    counterno = "NO"
             //     end if
-
             //elseif Left(strResult, 17) = "lCombinationQuery" then
             //        st = SPLIT(STR1, "|")
-
             //        myString = st(3)
-
             //        myString = Replace(myString, "~", "%")
-
             //        myString = Replace(myString, "lm.ACCNO( )", "lm.ACCNO(+)")
-
             //        myString = Replace(myString, "lm.GLCODE( )", "lm.GLCODE(+)")
-
             //        myString = Replace(myString, "lm.BRANCHCODE( )", "lm.BRANCHCODE(+)")
 
             //        myString = Replace(myString, "lm.CURRENCYCODE( )", "lm.CURRENCYCODE(+)")
@@ -13577,54 +13505,24 @@ namespace Banking.Services
             //                cstr(ucase(st(3))) & "' and upper(glcode)='" & _
 
             //                cstr(ucase(st(4))) & "' AND STATUS='R' ORDER BY FROMAMOUNT"
-
-
-            //                'strCond="upper(branchcode)='" & cstr(ucase(st(1))) & "' and upper(currencycode)='" & cstr(ucase(st(2))) & "' and upper(glcode)='" & cstr(ucase(st(4))) & "' and upper(accno)='" & cstr(ucase(st(6))) & "' AND TRANSTATUS='A' AND APPLICATIONDATE BETWEEN '" & cstr(st(7)) & "' AND '" & cstr(st(8)) & "' GROUP BY APPLICATIONDATE ORDER BY APPLICATIONDATE"
-
-
             //                dataTable = nothing
-
-
             //                dataTable = server.CreateObject("adodb.recordset")
-
-
             //                dataTable = Obj.SingleRecordset(cstr(strTab), cstr(strFlds), _
-
             //                                        cstr(strCond))
-
-
             //                if not dataTable.EOF and not dataTable.BOF then
-
-
             //                    do while not dataTable.EOF
-
             //                        strCommRt = strCommRt & dataTable(0).value & "-"
-
             //                        strFrmRt = strFrmRt & dataTable(1).value & "-"
-
             //                        strToRt = strToRt & dataTable(2).value & "-"
-
-
             //                        dataTable.MoveNext()
-
             //                    loop
-
             //                    strRes = strCommRt & "$" & strFrmRt & "$" & strToRt
-
             //                else
             //                strRes = "NoComm"
-
             //                end if
-
-
             //                counterno = counterno & strRes
-
-
             //            end if
-
-
             //        end if
-
             //    else
             //        if COUNTERNO = "" or COUNTERNO = nothing then
             //            COUNTERNO = "NoComm"
@@ -13954,7 +13852,7 @@ namespace Banking.Services
             return strResult;
         }
 
-        public async Task<string> MinimumBalanceCheck(string searchString = "")
+        public async Task<string> MinimumBalanceCheck(string searchString = "", string chequeValidPeriod = "")
         {
             if (string.IsNullOrWhiteSpace(searchString))
                 return string.Empty;
@@ -14017,22 +13915,13 @@ namespace Banking.Services
                     break;
                 case "CHQVALIDPERIODLENDY":
                     {
-                        //        rsBrParam = server.CreateObject("adodb.recordset")
-                        //        objChq = server.CreateObject("queryrecordsets.fetchrecordsets")
-                        //        WhrCond = "upper(trim(BRANCHCODE))='" & ucase(trim(strVal(1))) & "' and MODULEID='" & ucase(trim(strVal(2))) & "'"
-                        //        rsBrParam = objChq.SingleRecordSet("GENMODULETYPESMST", "CHQLENGHT", _
-                        //        cstr(WhrCond))
-                        //        if rsBrParam.eof = false and rsBrParam.bof = false then
-                        //            blnChqNo = session("ChequeValidPeriod")
-                        //            blnChqNo = blnChqNo & "~" & _
-                        //                iif(isdbnull(rsBrParam(0).value), "6", rsBrParam(0).value)
-                        //        else
-                        //                        blnChqNo = "6~6"
-                        //        end if
-                        //        rsBrParam = nothing
-                        //        objChq = nothing
+                        string WhrCond = "upper(trim(BRANCHCODE))='" + strVal[1] + "' and MODULEID='" + strVal[2]!.Trim().ToUpper() + "'";
+                        dataTable = await _databaseFactory.SingleRecordSet("GENMODULETYPESMST", "CHQLENGHT", WhrCond);
+                        if (dataTable.Rows.Count > 0)
+                            return chequeValidPeriod + "~" + (Convert.IsDBNull(Convert.ToString(dataTable.Rows[0].ItemArray[0])) ? "6" : Convert.ToString(dataTable.Rows[0].ItemArray[0]));
+                        else
+                            return "6~6";
                     }
-                    break;
                 case "BALANCEATCASHIER":
                     {
                         //        rsBrParam = server.CreateObject("adodb.recordset")
@@ -15154,24 +15043,13 @@ namespace Banking.Services
                         break;
                 case "CASHGL":
                     {
-                        //       fldnms = "glcode,narration"
-                        //       WhrCond = "upper(branchcode)='" & cstr(ucase(trim(strVal(1)))) & _
-                        //               "' and upper(moduleid)='CASH' and upper(status)='R'"
-
-
-                        //         recGL = server.CreateObject("adodb.recordset")
-                        //         objGL = server.CreateObject("queryrecordsets.fetchrecordsets")
-                        //         recGL = objGL.SingleRecordSet("GENGLSHEETMST", Cstr(fldnms), cstr(WhrCond))
-
-
-                        //           if recGL.RecordCount > 0 then
-                        //              GLcode = recGL(0).value & "~" & recGL(1).value
-                        //              else
-                        //                                                GLcode = "NOGLCODE"
-                        //           end if
-                        //        objGL = nothing
+                        string WhrCond = "upper(branchcode)='" + strVal[1]!.Trim().ToUpper() + "' and upper(moduleid)='CASH' and upper(status)='R'";
+                        dataTable = await _databaseFactory.SingleRecordSet("GENGLSHEETMST", "glcode,narration", WhrCond);
+                        if (dataTable.Rows.Count > 0)
+                            return Conversions.ToString(dataTable.Rows[0].ItemArray[0]) + "~" + Conversions.ToString(dataTable.Rows[0].ItemArray[1]);
+                        else
+                            return "NOGLCODE";
                     }
-                    break;
                 case "LOANTRANTYPE":
                     {
                         //         dim recloantrantype
@@ -15192,56 +15070,27 @@ namespace Banking.Services
                         //         end if
                     }
                         break;
-                case "CLGTYPES":
+                case "CLGTYPES": // TODO: Outward Return Clearing
                     {
-                        //          recClear = server.CreateObject("adodb.recordset")
-                        //         objClear = server.CreateObject("queryrecordsets.fetchrecordsets")
-                        //         recClear = objClear.SingleRecordset("CLGINWARDBATCHDTLS b," & _
+                        //dataTable = await _databaseFactory.SingleRecordSet("CLGINWARDBATCHDTLS b,clgclearingtypepmt c", "distinct(b.clearingtype),c.clearingtype", 
+                        //    "b.clearingtype=c.clearingcode and upper(trim(b.status))='O' and upper(trim(b.branchcode))='" + strVal[1] + "' and upper(trim(b.currencycode))='" + strVal[2] + 
+                        //    "' and b.applicationdate=to_date('" + session("applicationdate") + "','dd-mm-yyyy') and c.branchcode='" + strVal[1] + "' and upper(trim(b.currencycode))='" + 
+                        //    strVal[2] + "'")' and " & _
 
-                        //                                "clgclearingtypepmt c", _
-
-                        //                                "distinct(b.clearingtype),c.clearingtype", _
-
-                        //                                "b.clearingtype=c.clearingcode and upper(trim(b.status))='O' and " & _
-
-                        //                                "upper(trim(b.branchcode))='" & strVal(1) & "' and " & _
-
-                        //                                "upper(trim(b.currencycode))='" & strVal(2) & "' and " & _
-
-                        //                                "b.applicationdate=to_date('" & session("applicationdate") & "','dd-mm-yyyy') and " & _
-
-                        //                                "c.branchcode='" & strVal(1) & "' and " & _
-
-                        //                                "upper(trim(b.currencycode))='" & strVal(2) & "'")' and " & _
-
-                        //                                '"b.clearingtype in (select clearingtype from " & _
-
-                        //                                '"CLGLODGEMENTVOUCHERDTLS  where status='P' and " & _
-
-                        //                                '"presentationdate=to_date('" & session("applicationdate") &"','dd - mm - yyyy') and " & _
-
-                        //                                '"upper(trim(branchcode))='" & strVal(1) &"' and " & _
-
-                        //                                '"upper(trim(currencycode))='" & strVal(2) &"')")
+                        // '"b.clearingtype in (select clearingtype from " & _
+                        // '"CLGLODGEMENTVOUCHERDTLS  where status='P' and " & _
+                        // '"presentationdate=to_date('" & session("applicationdate") &"','dd - mm - yyyy') and " & _
+                        // '"upper(trim(branchcode))='" & strVal(1) &"' and " & _
+                        // '"upper(trim(currencycode))='" & strVal(2) &"')")
 
                         //                                if not recClear.eof and not recClear.bof then
-
                         //                                do until RecClear.EOF
-
                         //                                    ClearingTypes = ClearingTypes & RecClear(0).value & _
-
                         //                                                  "*" & RecClear(1).value & "|"
-
                         //                                    RecClear.MoveNext
                         //                                loop
-
                         //                                end if
-
                         //                            ClearingTypes = ClearingTypes & "~" & RecClear.RecordCount - 1
-
-
-                        // '------------------------------------------------  
-                        // ''----outward return clearing---------------------------------------------------- -
                     }
                     break;
                 case "CLGPARAM":
@@ -15286,27 +15135,18 @@ namespace Banking.Services
                         break;
                 case "RPLMT":
                     {
-                        //         Rfldnms = "Receiptlimit,paymentlimit,tellerpaymentlimit," & _
-                        //                 "tellerreceiptlimit,maxcashlimit"
-                        //         RwhrCond = "upper(branchcode)='" & cstr(ucase(trim(strVal(1)))) & _
-                        //                  "' and upper(currencycode)='" & cstr(ucase(trim(strVal(2)))) & _
-                        //                  "' and upper(cashierid)='" & cstr(ucase(trim(strVal(3)))) & "'"
-
-
-                        //           recLmt = server.CreateObject("adodb.recordset")
-                        //           objLmt = server.CreateObject("queryrecordsets.fetchrecordsets")
-                        //           recLmt = objLmt.SingleRecordset("CASHCOUNTERMST", cstr(Rfldnms), cstr(RwhrCond))
-
-
-                        //            if recLmt.RecordCount > 0 then
-                        //               RLimit = recLmt("Receiptlimit").value & "~" & recLmt("paymentlimit").value & _
-                        //                      "~" & recLmt("tellerreceiptlimit").value & "~" & recLmt("tellerpaymentlimit").value & _
-                        //                      "~" & recLmt("maxcashlimit").value
-                        //            else
-                        //                                                        RLimit = "NORECLMT"
-                        //            end if
+                        string Rfldnms = "Receiptlimit,paymentlimit,tellerpaymentlimit,tellerreceiptlimit,maxcashlimit";
+                        string RwhrCond = "upper(branchcode)='" + strVal[1].Trim().ToUpper() + "' and upper(currencycode)='" + strVal[2].Trim().ToUpper() +
+                            "' and upper(cashierid)='" + strVal[3] + "'";
+                        dataTable = await _databaseFactory.SingleRecordSet("CASHCOUNTERMST", Rfldnms, RwhrCond);
+                        if (dataTable.Rows.Count > 0)
+                        {
+                            DataRow row = dataTable.Rows[0];
+                            return row["Receiptlimit"] + "~" + row["paymentlimit"] + "~" + row["tellerreceiptlimit"] + "~" + row["tellerpaymentlimit"] + "~" + row["maxcashlimit"];
+                        }
+                        else
+                            return "NORECLMT";
                     }
-                        break;
                 case "STDAYLMT":
                     {
                         //        dim rsDat, rs1, rs2, obj1, obj2, obj3, sqlStr, sqlStr1, sqlStr2
@@ -15934,6 +15774,507 @@ namespace Banking.Services
             }
 
             return string.Empty;
+        }
+
+        public void GetDetailsFunction()
+        {
+            //    function Details()
+            //    {
+            //        var type = "<%=strArr(0)%>"
+
+            //    var strResult = "<%=strResult%>"
+
+            //    if (type == "GETSERVICETAX")
+            //            window.attachEvent(window.parent.getResult(strResult))
+
+            //    else if (type == "GETBATCHTRANNO")
+            //            window.attachEvent(window.parent.BatchTranNo(strResult))
+
+            //    else if (type == "GETBANKDESC")
+            //            window.attachEvent(window.parent.bankDesc(strResult))
+
+            //    else if (type == "GETBRANCHDESC")
+            //            window.attachEvent(window.parent.branchDesc(strResult))
+
+            //    else if (type == "GETMEMBER")
+            //            window.attachEvent(window.parent.dispMember(strResult))
+
+            //    else if ((type == "LEAFCHARGE") || (type == "CHARGE") || (type == "NEFTRTGSCOMMCHRGS") || (type == "GetGSTCharges") || (type == "NEFTRTGSCOMMCHRGSTRANS"))
+            //            window.attachEvent(window.parent.dispCharge(strResult))
+
+            //    else if (type == "REMCANCCHARGES")
+            //            window.attachEvent(window.parent.DispRemCancCharges(strResult))
+
+            //    else if (type == "ISSUEBANK")
+            //            window.attachEvent(window.parent.dispBanks(strResult))
+
+            //    else if (type == "GETACCNAME")
+            //            window.attachEvent(window.parent.dispName(strResult))
+
+            //    else if (type == "POSTINTEREST")
+            //            window.attachEvent(window.parent.populateInterest(strResult))
+
+            //    else if (type == "GETCERTIFICATES")
+            //            window.attachEvent(window.parent.dispCertificates(strResult))
+
+            //    else if ((type == "GETSHARENAME") || (type == "GETSHARENAME1"))
+            //            window.attachEvent(window.parent.dispTrName(strResult))
+
+            //    else if (type == "GETINSTRUMENT")
+            //            window.attachEvent(window.parent.printInstrument(strResult))
+
+            //    else if (type == "GETLIEN")
+            //            window.attachEvent(window.parent.lienPop(strResult))
+
+            //    else if (type == "GETMINPERIOD")
+            //            window.attachEvent(window.parent.minPeriod(strResult))
+
+            //    else if (type == "GETJOINTHOLDER")
+            //            window.attachEvent(window.parent.GetJointHolderVal(strResult))
+
+            //    else if (type == "CheckThreshHoldLimit")
+            //            window.attachEvent(window.parent.GetThreshHoldLimit(strResult))
+
+            //    else if (type == "GETCCDRCRLIENYN")
+            //        {
+            //            window.attachEvent(window.parent.GETCCDRCRLIENYN1(strResult))
+
+            //    }
+            //        else if (type == "GETDRCRLIENYN")
+            //        {
+            //            //alert(strResult)
+            //            window.attachEvent(window.parent.GETDRCRLIENYN1(strResult))
+
+            //    }
+            //        else if (type == "GETDRCRLIENAMT")
+            //        {
+            //            //alert(strResult)
+            //            window.attachEvent(window.parent.GETDRCRLIENAMT1(strResult))
+
+            //    }
+            //        else if (type == "GETNEXTGL")
+            //            window.attachEvent(window.parent.popNextGl(strResult))
+
+            //    else if (type == "GETMATDATE")
+            //            window.attachEvent(window.parent.popMatDate(strResult))
+
+            //    else if (type == "GETGROUPCODE")
+            //            window.attachEvent(window.parent.popGroupCode(strResult))
+
+            //    else if (type == "GETMAXSNO")
+            //            window.attachEvent(window.parent.popMaxSno(strResult))
+
+            //    else if (type == "GETAGENTNAME")
+            //            window.attachEvent(window.parent.popAgentName(strResult))
+
+            //    else if (type == "GETAGENTACCNAME")
+            //            window.attachEvent(window.parent.popAgentAccName(strResult))
+
+            //    else if (type == "GETGLACCTYPE")
+            //            window.attachEvent(window.parent.popGlAccType(strResult))
+
+            //    else if (type == "GETPURPOSEDESC")
+            //            window.attachEvent(window.parent.popPurposeDesc(strResult))
+
+            //    else if (type == "GETNOMINEE")
+            //            window.attachEvent(window.parent.popNominee(strResult))
+
+            //    else if (type == "GETUSERDTLS")
+            //            window.attachEvent(window.parent.popUserDtls(strResult))
+
+            //    else if (type == "GETSUBNATURE")
+            //            window.attachEvent(window.parent.popSubnature(strResult))
+
+            //    else if (type == "INSERTUSERDATA")
+            //            window.attachEvent(window.parent.popResult(strResult))
+
+            //    else if (type == "USERCONFIGDATA")
+            //            window.attachEvent(window.parent.popConfigData(strResult))
+
+            //    else if (type == "GETDETAILS")
+            //            window.attachEvent(window.parent.popGetdetail(strResult))
+
+            //    else if (type == "MATDEP")
+            //            window.attachEvent(window.parent.popMatdetail(strResult))
+
+            //    else if (type == "MATDEPXL")
+            //            window.attachEvent(window.parent.popMatdetailXL(strResult))
+
+            //    else if (type == "deltran")
+            //            window.attachEvent(window.parent.popDelTran(strResult))
+
+            //    else if (type == "delabbtran")
+            //            window.attachEvent(window.parent.popDelTran(strResult))
+
+            //    else if (type == "GETCUSTOMERID")
+            //            window.attachEvent(window.parent.popCustId(strResult))
+
+            //    else if (type == "GETCUSTOMERID2")
+            //            window.attachEvent(window.parent.popCustId2(strResult))
+
+            //    else if (type == "GETCUSTOMERID3")
+            //            window.attachEvent(window.parent.popCustId3(strResult))
+
+            //    else if ((type == "GETSCHOOLDESC") || (type == "GETSCHBRANCHDESC") || (type == "GETSTUDENTDESC"))
+            //            window.attachEvent(window.parent.popSchoolDesc(type + "|" + strResult))
+
+            //    else if (type == "GETBRANCHID")
+            //            window.attachEvent(window.parent.popBranchId(strResult))
+
+            //    else if (type == "GETBRANCHDTLS")
+            //            window.attachEvent(window.parent.popBranchDtls(strResult))
+
+            //    else if (type == "GETLOANNPAINT")
+            //            window.attachEvent(window.parent.popLoanNPAInt(strResult))
+
+            //    else if ((type == "GETAMOUNTDTLS") || (type == "GETAMOUNTDTLSBRIFSCCODE") || (type == "GETAMOUNTDTLSLMTAMT"))
+            //            window.attachEvent(window.parent.popAmtDtls(strResult))
+
+            //    else if (type == "GETAMOUNTDTLSBRIFSCCODEMINAMT")
+            //            window.attachEvent(window.parent.popAmtDtls(strResult))
+
+            //    else if (type == "GETSBCADRCRLIENDTLS")
+            //            window.attachEvent(window.parent.GetDRCRLienDtls(strResult))
+
+            //    else if (type == "GETBRIFSCCODE")
+            //            window.attachEvent(window.parent.CheckIFSCCode(strResult))
+
+            //    else if (type == "GETDrMobileNo")
+            //            window.attachEvent(window.parent.popGetDrMobNo(strResult))
+
+            //    else if ((type == "SetMobileNo") || (type == "SetMobileNoNEFTRTGS"))
+            //            window.attachEvent(window.parent.GetMobileNo(strResult))
+
+            //    else if (type == "GETPANDTLS")
+            //            window.attachEvent(window.parent.popPanDtls(strResult))
+
+            //    else if (type == "GETAADHARUIDTLS")
+            //            window.attachEvent(window.parent.popAADHARUIDDtls(strResult))
+
+            //    else if ((type == "QUE15GA") || (type == "QUE15HA") || (type == "QUE15GAN") || (type == "QUE15HAN") || (type == "QUE15GC") || (type == "QUE15GAC") || (type == "QUE15GNC") || (type == "QUE15GNA") || (type == "QUE15HC") || (type == "QUE15HAC") || (type == "QUE15HANC") || (type == "QUE15HANA") || (type == "QUE15HCU") || (type == "QUE15GCU") || (type == "FRMTDS") || (type == "FRMNONTDS"))
+            //            window.attachEvent(window.parent.popD15ghDtls(strResult))
+
+            //    else if (type == "AadharExp")
+            //            window.attachEvent(window.parent.popAadrDtls(strResult))
+
+            //    else if (type == "ToatalAadharRec")
+            //            window.attachEvent(window.parent.popAadrDtls(strResult))
+
+            //    else if (type == "AadharPosted")
+            //            window.attachEvent(window.parent.popAadrDtls(strResult))
+
+            //    else if (type == "AadharNonPosted")
+            //            window.attachEvent(window.parent.popAadrDtls(strResult))
+
+            //    else if (type == "AadhaFileName")
+            //            window.attachEvent(window.parent.popAadrFname(strResult))
+
+            //    else if (type == "AadhaFName")
+            //            window.attachEvent(window.parent.popAadrFilname(strResult))
+
+            //    else if ((type == "Form15G") || (type == "Form15H"))
+            //            window.attachEvent(window.parent.popFrm15G(strResult))
+
+            //    else if (type == "AadharPay")
+            //            window.attachEvent(window.parent.popAadrPay(strResult))
+
+            //    else if ((type == "NORTRAN") || (type == "NORTRANNR") || (type == "NORCAS") || (type == "NORABBTRAN") || (type == "NORABBTRANNR"))
+            //            window.attachEvent(window.parent.popLoandtls(strResult))
+
+            //    else if (type == "CUSTID")
+            //            window.attachEvent(window.parent.popCustid(strResult))
+
+            //    else if ((type == "FRM26TDSCUST") || (type == "FRM26TDSACC") || (type == "FRM2615GHACC") || (type == "FRM2615GHCUST") || (type == "FRM26TDSWISEACC"))
+            //            window.attachEvent(window.parent.popFrm26q(strResult))
+
+            //    else if (type == "TDSREF")
+            //            window.attachEvent(window.parent.popTdsref(strResult))
+
+            //    else if (type == "SLNO")
+            //            window.attachEvent(window.parent.popSlno(strResult))
+
+            //    else if (type == "FRM15GHREP")
+            //            window.attachEvent(window.parent.popTdsRep(strResult))
+
+            //    else if (type == "GETCUSTCHECK")
+            //            window.attachEvent(window.parent.popCuschk(strResult))
+
+            //    else if (type == "GETFROZDTLS")
+            //            window.attachEvent(window.parent.popFrozDtls(strResult))
+
+            //    else if (type == "BalDisplay")
+            //            window.attachEvent(window.parent.popDisplay(strResult))
+
+            //    else if (type == "ShareNotallot")
+            //            window.attachEvent(window.parent.popSharnotallo(strResult))
+
+            //    else if (type == "ShareVal")
+            //            window.attachEvent(window.parent.popSharval(strResult))
+
+            //    else if (type == "REFUNDDTLS")
+            //            window.attachEvent(window.parent.popRefdtls(strResult))
+
+            //    else if (type == "SUBNATURE")
+            //            window.attachEvent(window.parent.popSubnature(strResult))
+
+            //    else if (type == "MANUALDTLS")
+            //            window.attachEvent(window.parent.popManuldtls(strResult))
+
+            //    else if (type == "CLGDTLS")
+            //            window.attachEvent(window.parent.popClgdtls(strResult))
+
+            //    else if (type == "LCKOPDTLS")
+            //            window.attachEvent(window.parent.popLckopdt(strResult))
+
+            //    else if ((type == "FRMTDSACC") || (type == "FRMTDSCUST") || (type == "FRMTDSPAN"))
+            //            window.attachEvent(window.parent.popTDS(strResult))
+
+            //    else if (type == "SALARYDTLS")
+            //            window.attachEvent(window.parent.popSal(strResult))
+
+            //    else if (type == "CASHPOSITION")
+            //            window.attachEvent(window.parent.popCash(strResult))
+
+            //    else if (type == "GETOPDATE")
+            //            window.attachEvent(window.parent.popGetdat(strResult))
+
+            //    else if (type == "NOMREP")
+            //            window.attachEvent(window.parent.popNomdetail(strResult))
+
+            //    else if ((type == "BLCAGENTWISEDET") || (type == "BLCAGENTWISESUM") || (type == "BLCACCWISE") || (type == "BLCAGENTWISETRN"))
+            //            window.attachEvent(window.parent.GetBLCAgentWise(strResult))
+
+            //    else if (type == "GETPAN")
+            //            window.attachEvent(window.parent.popPanno(strResult))
+
+            //    else if ((type == "FRMANUALACC") || (type == "FRMANUALCUST") || (type == "FRMANUALPAN"))
+            //            window.attachEvent(window.parent.popAnual(strResult))
+
+            //    else if (type == "SLNOVALUE")
+            //            window.attachEvent(window.parent.popSlno(strResult))
+
+            //    else if (type == "DATECHECK")
+            //            window.attachEvent(window.parent.popChkdat(strResult))
+
+            //    else if (type == "MONCHK")
+            //            window.attachEvent(window.parent.popMondat(strResult))
+
+            //    else if (type == "AMTCHK")
+            //            window.attachEvent(window.parent.popAmtchk(strResult))
+
+            //    else if (type == "AMOUNTROI")
+            //            window.attachEvent(window.parent.popRoi(strResult))
+
+            //    else if (type == "SALTYP")
+            //            window.attachEvent(window.parent.popSalTyp(strResult))
+
+            //    else if (type == "SALTYPDATA")
+            //            window.attachEvent(window.parent.popSalData(strResult))
+
+            //    else if (type == "PARDATA")
+            //            window.attachEvent(window.parent.popPardat(strResult))
+
+            //    else if (type == "EMPDEDDTLS")
+            //            window.attachEvent(window.parent.popEmpded(strResult))
+
+            //    else if (type == "MEMBERDTLS")
+            //            window.attachEvent(window.parent.popMemdtls(strResult))
+
+            //    else if (type == "CUSTDTLS")
+            //            window.attachEvent(window.parent.popCusdtls(strResult))
+
+            //    else if (type == "FRMINTACRCUST")
+            //            window.attachEvent(window.parent.popIntAcrud(strResult))
+
+            //    else if (type == "USERWISE")
+            //            window.attachEvent(window.parent.popUserRep(strResult))
+
+            //    else if (type == "CDRATIO")
+            //            window.attachEvent(window.parent.popCdrat(strResult))
+
+            //    else if (type == "CRRSLR")
+            //            window.attachEvent(window.parent.popCRRSLRrat(strResult))
+
+            //    else if (type == "REFDETAIL")
+            //            window.attachEvent(window.parent.popRefDtls(strResult))
+
+            //    else if (type == "VALDETAL")
+            //            window.attachEvent(window.parent.popValdtls(strResult))
+
+            //    else if ((type == "CHQSLNO") || (type == "BCSLNO"))
+            //            window.attachEvent(window.parent.popChsl(strResult))
+
+            //    else if (type == "FRMCHQNO")
+            //            window.attachEvent(window.parent.popFrmCh(strResult))
+
+            //    else if (type == "GRIDDETAIL")
+            //            window.attachEvent(window.parent.popGridDtls(strResult))
+
+            //    else if (type == "LOCKADVDTLS")
+            //            window.attachEvent(window.parent.popLokadv(strResult))
+
+            //    else if (type == "DAYREPORT")
+            //            window.attachEvent(window.parent.popDaydetls(strResult))
+
+            //    else if (type == "RUNDETAIL")
+            //            window.attachEvent(window.parent.popRunDtls(strResult))
+
+            //    else if (type == "EMPARDAT")
+            //            window.attachEvent(window.parent.popEmprdat(strResult))
+
+            //    else if (type == "getpendintcashaccname")
+            //            window.attachEvent(window.parent.getpendintcashaccname(strResult))
+
+            //    else if (type == "getpendintcashglname")
+            //            window.attachEvent(window.parent.getpendintcashglname(strResult))
+
+            //    else if (type == "GETCARDDAT")
+            //            window.attachEvent(window.parent.getCard(strResult))
+
+            //    else if ((type == "CARDFILEGEN") || (type == "CARDUPDATFILEGEN"))
+            //            window.attachEvent(window.parent.popCardfile(strResult))
+
+            //    else if (type == "CBSFILES")
+            //            window.attachEvent(window.parent.popCBSFiles(strResult))
+
+            //    else if (type == "CTSCLEAR")
+            //            window.attachEvent(window.parent.popCTSFiles(strResult))
+
+            //    else if (type == "CTSCLEARINWARDRET")
+            //            window.attachEvent(window.parent.popInwardRetCTSFiles(strResult))
+
+            //    else if (type == "CTSCLEARINWANDINWRET")
+            //            window.attachEvent(window.parent.popInwandInwRetCTSFiles(strResult))
+
+            //    else if (type == "ATMCARDTLS")
+            //            window.attachEvent(window.parent.popGridDisplay(strResult))
+
+            //    else if (type == "LOGINOUTDETAIL")
+            //            window.attachEvent(window.parent.popLogDetail(strResult))
+
+            //    else if (type == "HOEODETAILS")
+            //            window.attachEvent(window.parent.popHeodDetail(strResult))
+
+            //    else if (type == "ATMPOSITION")
+            //            window.attachEvent(window.parent.popAtmDetail(strResult))
+
+            //    else if (type == "FRM61REPORT")
+            //            window.attachEvent(window.parent.popFrm61(strResult))
+
+            //    else if (type == "FRMMODREPORT")
+            //            window.attachEvent(window.parent.popMrep(strResult))
+
+            //    else if (type == "CARDREQUEST")
+            //            window.attachEvent(window.parent.popReqcust(strResult))
+
+            //    else if (type == "RTGSNEFTREP")
+            //            window.attachEvent(window.parent.popNftRep(strResult))
+
+            //    else if (type == "SBCADRCRLIEN")
+            //            window.attachEvent(window.parent.popSBCADRCRLIEN(strResult))
+
+            //    else if (type == "NEFTOUTWARD")
+            //            window.attachEvent(window.parent.NEFTOUTWARDREP(strResult))
+
+            //    else if (type == "NEFTINWARD")
+            //            window.attachEvent(window.parent.NEFTINWARDREP(strResult))
+
+            //    else if (type == "RTGSINWARD")
+            //            window.attachEvent(window.parent.RTGSINWARDREP(strResult))
+
+            //    else if (type == "NEFTOUTWARDRETURN")
+            //            window.attachEvent(window.parent.NEFTOUTWARDRETURNREP(strResult))
+
+            //    else if (type == "NEFTINWARDRETURN")
+            //            window.attachEvent(window.parent.NEFTINWARDRETURNREP(strResult))
+
+            //    else if (type == "RTGSINWARDRETURN")
+            //            window.attachEvent(window.parent.RTGSINWARDRETURNREP(strResult))
+
+            //    else if (type == "RTGSOUTWARDRETURN")
+            //            window.attachEvent(window.parent.RTGSOUTWARDRETURNREP(strResult))
+
+            //    else if (type == "RTGSOUTWARD")
+            //            window.attachEvent(window.parent.RTGSOUTWARDREP(strResult))
+
+            //    else if (type == "INOPRDTLS")
+            //            window.attachEvent(window.parent.popIopdtls(strResult))
+
+            //    else if (type == "INOPREPT")
+            //            window.attachEvent(window.parent.popIoprpt(strResult))
+
+            //    else if ((type == "WITHOUTPANDTLS") || (type == "WITHOUTAADHARDTLS") || (type == "BOTHPANNOANDAADHARDTLS") || (type == "WITHOUTBOTHPANNOANDAADHARDTLS"))
+            //            window.attachEvent(window.parent.popPanDtls(strResult))
+
+            //    else if (type == "GSTRCUSTID")
+            //            window.attachEvent(window.parent.popGstrDtls(strResult))
+
+            //    else if (type == "GSTREPORT")
+            //            window.attachEvent(window.parent.popGstrepDtls(strResult))
+
+            //    else if (type == "SERCHCUST")
+            //            window.attachEvent(window.parent.popCustser(strResult))
+
+            //    else if (type == "INTDATE")
+            //            window.attachEvent(window.parent.popIntdat(strResult))
+
+            //    else if (type == "INTRATEDTLS")
+            //            window.attachEvent(window.parent.popIntratdat(strResult))
+
+            //    else if (type == "PHOTOSIGNDTLS")
+            //            window.attachEvent(window.parent.popPhosignDat(strResult))
+
+            //    else if (type == "CHARTYP")
+            //            window.attachEvent(window.parent.popChrgDat(strResult))
+
+            //    else if (type == "CHARREPORT")
+            //            window.attachEvent(window.parent.popRepcharDat(strResult))
+
+            //    else if (type == "DTLSCRD")
+            //            window.attachEvent(window.parent.popDtlscrd(strResult))
+
+            //    else if (type == "TERMINAL")
+            //            window.attachEvent(window.parent.popTerdtls(strResult))
+
+            //    else if (type == "POSRENTDTLS")
+            //            window.attachEvent(window.parent.popPosrentdtls(strResult))
+
+            //    else if (type == "POSRENTGENRAT")
+            //            window.attachEvent(window.parent.popPosrentgent(strResult))
+
+            //    else if (type == "REPORTPOSDTLS")
+            //            window.attachEvent(window.parent.popRepPosdtls(strResult))
+
+            //    else if (type == "POSDTLSREPRT")
+            //            window.attachEvent(window.parent.popRepRentdtls(strResult))
+
+            //    else if (type == "POSISSUEDTLSREPRT")
+            //            window.attachEvent(window.parent.popRepIssudtls(strResult))
+
+            //    else if (type == "MERCHVAL")
+            //            window.attachEvent(window.parent.popMastdtls(strResult))
+
+            //    else if (type == "MODISSUVAL")
+            //            window.attachEvent(window.parent.popModIssudtls(strResult))
+
+            //    else if (type == "MEMDTLS")
+            //            window.attachEvent(window.parent.popMemberdtls(strResult))
+
+            //    else if (type == "NONMEMDTLS")
+            //            window.attachEvent(window.parent.popNonMemberdtls(strResult))
+
+            //    else if (type == "LoanRepayDtls")
+            //            window.attachEvent(window.parent.popLoanRepayDtls(strResult))
+
+            //    else if (type == "LoanRepayAccName")
+            //            window.attachEvent(window.parent.popLoanRepayAccname(strResult))
+
+            //    else if (type == "StmntOfAccChrgs")
+            //            window.attachEvent(window.parent.DispTranMsg(strResult))
+
+            //    window.close()
+
+            //}
         }
 
         public void GetDetails1()
@@ -18474,507 +18815,6 @@ namespace Banking.Services
 
 
 //        end if
-        }
-
-        public void GetDetailsFunction()
-        {
-        //    function Details()
-        //    {
-        //        var type = "<%=strArr(0)%>"
-    
-        //    var strResult = "<%=strResult%>"
-    
-        //    if (type == "GETSERVICETAX")
-        //            window.attachEvent(window.parent.getResult(strResult))
-
-        //    else if (type == "GETBATCHTRANNO")
-        //            window.attachEvent(window.parent.BatchTranNo(strResult))
-
-        //    else if (type == "GETBANKDESC")
-        //            window.attachEvent(window.parent.bankDesc(strResult))
-
-        //    else if (type == "GETBRANCHDESC")
-        //            window.attachEvent(window.parent.branchDesc(strResult))
-
-        //    else if (type == "GETMEMBER")
-        //            window.attachEvent(window.parent.dispMember(strResult))
-
-        //    else if ((type == "LEAFCHARGE") || (type == "CHARGE") || (type == "NEFTRTGSCOMMCHRGS") || (type == "GetGSTCharges") || (type == "NEFTRTGSCOMMCHRGSTRANS"))
-        //            window.attachEvent(window.parent.dispCharge(strResult))
-
-        //    else if (type == "REMCANCCHARGES")
-        //            window.attachEvent(window.parent.DispRemCancCharges(strResult))
-
-        //    else if (type == "ISSUEBANK")
-        //            window.attachEvent(window.parent.dispBanks(strResult))
-
-        //    else if (type == "GETACCNAME")
-        //            window.attachEvent(window.parent.dispName(strResult))
-
-        //    else if (type == "POSTINTEREST")
-        //            window.attachEvent(window.parent.populateInterest(strResult))
-
-        //    else if (type == "GETCERTIFICATES")
-        //            window.attachEvent(window.parent.dispCertificates(strResult))
-
-        //    else if ((type == "GETSHARENAME") || (type == "GETSHARENAME1"))
-        //            window.attachEvent(window.parent.dispTrName(strResult))
-
-        //    else if (type == "GETINSTRUMENT")
-        //            window.attachEvent(window.parent.printInstrument(strResult))
-
-        //    else if (type == "GETLIEN")
-        //            window.attachEvent(window.parent.lienPop(strResult))
-
-        //    else if (type == "GETMINPERIOD")
-        //            window.attachEvent(window.parent.minPeriod(strResult))
-
-        //    else if (type == "GETJOINTHOLDER")
-        //            window.attachEvent(window.parent.GetJointHolderVal(strResult))
-
-        //    else if (type == "CheckThreshHoldLimit")
-        //            window.attachEvent(window.parent.GetThreshHoldLimit(strResult))
-
-        //    else if (type == "GETCCDRCRLIENYN")
-        //        {
-        //            window.attachEvent(window.parent.GETCCDRCRLIENYN1(strResult))
-
-        //    }
-        //        else if (type == "GETDRCRLIENYN")
-        //        {
-        //            //alert(strResult)
-        //            window.attachEvent(window.parent.GETDRCRLIENYN1(strResult))
-    
-        //    }
-        //        else if (type == "GETDRCRLIENAMT")
-        //        {
-        //            //alert(strResult)
-        //            window.attachEvent(window.parent.GETDRCRLIENAMT1(strResult))
-    
-        //    }
-        //        else if (type == "GETNEXTGL")
-        //            window.attachEvent(window.parent.popNextGl(strResult))
-    
-        //    else if (type == "GETMATDATE")
-        //            window.attachEvent(window.parent.popMatDate(strResult))
-
-        //    else if (type == "GETGROUPCODE")
-        //            window.attachEvent(window.parent.popGroupCode(strResult))
-
-        //    else if (type == "GETMAXSNO")
-        //            window.attachEvent(window.parent.popMaxSno(strResult))
-
-        //    else if (type == "GETAGENTNAME")
-        //            window.attachEvent(window.parent.popAgentName(strResult))
-
-        //    else if (type == "GETAGENTACCNAME")
-        //            window.attachEvent(window.parent.popAgentAccName(strResult))
-
-        //    else if (type == "GETGLACCTYPE")
-        //            window.attachEvent(window.parent.popGlAccType(strResult))
-
-        //    else if (type == "GETPURPOSEDESC")
-        //            window.attachEvent(window.parent.popPurposeDesc(strResult))
-
-        //    else if (type == "GETNOMINEE")
-        //            window.attachEvent(window.parent.popNominee(strResult))
-
-        //    else if (type == "GETUSERDTLS")
-        //            window.attachEvent(window.parent.popUserDtls(strResult))
-
-        //    else if (type == "GETSUBNATURE")
-        //            window.attachEvent(window.parent.popSubnature(strResult))
-
-        //    else if (type == "INSERTUSERDATA")
-        //            window.attachEvent(window.parent.popResult(strResult))
-
-        //    else if (type == "USERCONFIGDATA")
-        //            window.attachEvent(window.parent.popConfigData(strResult))
-
-        //    else if (type == "GETDETAILS")
-        //            window.attachEvent(window.parent.popGetdetail(strResult))
-
-        //    else if (type == "MATDEP")
-        //            window.attachEvent(window.parent.popMatdetail(strResult))
-
-        //    else if (type == "MATDEPXL")
-        //            window.attachEvent(window.parent.popMatdetailXL(strResult))
-
-        //    else if (type == "deltran")
-        //            window.attachEvent(window.parent.popDelTran(strResult))
-
-        //    else if (type == "delabbtran")
-        //            window.attachEvent(window.parent.popDelTran(strResult))
-
-        //    else if (type == "GETCUSTOMERID")
-        //            window.attachEvent(window.parent.popCustId(strResult))
-
-        //    else if (type == "GETCUSTOMERID2")
-        //            window.attachEvent(window.parent.popCustId2(strResult))
-
-        //    else if (type == "GETCUSTOMERID3")
-        //            window.attachEvent(window.parent.popCustId3(strResult))
-
-        //    else if ((type == "GETSCHOOLDESC") || (type == "GETSCHBRANCHDESC") || (type == "GETSTUDENTDESC"))
-        //            window.attachEvent(window.parent.popSchoolDesc(type + "|" + strResult))
-
-        //    else if (type == "GETBRANCHID")
-        //            window.attachEvent(window.parent.popBranchId(strResult))
-
-        //    else if (type == "GETBRANCHDTLS")
-        //            window.attachEvent(window.parent.popBranchDtls(strResult))
-
-        //    else if (type == "GETLOANNPAINT")
-        //            window.attachEvent(window.parent.popLoanNPAInt(strResult))
-
-        //    else if ((type == "GETAMOUNTDTLS") || (type == "GETAMOUNTDTLSBRIFSCCODE") || (type == "GETAMOUNTDTLSLMTAMT"))
-        //            window.attachEvent(window.parent.popAmtDtls(strResult))
-
-        //    else if (type == "GETAMOUNTDTLSBRIFSCCODEMINAMT")
-        //            window.attachEvent(window.parent.popAmtDtls(strResult))
-
-        //    else if (type == "GETSBCADRCRLIENDTLS")
-        //            window.attachEvent(window.parent.GetDRCRLienDtls(strResult))
-
-        //    else if (type == "GETBRIFSCCODE")
-        //            window.attachEvent(window.parent.CheckIFSCCode(strResult))
-
-        //    else if (type == "GETDrMobileNo")
-        //            window.attachEvent(window.parent.popGetDrMobNo(strResult))
-
-        //    else if ((type == "SetMobileNo") || (type == "SetMobileNoNEFTRTGS"))
-        //            window.attachEvent(window.parent.GetMobileNo(strResult))
-
-        //    else if (type == "GETPANDTLS")
-        //            window.attachEvent(window.parent.popPanDtls(strResult))
-
-        //    else if (type == "GETAADHARUIDTLS")
-        //            window.attachEvent(window.parent.popAADHARUIDDtls(strResult))
-
-        //    else if ((type == "QUE15GA") || (type == "QUE15HA") || (type == "QUE15GAN") || (type == "QUE15HAN") || (type == "QUE15GC") || (type == "QUE15GAC") || (type == "QUE15GNC") || (type == "QUE15GNA") || (type == "QUE15HC") || (type == "QUE15HAC") || (type == "QUE15HANC") || (type == "QUE15HANA") || (type == "QUE15HCU") || (type == "QUE15GCU") || (type == "FRMTDS") || (type == "FRMNONTDS"))
-        //            window.attachEvent(window.parent.popD15ghDtls(strResult))
-
-        //    else if (type == "AadharExp")
-        //            window.attachEvent(window.parent.popAadrDtls(strResult))
-
-        //    else if (type == "ToatalAadharRec")
-        //            window.attachEvent(window.parent.popAadrDtls(strResult))
-
-        //    else if (type == "AadharPosted")
-        //            window.attachEvent(window.parent.popAadrDtls(strResult))
-
-        //    else if (type == "AadharNonPosted")
-        //            window.attachEvent(window.parent.popAadrDtls(strResult))
-
-        //    else if (type == "AadhaFileName")
-        //            window.attachEvent(window.parent.popAadrFname(strResult))
-
-        //    else if (type == "AadhaFName")
-        //            window.attachEvent(window.parent.popAadrFilname(strResult))
-
-        //    else if ((type == "Form15G") || (type == "Form15H"))
-        //            window.attachEvent(window.parent.popFrm15G(strResult))
-
-        //    else if (type == "AadharPay")
-        //            window.attachEvent(window.parent.popAadrPay(strResult))
-
-        //    else if ((type == "NORTRAN") || (type == "NORTRANNR") || (type == "NORCAS") || (type == "NORABBTRAN") || (type == "NORABBTRANNR"))
-        //            window.attachEvent(window.parent.popLoandtls(strResult))
-
-        //    else if (type == "CUSTID")
-        //            window.attachEvent(window.parent.popCustid(strResult))
-
-        //    else if ((type == "FRM26TDSCUST") || (type == "FRM26TDSACC") || (type == "FRM2615GHACC") || (type == "FRM2615GHCUST") || (type == "FRM26TDSWISEACC"))
-        //            window.attachEvent(window.parent.popFrm26q(strResult))
-
-        //    else if (type == "TDSREF")
-        //            window.attachEvent(window.parent.popTdsref(strResult))
-
-        //    else if (type == "SLNO")
-        //            window.attachEvent(window.parent.popSlno(strResult))
-
-        //    else if (type == "FRM15GHREP")
-        //            window.attachEvent(window.parent.popTdsRep(strResult))
-
-        //    else if (type == "GETCUSTCHECK")
-        //            window.attachEvent(window.parent.popCuschk(strResult))
-
-        //    else if (type == "GETFROZDTLS")
-        //            window.attachEvent(window.parent.popFrozDtls(strResult))
-
-        //    else if (type == "BalDisplay")
-        //            window.attachEvent(window.parent.popDisplay(strResult))
-
-        //    else if (type == "ShareNotallot")
-        //            window.attachEvent(window.parent.popSharnotallo(strResult))
-
-        //    else if (type == "ShareVal")
-        //            window.attachEvent(window.parent.popSharval(strResult))
-
-        //    else if (type == "REFUNDDTLS")
-        //            window.attachEvent(window.parent.popRefdtls(strResult))
-
-        //    else if (type == "SUBNATURE")
-        //            window.attachEvent(window.parent.popSubnature(strResult))
-
-        //    else if (type == "MANUALDTLS")
-        //            window.attachEvent(window.parent.popManuldtls(strResult))
-
-        //    else if (type == "CLGDTLS")
-        //            window.attachEvent(window.parent.popClgdtls(strResult))
-
-        //    else if (type == "LCKOPDTLS")
-        //            window.attachEvent(window.parent.popLckopdt(strResult))
-
-        //    else if ((type == "FRMTDSACC") || (type == "FRMTDSCUST") || (type == "FRMTDSPAN"))
-        //            window.attachEvent(window.parent.popTDS(strResult))
-
-        //    else if (type == "SALARYDTLS")
-        //            window.attachEvent(window.parent.popSal(strResult))
-
-        //    else if (type == "CASHPOSITION")
-        //            window.attachEvent(window.parent.popCash(strResult))
-
-        //    else if (type == "GETOPDATE")
-        //            window.attachEvent(window.parent.popGetdat(strResult))
-
-        //    else if (type == "NOMREP")
-        //            window.attachEvent(window.parent.popNomdetail(strResult))
-
-        //    else if ((type == "BLCAGENTWISEDET") || (type == "BLCAGENTWISESUM") || (type == "BLCACCWISE") || (type == "BLCAGENTWISETRN"))
-        //            window.attachEvent(window.parent.GetBLCAgentWise(strResult))
-
-        //    else if (type == "GETPAN")
-        //            window.attachEvent(window.parent.popPanno(strResult))
-
-        //    else if ((type == "FRMANUALACC") || (type == "FRMANUALCUST") || (type == "FRMANUALPAN"))
-        //            window.attachEvent(window.parent.popAnual(strResult))
-
-        //    else if (type == "SLNOVALUE")
-        //            window.attachEvent(window.parent.popSlno(strResult))
-
-        //    else if (type == "DATECHECK")
-        //            window.attachEvent(window.parent.popChkdat(strResult))
-
-        //    else if (type == "MONCHK")
-        //            window.attachEvent(window.parent.popMondat(strResult))
-
-        //    else if (type == "AMTCHK")
-        //            window.attachEvent(window.parent.popAmtchk(strResult))
-
-        //    else if (type == "AMOUNTROI")
-        //            window.attachEvent(window.parent.popRoi(strResult))
-
-        //    else if (type == "SALTYP")
-        //            window.attachEvent(window.parent.popSalTyp(strResult))
-
-        //    else if (type == "SALTYPDATA")
-        //            window.attachEvent(window.parent.popSalData(strResult))
-
-        //    else if (type == "PARDATA")
-        //            window.attachEvent(window.parent.popPardat(strResult))
-
-        //    else if (type == "EMPDEDDTLS")
-        //            window.attachEvent(window.parent.popEmpded(strResult))
-
-        //    else if (type == "MEMBERDTLS")
-        //            window.attachEvent(window.parent.popMemdtls(strResult))
-
-        //    else if (type == "CUSTDTLS")
-        //            window.attachEvent(window.parent.popCusdtls(strResult))
-
-        //    else if (type == "FRMINTACRCUST")
-        //            window.attachEvent(window.parent.popIntAcrud(strResult))
-
-        //    else if (type == "USERWISE")
-        //            window.attachEvent(window.parent.popUserRep(strResult))
-
-        //    else if (type == "CDRATIO")
-        //            window.attachEvent(window.parent.popCdrat(strResult))
-
-        //    else if (type == "CRRSLR")
-        //            window.attachEvent(window.parent.popCRRSLRrat(strResult))
-
-        //    else if (type == "REFDETAIL")
-        //            window.attachEvent(window.parent.popRefDtls(strResult))
-
-        //    else if (type == "VALDETAL")
-        //            window.attachEvent(window.parent.popValdtls(strResult))
-
-        //    else if ((type == "CHQSLNO") || (type == "BCSLNO"))
-        //            window.attachEvent(window.parent.popChsl(strResult))
-
-        //    else if (type == "FRMCHQNO")
-        //            window.attachEvent(window.parent.popFrmCh(strResult))
-
-        //    else if (type == "GRIDDETAIL")
-        //            window.attachEvent(window.parent.popGridDtls(strResult))
-
-        //    else if (type == "LOCKADVDTLS")
-        //            window.attachEvent(window.parent.popLokadv(strResult))
-
-        //    else if (type == "DAYREPORT")
-        //            window.attachEvent(window.parent.popDaydetls(strResult))
-
-        //    else if (type == "RUNDETAIL")
-        //            window.attachEvent(window.parent.popRunDtls(strResult))
-
-        //    else if (type == "EMPARDAT")
-        //            window.attachEvent(window.parent.popEmprdat(strResult))
-
-        //    else if (type == "getpendintcashaccname")
-        //            window.attachEvent(window.parent.getpendintcashaccname(strResult))
-
-        //    else if (type == "getpendintcashglname")
-        //            window.attachEvent(window.parent.getpendintcashglname(strResult))
-
-        //    else if (type == "GETCARDDAT")
-        //            window.attachEvent(window.parent.getCard(strResult))
-
-        //    else if ((type == "CARDFILEGEN") || (type == "CARDUPDATFILEGEN"))
-        //            window.attachEvent(window.parent.popCardfile(strResult))
-
-        //    else if (type == "CBSFILES")
-        //            window.attachEvent(window.parent.popCBSFiles(strResult))
-
-        //    else if (type == "CTSCLEAR")
-        //            window.attachEvent(window.parent.popCTSFiles(strResult))
-
-        //    else if (type == "CTSCLEARINWARDRET")
-        //            window.attachEvent(window.parent.popInwardRetCTSFiles(strResult))
-
-        //    else if (type == "CTSCLEARINWANDINWRET")
-        //            window.attachEvent(window.parent.popInwandInwRetCTSFiles(strResult))
-
-        //    else if (type == "ATMCARDTLS")
-        //            window.attachEvent(window.parent.popGridDisplay(strResult))
-
-        //    else if (type == "LOGINOUTDETAIL")
-        //            window.attachEvent(window.parent.popLogDetail(strResult))
-
-        //    else if (type == "HOEODETAILS")
-        //            window.attachEvent(window.parent.popHeodDetail(strResult))
-
-        //    else if (type == "ATMPOSITION")
-        //            window.attachEvent(window.parent.popAtmDetail(strResult))
-
-        //    else if (type == "FRM61REPORT")
-        //            window.attachEvent(window.parent.popFrm61(strResult))
-
-        //    else if (type == "FRMMODREPORT")
-        //            window.attachEvent(window.parent.popMrep(strResult))
-
-        //    else if (type == "CARDREQUEST")
-        //            window.attachEvent(window.parent.popReqcust(strResult))
-
-        //    else if (type == "RTGSNEFTREP")
-        //            window.attachEvent(window.parent.popNftRep(strResult))
-
-        //    else if (type == "SBCADRCRLIEN")
-        //            window.attachEvent(window.parent.popSBCADRCRLIEN(strResult))
-
-        //    else if (type == "NEFTOUTWARD")
-        //            window.attachEvent(window.parent.NEFTOUTWARDREP(strResult))
-
-        //    else if (type == "NEFTINWARD")
-        //            window.attachEvent(window.parent.NEFTINWARDREP(strResult))
-
-        //    else if (type == "RTGSINWARD")
-        //            window.attachEvent(window.parent.RTGSINWARDREP(strResult))
-
-        //    else if (type == "NEFTOUTWARDRETURN")
-        //            window.attachEvent(window.parent.NEFTOUTWARDRETURNREP(strResult))
-
-        //    else if (type == "NEFTINWARDRETURN")
-        //            window.attachEvent(window.parent.NEFTINWARDRETURNREP(strResult))
-
-        //    else if (type == "RTGSINWARDRETURN")
-        //            window.attachEvent(window.parent.RTGSINWARDRETURNREP(strResult))
-
-        //    else if (type == "RTGSOUTWARDRETURN")
-        //            window.attachEvent(window.parent.RTGSOUTWARDRETURNREP(strResult))
-
-        //    else if (type == "RTGSOUTWARD")
-        //            window.attachEvent(window.parent.RTGSOUTWARDREP(strResult))
-
-        //    else if (type == "INOPRDTLS")
-        //            window.attachEvent(window.parent.popIopdtls(strResult))
-
-        //    else if (type == "INOPREPT")
-        //            window.attachEvent(window.parent.popIoprpt(strResult))
-
-        //    else if ((type == "WITHOUTPANDTLS") || (type == "WITHOUTAADHARDTLS") || (type == "BOTHPANNOANDAADHARDTLS") || (type == "WITHOUTBOTHPANNOANDAADHARDTLS"))
-        //            window.attachEvent(window.parent.popPanDtls(strResult))
-
-        //    else if (type == "GSTRCUSTID")
-        //            window.attachEvent(window.parent.popGstrDtls(strResult))
-
-        //    else if (type == "GSTREPORT")
-        //            window.attachEvent(window.parent.popGstrepDtls(strResult))
-
-        //    else if (type == "SERCHCUST")
-        //            window.attachEvent(window.parent.popCustser(strResult))
-
-        //    else if (type == "INTDATE")
-        //            window.attachEvent(window.parent.popIntdat(strResult))
-
-        //    else if (type == "INTRATEDTLS")
-        //            window.attachEvent(window.parent.popIntratdat(strResult))
-
-        //    else if (type == "PHOTOSIGNDTLS")
-        //            window.attachEvent(window.parent.popPhosignDat(strResult))
-
-        //    else if (type == "CHARTYP")
-        //            window.attachEvent(window.parent.popChrgDat(strResult))
-
-        //    else if (type == "CHARREPORT")
-        //            window.attachEvent(window.parent.popRepcharDat(strResult))
-
-        //    else if (type == "DTLSCRD")
-        //            window.attachEvent(window.parent.popDtlscrd(strResult))
-
-        //    else if (type == "TERMINAL")
-        //            window.attachEvent(window.parent.popTerdtls(strResult))
-
-        //    else if (type == "POSRENTDTLS")
-        //            window.attachEvent(window.parent.popPosrentdtls(strResult))
-
-        //    else if (type == "POSRENTGENRAT")
-        //            window.attachEvent(window.parent.popPosrentgent(strResult))
-
-        //    else if (type == "REPORTPOSDTLS")
-        //            window.attachEvent(window.parent.popRepPosdtls(strResult))
-
-        //    else if (type == "POSDTLSREPRT")
-        //            window.attachEvent(window.parent.popRepRentdtls(strResult))
-
-        //    else if (type == "POSISSUEDTLSREPRT")
-        //            window.attachEvent(window.parent.popRepIssudtls(strResult))
-
-        //    else if (type == "MERCHVAL")
-        //            window.attachEvent(window.parent.popMastdtls(strResult))
-
-        //    else if (type == "MODISSUVAL")
-        //            window.attachEvent(window.parent.popModIssudtls(strResult))
-
-        //    else if (type == "MEMDTLS")
-        //            window.attachEvent(window.parent.popMemberdtls(strResult))
-
-        //    else if (type == "NONMEMDTLS")
-        //            window.attachEvent(window.parent.popNonMemberdtls(strResult))
-
-        //    else if (type == "LoanRepayDtls")
-        //            window.attachEvent(window.parent.popLoanRepayDtls(strResult))
-
-        //    else if (type == "LoanRepayAccName")
-        //            window.attachEvent(window.parent.popLoanRepayAccname(strResult))
-
-        //    else if (type == "StmntOfAccChrgs")
-        //            window.attachEvent(window.parent.DispTranMsg(strResult))
-    
-        //    window.close()
-    
-        //}
         }
 
         public void GetDetails1Function()

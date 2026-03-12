@@ -1058,7 +1058,7 @@ function GetATMCardDetails(vServiceCode, vBrCode, vModuleId, vAccNo, vGLCode) {
     if (vServiceCode == 4) {
       var strmodid1 = vModuleId.toUpperCase()
       if ((strmodid1 == "SB") || (strmodid1 == "CA")) {
-        var st = "ATMCardDet|" + vBrCode.toUpperCase() + "|" + vGLCode.toUpperCase() + "|" + vAccNo
+        var st = "ATMCardDet|" + vBrCode.toUpperCase() + "|" + vGLCode.toUpperCase() + "|" + vAccNo[]
         // window.document.all['iGetDtls'].src = "../GENSBCA/GetAccDetails.aspx?st=" + st
       }
     }
@@ -1421,6 +1421,21 @@ function GetPendingInterest(vModuleId, vBrCode, vGLCode, vAccNo) {
 function Check206AA206AB(vBrCode, vModuleId, vAccNo, vGLCode) {
   var st = "Check206AA206AB" + "|" + vBrCode + "|" + vModuleId + "|" + vGLCode + "|" + vAccNo + "|INR";
   // window.document.all["iBatch"].src = "../GENSBCA/querydisplay.aspx?st=" + st
+
+    $.ajax({
+        url: '/GetDetails/GetQueryDisplay',
+        type: 'GET',
+        data: {
+            searchString: st
+        },
+        success: function (response) {
+            debugger;
+            // GETDRCRLIENYN1(response);
+        },
+        error: function (err) {
+            HandleAjaxError(err);
+        }
+    });
 }
 
 function SetCCDrCrLienYN(vModuleId, vBrCode, vAccNo, vAppDate, vGLCode) {
