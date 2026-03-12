@@ -73,7 +73,7 @@ namespace Banking.Interfaces
 
         Task<string> getNEFTMobileFrm_bnkbrhmst(string strbrid);
 
-        Task<string> GetCCDrCrLienYN(string strBrCode, string strCurcode, string strModId, string strGlcode, string strAccno, DateTime TranDate);
+        Task<string> GetCCDrCrLienYN(string strBrCode, string strCurcode, string strModId, string strGlcode, string strAccno);
 
         Task<string> GetSBCADrCrLienYN(string strMode, string strBrCode, string strCurcode, string strModId, string strGlcode, string strAccno,
             double TransAmt, DateTime TranDate);

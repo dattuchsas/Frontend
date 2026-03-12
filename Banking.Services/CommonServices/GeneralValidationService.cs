@@ -1065,7 +1065,7 @@ namespace Banking.Services
             return getNEFTMobileFrm_bnkbrhmstRet;
         }
 
-        public async Task<string> GetCCDrCrLienYN(string strBrCode, string strCurcode, string strModId, string strGlcode, string strAccno, DateTime TranDate)
+        public async Task<string> GetCCDrCrLienYN(string strBrCode, string strCurcode, string strModId, string strGlcode, string strAccno)
         {
             DataTable rsneftAck;
             double dblDrLnAmt, dblCrLnAmt;
@@ -1080,7 +1080,8 @@ namespace Banking.Services
                 {
                 }
 
-                strSql = "SELECT DRLIENYN, CRLIENYN FROM " + strModId + "mst  WHERE branchcode ='" + strBrCode + "' AND " + " currencycode ='" + strCurcode + "' AND glcode ='" + strGlcode + "'  AND accno ='" + strAccno + "'";
+                strSql = "SELECT DRLIENYN, CRLIENYN FROM " + strModId + "mst  WHERE branchcode ='" + strBrCode + "' AND " + " currencycode ='" + strCurcode + "' AND glcode ='" + 
+                    strGlcode + "'  AND accno ='" + strAccno + "'";
 
                 rsneftAck = await _databaseFactory.ProcessQueryAsync(strSql);
 
@@ -1097,7 +1098,8 @@ namespace Banking.Services
 
                 rsneftAck = null!;
 
-                strSql = "SELECT DRLIENAMT, CRLIENAMT FROM SBCALIENDTLS WHERE branchcode ='" + strBrCode + "' AND " + " currencycode ='" + strCurcode + "' AND glcode ='" + strGlcode + "'  AND accno ='" + strAccno + "'";
+                strSql = "SELECT DRLIENAMT, CRLIENAMT FROM SBCALIENDTLS WHERE branchcode ='" + strBrCode + "' AND " + " currencycode ='" + strCurcode + "' AND glcode ='" + 
+                    strGlcode + "'  AND accno ='" + strAccno + "'";
 
                 rsneftAck = await _databaseFactory.ProcessQueryAsync(strSql);
 
@@ -1117,9 +1119,6 @@ namespace Banking.Services
                 GetCCDrCrLienYNRet = strDrLnYN + "|" + dblDrLnAmt + "|" + strCrLnYN + "|" + dblCrLnAmt;
 
                 return GetCCDrCrLienYNRet;
-
-                //GetCCDrCrLienYNRet = "|||";
-                //return GetCCDrCrLienYNRet;
             }
             catch (Exception ex)
             {
