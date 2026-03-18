@@ -292,7 +292,6 @@ namespace Banking.Services
                 customerid = (customerid.Trim().Length < 7) ? customerid.PadLeft(7, '0') : customerid.Substring(0, 7);
                 customerid = newbrcode + customerid;
 
-                string kycidcols = string.Empty, kycdtlsvals1 = string.Empty;
                 string CKYCENROLLDTLScols = string.Empty, CKYCENROLLDTLSvals = string.Empty;
 
                 if (kycDocuments.Count > 0)

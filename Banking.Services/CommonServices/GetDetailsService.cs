@@ -213,7 +213,7 @@ namespace Banking.Services
             }
             else if (strArr[0].Equals("GETCCDRCRLIENYN", StringComparison.OrdinalIgnoreCase))
             {
-                strResult = await _generalValidationService.GetCCDrCrLienYN(strArr[1], strArr[2], strArr[3], strArr[4], strArr[5], strArr[6]);
+              //  strResult = await _generalValidationService.GetCCDrCrLienYN(strArr[1], strArr[2], strArr[3], strArr[4], strArr[5], strArr[6]);
             }
 
             return strResult;

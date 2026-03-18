@@ -157,5 +157,110 @@ namespace Banking.Services
             }
             return sbcaaccountopeningmodel;
         }
+
+
+        public async Task<string> SaveSBCAAccountOpeningDetails(ISession session, SBCAAccountOpeningModel sbcaaccountopeningmodel,List<JntAcc> jntAccs,List<Guardian> guardians,List<Nominee> nominees  )
+        {
+            string[,] arrtrans = new string[3, 5];
+            string newaccno;
+            try
+            {
+                // These three should not be null for customer insertion
+                string appdate = session.GetString(SessionConstants.ApplicationDate);
+                string userid = session.GetString(SessionConstants.UserId);
+                string machineid = session.GetString(SessionConstants.MachineId);
+                string customerid = sbcaaccountopeningmodel.CustomerId!;
+                string moduleid = sbcaaccountopeningmodel.Module!;
+                string brcode = session.GetString(SessionConstants.BranchCode)!;
+                string glcode = sbcaaccountopeningmodel.AccountType!;
+                string accno = sbcaaccountopeningmodel.AccountNumber!;
+                string narration = sbcaaccountopeningmodel.Remarks!;
+                string operatinginstr = sbcaaccountopeningmodel.OperatingInstrs!;
+                string categorycode = sbcaaccountopeningmodel.CategoryType!;
+                string salutation = sbcaaccountopeningmodel.Salutation!;
+                string name = sbcaaccountopeningmodel.CustomerName!;
+                string tdsyn = sbcaaccountopeningmodel.TDSOptions!;
+                string chequebook = sbcaaccountopeningmodel.CheckChequeBook ? "Y" : "N";
+                string bankstaffyn = sbcaaccountopeningmodel.CheckBankStaff ? "Y" : "N";
+                string minoryn = sbcaaccountopeningmodel.CheckMinor ? "Y" : "N";
+                string operatedby = sbcaaccountopeningmodel.OperatedBy!;
+                string regno = sbcaaccountopeningmodel.Regno!;
+                string regplace = sbcaaccountopeningmodel.Regplace!;
+                string regdate = sbcaaccountopeningmodel.dateofincorporation.HasValue ? sbcaaccountopeningmodel.dateofincorporation.Value.ToString("dd-MMM-yyyy") : "";
+                string panno = sbcaaccountopeningmodel.Panno!;
+                string openingdate = sbcaaccountopeningmodel.OpeningDate.HasValue ? sbcaaccountopeningmodel.OpeningDate.Value.ToString("dd-MMM-yyyy") : "";
+
+                int arrcnt = 0;
+
+                // Customer Info Insertion
+                string autoTab = moduleid + "MST";
+                arrtrans[arrcnt, 0] = "A";
+                arrtrans[arrcnt, 1] = "GETAUTONUMBER|upper(trim(MAXAUTOTABLENAME))='" + autoTab + "' and upper(trim(MAXAUTOFIELDNAME))='ACCNO' and Upper(glcode)='" + glcode + "'";
+                arrtrans[arrcnt, 2] = "branchcode,moduleid,maxautotablename,maxautofieldname,applicationdate,glcode";
+                arrtrans[arrcnt, 3] = "'" + brcode + "','" + moduleid + "','" + autoTab + "','accno','" + appdate + "','" + glcode + "'";
+                arrtrans[arrcnt, 4] = "";
+                
+                arrcnt++;
+
+                // for sbmst
+                string sbfields, sbvalues;
+                sbfields = "branchcode,currencycode,glcode,customerid,name,chequebook,opdate,transtatus,operatedby,operatinginstr,categorycode,bankstaffyn,REGNO,REGDATE, REGPLACE,TDSYN,EXMPFORMSRECYN,FORMS15G,NONTDS,status,introduceryn,jointholderyn,nomineeyn,GUARDIANYN,signatureyn,narration,applicationdate,systemdate,userid,machineid,lastintcalcdate,opplastintcalcdate,accno";
+                sbvalues = "'" + brcode + "','INR','" + glcode + "','" + customerid + "','" + name + "','" + chequebook + "','" + openingdate + "','P','" + operatedby + "','" + operatinginstr + "','" + categorycode + "','" + bankstaffyn + "','" + regno + "','" + regdate + "','" + regplace + "','" + tdsyn + "','N','N','N','N','N','" + narration + "','" + appdate + "',sysdate,'" + userid + "','" + machineid + "',null,null,'" + accno +"'";
+
+                arrtrans[arrcnt, 0] = "I";
+                arrtrans[arrcnt, 1] = moduleid + "MST";
+                arrtrans[arrcnt, 2] = sbfields;
+                arrtrans[arrcnt, 3] = sbvalues;
+                arrtrans[arrcnt, 4] = "";
+
+                string intfields, intvalues;
+                intfields = "branchcode,currencycode,glcode,moduleid,INTRCUSTOMERID,INTRNAME, customerid,applicationdate,systemdate,userid,machineid,accno";
+                intvalues = "'" + brcode + "','INR','" + glcode + "','" + moduleid + "','" + sbcaaccountopeningmodel.IntroCustId + "','" + sbcaaccountopeningmodel.IntroCustName + "','" + customerid + "','" + appdate + "',sysdate,'" + userid + "','" + machineid + "','" + accno + "'";
+
+                // For customer introducer details insertion
+                arrtrans[arrcnt, 0] = "I";
+                arrtrans[arrcnt, 1] = "GENCUSTINTRODUCERMST";
+                arrtrans[arrcnt, 2] = intfields;
+                arrtrans[arrcnt, 3] = intvalues;
+                arrtrans[arrcnt, 4] = "";
+
+                string jointfields = string.Empty;
+                if (jntAccs.Count > 0)
+                {
+                    jointfields = "branchcode,currencycode,glcode,moduleid,sno,JHCUSTOMERID,jointholdername,MINORYN,MINORDOB,RELATIONID,customerid,applicationdate, systemdate,userid, machineid,accno";
+                    string jointvalues = string.Empty;
+                    string jointvalues1 = string.Empty;
+                    Int32 sno = 1;
+                    foreach (var jnt in jntAccs)
+                    {
+                        
+                        jointvalues= "'" + brcode + "','INR','" + glcode + "','" + moduleid + "',"+ sno +",'" + jnt.JntCustId + "','" + jnt.JntCustName + "','" + (jnt.CheckJntMinor ? "Y" : "N") + "','" + jnt.Jnt_MinorDOB + "','" + jnt.Jnt_Relation + "','" + customerid + "','" + appdate + "',sysdate,'" + userid + "','" + machineid + "','" + accno + "'";
+                        jointvalues1 = jointvalues1 + "|" + jointvalues;
+                        sno++;
+
+                    }
+                    // For joint account holder details insertion
+                    arrtrans[arrcnt, 0] = "I";
+                    arrtrans[arrcnt, 1] = "GENCUSTJOINTHOLDERMST";
+                    arrtrans[arrcnt, 2] = jointfields;
+                    arrtrans[arrcnt, 3] = jointvalues1;
+                    arrtrans[arrcnt, 4] = "";
+                }
+
+
+                var output = await _databaseFactory.ProcessDataTransactions(arrtrans);
+
+
+            //    if (output.Equals(BankingConstants.TransactionSuccessful))
+             //       return output + "|" + newaccno;
+
+                return output;
+            }
+            catch (Exception ex)
+            {
+                // Handle exception (e.g., log the error)
+                throw new Exception("An error occurred while saving the SBCA Account Opening  details.", ex);
+            }
+        }
     }
 }
