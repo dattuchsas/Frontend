@@ -127,7 +127,7 @@ namespace Banking.Frontend.Controllers
 
         public async Task<IActionResult> GetBalanceDetails(string searchString = "")
         {
-            var item = await _getDetailsService.GetBalanceDetails(searchString);
+            var item = await _getDetailsService.GetBalanceDetails(searchString, Conversions.ToString(session.GetString(SessionConstants.ApplicationDate)));
 
             return Json(item);
         }
@@ -136,6 +136,20 @@ namespace Banking.Frontend.Controllers
         {
             var item = await _getDetailsService.GetMessageCount(searchString, Conversions.ToString(session.GetString(SessionConstants.ApplicationDate)), 
                 Conversions.ToString(session.GetString(SessionConstants.GroupCode)));
+
+            return Json(item);
+        }
+
+        public async Task<IActionResult> GetCustomerPhoto(string customerId = "")
+        {
+            var item = await _getDetailsService.GetCustomerPhoto(customerId);
+
+            return Json(item);
+        }
+
+        public async Task<IActionResult> GetCustomerSignature(string customerId = "")
+        {
+            var item = await _getDetailsService.GetCustomerSignature(customerId);
 
             return Json(item);
         }

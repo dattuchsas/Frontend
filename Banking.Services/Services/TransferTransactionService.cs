@@ -3,6 +3,7 @@ using Banking.Interfaces;
 using Banking.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
+using System;
 using System.Data;
 
 namespace Banking.Services
@@ -36,6 +37,7 @@ namespace Banking.Services
             string serviceCode = string.Concat("Service|", model.TransactionMode.ToString());
 
             model.ServiceList = await _listService.GetServiceList(serviceCode);
+            model.CategoryList = await _commonService.GetCategoryList("CustType|Cust");
 
             model.CheckABB = false;
             model.CheckCheque = false;
@@ -402,7 +404,7 @@ namespace Banking.Services
                 model.ApplicationDate = session.GetString(SessionConstants.ApplicationDate);
 
             model.CashierId = session.GetString(SessionConstants.UserId);
-            model.Hidden_Precision = session.GetString(SessionConstants.Precision);
+            model.Hidden_Precision = Convert.ToString(session.GetInt32(SessionConstants.Precision));
 
             model.BranchCode = session.GetString(SessionConstants.BranchCode);
             model.CurrencyCode = session.GetString(SessionConstants.CurrencyCode);
@@ -534,6 +536,89 @@ namespace Banking.Services
             model.SelectedModule = session.GetString(SessionConstants.SelectedModule);
 
             return model;
+        }
+
+        public async Task GetBatchNoGenRemCan(string searchString = "")
+        {
+            string brCode = "", batchNo = "";
+            string tranNo, clgmodid, clgglcode;
+            string strbatchno, strtranno;
+
+            DataTable rsAuto = null!;
+
+            if (searchString.Length > 0)
+            {
+                string[] mode = searchString.Split("~*~");
+                string[] strVal = mode[1].Split("~");
+                brCode = strVal[0];
+                batchNo = strVal[1];
+                tranNo = strVal[2];
+
+                // For general batch, tran no generation
+                switch (mode[0].ToUpper())
+                {
+                    case "GEN":
+                        tranNo = strVal[3];
+                        if (string.IsNullOrWhiteSpace(batchNo) && string.IsNullOrWhiteSpace(tranNo))
+                        {
+                            if (tranNo == "1")
+                            {
+                                strbatchno = await _databaseFactory.GetBatchNo(brCode);
+                                strtranno = await _databaseFactory.GetTranNo(brCode);
+                            }
+                            else if (tranNo == "2")
+                            {
+                                strbatchno = await _databaseFactory.GetBatchNo(brCode);
+                                string strtranno1 = await _databaseFactory.GetTranNo(brCode);
+                                string strtranno2 = await _databaseFactory.GetTranNo(brCode);
+                                strtranno = strtranno1 + "~" + strtranno2;
+                            }
+                            else if (tranNo == "5")
+                            {
+                                strbatchno = await _databaseFactory.GetBatchNo(brCode);
+                                string strtranno1 = await _databaseFactory.GetTranNo(brCode);
+                                string strtrancomm = await _databaseFactory.GetTranNo(brCode);
+                                string strtrannocgst = await _databaseFactory.GetTranNo(brCode);
+                                string strtrannosgst = await _databaseFactory.GetTranNo(brCode);
+                                string strtrannocess = await _databaseFactory.GetTranNo(brCode);
+                                strtranno = strbatchno + "*" + strtranno1 + "*" + strtrancomm + "*" + strtrannocgst + "*" + strtrannosgst + "*" + strtrannocess;
+                            }
+                        }
+                        break;
+                }
+
+                string sqlstr = "SELECT COMMGLCODE,COMMAMT, COMMACCNO,COMGLDESC,COMMMODULEID,nvl(COMMISSIONYN,'N') COMMISSIONYN FROM genchargespmt g WHERE chargesid = 'CANC'";
+
+                DataTable resDtls = await _databaseFactory.ProcessQueryAsync(sqlstr);
+
+                string strcommglcode = "", strCommAmt = "0", strcommaccno = "", strcommgldesc = "", strcommmodid = "", strCommYN = "";
+
+                if (resDtls.Rows.Count > 0)
+                {
+                    strcommglcode = Convert.IsDBNull(resDtls.Rows[0].ItemArray[0]) ? "" : Conversions.ToString(resDtls.Rows[0].ItemArray[0]);
+                    strCommAmt = Convert.IsDBNull(resDtls.Rows[0].ItemArray[1]) ? "" : Conversions.ToString(resDtls.Rows[0].ItemArray[1]);
+                    strcommaccno = Convert.IsDBNull(resDtls.Rows[0].ItemArray[2]) ? "" : Conversions.ToString(resDtls.Rows[0].ItemArray[2]);
+                    strcommgldesc = Convert.IsDBNull(resDtls.Rows[0].ItemArray[3]) ? "" : Conversions.ToString(resDtls.Rows[0].ItemArray[3]);
+                    strcommmodid = Convert.IsDBNull(resDtls.Rows[0].ItemArray[4]) ? "" : Conversions.ToString(resDtls.Rows[0].ItemArray[4]);
+                    strCommYN = Convert.IsDBNull(resDtls.Rows[0].ItemArray[5]) ? "" : Conversions.ToString(resDtls.Rows[0].ItemArray[5]);
+                }
+
+                string strcommaccname = "";
+                sqlstr = "SELECT name FROM " + strcommmodid + "MST WHERE accno ='" + strcommaccno + "' AND glcode ='" + strcommglcode + "' AND branchcode = '" + brCode + "'";
+                resDtls = await _databaseFactory.ProcessQueryAsync(sqlstr);
+
+                if (resDtls.Rows.Count > 0)
+                    strcommaccname = Convert.IsDBNull(resDtls.Rows[0].ItemArray[0]) ? "" : Conversions.ToString(resDtls.Rows[0].ItemArray[0]);
+
+                string strcommmoddesc = "";
+                sqlstr = "SELECT narration FROM GENMODULEMST WHERE moduleid = '" + strcommmodid + "'";
+                resDtls = await _databaseFactory.ProcessQueryAsync(sqlstr);
+
+                if (resDtls.Rows.Count > 0)
+                    strcommmoddesc = Convert.IsDBNull(resDtls.Rows[0].ItemArray[0]) ? "" : Conversions.ToString(resDtls.Rows[0].ItemArray[0]);
+
+                string counterno = strcommaccno + "*" + strcommaccname + "*" + strcommglcode + "*" + strcommgldesc + "*" + strcommmodid + "*" + strcommmoddesc;
+            }
         }
     }
 }

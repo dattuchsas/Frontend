@@ -1240,3 +1240,714 @@
 //}
 
 // This function was written to send parameters values to List form to get various modules and it displays modules only when Mfgpaydt(flexgrid) rows <2 or if the mode is MODIFY.
+
+//function cmdOkClick() {
+
+//  var strValues
+//  var brCode
+//  blnFlagAutoClose = false
+//  blnBatchLoancheck = false
+
+//  //this code added by vinod for close loans where 0 balance in accounts
+
+//  if ((window.document.frmTrans.tranmode[1].checked == true) &&
+//    (window.document.frmTrans.txtModId.value == "LOAN")) {
+
+//    if (CashDenom == 'Y') {
+//      window.document.frmTrans.hdnMod.value = window.document.frmTrans.txtModId.value
+//    }
+
+//    if (Math.abs(window.document.frmTrans.txtloanaccbal.value) == Math.abs(window.document.frmTrans.txtAmt.value)) {
+//      blnBatchLoancheck = true
+//      blnCloseLoan = true
+//      window.document.frmTrans.hdnblnCloseLoan.value = ""
+//      window.document.frmTrans.hdnblnCloseLoan.value = "true1"
+//      var result = confirm("Do you Want to Close This Loan");
+//      if (result == true) {
+//        var resultConfirm = confirm("Are you Sure Want to Close This Loan");
+//        {
+//          if (resultConfirm == true) {
+//            blnFlagAutoClose = true
+//            //blnCloseLoan=true
+//            window.document.frames['iPost'].frmPost.hdnCloseLoan.value = window.document.frmTrans.txtAccNo.value + "|" + window.document.frmTrans.txtGLcode.value + "|" + window.document.frmTrans.txtbranchcode.value
+
+//            /*if((window.document.frmTrans.txtIntPendAmt.value=="")||eval((window.document.frmTrans.txtIntPendAmt.value==0)))
+//            {
+//              blnBatchLoanClose=false
+//            }
+//            else
+//            {*/
+//            if (!((window.document.frmTrans.txtNPAIntAmt.value == "") || eval(window.document.frmTrans.txtNPAIntAmt.value == 0))) {
+//              blnNpaInt = true
+//              npaIntYN = "Y"
+//              if ((Math.abs(window.document.frmTrans.txtloanaccbal.value) == Math.abs(window.document.frmTrans.txtAmt.value)) || (parseFloat(window.document.frmTrans.txtAmt.value) > parseFloat(window.document.frmTrans.txtNPAIntAmt.value))) {
+//                alert("NPA Interest for This Account is " + window.document.frmTrans.txtNPAIntAmt.value + ", This Amount Adjusted to Loan")
+//              }
+//              if (parseFloat(window.document.frmTrans.txtAmt.value) <= parseFloat(window.document.frmTrans.txtNPAIntAmt.value)) {
+//                alert("NPA Interest for This Account is " + window.document.frmTrans.txtNPAIntAmt.value + ", This Amount " + window.document.frmTrans.txtAmt.value + " Adjusted to Loan")
+//              }
+//            }
+//            blnBatchLoanClose = true
+//            //alert("hi")
+//            closeLoanAuto()
+//            //}
+//          }
+//          else {
+//            window.document.frames['iPost'].frmPost.hdnCloseLoan.value = ""
+//            blnFlagAutoClose = false
+//            blnBatchLoanClose = false
+//            closeLoanAuto()
+//          }
+//        }
+//      }
+//      else {
+//        window.document.frames['iPost'].frmPost.hdnCloseLoan.value = ""
+//        blnFlagAutoClose = false
+//        blnBatchLoanClose = false
+//        closeLoanAuto()
+//      }
+//    }
+//    else if (Math.abs(window.document.frmTrans.txtAmt.value) > Math.abs(window.document.frmTrans.txtloanaccbal.value)) {
+//      var resultConfirm = confirm("Entered Amt Is Crossing A/c Bal , Do You Want To Continue ?");
+//      {
+//        if (resultConfirm == true) {
+//        }
+//        else {
+//          return
+//        }
+
+//      }
+//    }
+//    else {
+//      if (!((window.document.frmTrans.txtNPAIntAmt.value == "") || eval(window.document.frmTrans.txtNPAIntAmt.value == 0))) {
+//        blnNpaInt = true
+//        npaIntYN = "Y"
+//        if ((Math.abs(window.document.frmTrans.txtloanaccbal.value) == Math.abs(window.document.frmTrans.txtAmt.value)) || (parseFloat(window.document.frmTrans.txtAmt.value) > parseFloat(window.document.frmTrans.txtNPAIntAmt.value))) {
+//          alert("NPA Interest for This Account is " + window.document.frmTrans.txtNPAIntAmt.value + ", This Amount Adjusted to Loan")
+//        }
+//        if (parseFloat(window.document.frmTrans.txtAmt.value) <= parseFloat(window.document.frmTrans.txtNPAIntAmt.value)) {
+//          alert("NPA Interest for This Account is " + window.document.frmTrans.txtNPAIntAmt.value + ", This Amount " + window.document.frmTrans.txtAmt.value + " Adjusted to Loan")
+//        }
+//        blnBatchLoanClose = false
+//        closeLoanAuto()
+//      }
+//    }
+//  }
+
+//  //this code added by vinod for close loans where 0 balance in accounts ended here
+
+
+//  if (vSubMode == "TPAY" || vSubMode == "TREC") {
+
+//    exceptionCodes()
+//    if (excpYN == "Y" && "<%=TellerVerifyReqYN%>" == "N") {
+//      alert("Exceptional Transactions are not allowed")
+//      Cancel()
+//      return
+//    }
+//  }
+//  if (window.document.frmTrans.chkABB.checked == false) {
+//    brCode = window.document.frmTrans.txtbranchcode.value
+//  }
+//  else {
+//    brCode = "ABB"
+//  }
+//  var batchNo = ""
+//  if (((vMode == "REC") || (vMode == "PAY")) && (window.document.frmTrans.Mfgpaydt.Rows > 1) && (mode != "MODIFY")) {
+
+
+//    if (window.document.frmTrans.chkDispAccNo.checked == true) {
+//      //alert("Reddy2")
+//    }
+//    else {
+//      alert("Only one Cash Transaction allowed at a time." + "\n" +
+//        "Post already entered data.")
+//      return
+//    }
+//  }
+//  TranMode();
+//  modId = window.document.frmTrans.txtModId.value
+//  serId = window.document.frmTrans.txtServiceId.value
+
+//  checkNulls(modId, trnMode, serId)
+//  if (chkNull == "false") {
+//    return
+//  }
+//  if (OkValidations() == false) {
+//    return
+//  }
+//  excpTranCheck()
+//  //new code added by radhika on 25 nov 2008
+//  MinBalCheck_modify()
+//  //end of new code
+//  TotTranNos()
+//  var clgModId, clgGlCd2
+//  clgModId = window.document.frmTrans.txtCLGModId.value.toUpperCase();
+//  clgGlCd2 = window.document.frmTrans.txtCLGGLcode.value.toUpperCase();
+//  var overdraft2
+//  overdraft2 = "<%=ovrdrft%>"
+//  //-----------------------------ClearingBatch No Generation------------------
+//  if (window.document.frmTrans.tranmode[2].checked == true) {
+//    //-------- for clearing , serviceid ==8, clearbal < 0
+//    if (window.document.frmTrans.txtServiceId.value == "8") {
+//      if (overdraft2 == "N") {
+//        if ((clgModId == "CC") || (clgModId == "LOAN") || (clgModId == "INV") || ((clgModId == "MISC") && (clgGlCd2.substr(0, 3) == "204"))) {
+//        }
+//        else {
+//          if (window.document.frmTrans.txtretclearbal.value < 0) {
+//            alert("Clearing Balance Is Less Than Zero , No Transaction Is Posted")
+//            window.document.frmTrans.txtAmt.value = "0.00"
+//            return;
+//          }
+//        } //((clgModId=="CC") || (clgModId=="LOAN") || (clgModId=="INV") || ((clgModId=="MISC") && (clgGlCd2.substr(0,3)=="204")))
+//      }
+//      else {
+//      }//(overdraft2 == 'N')
+//    } //(window.document.frmTrans.txtServiceId.value == "8")
+
+//    sCurCode = window.document.frmTrans.txtcurrencycode.value
+//    sClear = window.document.frmTrans.cmdcleartype.value
+//    sAppDate = "<%=session("applicationdate")%>";
+
+//    if (mode != "MODIFY") {
+//      if (window.document.frmTrans.Mfgpaydt.Rows == 1) {
+//        if (clgAbbimpyn == "Y") {
+//          strValues = "CLG~*~" + "<%=session("branchcode")%>" + "~" + batchNo + "~" + "" + "~" + sCurCode + "~" + sClear + "~" + sAppDate + "~" + tranNos + "~" + "ABB"
+//        }
+//        else {
+//          strValues = "CLG~*~" + brCode + "~" + batchNo + "~" + "" + "~" + sCurCode + "~" + sClear + "~" + sAppDate + "~" + tranNos + "~" + "<%=session("branchcode")%>"
+//        }
+//        //alert(" mahendr = "+strValues)
+
+//      }
+//      else if (window.document.frmTrans.Mfgpaydt.Rows >= 2) {
+//        batchNo = window.document.frmTrans.Mfgpaydt.TextMatrix(1, 0)
+
+//        if (clgAbbimpyn == "Y") {
+//          strValues = "CLG~*~" + "<%=session("branchcode")%>" + "~" + batchNo + "~" + "" + "~" + sCurCode + "~" + sClear + "~" + sAppDate + "~" + tranNos + "~" + "ABB"
+//        }
+//        else {
+//          strValues = "CLG~*~" + brCode + "~" + batchNo + "~" + "" + "~" + sCurCode + "~" + sClear + "~" + sAppDate + "~" + tranNos + "~" + "<%=session("branchcode")%>"
+//        }
+//        //alert(" reddy = "+strValues)
+//      }
+//    }
+//    else if (mode == "MODIFY") {
+//      batchNo = window.document.frmTrans.hdnBatchNo.value
+//      tranNo = window.document.frmTrans.hdnTranNo.value
+//      if (vMode == "TRANS") {
+//        bNo = batchNo + "~" + tranNo
+//        FlexPopulate(bNo)
+//        return
+//      }
+//    }
+//  }
+
+//  //-----------------------------Genaral Batch No genration
+
+//  if ((window.document.frmTrans.tranmode[0].checked == true) ||
+//    (window.document.frmTrans.tranmode[1].checked == true))
+
+//    if (mode != "MODIFY") {
+
+//      if (window.document.frmTrans.Mfgpaydt.Rows == 1) {
+
+//        if (("<%=str194NYN%>" == 'Y') && (vMode == 'PAY') && (window.document.frmTrans.hdnchk194N.value == 'true')) {
+//          if (eval(window.document.frmTrans.hdn194Nfinaltds.value) != 0) {
+//            strValues = "GEN~*~" + brCode + "~" + batchNo + "~" + "" + "~" + 4
+//          }
+//          else {
+//            strValues = "GEN~*~" + brCode + "~" + batchNo + "~" + "" + "~" + tranNos
+//          }
+//        }
+//        else {
+//          strValues = "GEN~*~" + brCode + "~" + batchNo + "~" + "" + "~" + tranNos
+//        }
+//      }
+//      else if (window.document.frmTrans.Mfgpaydt.Rows >= 2) {
+//        if ((window.document.frmTrans.hdnblnCloseLoan.value == "true1") && (window.document.frmTrans.tranmode[0].checked == true)) {
+//          //	alert("blnCloseLoan")
+//          batchNo = window.document.frmTrans.Mfgpaydt.TextMatrix(window.document.frmTrans.Mfgpaydt.rows - 1, 0)
+//          strValues = "GEN~*~" + brCode + "~" + batchNo + "~" + "" + "~" + tranNos
+//        }
+//        else {
+//          batchNo = window.document.frmTrans.Mfgpaydt.TextMatrix(1, 0)
+//          strValues = "GEN~*~" + brCode + "~" + batchNo + "~" + "" + "~" + tranNos
+//        }
+//      }
+
+//    }
+//    else if (mode == "MODIFY") {
+
+//      batchNo = window.document.frmTrans.hdnBatchNo.value
+//      tranNo = window.document.frmTrans.hdnTranNo.value
+//      var tranNo2 = window.document.frmTrans.hdnTranNo2.value
+//      var tranNo3 = window.document.frmTrans.hdnTranNo3.value
+//      var tranNo4 = window.document.frmTrans.hdnTranNo4.value
+//      var vModId = window.document.frmTrans.txtModId.value.toUpperCase()
+//      TranMode()
+
+//      if ((vModId == "REM") || (vModId == "FXREM")) {
+//        if (trnMode == "4") {
+//          /*if(eval(window.document.frmTrans.txtcomm.value)>0)
+//          {
+//          bNo=batchNo+"~"+tranNo+"~"+tranNo2
+//          }
+//          else
+//          {
+//          bNo=batchNo+"~"+tranNo
+//          }*/
+
+//          //New code is
+//          bNo = batchNo + "~" + tranNo
+
+//          if (eval(window.document.frmTrans.txtcomm.value) > 0)
+//            bNo = bNo + "~" + tranNo2
+
+//          if (eval(window.document.frmTrans.txtSerivceChrg.value) > 0)
+//            bNo = bNo + "~" + tranNo3
+
+//          FlexPopulate(bNo)
+//        }
+//        else if (trnMode == "2") {
+//          /*if(eval(window.document.frmTrans.txtcomm.value)>0)
+//          {
+//          bNo=batchNo+"~"+tranNo+"~"+tranNo2+"~"+tranNo3
+//          }
+//          else
+//          {
+//          bNo=batchNo+"~"+tranNo+"~"+tranNo2
+//          }*/
+
+//          // New Code is
+//          bNo = batchNo + "~" + tranNo + "~" + tranNo2
+
+//          if (eval(window.document.frmTrans.txtcomm.value) > 0)
+//            bNo = bNo + "~" + tranNo3
+
+//          if (eval(window.document.frmTrans.txtSerivceChrg.value) > 0)
+//            bNo = bNo + "~" + tranNo4
+
+//          FlexPopulate(bNo)
+//        }
+//        else if (trnMode == "3") {
+//          bNo = batchNo + "~" + tranNo
+//          FlexPopulate(bNo)
+//        }
+//        else if (trnMode == "1") {
+//          bNo = batchNo + "~" + tranNo + "~" + tranNo2
+//          FlexPopulate(bNo)
+//        }
+//      }
+//      else if (vMode == "TRANS") {
+
+//        bNo = batchNo + "~" + tranNo
+//        FlexPopulate(bNo)
+//      }
+//      else if ((vMode == "PAY") || (vMode == "REC")) {
+
+//        bNo = batchNo + "~" + tranNo + "~" + tranNo2
+//        FlexPopulate(bNo)
+//      }
+//      return
+//    }
+
+//  //clear denom tally
+//  window.document.frames("idenomtally").denomtallyclear()
+//  //----------------------------post to iframe page
+
+//  if ((window.document.frmTrans.tranmode(1).checked == true) && (window.document.frmTrans.txtModId.value == "REM") &&
+//    (window.document.frmTrans.chkRemRepeat.checked == true)) {
+//    if (window.document.frmTrans.txtNoOfRepeat.value == "") {
+//      alert("Please Enter Number of Repetitions.")
+//      window.document.frmTrans.txtNoOfRepeat.focus()
+//      return;
+//    }
+
+//    if ((vMode == "PAY") || (vMode == "REC")) {
+
+//      var st = "GETBATCHTRANNO|" + window.document.frmTrans.txtbranchcode.value + "*" + (window.document.frmTrans.txtNoOfRepeat.value) * 2
+//    }
+//    else {
+//      var stTnno
+
+//      stTnno = window.document.frmTrans.txtNoOfRepeat.value
+//      if (eval(window.document.frmTrans.txtSerivceChrg.value) > 0)
+//        stTnno = eval(stTnno) + 1
+
+//      if (eval(window.document.frmTrans.txtCessChrg.value) > 0)
+//        stTnno = eval(stTnno) + 1
+
+//      //var st="GETBATCHTRANNO|"+window.document.frmTrans.txtbranchcode.value+"*"+window.document.frmTrans.txtNoOfRepeat.value stTnno
+
+//      var st = "GETBATCHTRANNO|" + window.document.frmTrans.txtbranchcode.value + "*" + stTnno
+//    }
+//    //alert(" st = "+st)
+//    window.document.all['iGetDtls'].src = "getDtls.aspx?st=" + st
+//  }
+//  else {
+//    if (blnBatchLoancheck == true) {
+//      //	alert("hi")
+//      //	strValues="GEN~*~"+brCode+"~"+strLoanBatchNo+"~"+""+"~"+tranNos
+//      //blnBatchLoanClose=false
+//      //window.document.all['iGeneral'].src='<%="http://" & session("moduledir")& "/GEN/"%>'+"batchNoGen.aspx?strVal="+strValues
+//    }
+//    else if ((window.document.frmTrans.tranmode[0].checked == true) && (window.document.frmTrans.txtServiceId.value == 9) && ("<%=strRemCancAutoChrgsYN%>" == "Y") && ("<%=strRemCancCommYN%>" == "Y") && (vMode == "TRANS")) {
+//      tranNos = 5
+//      strValues = "GEN~*~" + brCode + "~" + batchNo + "~" + "" + "~" + tranNos
+//      //alert(strValues1)
+//      window.document.all['iGeneral1'].src = '<%="http://" & session("moduledir")& "/GEN/"%>' + "batchnoGenRemCanc.aspx?strVal=" + strValues
+//    }
+//    else {
+//      //alert("Gen")
+//      //	alert("strValues " + strValues)
+//      //	alert("vMode " + vMode)
+//      window.document.all['iGeneral'].src = '<%="http://" & session("moduledir")& "/GEN/"%>' + "batchNoGen.aspx?strVal=" + strValues
+//    }
+//  }
+//}
+
+//----------------------------------------------------------------------------------
+////This function displays various moduleids and descriptions,it also clear all lower level
+////fields.And makes different divs visible true and false based on condition
+//function modulecode(kstr) {
+
+//  if (bdt.toUpperCase() == "TRUE")
+//    return
+//  var strMod = kstr.split("-----")
+//  window.document.frmTrans.txtModId.value = strMod[1]
+//  window.document.frmTrans.txtModDesc.value = strMod[0]
+//  /*if(strMod[0]!="")
+//  {
+//    window.document.frmTrans.txtGLcode.focus()
+//  }*/
+//  window.document.all['divRemRep'].style.display = "none";
+
+//  var modId = window.document.frmTrans.txtModId.value.toUpperCase()
+//  masterTabYN()
+//  GLClear()
+//  funloanclear()
+
+//  //make ChequeBook check box false and hide respective Division
+//  window.document.frmTrans.chkCheque.checked = false;
+//  Cheque();
+
+//  // Below code will work when service id <> 8 i.e other than clearing
+//  if (eval(window.document.frmTrans.txtServiceId.value) == "8") {
+//    return
+//  }
+
+//  fxTransactionYN()
+//  if (window.document.frmTrans.tranmode(2).checked == true) {
+//    if (modId == "REM") {
+//      window.document.frmTrans.chkCheque.checked = false;
+//    }
+//    else {
+//      window.document.frmTrans.chkCheque.checked = true;
+//    }
+//    Cheque()
+//  }
+
+
+//  if ((modId == "REM") &&
+//    ((window.document.frmTrans.tranmode(0).checked == true) ||
+//      (window.document.frmTrans.tranmode(2).checked == true))) {
+//    divsDisplay("remdr", "M")
+//    window.document.frmTrans.Mfgpaydt.FormatString = ">Batch No     |>Tran No     |<GL Code       |<GL Description                       |>Acc No             |<Name                               |>Amount                     |>Entered Time Bal    |^Application Date   |<Cust ID                      |<Mode of Tran |<Mode of Tran Desc   |^ABB Application Date|<Tran Status  |>Currency Code   |<Entered By                    |<Entered M/C                  |<Module ID         |<Branch Code            |>Token No         |<Remarks                                  |<Cheque Series   |>Cheque No                 |^Cheque Date         |<Cheque Favouring              |<Sys Gen YN |<Module Description      |^ Effective Date        |<CLG Rate Type                |>Rate                   |<F Currency Code |>F Amount                   |<Link Module ID       |<Link Module Desc         |<Link GL Code   |<Link GL Desc            |>Link Account Type |>Link Account No |<Link Acc Name                   |>Service ID |<Service Desc  |<Resp Branch Code |<Resp Branch Desc          |<Resp Section Code |<Resp Section Desc        |<ABB Branch Code          |<Branch Desc                    |>Disposal Batch No |>Disposal Tran No  |<Acc Chk YN|Exception YN|Exception Codes|>Resp Bank Code|<Resp Bank Desc|<SI YN|>Counter No.|<Cashier Id               |>Scroll No.      |<Rate Ref Code     |<Rate Ref Desc     |>Issued by Branch Code |< Issued by Branch Desc|< Favouring        |>Instrument No    |>Advice Recceived|>Advice No.   |^Advice Rec Date|^Instrument Date|<Instrument Type|<Native Y/N"
+//  }
+
+//  else if ((modId == "REM") &&
+//    (window.document.frmTrans.tranmode(1).checked == true)) {
+//    divsDisplay("remcr", "M")
+//    window.document.all.divComm.style.display = "block";
+//    window.document.all['divfxRem'].style.display = "block";
+//    window.document.all['divrembank'].style.display = "block";
+//    window.document.all['divRemRep'].style.display = "block";
+
+//    if ((CashDenom == 'Y') && (vMode == "REC")) {
+//      window.document.frmTrans.chkRemRepeat.disabled = true
+//      window.document.frmTrans.txtNoOfRepeat.disabled = true
+//    }
+//    else {
+//      window.document.frmTrans.chkRemRepeat.disabled = false
+//      window.document.frmTrans.txtNoOfRepeat.disabled = false
+//    }
+
+
+//  }
+//  else if ((modId == "FXREM") &&
+//    (window.document.frmTrans.tranmode(1).checked == true)) {
+//    divsDisplay("remcr", "M")
+//    window.document.all.divComm.style.display = "block";
+//    window.document.all['divfxRem'].style.display = "block";
+//    window.document.all['divrembank'].style.display = "none";
+
+//  }
+//  // suspence start
+//  else if (modId == "SCR") {
+//    divsDisplay("divaccno", "M")
+
+//    window.document.all['divcheque'].style.display = "none";
+//    window.document.frmTrans.Mfgpaydt.FormatString = ">Batch No     |>Tran No     |<GL Code       |<GL Description                       |>Acc No             |<Name                               |>Amount                     |>Entered Time Bal    |^Application Date   |<Cust ID                      |<Mode of Tran |<Mode of Tran Desc   |^ABB Application Date|<Tran Status  |>Currency Code   |<Entered By                    |<Entered M/C                  |<Module ID         |<Branch Code            |>Token No         |<Remarks                                  |<Cheque Series   |>Cheque No                 |^Cheque Date         |<Cheque Favouring              |<Sys Gen YN |<Module Description      |^ Effective Date        |<CLG Rate Type                |>Rate                   |<F Currency Code |>F Amount                   |<Link Module ID       |<Link Module Desc         |<Link GL Code   |<Link GL Desc            |>Link Account Type |>Link Account No |<Link Acc Name                   |>Service ID |<Service Desc  |<Resp Branch Code |<Resp Branch Desc          |<Resp Section Code |<Resp Section Desc        |<ABB Branch Code          |<Branch Desc                    |>Disposal Batch No |>Disposal Tran No  |<Acc Chk YN|Exception YN|Exception Codes|>Resp Bank Code|<Resp Bank Desc|<SI YN|>Counter No.|<Cashier Id               |>Scroll No.      |<Rate Ref Code     |<Rate Ref Desc     |^ Contra Date |>Contra Batch No       |>Contra Tran No       |>Appl's Name |>Cust Id      "
+//  }
+//  // Loan end
+//  else if ((modId == "LOAN") &&
+//    (window.document.frmTrans.tranmode(0).checked == true)) {
+
+//    divsDisplay("loandtls", "M")
+
+//    window.document.all['divaccno'].style.display = "block";
+//    window.document.all.loanintdtls.style.display = "block"
+//    window.document.frmTrans.selloantrans.style.display = "block";
+//    funloantran()
+//    funinsertloan()
+//    window.document.frmTrans.Mfgpaydt.FormatString = ">Batch No     |>Tran No     |<GL Code       |<GL Description                       |>Acc No             |<Name                               |>Amount                     |>Entered Time Bal    |^Application Date   |<Cust ID                      |<Mode of Tran |<Mode of Tran Desc   |^ABB Application Date|<Tran Status  |>Currency Code   |<Entered By                    |<Entered M/C                  |<Module ID         |<Branch Code            |>Token No         |<Remarks                                  |<Cheque Series   |>Cheque No                 |^Cheque Date         |<Cheque Favouring              |<Sys Gen YN |<Module Description      |^ Effective Date        |<CLG Rate Type                |>Rate                   |<F Currency Code |>F Amount                   |<Link Module ID       |<Link Module Desc         |<Link GL Code   |<Link GL Desc            |>Link Account Type |>Link Account No |<Link Acc Name                   |>Service ID |<Service Desc  |<Resp Branch Code |<Resp Branch Desc          |<Resp Section Code |<Resp Section Desc        |<ABB Branch Code          |<Branch Desc                    |>Disposal Batch No |>Disposal Tran No  |<Acc Chk YN|Exception YN|Exception Codes|>Resp Bank Code|<Resp Bank Desc|<SI YN|>Counter No.|<Cashier Id               |>Scroll No.      |<Rate Ref Code     |<Rate Ref Desc     |>                  |>             |>             |>               |>               |>             |>           "
+//    window.document.frmTrans.Mfgpaydt.TextMatrix(0, 44) = "Loan Trans"
+//  }
+//  else if ((modId == "LOAN") &&
+//    (window.document.frmTrans.tranmode(1).checked == true)) {
+//    divsDisplay("loandtls", "M")
+
+//    window.document.all['divaccno'].style.display = "block";
+//    window.document.all.loanintdtls.style.display = "block"
+//    funloantran()
+//    funinsertloan()
+//    window.document.frmTrans.Mfgpaydt.FormatString = ">Batch No     |>Tran No     |<GL Code       |<GL Description                       |>Acc No             |<Name                               |>Amount                     |>Entered Time Bal    |^Application Date   |<Cust ID                      |<Mode of Tran |<Mode of Tran Desc   |^ABB Application Date|<Tran Status  |>Currency Code   |<Entered By                    |<Entered M/C                  |<Module ID         |<Branch Code            |>Token No         |<Remarks                                  |<Cheque Series   |>Cheque No                 |^Cheque Date         |<Cheque Favouring              |<Sys Gen YN |<Module Description      |^ Effective Date        |<CLG Rate Type                |>Rate                   |<F Currency Code |>F Amount                   |<Link Module ID       |<Link Module Desc         |<Link GL Code   |<Link GL Desc            |>Link Account Type |>Link Account No |<Link Acc Name                   |>Service ID |<Service Desc  |<Resp Branch Code |<Resp Branch Desc          |<Resp Section Code |<Resp Section Desc        |<ABB Branch Code          |<Branch Desc                    |>Disposal Batch No |>Disposal Tran No  |<Acc Chk YN|Exception YN|Exception Codes|>Resp Bank Code|<Resp Bank Desc|<SI YN|>Counter No.|<Cashier Id               |>Scroll No.      |<Rate Ref Code     |<Rate Ref Desc     |>Interest Amount |> Charges Amount |> Insurance Amount |>NPA Amount       |>Principalamount       |>Excessamount |>Cust ID      "
+//  }
+//  else if (modId == "DEP") {
+//    divsDisplay("divDepDtls", "M")
+//    window.document.all['divaccno'].style.display = "block";
+//    window.document.frmTrans.Mfgpaydt.FormatString = ">Batch No     |>Tran No     |<GL Code       |<GL Description                       |>Acc No             |<Name                               |>Amount                     |>Entered Time Bal    |^Application Date   |<Cust ID                      |<Mode of Tran |<Mode of Tran Desc   |^ABB Application Date|<Tran Status  |>Currency Code   |<Entered By                    |<Entered M/C                  |<Module ID         |<Branch Code            |>Token No         |<Remarks                                  |<Cheque Series   |>Cheque No                 |^Cheque Date         |<Cheque Favouring              |<Sys Gen YN |<Module Description      |^ Effective Date        |<CLG Rate Type                |>Rate                   |<F Currency Code |>F Amount                   |<Link Module ID       |<Link Module Desc         |<Link GL Code   |<Link GL Desc            |>Link Account Type |>Link Account No |<Link Acc Name                   |>Service ID |<Service Desc  |<Resp Branch Code |<Resp Branch Desc          |<Resp Section Code |<Resp Section Desc        |<ABB Branch Code          |<Branch Desc                    |>Disposal Batch No |>Disposal Tran No  |<Acc Chk YN|Exception YN|Exception Codes|>Resp Bank Code|<Resp Bank Desc|<SI YN|>Counter No.|<Cashier Id               |>Scroll No.      |<Rate Ref Code     |<Rate Ref Desc     |>Opening Amount  |> Current Amount |> Maturity Amount |>Int Accrued       |>Opening Date       |>Effective Date |>Maturity Date  |>Int. Paid Upto |>ROI     "
+//  }
+//  else if (modId == "SI" && vMode != "REC") {
+//    cnfrm = confirm("Do you want to Execute Standing Instructions ?")
+//    if (cnfrm == true) {
+//      SIGlcode()
+//    }
+//    else {
+//      window.document.frmTrans.txtModId.value = ""
+//      window.document.frmTrans.txtModDesc.value = ""
+//    }
+//  }
+//  else {
+//    //alert("trnsfer")
+//    divsDisplay("trnsfer", "M")
+//    window.document.frmTrans.txtpendbal.value = ""
+//    window.document.all['divaccno'].style.display = "block";
+//    window.document.all['divcheque'].style.display = "block";
+//    if ((window.document.frmTrans.txtModId.value == "SB") || (window.document.frmTrans.txtModId.value == "CA") || (window.document.frmTrans.txtModId.value == "CC")) {
+//      window.document.frmTrans.all.trcctod.style.display = "block"
+//    }
+//    else {
+//      window.document.frmTrans.all.trcctod.style.display = "none"
+//    }
+
+//    if (window.document.frmTrans.txtModId.value == "CC") {
+//      window.document.frmTrans.all.trcctod1.style.display = "block"
+//    }
+//    else {
+//      window.document.frmTrans.all.trcctod1.style.display = "none"
+//    }
+
+//  }
+//  ServiceIdDivs()
+//  //code added by Radhika on 12 May 2008
+//  //GetModDets()
+
+//  if ((modId == "REM") &&
+//    (window.document.frmTrans.tranmode(1).checked == true)) {
+//    //alert("1")
+//  }
+
+//}
+
+//--------prsremit
+//function issbank() {
+
+//  if (window.document.frmTrans.txtGLcode.value.length > 0) {
+//    gl = window.document.frmTrans.txtGLcode.value.toUpperCase()
+
+//    BranchCd = window.document.frmTrans.txtbranchcode.value.toUpperCase()
+//    CurCd = window.document.frmTrans.txtcurrencycode.value.toUpperCase()
+
+//    kstr = "issonbnk" + "~" + gl + "~" + BranchCd + "~" + CurCd
+
+//    window.showModalDialog('<%="http://" & session("moduledir")& "/GEN/"%>' + "TranList.aspx" + "?" + "st=" + kstr, window, "status:no;" +
+//      "DialogWidth:270px;DialogHeight:180px;DialogLeft:340px;DialogTop:100px")
+//  }
+//  //if(issonbnk==""){
+//  kstr = "issonbnk";
+
+//  //	window.showModalDialog('<%="http://" & session("moduledir")& "/GEN/"%>'+"TranList.aspx" + "?"+"st="+kstr,window,"status:no;"+
+//  //	"DialogWidth:270px;DialogHeight:170px;DialogLeft:340px;DialogTop:100px")
+//  //	}
+
+//}
+
+////This function is used to see addtional checks
+//function OkValidations() {
+
+//  if (window.document.frmTrans.txtModId.value.toUpperCase() == "SCR") {
+//    if (scrgridYN == "YES") {
+//      alert("Amount should be selected from Account Details Grid")
+//      if (window.document.frmTrans.chkDispAccNo.checked == false) {
+//        window.document.frmTrans.txtAmt.value = ""
+//      }
+//      return false;
+//    }
+//    else if (scrgridYN == "GRIDYES") {
+//      okValid = true
+//      return true;
+//    }
+//  }
+//}
+
+//function issbrnch() {
+//  TranMode()
+//  // alert("trnmode="+trnMode+",  rem type="+ remtype+", issonbnk="+issonbnk)
+
+//  BranchCd = window.document.frmTrans.txtbranchcode.value.toUpperCase()
+//  CurCd = window.document.frmTrans.txtcurrencycode.value.toUpperCase()
+
+
+
+//  if (issonbnk != "") {
+//    kstr = "issonbr";
+//    if ((trnMode == "4") || (trnMode == "2")) { bankCode = window.document.frmTrans.txtissbnkcode.value; }
+//    else if ((trnMode == "3") || (trnMode == "1")) { bankCode = window.document.frmTrans.txtbybnkcode.value; }
+//    else { bankCode = issonbnk; }
+
+//    kstr = kstr + "~" + remtype.toUpperCase() + "~" + bankCode;
+
+//    window.showModalDialog('<%="http://" & session("moduledir")& "/GEN/"%>' + "TranList.aspx" + "?" + "st=" + kstr, window, "status:no;" +
+//      "DialogWidth:270px;DialogHeight:180px;DialogLeft:340px;DialogTop:100px")
+//  }
+//  else
+//    //if ((trnMode=="4") && ( (remtype.toUpperCase()=="DD") || (remtype.toUpperCase()=="MT")|| (remtype.toUpperCase()=="TT") ))
+//    if ((remtype.toUpperCase() == "DD") || (remtype.toUpperCase() == "MT") || (remtype.toUpperCase() == "TT")) {
+//      if (trnMode == "4") { bankCode = window.document.frmTrans.txtissbnkcode.value; }
+//      else if (trnMode == "3") { bankCode = window.document.frmTrans.txtbybnkcode.value; }
+
+//      kstr = "issonothbr" + "~~" + bankCode;
+
+//      window.showModalDialog('<%="http://" & session("moduledir")& "/GEN/"%>' + "TranList.aspx" + "?" + "st=" + kstr, window, "status:no;" +
+//        "DialogWidth:270px;DialogHeight:170px;DialogLeft:340px;DialogTop:100px")
+//    }
+//    /*else if ((trnMode=="4") && ( (remtype.toUpperCase()=="ADD") ||
+//    (remtype.toUpperCase()=="TC") ))*/
+//    else if ((remtype.toUpperCase() == "ADD") || (remtype.toUpperCase() == "TC")) {
+
+//      if (trnMode == "4") { bankCode = window.document.frmTrans.txtissbnkcode.value; }
+//      else if (trnMode == "3") { bankCode = window.document.frmTrans.txtbybnkcode.value; }
+
+//      //kstr="issonothbr"+"~ADD~"+bankCode;
+//      kstr = "issonothbr" + "~" + remtype.toUpperCase() + "~" + bankCode + "~" + BranchCd + "~" + CurCd
+//      window.showModalDialog('<%="http://" & session("moduledir")& "/GEN/"%>' + "TranList.aspx" + "?" + "st=" + kstr, window, "status:no;" +
+//        "DialogWidth:270px;DialogHeight:170px;DialogLeft:340px;DialogTop:100px")
+//    }
+//}
+
+////Checks for cheques mandatory field values
+//function Cheque() {
+
+//  if (window.document.frmTrans.chkCheque.checked == true) {
+//    //  window.document.frmTrans.txtChqDt.value=vAppDate;
+//    //   window.document.frmTrans.DtpChq.value=vAppDate;
+//    window.document.all['ChqDtl'].style.display = "block";
+//  }
+
+//  if (window.document.frmTrans.chkCheque.checked == false) {
+//    window.document.all['ChqDtl'].style.display = "none";
+//    chequeClear()
+//    window.document.frmTrans.txtChqDt.value = '<%=session("Applicationdate")%>'
+
+//    if (mode != "MODIFY") {
+//      excpChqSrs = ""
+//      excpChqNo = ""
+//    }
+
+//  }
+//}
+
+//function closeLoanAuto() {
+//  var brcodeclln
+//  brcodeclln
+//  if (window.document.frmTrans.chkABB.checked == false) {
+//    brcodeclln = window.document.frmTrans.txtbranchcode.value
+//  }
+//  else {
+//    brcodeclln = "ABB"
+//  }
+//  var sBatch = ""
+//  if (window.document.frmTrans.Mfgpaydt.Rows >= 2) {
+//    sBatch = window.document.frmTrans.Mfgpaydt.textmatrix(1, 0)
+//  }
+
+//  st = "POSTINTEREST|" + brcodeclln + "|" +
+//    window.document.frmTrans.txtcurrencycode.value + "|" + window.document.frmTrans.txtModId.value + "|" +
+//    window.document.frmTrans.txtGLcode.value + "|" + window.document.frmTrans.txtAccNo.value + "|" +
+//    window.document.frmTrans.txtAmt.value + "|" + vMode + "|" + npaIntYN + "|" + sBatch
+
+//  window.document.all['iGetDtls'].src = "getDtls.aspx?st=" + st
+//  return;
+//}
+
+//this function is used to clear all the field and to set default format field values to the flexgrid.
+//function Cancel() {
+//  window.document.frmTrans.txtbranchcode.value = "<%=session("branchcode")%>"
+//  window.document.frmTrans.txtbranchdesc.value = "<%=session("branchnarration")%>"
+//  formClear()
+//  NatBranch()
+
+//  window.document.frmTrans.Mfgpaydt.Rows = 1;
+//  window.document.frmTrans.cmdPost.disabled = false
+//  sumDrCrDefault()
+//  window.document.frmTrans.txtTotDebit.value = "0";
+//  window.document.frmTrans.txtTotCredit.value = "0";
+//  chkboxUnCheck()
+//  defaultValues()
+//  if (vMode == "REC") {
+//    GetCashierBalance()
+//  }
+//}
+
+//function masterTabYN() {
+//  if (window.document.frmTrans.txtModId.value != "") {
+//    strpm = "MASTTAB" + "~" + window.document.frmTrans.txtModId.value.toUpperCase()
+
+//    window.document.all['iMsg'].src = '<%="http://" & session("moduledir")& "/GEN/"%>' + "minBalChk.aspx?strparam=" + strpm
+//  }
+//}
+
+//// Checks wether the transaction is exceptional one or not.
+//function exceptionCodes() {
+//  excpCodes = ""
+//  excpYN = "N"
+//  if (excpMinBal != "") {
+//    excpCodes = excpMinBal + "^"
+//    excpYN = "Y"
+//  }
+//  if (excpLmtAmt != "") {
+//    excpCodes = excpCodes + excpLmtAmt + "^"
+//    excpYN = "Y"
+//  }
+//  if (excpParmAmt != "") {
+//    excpCodes = excpCodes + excpParmAmt + "^"
+//    excpYN = "Y"
+//  }
+//  excpChq = ""
+//  if (excpChqSrs != "" || excpChqNo != "") {
+//    excpChq = "4"
+//    excpCodes = excpCodes + excpChq + "^"
+//    excpYN = "Y"
+//  }
+//  if (excpEffDt != "") {
+//    excpCodes = excpCodes + excpEffDt + "^"
+//    excpYN = "Y"
+//  }
+//  if (excpOverDraft != "") {
+//    excpCodes = excpCodes + excpOverDraft + "^"
+//    excpYN = "Y"
+//  }
+//}
+

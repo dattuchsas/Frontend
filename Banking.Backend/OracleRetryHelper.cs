@@ -139,6 +139,74 @@ namespace Banking.Backend
                 lastException);
         }
 
+        public async Task<string> GetImage(string query)
+        {
+            int attempt = 0;
+            Exception lastException = null!;
+            string base64String = string.Empty;
+
+            while (attempt < _maxRetries)
+            {
+                try
+                {
+                    using var connection = new OracleConnection(_connectionString);
+                    await connection.OpenAsync(CancellationToken.None);
+
+                    using var cmd = connection.CreateCommand();
+                    cmd.CommandText = query;
+
+                    using (var reader = cmd.ExecuteReader())
+                    {
+                        if (reader.Read())
+                        {
+                            // First column (example: ID or name)
+                            var firstField = reader[0];
+
+                            // Second column (photo as byte[])
+                            long length = reader.GetBytes(1, 0, null, 0, 0);
+                            byte[] buffer = new byte[length];
+                            reader.GetBytes(1, 0, buffer, 0, (int)length);
+
+                            base64String = Convert.ToBase64String(buffer);
+
+                            //byte[] buffer = new byte[reader.GetBytes(0, 0, null, 0, 0)];
+                            //reader.GetBytes(0, 0, buffer, 0, buffer.Length);
+
+                            //base64String = Convert.ToBase64String(buffer);
+                        }
+                    }
+
+                    if (connection.State == ConnectionState.Open)
+                    {
+                        cmd.Dispose();
+                        connection.Close();
+                        connection.Dispose();
+                    }
+
+                    return base64String;
+                }
+                catch (OracleException ex) when (IsTransient(ex))
+                {
+                    lastException = ex;
+                    attempt++;
+
+                    if (attempt >= _maxRetries)
+                        break;
+
+                    int delay = _initialDelayMs * (int)Math.Pow(2, attempt - 1);
+                    await Task.Delay(delay, CancellationToken.None);
+                }
+                catch (OracleException ex)
+                {
+                    throw new Exception(OracleErrorMapper.GetFriendlyMessage(ex));
+                }
+            }
+
+            throw new InvalidOperationException(
+                $"Failed to open Oracle connection after {_maxRetries} attempts.",
+                lastException);
+        }
+
         private static bool IsTransient(OracleException ex)
         {
             // Common transient Oracle error codes

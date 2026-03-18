@@ -67,10 +67,11 @@
                     </div>
                     <div class="col-md-6 col-lg-3 col-xl-3">
                         <label asp-for="GLCode" class="form-label">GL Code</label>
-                        <div class="input-group">
-                            <input asp-for="GLCode" type="text" class="form-control">
-                            <button type="button" class="btn btn-sm btn-primary glcode"><i class="bi bi-search"></i></button>
-                        </div>
+                        <select asp-for="GLCode" asp-items="@Model.GLCodeList" class="form-select"></select>
+                    </div>
+                    <div class="col-md-6 col-lg-3 col-xl-3 d-none" id="categoryCodeList">
+                        <label asp-for="CategoryCode" class="form-label">Category Code</label>
+                        <select asp-for="CategoryCode" asp-items="@Model.CategoryList" class="form-select"></select>
                     </div>
                     <div class="col-md-4 col-lg-3 col-xl-3">
                         <label asp-for="AccountNumber" class="form-label">Account Number<span class="text-danger">*</span></label>
@@ -79,7 +80,7 @@
                             <button class="btn btn-sm btn-primary" type="button" id="accountNumberSearch"><i class="bi bi-search"></i></button>
                         </div>
                     </div>
-                    <div class="col-md-8 col-lg-6 col-xl-6">
+                    <div class="col-md-6 col-lg-4 col-xl-4">
                         <label class="form-label">Name</label>
                         <div class="input-group">
                             <input asp-for="CustomerName" type="text" class="form-control" readonly />
@@ -103,29 +104,29 @@
                             <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#TDSBackdrop">TDS</button>
                         </div>
                     </div>
-                    <div class="col-md-8 col-lg-6 col-xl-6">
+                    <div class="col-md-6 col-lg-4 col-xl-4">
                         <label asp-for="Narration" class="form-label">Narration</label>
                         <input asp-for="Narration" type="text" class="form-control" />
                     </div>
-                    <div class="col-md-4 col-lg-3 col-xl-3">
-                        <a href="#" target="_self" class="btn btn-w-auto btn-primary">Ok</a>
-                        <a href="#" target="_self" class="btn btn-w-auto btn-primary">Clear</a>
+                    <div class="col-md-2 col-lg-2 col-xl-2">
+                        <button id="okBtn" class="btn btn-w-auto btn-primary">Ok</button>
+                        <button id="clearBtn" class="btn btn-w-auto btn-primary">Clear</button>
                     </div>
                 </div>
             </div>
             <div class="phot-sign">
                 <div class="border rounded">
                     <div class="photo">
-                        <img src="~/images/placeholder-img.jpg" class="img-fluid rounded-top" />
+                        <img id="CustomerPhoto" class="img-fluid rounded-top" />
                     </div>
                     <div class="sign border-top">
-                        <img src="~/images/placeholder-sign.jpg" class="img-fluid rounded-bottom" />
+                        <img id="CustomerSign" class="img-fluid rounded-bottom" />
                     </div>
                 </div>
             </div>
         </div>
         <!--Cheque Details-->
-        <div id="cheque" class="d-none">
+        <div id="chequeDetails" class="d-none">
             <hr />
             <div class="row gx-3 gy-2">
                 <div class="col-sm-6 col-md-3 col-xl-2">
@@ -154,194 +155,172 @@
             <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3  row-cols-lg-4 row-cols-xl-5 gx-3 gy-2">
                 <div class="col d-none ClearBalance">
                     <label class="form-label">Clear Balance</label>
-                    <div id="ClearBalance">@Model.ClearBalance</div>
+                    <div id="ClearBalance">0.00</div>
                 </div>
                 <div class="col d-none UnclearBalance">
                     <label class="form-label">Unclear Balance</label>
-                    <div id="UnclearBalance">@Model.UnclearBalance</div>
+                    <div id="UnclearBalance">0.00</div>
                 </div>
                 <div class="col d-none AccountBalance">
                     <label class="form-label">Account Balance</label>
-                    <div id="AccountBalance">@Model.AccountBalance</div>
+                    <div id="AccountBalance">0.00</div>
                 </div>
                 <div class="col d-none OperationInstruction">
                     <label class="form-label">Oper. Instr.</label>
-                    <div id="OperationInstruction">@Model.OperationInstruction</div>
+                    <div id="OperationInstruction">--</div>
                 </div>
                 <div class="col d-none OperatedBy">
                     <label class="form-label">Oper. By</label>
-                    <div id="OperatedBy">@Model.OperatedBy</div>
+                    <div id="OperatedBy">--</div>
                 </div>
                 <div class="col d-none PendingBalance">
                     <label class="form-label">Pending Balance</label>
-                    <div id="PendingBalance">@Model.PendingBalance</div>
+                    <div id="PendingBalance">0.00</div>
                 </div>
                 <div class="col d-none CustomerId">
                     <label class="form-label">Customer Id</label>
-                    <div id="CustomerId">@Model.CustomerId</div>
+                    <div id="CustomerId">--</div>
                 </div>
                 <div class="col d-none LimitAmount">
                     <label class="form-label">Limit Amount</label>
-                    <div id="LimitAmount">@Model.LimitAmount</div>
+                    <div id="LimitAmount">0.00</div>
                 </div>
                 <div class="col d-none TotalCashDebited">
                     <label class="form-label">Total Cash Dr.</label>
-                    <div id="TotalCashDebited">@Model.TotalCashDebited</div>
+                    <div id="TotalCashDebited">0.00</div>
                 </div>
                 <div class="col d-none TotalCashCredited">
                     <label class="form-label">Total Cash Cr.</label>
-                    <div id="TotalCashCredited">@Model.TotalCashCredited</div>
+                    <div id="TotalCashCredited">0.00</div>
                 </div>
                 <div class="col d-none LimitExpiryDate">
                     <label class="form-label">Limit Exp. Dt.</label>
-                    <div id="LimitExpiryDate">@Model.LimitExpiryDate</div>
+                    <div id="LimitExpiryDate">--</div>
                 </div>
                 <div class="col d-none GSTIN">
                     <label class="form-label">GSTIN</label>
-                    <div id="GSTIN">@Model.GSTIN</div>
+                    <div id="GSTIN">--</div>
                 </div>
-            </div>
-        </div>
-        <!--Loans Selections Details-->
-        <div class="service-box d-none mt-2" id="loan">
-            <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3  row-cols-lg-4 row-cols-xl-5 gx-3 gy-2">
-                <div class="col">
-                    <label class="form-label">Sanction Amt.</label>
-                    <div>68000.00</div>
+                <div class="col d-none TODLimit">
+                    <label class="form-label">TOD Limit</label>
+                    <div id="TODLimit">0.00</div>
                 </div>
-                <div class="col">
-                    <label class="form-label">Disbursed Amt</label>
-                    <div>68000.00</div>
+                <div class="col d-none AvailableLimit">
+                    <label class="form-label">Avail. Limit</label>
+                    <div id="AvailableLimit">0.00</div>
                 </div>
-                <div class="col">
-                    <label class="form-label">Available</label>
-                    <div>0.00</div>
+                <div class="col d-none PendingIntAmount">
+                    <label class="form-label">Pend. Amount</label>
+                    <div id="PendingIntAmount">0.00</div>
                 </div>
-                <div class="col">
-                    <label class="form-label">Pend Int Amt.</label>
-                    <div></div>
+                <div class="col d-none InterestAmount">
+                    <label class="form-label">Int. Amount</label>
+                    <div id="InterestAmount">0.00</div>
                 </div>
-                <div class="col">
-                    <label class="form-label">Inst Amt</label>
-                    <div>5962.00</div>
+                <div class="col d-none PendingInstallments">
+                    <label class="form-label">Pend. Installments</label>
+                    <div id="PendingInstallments">0</div>
                 </div>
-                <div class="col">
-                    <label class="form-label">NoOfPndlns</label>
-                    <div>13</div>
+                <div class="col d-none SanctionAmount">
+                    <label class="form-label">Sanc. Amount</label>
+                    <div id="SanctionAmount">0.00</div>
                 </div>
-                <div class="col">
-                    <label class="form-label">NPA Int Amt</label>
-                    <div></div>
+                <div class="col d-none DisbursementAmount">
+                    <label class="form-label">Disb. Amount</label>
+                    <div id="DisbursementAmount">0.00</div>
                 </div>
-            </div>
-            <hr>
-            <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3  row-cols-lg-4 row-cols-xl-5 gx-3 gy-2">
-                <div class="col">
-                    <label class="form-label">Int Pending</label>
-                    <input type="text" class="form-control">
+                <div class="col d-none NPAIntAmount">
+                    <label class="form-label">NPA Int. Amount</label>
+                    <div id="NPAIntAmount">0.00</div>
                 </div>
-                <div class="col">
-                    <label class="form-label">Int Amt</label>
-                    <input type="text" class="form-control">
+                <div class="col d-none RD_OpAmount">
+                    <label class="form-label">Op. Amount</label>
+                    <div id="RD_OpAmount">0.00</div>
                 </div>
-                <div class="col">
-                    <label class="form-label">Chrg Pending</label>
-                    <input type="text" class="form-control">
+                <div class="col d-none RD_OpDate">
+                    <label class="form-label">Op. Date</label>
+                    <div id="RD_OpDate">--</div>
                 </div>
-                <div class="col">
-                    <label class="form-label">Chrg Amt</label>
-                    <input type="text" class="form-control">
+                <div class="col d-none RD_ROI">
+                    <label class="form-label">ROI</label>
+                    <div id="RD_ROI">0.00</div>
                 </div>
-                <div class="col">
-                    <label class="form-label">Insur Pending</label>
-                    <input type="text" class="form-control">
+                <div class="col d-none RD_IntAccr">
+                    <label class="form-label">Int. Accr.</label>
+                    <div id="RD_IntAccr">0.00</div>
                 </div>
-                <div class="col">
-                    <label class="form-label">Insur Amt</label>
-                    <input type="text" class="form-control">
+                <div class="col d-none RD_IntPaidUpto">
+                    <label class="form-label">Int. Paid Upto</label>
+                    <div id="RD_IntPaidUpto">--</div>
                 </div>
-                <div class="col">
-                    <label class="form-label">NPA Pending</label>
-                    <input type="text" class="form-control">
+                <div class="col d-none RD_MaturityAmount">
+                    <label class="form-label">Maturity Amount</label>
+                    <div id="RD_MaturityAmount">0.00</div>
                 </div>
-                <div class="col">
-                    <label class="form-label">NPA Amt</label>
-                    <input type="text" class="form-control">
+                <div class="col d-none RD_MaturityDate">
+                    <label class="form-label">Maturity Date</label>
+                    <div id="RD_MaturityDate">--</div>
                 </div>
-                <div class="col">
-                    <label class="form-label">PrincPending</label>
-                    <input type="text" class="form-control">
+                <div class="col d-none RD_EffectiveDate">
+                    <label class="form-label">Effective Date</label>
+                    <div id="RD_EffectiveDate">--</div>
                 </div>
-                <div class="col">
-                    <label class="form-label">PrincAmt</label>
-                    <input type="text" class="form-control">
-                </div>
-                <div class="col">
-                    <label class="form-label">Reserve</label>
-                    <input type="text" class="form-control">
-                </div>
-                <div class="col">
-                    <label class="form-label">Exc Amt</label>
-                    <input type="text" class="form-control">
+                <div class="col d-none RD_CurrAmount">
+                    <label class="form-label">Curr. Amount</label>
+                    <div id="RD_CurrAmount">0.00</div>
                 </div>
             </div>
         </div>
         <!--Remittence Selections Details-->
         <div class="service-box d-none" id="rem">
             <div class="row align-items-end gx-3 gy-2">
-                <div class="col-sm-6  col-lg-3 col-xl-2">
-                    <label class="form-label">Issued on Bank</label>
-                    <select class="form-select">
-                        <option selected="">101 - The Maharaja Coop</option>
-                    </select>
+                <div class="col-sm-6 col-lg-3 col-xl-2 d-none Remm_IssuedOnBank">
+                    <label asp-for="REMBank" class="form-label">Issued on Bank</label>
+                    <select asp-for="REMBank" asp-items="@Model.REMBankList" class="form-select"></select>
                 </div>
-                <div class="col-sm-6  col-lg-3 col-xl-2">
-                    <label for="Cust-Type" class="form-label">Issued on Branch</label>
-                    <select class="form-select">
-                        <option selected="">101 - Dwarakanagar</option>
-                    </select>
+                <div class="col-sm-6  col-lg-3 col-xl-2 d-none Remm_IssuedOnBranch">
+                    <label asp-for="REMBranch" class="form-label">Issued on Branch</label>
+                    <select asp-for="REMBranch" asp-items="@Model.REMBranchList" class="form-select"></select>
                 </div>
-                <div class="col-sm-6 col-md-4  col-lg-3 col-xl-2">
-                    <label class="form-label">Favouring.</label>
-                    <input type="text" class="form-control">
+                <div class="col-sm-6 col-md-4 col-lg-3 col-xl-2 d-none Remm_Favouring">
+                    <label asp-for="REMFavouring" class="form-label">Favouring.</label>
+                    <input asp-for="REMFavouring" type="text" class="form-control">
                 </div>
-                <div class="col-sm-6 col-md-4  col-lg-3 col-xl-2">
-                    <label class="form-label">Comm.</label>
-                    <input type="text" class="form-control">
+                <div class="col-sm-6 col-md-4 col-lg-3 col-xl-2 d-none Remm_Commission">
+                    <label asp-for="REMCommission" class="form-label">Comm.</label>
+                    <input asp-for="REMCommission" type="text" class="form-control">
                 </div>
-                <div class="col-sm-6 col-md-4  col-lg-3 col-xl-2">
-                    <label class="form-label">Rec. Nam</label>
-                    <select class="form-select">
-                        <option selected="">Select</option>
-                    </select>
+                <div class="col-sm-6 col-md-4 col-lg-3 col-xl-2 d-none Remm_RecipientName">
+                    <label asp-for="REMRecipientName" class="form-label">GL Code</label>
+                    <select asp-for="REMRecipientName" asp-items="@Model.REMRecipientList" class="form-select"></select>
                 </div>
-                <div class="col-sm-6 col-md-4  col-lg-3 col-xl-2">
-                    <label class="form-label">GST</label>
-                    <input type="text" class="form-control">
+                <div class="col-sm-6 col-md-4 col-lg-3 col-xl-2 d-none Remm_GST">
+                    <label asp-for="REMGST" class="form-label">GST</label>
+                    <input asp-for="REMGST" type="text" class="form-control">
                 </div>
-                <div class="col-sm-6 col-md-4  col-lg-3 col-xl-2">
-                    <label class="form-label">CESS</label>
-                    <input type="text" class="form-control">
+                <div class="col-sm-6 col-md-4 col-lg-3 col-xl-2 d-none Remm_CESS">
+                    <label asp-for="REMCESS" class="form-label">CESS</label>
+                    <input asp-for="REMCESS" type="text" class="form-control">
                 </div>
-                <div class="col-sm-6 col-md-4  col-lg-3 col-xl-2">
-                    <label class="form-label">Pan No</label>
-                    <input type="text" class="form-control">
+                <div class="col-sm-6 col-md-4 col-lg-3 col-xl-2 d-none Remm_PAN">
+                    <label asp-for="REMPAN" class="form-label">Pan No</label>
+                    <input asp-for="REMPAN" type="text" class="form-control">
                 </div>
-                <div class="col-sm-6 col-md-4  col-lg-3 col-xl-2">
-                    <label class="form-label">Mobile</label>
-                    <input type="text" class="form-control">
+                <div class="col-sm-6 col-md-4 col-lg-3 col-xl-2 d-none Remm_Mobile">
+                    <label asp-for="REMMobile" class="form-label">Mobile</label>
+                    <input asp-for="REMMobile" type="text" class="form-control">
                 </div>
-                <div class="col-sm-6 col-md-8  col-lg-3 col-xl-2">
-                    <label class="form-label">Address1</label>
-                    <input type="text" class="form-control">
+                <div class="col-sm-6 col-md-8 col-lg-3 col-xl-2 d-none Remm_Address1">
+                    <label asp-for="REMAddress1" class="form-label">Address1</label>
+                    <input asp-for="REMAddress1" type="text" class="form-control">
                 </div>
-                <div class="col-sm-6  col-lg-3 col-xl-2">
-                    <label class="form-label">Addr.2</label>
-                    <input type="text" class="form-control">
+                <div class="col-sm-6  col-lg-3 col-xl-2 d-none Remm_Address2">
+                    <label asp-for="REMAddress2" class="form-label">Addr.2</label>
+                    <input asp-for="REMAddress2" type="text" class="form-control">
                 </div>
-                <div class="col-sm-6  col-lg-3 col-xl-2">
-                    <label class="form-label">Addr.3</label>
-                    <input type="text" class="form-control">
+                <div class="col-sm-6  col-lg-3 col-xl-2 d-none Remm_Address3">
+                    <label asp-for="REMAddress3" class="form-label">Addr.3</label>
+                    <input asp-for="REMAddress3" type="text" class="form-control">
                 </div>
             </div>
         </div>
@@ -373,25 +352,25 @@
             </table>
         </div>
         <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 row-cols-xl-5 gx-3 gy-2">
-            <div class="col">
+            <div class="col d-none DebitTransactions">
                 <label asp-for="DebitTransactions" class="form-label">Dr. Transactions</label>
-                <div class="text-danger">@Model.DebitTransactions</div>
+                <div>--</div>
             </div>
-            <div class="col">
+            <div class="col d-none CreditTransactions">
                 <label asp-for="CreditTransactions" class="form-label">Cr. Transactions</label>
-                <div>@Model.CreditTransactions</div>
+                <div>--</div>
             </div>
-            <div class="col">
+            <div class="col d-none DebitTotal">
                 <label asp-for="DebitTotal" class="form-label">Dr. Total</label>
-                <div>@Model.DebitTransactions</div>
+                <div>0.00</div>
             </div>
-            <div class="col">
+            <div class="col d-none CreditTotal">
                 <label asp-for="CreditTotal" class="form-label">Cr. Total</label>
-                <div>@Model.CreditTransactions</div>
+                <div>0.00</div>
             </div>
-            <div class="col">
+            <div class="col d-none Difference">
                 <label asp-for="Difference" class="form-label">Difference</label>
-                <div>@Model.Difference</div>
+                <div>0.00</div>
             </div>
         </div>
         <hr class="my-3">
@@ -404,7 +383,6 @@
         </div>
     </div>
 </div>
-
 
 <input type="hidden" asp-for="UserId" />
 <input type="hidden" asp-for="ABBUser" />
@@ -426,6 +404,12 @@
 <input type="hidden" asp-for="Hidden_ChequeLength" />
 <input type="hidden" asp-for="Hidden_Precision" />
 <input type="hidden" asp-for="Hidden_MaxAmount" />
+<input type="hidden" asp-for="Hidden_TellerVerifyReqYN" />
+<input type="hidden" asp-for="Hidden_RemCanAutoChrgsYN" />
+<input type="hidden" asp-for="Hidden_RemCanCommYN" />
+
+<input type="hidden" id="hdnblnCloseLoan" />
+<input type="hidden" id="hdnCloseLoan" />
 
 <!-- Customer List Modal -->
 <div class="modal fade" id="GLCodeListPopup" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-hidden="true">

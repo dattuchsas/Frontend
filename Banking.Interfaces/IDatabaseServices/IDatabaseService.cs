@@ -40,5 +40,15 @@ namespace Banking.Interfaces
 
         Task<DataTable> AccNoTransactionParameters(string Branchcode, string ModuleCode, string GLcode, string TransactionDate, string CurrencyCode = "", string Accno = "",
             string CategoryCode = "", string ChqBookYN = "", string[] ModuleConditions = null!, string userBranchcode = "", string UserID = "", string machineid = "");
+
+        Task<string> GetAccountDetail(string BranchCode, string CurrencyCode, string ModuleId, string GlCode, string AccNo);
+
+        Task<string> GetCustomerPhoto(string customerId);
+
+        Task<string> GetCustomerSignature(string customerId);
+
+        Task<string> GetBatchNo(string branchCode);
+
+        Task<string> GetTranNo(string branchCode);
     }
 }

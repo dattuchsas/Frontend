@@ -175,7 +175,7 @@ namespace Banking.Services
                 }
             }
 
-            return BankingExtensions.ReturnKeyValuePair(dataTable, "", false);
+            return BankingExtensions.ReturnKeyValuePair(dataTable, "GLCode", true);
         }
 
         public async Task GetTransList(string searchString = "", string hidsearch = "", string userId = "")
@@ -1697,7 +1697,7 @@ namespace Banking.Services
                             rsins = await _databaseFactory.GetGLCodes(brCode, modId);
                             filteredRows = rsins.Select("(glcode)='" + glCode.Trim().ToUpper() + "'");
                         }
-                        else if (sttxtcode.Equals("txtAccNo"))
+                        else if (sttxtcode.Equals("AccountNumber", StringComparison.OrdinalIgnoreCase))
                         {
                             modId = insstr[4];
                             glCode = insstr[5];
@@ -1763,7 +1763,6 @@ namespace Banking.Services
 
                             details = sttxtname + "~|" + details;
                         }
-
                         else
                             details = sttxtname + "~|" + "NoRecords";
 
