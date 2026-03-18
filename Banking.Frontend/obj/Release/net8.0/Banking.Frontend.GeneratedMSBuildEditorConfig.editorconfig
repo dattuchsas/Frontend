@@ -20,12 +20,20 @@ build_property._RazorSourceGeneratorDebug =
 build_property.EffectiveAnalysisLevelStyle = 8.0
 build_property.EnableCodeStyleSeverity = 
 
+[K:/Banking/Github/Banking.Frontend/Frontend/Banking.Frontend/Views/Common/Index.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQ29tbW9uXEluZGV4LmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
 [K:/Banking/Github/Banking.Frontend/Frontend/Banking.Frontend/Views/Customer/Index.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQ3VzdG9tZXJcSW5kZXguY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
 [K:/Banking/Github/Banking.Frontend/Frontend/Banking.Frontend/Views/Customer/NewCustomer.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQ3VzdG9tZXJcTmV3Q3VzdG9tZXIuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[K:/Banking/Github/Banking.Frontend/Frontend/Banking.Frontend/Views/Dashboard/CommonModule.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRGFzaGJvYXJkXENvbW1vbk1vZHVsZS5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
 [K:/Banking/Github/Banking.Frontend/Frontend/Banking.Frontend/Views/Dashboard/Index.cshtml]
@@ -40,6 +48,10 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcUG9wdXBzXFNlYXJjaFRlcnJvcmlzdExpc3QuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
+[K:/Banking/Github/Banking.Frontend/Frontend/Banking.Frontend/Views/SBCAAccountOpening/SBCAAccountOpening.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU0JDQUFjY291bnRPcGVuaW5nXFNCQ0FBY2NvdW50T3BlbmluZy5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
 [K:/Banking/Github/Banking.Frontend/Frontend/Banking.Frontend/Views/Shared/Components/Menu/Default.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2hhcmVkXENvbXBvbmVudHNcTWVudVxEZWZhdWx0LmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
@@ -50,6 +62,14 @@ build_metadata.AdditionalFiles.CssScope =
 
 [K:/Banking/Github/Banking.Frontend/Frontend/Banking.Frontend/Views/Shared/_ValidationScriptsPartial.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2hhcmVkXF9WYWxpZGF0aW9uU2NyaXB0c1BhcnRpYWwuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[K:/Banking/Github/Banking.Frontend/Frontend/Banking.Frontend/Views/TransferTransaction/Index.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcVHJhbnNmZXJUcmFuc2FjdGlvblxJbmRleC5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[K:/Banking/Github/Banking.Frontend/Frontend/Banking.Frontend/Views/TransferTransaction/Remmitance.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcVHJhbnNmZXJUcmFuc2FjdGlvblxSZW1taXRhbmNlLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
 [K:/Banking/Github/Banking.Frontend/Frontend/Banking.Frontend/Views/_ViewImports.cshtml]

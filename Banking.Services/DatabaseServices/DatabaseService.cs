@@ -1,4 +1,5 @@
 ﻿using Banking.Backend;
+using Banking.Framework;
 using Banking.Interfaces;
 using Banking.Models;
 using Oracle.ManagedDataAccess.Client;
@@ -75,6 +76,31 @@ namespace Banking.Services
         {
             return await _databaseFactory.AccNoTransactionParameters(Branchcode, ModuleCode, GLcode, TransactionDate, CurrencyCode, Accno, CategoryCode, ChqBookYN, 
                 ModuleConditions, userBranchcode, UserID, machineid);
+        }
+
+        public async Task<string> GetAccountDetail(string BranchCode, string CurrencyCode, string ModuleId, string GlCode, string AccNo)
+        {
+            return await _databaseFactory.GetAccountDetail(BranchCode, CurrencyCode, ModuleId, GlCode, AccNo);
+        }
+
+        public async Task<string> GetCustomerPhoto(string customerId)
+        {
+            return await _databaseFactory.GetCustomerPhoto(customerId);
+        }
+
+        public async Task<string> GetCustomerSignature(string customerId)
+        {
+            return await _databaseFactory.GetCustomerSignature(customerId);
+        }
+
+        public async Task<string> GetBatchNo(string branchCode)
+        {
+            return await _databaseFactory.GetBatchNo(branchCode);
+        }
+
+        public async Task<string> GetTranNo(string branchCode)
+        {
+            return await _databaseFactory.GetTranNo(branchCode);
         }
 
         //public async Task<string> ModifyQueriedTrans(string TableName, string FldNames, string[] ArrValues, string wherecondition = "", string BranchCode = "",

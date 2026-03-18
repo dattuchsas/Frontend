@@ -15,5 +15,7 @@
         Task<string> MinimumBalanceCheck(string searchString = "", string chequeValidPeriod = "");
         Task<string> GetBalanceDetails(string searchString = "", string applicationDate = "");
         Task<string> GetMessageCount(string searchString = "", string applicationDate = "", string groupCode = "");
+        Task<string> GetCustomerPhoto(string customerId);
+        Task<string> GetCustomerSignature(string customerId);
     }
 }

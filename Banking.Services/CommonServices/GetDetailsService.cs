@@ -1,7 +1,10 @@
 ﻿using Banking.Framework;
 using Banking.Interfaces;
 using Banking.Models;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.Extensions.Options;
+using Microsoft.VisualBasic;
+using System;
 using System.Data;
 using System.Diagnostics.Eventing.Reader;
 
@@ -213,7 +216,21 @@ namespace Banking.Services
             }
             else if (strArr[0].Equals("GETCCDRCRLIENYN", StringComparison.OrdinalIgnoreCase))
             {
-              //  strResult = await _generalValidationService.GetCCDrCrLienYN(strArr[1], strArr[2], strArr[3], strArr[4], strArr[5], strArr[6]);
+                // strResult = await _generalValidationService.GetCCDrCrLienYN(strArr[1], strArr[2], strArr[3], strArr[4], strArr[5], strArr[6]);
+            }
+            else if (strArr[0].Equals("GETBATCHTRANNO", StringComparison.OrdinalIgnoreCase))
+            {
+                string[] strIndvVal = strArr[1].Split("*");
+
+                string batchNo = await _databaseFactory.GetBatchNo(strIndvVal[0]);
+
+                strResult = batchNo + "|";
+
+                for (int vCnt = 0; vCnt <= (Convert.ToInt32(strIndvVal[1]) + 1); vCnt++)
+                {
+                    string tranNo = await _databaseFactory.GetTranNo(strIndvVal[0]);
+                    strResult += "*" + tranNo;
+                }
             }
 
             return strResult;
@@ -402,30 +419,6 @@ namespace Banking.Services
             //        end if
 
             //        dataTable = nothing
-
-            //    elseif strArr(0)= "GETBATCHTRANNO" then
-            //        strResult = ""
-
-            //        batchNo = ""
-
-            //        tranNo = ""
-
-
-            //        obj = Server.CreateObject("GeneralTranQueries.TransactionQueries")
-
-            //        strIndvVal = split(strArr(1), "*")
-
-            //        batchNo = obj.GetBatchno(cstr(strIndvVal(0)))
-
-            //        strResult = batchNo & "|"
-
-            //            for vCnt = 0 to(cInt(strIndvVal(1)) + 1)
-
-            //                tranNo = obj.GetTranNo(cstr(strIndvVal(0)))
-
-            //                strResult = strResult & "*" & tranNo
-
-            //            next
 
             //    elseif strArr(0) = "GETBANKDESC" then
 
@@ -12090,7 +12083,7 @@ namespace Banking.Services
             {
                 string[] st = searchString.Split("~!~");
 
-                dataTable = await _databaseFactory.SingleRecordSet("GENGLMASTMST", "NORMALBALANCE", 
+                dataTable = await _databaseFactory.SingleRecordSet("GENGLMASTMST", "NORMALBALANCE",
                     " upper(MODULEID)='" + st[1].Trim().ToUpper() + "' " + " AND upper(GLCODE)='" + st[2].Trim().ToUpper() + "'");
 
                 if (dataTable.Rows.Count > 0)
@@ -12166,16 +12159,11 @@ namespace Banking.Services
                 //            counterno = dataTable(0).value
                 //        end if
             }
-            else if (searchString.Substring(0, 12).Equals("GETMINPERIOD", StringComparison.OrdinalIgnoreCase))
+            else
             {
+                if (string.IsNullOrWhiteSpace(counterNo))
+                    counterNo = "NoComm";
             }
-            else if (searchString.Substring(0, 12).Equals("GETMINPERIOD", StringComparison.OrdinalIgnoreCase))
-            {
-            }
-            else if (searchString.Substring(0, 12).Equals("GETMINPERIOD", StringComparison.OrdinalIgnoreCase))
-            {
-            }
-
 
             return counterNo;
 
@@ -13816,13 +13804,13 @@ namespace Banking.Services
                             else
                                 maxprddays = 0;
 
-                            //        if recGL.RecordCount > 0 then
-                            strAccParam = strAccParam + minprdyers + "~" + minprdmonths + "~" + minprddays + "~" + maxprdyears + "~" + maxprdmonths + "~" + maxprddays + "~" + "0" + "~" + "1";
+                            // if recGL.RecordCount > 0 then
+                            strResult = strAccParam + minprdyers + "~" + minprdmonths + "~" + minprddays + "~" + maxprdyears + "~" + maxprdmonths + "~" + maxprddays + "~" + "0" + "~" + "1";
                         }
                         else
                         {
                             // Numbers left side of the code indicates array index used for java script code, Index starts at 0 till 83
-                            strAccParam = row["MINAMOUNT"] + "~" + row["MAXAMOUNT"] + "~" + row["MINPERIODYEARS"] + "~" + row["MINPERIODMON"] + "~" + row["MINPERIODDAYS"] + "~" +
+                            strResult = row["MINAMOUNT"] + "~" + row["MAXAMOUNT"] + "~" + row["MINPERIODYEARS"] + "~" + row["MINPERIODMON"] + "~" + row["MINPERIODDAYS"] + "~" +
                                 row["MAXPERIODYEARS"] + "~" + row["MAXPERIODMON"] + "~" + row["MAXPERIODDAYS"] + "~" + row["TDS"] + "~" + row["OUTRTNCHARGES"] + "~" +
                                 row["OUTRTNFREQ"] + "~" + row["OUTRTNCHARGEEXEMPT"] + "~" + row["OUTRTNGLCODE"] + "~" + row["INWRTNCHARGES"] + "~" + row["INWRTNFREQ"] + "~" +
                                 row["INWRTNCHARGESEXEMPT"] + "~" + row["INWRTNGLCODE"] + "~" + row["STOPPAYCHARGES"] + "~" + row["STOPPAYFREQ"] + "~" + row["STOPPAYCHARGESEXEMPT"] + "~" +
@@ -15615,7 +15603,7 @@ namespace Banking.Services
 
             DataTable dataTable = null!;
 
-            string appdate = string.Format("dd-MMM-yyyy", Conversions.ToString(applicationDate));
+            //string appdate = string.Format("dd-MMM-yyyy", Conversions.ToString(applicationDate));
 
             if (strMand[0]!.Length > 0 && strMand[1]!.Length > 0 && strMand[2]!.Length > 0 && strMand[3]!.Length > 0 && strMand[4]!.Length > 0)
             {
@@ -15623,10 +15611,7 @@ namespace Banking.Services
                     "' and currencycode='" + strMand[1] + "' and glcode='" + strMand[3] + "' and accno='" + strMand[4] + "'");
 
                 if (dataTable.Rows.Count > 0)
-                {
-                    //            obj = Server.CreateObject("accountdetails.accdetails")
-                    //            strResult = obj.accountdetail(cstr(strMand(0)), cstr(strMand(1)), cstr(strMand(2)), cstr(strMand(3)), cstr(strMand(4)))
-                }
+                    strResult = await _databaseFactory.GetAccountDetail(strMand[0], strMand[1], strMand[2], strMand[3], strMand[4]);
                 else
                     strResult = "";
 
@@ -15641,7 +15626,7 @@ namespace Banking.Services
                     DataTable rstod = null!, rsLim = null!;
 
                     string strSqltod = "SELECT NVL(TODLIMITAMT,0) FROM genlimitlnk WHERE LINKEDACCNO = '" + strMand[4] + "' AND LINKEDGLCODE='" + strMand[3] + "' AND " +
-                        "LINKEDMODULEID='" + strMand[2] + "' AND BRANCHCODE= '" + strMand[0] + "' AND CURRENCYCODE='" + strMand[1] + "' AND EXPIRYDATE<= '" + appdate + "'";
+                        "LINKEDMODULEID='" + strMand[2] + "' AND BRANCHCODE= '" + strMand[0] + "' AND CURRENCYCODE='" + strMand[1] + "' AND EXPIRYDATE<= '" + applicationDate + "'";
 
                     rsLim = await _databaseFactory.ProcessQueryAsync(strSqltod);
 
@@ -15650,8 +15635,8 @@ namespace Banking.Services
                     else
                     {
                         strSqltod = "SELECT NVL(TODLIMITAMT,0) FROM genlimitlnk WHERE LINKEDACCNO = '" + strMand[4] + "' AND LINKEDGLCODE='" + strMand[3] + 
-                            "' AND LINKEDMODULEID='" + strMand[2] + "' AND BRANCHCODE= '" + strMand[0] + "' AND CURRENCYCODE='" + strMand[1] + "' AND TODEXPDATE >= '" + 
-                            appdate + "' AND TODEXPDATE IS NOT NULL ";
+                            "' AND LINKEDMODULEID='" + strMand[2] + "' AND BRANCHCODE= '" + strMand[0] + "' AND CURRENCYCODE='" + strMand[1] + "' AND TODEXPDATE >= '" +
+                            applicationDate + "' AND TODEXPDATE IS NOT NULL ";
 
                         rstod = await _databaseFactory.ProcessQueryAsync(strSqltod);
 
@@ -15757,6 +15742,15 @@ namespace Banking.Services
                 }
             }
 
+            //string[] arr = strResult.Split('|');
+            //if (arr.Length > 0)
+            //{
+            //    var customerId = arr[3];
+            //    string photo = await _databaseFactory.GetCustomerPhoto(customerId);
+            //    string sign = await _databaseFactory.GetCustomerSignature(customerId);
+            //    strResult = strResult + "|" + sign + "|" + photo;
+            //}
+
             return strResult;
         }
 
@@ -15774,6 +15768,1512 @@ namespace Banking.Services
             }
 
             return string.Empty;
+        }
+
+        public async Task<string> GetCustomerPhoto(string customerId)
+        {
+            return await _databaseFactory.GetCustomerPhoto(customerId);
+        }
+
+        public async Task<string> GetCustomerSignature(string customerId)
+        {
+            return await _databaseFactory.GetCustomerSignature(customerId);
+        }
+
+        public async Task<List<SelectListItem>> GetTransList(string searchString = "")
+        {
+            DataTable dataTable = null!;
+
+            if (searchString.ToUpper() == "CATCODE")
+                dataTable = await _databaseFactory.SingleRecordSet("GENCATEGORYMST", "CATEGORYCODE,NARRATION", "categorycode<>'99'");
+
+
+            return BankingExtensions.ReturnKeyValuePair(dataTable, "Category", true);
+
+            //<% hidsearch = request.form("hidsearch") %>
+            //    dim strType,userid,brchCd,atype,Modid,status,strBatNo,strArrBatNo,strLstBatNo
+            //    strType = Request.QueryString("st")
+
+            //    userid = session("userid")
+
+            //    brchCd = Request.QueryString("brchCd")
+
+            //    atype = Request.QueryString("atype")
+
+            //    Modid = Request.QueryString("Modid")
+
+            //    status = "Y"
+
+            //    strLstBatNo = ""
+
+            //    strArrBatNo = ""
+
+            //    strBatNo = ""
+
+            //%>
+
+            //dim connerr
+            //dim obj, dataTable, rsNew
+            //dim cnt
+            //dim objrep
+            //'dim disp,brCode,glcode,crCode
+            // '   disp=split(strType,"|")
+            //   ' brCode=disp(1)
+
+            //    'modid=disp(2)
+            //    'glcode=disp(3)
+            //    'crCode=disp(4)
+            //   dataTable = server.CreateObject("adodb.recordset")
+            //   rs1 = server.CreateObject("adodb.recordset")
+            //   obj = server.CreateObject("queryrecordsets.fetchrecordsets")
+            //   objbr = server.CreateObject("GeneralTranQueries.TransactionQueries")
+
+            //     obj1 = server.CreateObject("generaltranqueries.transactionqueries")
+
+            //     objrep = server.CreateObject("ReportPurposeOnly.Reportonly")
+            //if strType = "Branch" then
+
+            //     dataTable = obj.singlerecordset("GENBANKBRANCHMST", "Branchcode,narration")
+
+
+            //elseif strType = "BLevel" then
+            //     dataTable = obj.singlerecordset("GENBANKLEVELMST", "code,narration")
+
+
+            //elseif strType = "Bruser" then
+            //     dataTable = objbr.BranchCodes(cstr(userid))
+
+
+            //elseif left(strType,6)= "Userid" then
+            //    atype = mid(strType, 7, len(strType))
+            //     dataTable = obj.singlerecordset("genusermst", "userid,name", "branchcode='" & atype & "'")
+
+            //elseif strType = "Currency" then
+            //     dataTable = obj.singlerecordset("GENCURRENCYTYPEMST", "currencycode,narration")
+
+            //elseif strType = "Curr" then
+
+            //     dataTable = obj.singlerecordset("GENCURRENCYTYPEMST", "currencycode,narration,precision")
+            //elseif strType = "FxCurr" then
+
+            //     dataTable = obj.singlerecordset("GENCURRENCYTYPEMST", "currencycode,narration,precision")
+
+            //elseif left(strType,12)= "Tellermodule" then
+            //    obj = server.CreateObject("GeneralTranQueries.TransactionQueries")
+            //    k = split(strType, "|")
+            //     dataTable = obj.ModuleID(cstr(k(1)), "")
+
+            //elseif left(strType,11)= "Telleraccno" then
+
+            //    k = split(strType, "|")
+
+            //     obj = server.CreateObject("GeneralTranQueries.TransactionQueries")
+
+            //    'Response.Write k(5)
+
+            //    if cstr(k(2)) = "FXREM" then
+            //         dataTable = obj.AccountNumbers(cstr(k(1)), cstr(k(2)), cstr(k(3)), cstr(k(4)),,, cstr(k(6)))
+
+            //    else
+            //                dataTable = obj.AccountNumbers(cstr(k(1)), cstr(k(2)), cstr(k(3)), cstr(k(4)),,,, cstr(hidsearch))
+
+            //    end if
+
+            //    connerr = obj.ConnError
+
+
+            //    if obj.connerror<>"" then
+            //        kstr = "Norecords"
+
+            //        Errstr = obj.ConnError
+
+            //    end if
+            //elseif left(strType, 12) = "Tellerglcode" then
+
+            //     obj = server.CreateObject("GeneralTranQueries.TransactionQueries")
+
+            //    k = split(strType, "|")
+
+            //     dataTable = obj.GLCodes(cstr(k(1)), cstr(k(2)))
+
+
+            //elseif strType = "Module" then
+            //     dataTable = obj.singlerecordset("genmoduletypesmst", "moduleid,Narration", "implementedyn='Y'")
+
+
+            //elseif left(strType,6)= "Glcode" then
+            //   'stname=left(strType,2)
+            //   'atype=mid(strType,7,len(strType))
+            //    dataTable = obj.singlerecordset("genglsheetmst", "glcode,NARRATION", "moduleid='" & atype & "'")
+            //elseif left(strType,14)= "PigTelleraggno" then
+            //   k = split(strType, "|")
+            //    dataTable = obj.singlerecordset("pigmyagentmst", "agentcode,agentname", "branchcode='" & k(1) & "' and moduleid='" & k(2) & "' and glcode='" & k(3) & "' and accno='" & k(4) & "' and status='R'")
+
+
+            //  elseif left(strType,14)= "PigTelleraccno" then
+            //   k = split(strType, "|")
+            //    dataTable = obj.singlerecordset("pigmyaccountsmst", "accno,name,LIENSTATUS", "branchcode='" & k(1) & "' and currencycode='" & k(2) & "' and glcode='" & k(3) & "' and agentcode='" & k(4) & "' and status='R' order by to_number(accno)")
+            //elseif left(strType,5)= "Accno" then
+            //    'stname=left(strType,5)
+            //    'atype=mid(strType,6,len(strType))
+            //    dim objTrn
+            //    objTrn = Server.CreateObject("GeneralTranQueries.TransactionQueries")
+            //    dataTable = objTrn.AccountNumbers(cstr(brchCd), cstr(Modid), cstr(atype))
+
+            //     objTrn = nothing
+
+
+            //elseif left(strType,6)= "CustID" then
+            //dim stname
+            //    stname = left(strType, 4)
+            //    atype = mid(strType, 7)
+            //     dataTable = obj.singlerecordset("GENCUSTINFOMST", "customerid,custname", "")
+
+
+            //elseif left(strType,7)= "TransNo" then
+            //dim stname
+            //    stname = left(strType, 5)
+            //    atype = mid(strType, 8)
+            //     dataTable = obj.singlerecordset("translog", "tranno,amount", "glcode='" & atype & "'", "tranno")
+
+
+            //elseif left(strType,11)= "Cashiertype" then
+            //dim stname
+            //    stname = left(strType, 11)
+
+            //    k = split(strType, "*")
+
+            //     dataTable = obj.singlerecordset("CASHCASHIERTYPEMST", "cashiertypeid,narration", "BRANCHCODE='" & k(1) & "'", "cashiertypeid")
+            //elseif strType = "Cashier" then
+            //dim stname,strcond,strfld,strtab
+
+            //    stname = strType
+
+            //    strcond = " W.USERID = U.USERID AND W.USERID NOT IN (SELECT CASHIERID FROM CASHCOUNTERMST)"
+
+            //    strfld = "DISTINCT W.USERID,U.NAME"
+
+            //    strtab = "GENWORKALLOTMENTMST W,GENUSERMST U"
+
+            //     dataTable = obj.singlerecordset(cstr(strtab), cstr(strfld), cstr(strcond))
+
+
+            //elseif left(strType,9)= "Cashierid" then
+            //dim stname
+            //    stname = strType
+
+            //    k = split(strType, "*")
+
+            //     dataTable = obj.singlerecordset("cashcashierposmst cash,genusermst gen", "cash.cashierid,gen.name", "cash.cashierid=gen.userid and cash.cashierid <> '" & cstr(userid) & "' ")
+
+
+            //elseif left(strType,6)= "CashID" then
+            //    k = split(strType, "|")
+
+            //     dataTable = obj.singlerecordset("cashcountermst cash,genusermst gen", "distinct(cash.cashierid),gen.name", "cash.cashierid=gen.userid and upper(trim(cash.cashierid)) <> '" & ucase(trim(cstr(userid))) & "' and gen.branchcode='" & k(1) & "'")
+
+
+            //elseif left(strType,14)= "AllotedCashier" then
+            //dim stname,cash
+            //    stname = strType
+
+            //    cash = split(stname, "*")
+            //     dataTable = obj.singlerecordset("CASHALLOTMENTSTRN CASH,GENUSERMST GEN", "DISTINCT(CASH.CASHIERID),GEN.NAME", "CASH.CASHIERID=GEN.USERID AND CASH.BRANCHCODE='" & CASH(1) & "' AND CASH.CURRENCYCODE='" & CASH(2) & "'", "CASH.CASHIERID")
+
+
+            //elseif left(strType,9)= "Allotment" then
+            //    k = split(strType, "*")
+
+
+            //     dataTable = obj.singlerecordset("cashallotmentstrn", "Allotmentno", "cashierid='" & k(1) & "' and counterno = '" & k(2) & "' and status='P'", "allotmentno")
+
+
+            //elseif strtype = "Bankcode" then
+            //     dataTable = obj.singlerecordset("Genbankmst", "Bankname,BANKCODE")
+
+
+            //elseif left(strtype,10)= "Cashiermgt" then
+            //    k = split(strtype, "*")
+
+            //     dataTable = obj.singlerecordset("cashcountermst cash,genusermst gen", "distinct(cash.cashierid),gen.name", "cash.branchcode='" & k(1) & "' and cash.currencycode='" & k(2) & "' and cash.cashierid=gen.userid and cash.cashierid not in ('" & ucase(userid) & "')")
+
+
+            //elseif left(strtype,16)= "Cashrefundaccept" then
+            //    k = split(strtype, "*")
+
+            //     dataTable = obj.singlerecordset("cashrefundstrn cash,genusermst gen", "distinct(cash.REFUNDEDUSERID),gen.name", "cash.branchcode='" & k(1) & "' and cash.currencycode='" & k(2) & "' and cash.REFUNDEDUSERID=gen.userid  and cash.status='P' and cash.USERID <> '" & userid & "'")
+
+
+            //elseif left(strtype,7)= "Cashacc" then
+            //    k = split(strtype, "*")
+
+            //     dataTable = obj.singlerecordset("CASHTRANSBTCASHIERSTRN cash,genusermst gen", "distinct(cash.fromcashierid),gen.name", "cash.branchcode='" & k(1) & "' and cash.currencycode='" & k(2) & "' and cash.FROMcashierid=gen.userid and cash.status='P' and cash.tocashierid='" & cstr(userid) & "'", "cash.fromcashierid")
+
+
+            //' Suspence Start
+            //elseif left(strtype,12)= "Categorycode" then
+
+            //    k = split(strtype, "|")
+
+
+            //     dataTable = obj.singlerecordset("SCRCATEGORYMST", "DISTINCT CATEGORYCODE,CATEGORYNAME")
+            //' Suspence End
+
+            //elseif left(strtype,11)= "CutsoiledNo" then
+
+            //    k = split(strtype, "|")
+
+
+            //     dataTable = obj.singlerecordset("CASHCUTNSPOILNOTESMST", "CUTSOILTRANNO,custid,RECEIVEDFROM", "UPPER(TRIM(branchcode))='" & UCASE(TRIM(k(1))) & "' and UPPER(TRIM(currencycode))='" & UCASE(TRIM(k(2))) & "'")
+
+            //'-------prsrem
+
+            //elseif left(strType,8)= "issonbnk" then
+            //   k = split(strType, "~")
+
+            //      ''' for fetching the remtype from the remittypemst for selected glcode
+
+            //    'dataTable=obj.singlerecordset("REMTYPEMST","REMTYPE","upper(REMGLCODE)='"&k(1)&"' and " & _
+
+            //    '						" upper(NATIVAORAGENCY)='A' and upper(status)='R'")
+
+            //    dataTable = obj.singlerecordset("REMTYPEMST", "REMTYPE,upper(NATIVAORAGENCY)", _
+
+            //        "upper(REMGLCODE)='" & k(1) & "' and upper(status)='R'")
+
+
+            //    if not dataTable.EOF and not dataTable.BOF then
+
+            //          if dataTable(0).value = "ADD" or dataTable(0).value = "TC" then
+
+            //            'dataTable=obj.singlerecordset("GENOTHERBANKMST","Bankcode,BANKNAME", _
+
+            //            '"upper(status)='R'")
+
+
+            //            dim strCond
+
+
+            //            'Code commented by radhika on 13 may 2008
+
+            //            'reason: Agency DD can issue on different branches of same bank 
+
+            //            '        But this concept is under testing
+
+            //            'strCond="upper(trim(OURBRANCHCODE))='" & trim(k(2)) & "' AND status='R' " & _
+
+            //            '" AND bankcode IN (SELECT DISTINCT OTHERBANKCODE  FROM REMISSUEBANKMST " & _
+
+            //            '" WHERE upper(trim(BRANCHCODE))='" & trim(k(2)) & "' AND  " & _
+
+            //            '" upper(trim(CURRENCYCODE))='" & trim(k(3)) & "' " & _
+
+            //            '" AND upper(trim(REMTYPE))='" & trim(dataTable(0).value) & "' AND status='R')"
+
+
+            //            'response.write("<br><br> strCond=" & strCond)
+
+            //            'response.end
+
+
+            //            'dataTable=obj.singlerecordset("GENOTHERBANKMST","BANKCODE,BANKNAME", _
+
+            //            'strCond)		 
+
+
+            //            'New code is
+
+            //            strCond = "status='R' AND bankcode IN (SELECT DISTINCT OTHERBANKCODE" & _
+
+            //                " FROM REMISSUEBANKMST WHERE UPPER(trim(CURRENCYCODE))='" & _
+
+            //                trim(k(3)) & "' AND UPPER(trim(REMTYPE))='" & _
+
+            //                 trim(dataTable(0).value) & "' AND status='R')"
+
+
+            //            dataTable = obj.singlerecordset("GENCORRESPBANKSMST", "BANKCODE,BANKNAME", _
+
+            //            strCond)
+
+
+            //        elseif dataTable(0).value = "DD" or dataTable(0).value = "TT" or dataTable(0).value = "MT"  _
+            //            or dataTable(0).value = "BC" or dataTable(0).value = "GC" or dataTable(0).value = "PO" then
+            //            dataTable = obj.singleRecordSet("GENBANKPARM", "BANKCODE,bankname", "")
+
+            //        else
+            //                dataTable = obj.singleRecordSet("GENBANKPARM", "BANKCODE,bankname", "")
+
+            //        end if
+
+            //    else
+            //                    dataTable = obj.singleRecordSet("GENBANKPARM", "BANKCODE,bankname", "")
+
+            //    end if
+
+            //elseif left(strType, 9) = "nftsonbnk" or left(strType,12)= "Matnftsonbnk" or left(strType,13)= "Autonftsonbnk" then
+
+            //dataTable = obj.singlerecordset("GENCORRESPBANKSMST", "BANKCODE,BANKNAME", "status = 'R'")
+
+            //elseif left(strType,8)= "IMPSBank" then
+
+            //sqlStr = "SELECT DISTINCT bank bank ,bank bank1 FROM BANKIFSCDTLS ORDER BY bank"
+            //dataTable = objrep.SingleSelectStat(sqlStr)
+
+
+            //elseif left(strType,9)= "IMPSState" then
+            //k = split(strType, "~")
+            //sqlStr = "select distinct state state , state state1 from BANKIFSCDTLS where bank = '" & k(1) & "' order by state"
+            //dataTable = objrep.SingleSelectStat(sqlStr)
+
+            //elseif left(strType,12)= "IMPSDistrict" then
+
+            //k = split(strType, "~")
+            //sqlStr = "select distinct DISTRICT DISTRICT,DISTRICT DISTRICT1 from BANKIFSCDTLS where bank = '" & k(1) & "' and state ='" & k(2) & "' order by DISTRICT"
+            //dataTable = objrep.SingleSelectStat(sqlStr)
+
+            //elseif left(strType,8)= "IMPSCity" then
+
+            //k = split(strType, "~")
+            //sqlStr = "select distinct CITY CITY,CITY CITY1 from BANKIFSCDTLS where bank = '" & k(1) & "' and state ='" & k(2) & "' and district = '" & k(3) & "' order by CITY"
+            //dataTable = objrep.SingleSelectStat(sqlStr)
+
+
+            //elseif left(strType,10)= "IMPSBranch" then
+
+            //k = split(strType, "~")
+            //sqlStr = "select distinct BRANCH BRANCH,BRANCH BRANCH1 from BANKIFSCDTLS where bank = '" & k(1) & "' and state ='" & k(2) & "' and district = '" & k(3) & "' and CITY = '" & k(4) & "' order by BRANCH"
+            //dataTable = objrep.SingleSelectStat(sqlStr)
+
+
+            //elseif left(strType,12)= "nftsonbranch" or left(strType,15)= "Matnftsonbranch" or left(strType,16)= "Autonftsonbranch" then
+
+            //k = split(strType, "~")
+            //dataTable = obj.singlerecordset("GENCORRESPBANKBRANCHESMST", "BRANCHCODE, BRANCHNAME", "BANKCODE = '" & k(1) & "' and status = 'R'")
+
+            //elseif left(strType,11)= "nftsacctype" or left(strType,14)= "Matnftsacctype"  or left(strType,15)= "Autonftsacctype" then
+
+            //dataTable = obj.singlerecordset("CLGMICRINSTRTYPEMST", "MICRINSTRCODE, MICRINSTRDESC", "ACTIVEYN= 'Y' AND status = 'R'")
+
+            //elseif left(strType,12)= "stopissonbnk" then
+            //   k = split(strType, "~")
+
+
+            //      if k(1) = "ADD" then
+            //        dataTable = obj.singlerecordset("GENCORRESPBANKSMST", "Bankcode,BANKNAME", "upper(status)='R'")
+
+            //    else
+            //                dataTable = obj.singleRecordSet("GENBANKPARM", "BANKCODE,bankname", "")
+
+
+            //    end if
+            //'elseif strType="issonbr" then
+            //elseif left(strType,7)= "issonbr" then
+            //    dim bankcode, strCond
+
+            //        'original code commented by radhika on 14 may 2008
+
+            //     'dataTable=obj.singlerecordset("GENBANKBRANCHMST","BRANCHCODE,BRANCHNAME")	
+
+
+            //     'new code is
+
+            //     bankcode = split(strType, "~")
+
+            //     if bankcode(1) = "ADD" or bankcode(1)= "TC" then
+            //        strCond = "status='R' AND upper(trim(BANKCODE))='" & trim(bankcode(2)) & "'"
+
+
+            //        dataTable = obj.singlerecordset("GENCORRESPBANKBRANCHESMST", "BRANCHCODE, BRANCHNAME", _
+
+            //        strCond)
+
+            //     else
+            //                dataTable = obj.singlerecordset("GENBANKBRANCHMST", "BRANCHCODE,BRANCHNAME")
+
+            //     end if
+
+
+            //elseif left(strType, 10) = "issonothbr" then
+            //dim bankcode
+            //    bankcode = split(strType, "~")
+            //    dim strCond
+
+
+            //    if bankcode(1) = "ADD" or bankcode(1)= "TC" then
+            //'		 dataTable=obj.singlerecordset("GENOTHERBRANCHMST", _
+            //'		"BRANCHCODE,BRANCHNAME","UPPER(BANKCODE)='" & ucase(trim(bankcode(2))) & _
+            //'		"' ")	
+
+
+            //        'strCond="upper(trim(OURBRANCHCODE))='" & trim(bankcode(3)) & "' AND status='R' "& _
+
+            //        '" AND upper(trim(BANKCODE))='" & trim(bankcode(2)) & "'" & _
+
+            //        '" AND BRANCHCODE IN (SELECT DISTINCT OTHERBRANCHCODE FROM REMISSUEBANKMST " & _
+
+            //        '" WHERE upper(trim(BRANCHCODE))='" & trim(bankcode(3)) & "' AND  " & _
+
+            //        '" upper(trim(CURRENCYCODE))='" & trim(bankcode(4)) & "' " & _
+
+            //        '" AND upper(trim(REMTYPE))='" & trim(bankcode(1)) & "'" & _
+
+            //        '" AND upper(trim(OTHERBANKCODE))='" & trim(bankcode(2)) & "'" & _
+
+            //        '" AND status='R')"
+
+
+            //         'dataTable=obj.singlerecordset("GENOTHERBRANCHMST", "BRANCHCODE, BRANCHNAME",strCond)
+
+
+            //        'new code is 
+
+            //        strCond = "status='R' AND upper(trim(BANKCODE))='" & trim(bankcode(2)) & "'"
+
+
+            //        dataTable = obj.singlerecordset("GENCORRESPBANKBRANCHESMST", "BRANCHCODE, BRANCHNAME", _
+
+            //        strCond)
+
+
+            //    elseif bankcode(1)= "AOB" then
+            //         dataTable = obj.singlerecordset("GENBANKBRANCHMST", _
+
+            //        "BRANCHCODE,BRANCHNAME", "UPPER(BANKCODE)='" & trim(bankcode(2)) & "' and status='R'")
+
+            //    elseif bankcode(1)= "OthBrs" then
+            //    dataTable = obj.singlerecordset("GENCORRESPBANKBRANCHESMST", "BRANCHCODE,BRANCHNAME", "STATUS='R' AND UPPER(BANKCODE)='" & ucase(trim(bankcode(2))) & "'")
+
+            //    else
+            //                dataTable = obj.singlerecordset("GENBANKBRANCHMST", _
+
+            //                   "BRANCHCODE,BRANCHNAME", "UPPER(BANKCODE)='" & ucase(trim(bankcode(2))) & "' " & _
+
+            //                   "")
+
+            //    end if
+
+            //elseif left(strType,9)= "DispAccNo" then
+            //disp = split(strType, "|")
+            //    brCode = disp(1)
+            //    modid = disp(2)
+            //    glcode = disp(3)
+            //    crCode = disp(4)
+            // if left(ucase(modid), 2) <> "TM" then
+            // dim strWhr
+            //    strWhr = "upper(moduleid)='" & ucase(trim(modid)) & "'"
+            //     '''or  upper(M.accno)=upper(D.disposalaccno)
+            //     dataTable = obj.singlerecordset("GENMODULEMST", "mastertable", cstr(strWhr))
+            //    if dataTable.RecordCount > 0 then
+            //    dim table1,tables
+            //        table1 = dataTable(0).value
+            //        tables = dataTable(0).value & " M,GENDISPOSALDTLSTEMP D"
+
+
+            //        strWhr = "upper(D.branchcode)='" & ucase(trim(brCode)) & "' and upper(D.currencycode)='" & _
+
+            //                ucase(trim(crCode)) & "'and upper(D.moduleid)='" & ucase(trim(modid)) & "'" & _
+
+            //               " and upper(D.glcode)='" & ucase(trim(glcode)) & "' and upper(D.transtatus)='P'" & _
+
+            //               " and D.batchno is null and D.tranno is null and " & _
+
+            //               "upper(M.branchcode)=upper(D.branchcode) and upper(M.currencycode)" & _
+
+            //               "=upper(D.currencycode) " & _
+
+            //              " and upper(M.glcode)=upper(D.glcode) and upper(M.accno)=upper(D.accno)"
+
+
+            //        'and upper(M.moduleid)=upper(D.moduleid) 
+            //         dataTable = obj.singlerecordset(cstr(tables), _
+            //        "distinct(nvl(D.accno,D.disposalaccno)),M.name", cstr(strWhr))
+
+
+            //   end if
+            // else
+            //                    dim strWhr
+
+
+            //       strWhr = "upper(D.branchcode)='" & ucase(trim(brCode)) & "' and upper(D.currencycode)='" & _
+
+            //                ucase(trim(crCode)) & "'and upper(D.moduleid)='" & ucase(trim(modid)) & "'" & _
+
+            //               " and upper(D.glcode)='" & ucase(trim(glcode)) & "' and upper(D.transtatus)='P'" & _
+
+            //               " and D.batchno is null and D.tranno is null "
+
+
+
+            //  dataTable = obj.singlerecordset("GENDISPOSALDTLSTEMP D", "distinct(nvl(D.accno,D.disposalaccno))", cstr(strWhr))
+
+            // end if
+
+
+            //'-----Link Module
+            //elseif left(strType,9)= "LnkModule" then
+
+            //     obj = server.CreateObject("GeneralTranQueries.TransactionQueries")
+
+
+            //    k = split(strType, "|")
+
+
+            //     dataTable = obj.ModuleID(cstr(k(1)), "N", "N")
+
+
+            //elseif left(strType,9)= "LnkGlcode" then
+            // obj = server.CreateObject("GeneralTranQueries.TransactionQueries")
+
+            //    k = split(strType, "|")
+
+            //     dataTable = obj.GLCodes(cstr(k(1)), cstr(k(2)))
+
+
+            //elseif left(strType,8)= "LnkAccno" then
+
+            //    k = split(strType, "|")
+            //    modId = ucase(k(2))
+            //    glCode = ucase(k(3))
+            //    if modId<>"TM" then
+            //       obj = server.CreateObject("GeneralTranQueries.TransactionQueries")
+
+            //       dataTable = obj.AccountNumbers(cstr(k(1)), cstr(modId), cstr(glCode), cstr(k(4)))
+
+            //    else
+            //                dim strWhr
+
+            //       strWhr = "upper(glcode)='" & glCode & "' and upper(status)='R'"
+
+            //        dataTable = obj.singlerecordset("TMGENTYPEMST", "upper(mastertable) mstTab", cstr(strWhr))
+
+            //       if dataTable.RecordCount > 0 and dataTable("mstTab")<> "" then
+            //       dim mstTab
+            //          mstTab = dataTable("mstTab")
+
+            //          strWhr = "upper(status)='R'"
+
+            //         dataTable = obj.singlerecordset(cstr(mstTab), "accno", cstr(strWhr), "to_number(accno)")
+
+            //       end if
+
+            //    end if
+
+
+            //    connerr = obj.ConnError
+
+            //      if obj.connerror<>"" then
+            //        kstr = "Norecords"
+
+            //        Errstr = obj.ConnError
+
+            //    end if
+
+
+            //'-----Link Module Ends 
+            //''''--------clearing--------------------------------------------------------------
+            //''' for clearing moduleid
+            //elseif left(strType,9)= "CLGModule" then
+
+            //     obj = server.CreateObject("GeneralTranQueries.TransactionQueries")
+
+
+            //    k = split(strType, "|")
+
+
+            //     dataTable = obj.ModuleID(cstr(k(1)), "N", "N")
+            //''' for clearing glcode
+
+            //elseif left(strType,9)= "CLGGlcode" then
+            //obj = server.CreateObject("GeneralTranQueries.TransactionQueries")
+
+            //    k = split(strType, "|")
+
+            //     dataTable = obj.GLCodes(cstr(k(1)), cstr(k(2)))
+
+            //elseif left(strType,8)= "CLGAccno" then
+
+            //    k = split(strType, "|")
+
+            //     obj = server.CreateObject("GeneralTranQueries.TransactionQueries")
+
+            //     dataTable = obj.AccountNumbers(cstr(k(1)), cstr(k(2)), cstr(k(3)), cstr(k(4)))
+
+
+            //    connerr = obj.ConnError
+
+
+            //    if obj.connerror<>"" then
+            //        kstr = "Norecords"
+
+            //        Errstr = obj.ConnError
+
+            //    end if
+
+
+
+            //elseif left(strType, 11) = "retCLGAccno" then
+
+            //    k = split(strType, "|")
+
+            //     'obj=server.CreateObject("GeneralTranQueries.TransactionQueries")
+
+            //     'dataTable=obj.AccountNumbers(cstr(k(1)),cstr(k(2)),cstr(k(3)),cstr(k(4)))
+
+            //    modid1 = k(2) & "MST"
+
+            //    objaccno = server.CreateObject("ReportPurposeOnly.Reportonly")
+
+            //'sqlstr= "SELECT ACCNO,Name,Customerid,status FROM " & modid1 & " WHERE UPPER(trim(branchcode))='"& k(1) &"' AND UPPER(trim(glcode))='"& k(3) &"' AND  transtatus IN ('A') AND UPPER(trim(currencycode))='"& k(4) &"'  ORDER BY to_number(accno)"
+            //sqlstr = "SELECT ACCNO,Name,Customerid FROM " & modid1 & " WHERE UPPER(trim(branchcode))='" & k(1) & "' AND UPPER(trim(glcode))='" & k(3) & "' AND  transtatus IN ('A') AND UPPER(trim(currencycode))='" & k(4) & "'  ORDER BY to_number(accno)"
+
+            //dataTable = objaccno.SingleSelectStat(sqlstr)
+            //if not hidsearch = "" then
+            //        searchby = split(hidsearch, "|")
+
+            //            if searchby(0) = "name" then
+            //        sqlstr = "SELECT ACCNO,Name,Customerid FROM " & modid1 & " WHERE UPPER(trim(branchcode))='" & k(1) & "' AND UPPER(trim(glcode))='" & k(3) & "' AND  transtatus IN ('A') AND UPPER(trim(currencycode))='" & k(4) & "' and name like '" & Ucase(searchby(1)) & "%' ORDER BY to_number(accno)"
+
+            //        dataTable = objaccno.SingleSelectStat(sqlstr)
+
+
+            //            else if searchby(0) = "num" then
+            //        sqlstr = "SELECT ACCNO,Name,Customerid FROM " & modid1 & " WHERE UPPER(trim(branchcode))='" & k(1) & "' AND UPPER(trim(glcode))='" & k(3) & "' AND  transtatus IN ('A') AND UPPER(trim(currencycode))='" & k(4) & "' and accno like '" & Ucase(searchby(1)) & "%' ORDER BY to_number(accno)"
+
+            //        dataTable = objaccno.SingleSelectStat(sqlstr)
+
+
+            //            end if
+
+            //    end if
+
+
+            //    connerr = obj.ConnError
+
+
+            //    if obj.connerror<>"" then
+            //        kstr = "Norecords"
+
+            //        Errstr = obj.ConnError
+
+            //    end if
+
+
+            //''for bankcode
+
+            //elseif left(strType, 7) = "CLGBank" then
+
+            //    k = split(strType, "|")
+
+            //     dataTable = obj.singlerecordset("GENOTHERBANKMST", "BANKCODE,BANKNAME", _
+
+            //    "ourbranchcode='" & k(1) & "'", "BANKCODE")
+
+            //    if obj.connerror<>"" then
+            //        kstr = "Norecords"
+
+            //        Errstr = obj.ConnError
+
+            //    end if
+
+            //''for clgbranchcodes
+
+            //elseif left(strType, 9) = "CLGBranch" then
+
+            //    k = split(strType, "|")
+
+            //     dataTable = obj.singlerecordset("GENOTHERBRANCHMST", "BRANCHCODE,BRANCHNAME", _
+
+            //    "BANKCODE='" & k(1) & "' and ourbranchcode='" & k(2) & "'", "BANKCODE")
+
+            //    if obj.connerror<>"" then
+            //        kstr = "Norecords"
+
+            //        Errstr = obj.ConnError
+
+            //    end if
+
+            //''for clgReasoncodes
+
+            //elseif left(strType, 9) = "CLGReason" then
+
+            //    k = split(strType, "|")
+
+            //     dataTable = obj.singlerecordset("CLGRETURNREASONMST", "CODE,DESCRIPTION", "", "CODE")
+
+            //    if obj.connerror<>"" then
+            //        kstr = "Norecords"
+
+            //        Errstr = obj.ConnError
+
+            //    end if
+            //''''-------------------------------------------------------------------------------- -
+            //'''''This is Code is for vouching  Details.
+            //'''-----------------------------------------------------------------------------------
+            //elseif left(strType,13)= "VochServiceid" then
+            //dim ser,whcond
+
+            //      ser = split(strtype, "|")
+
+
+            //    if ser(1) = "3" then
+            //       whcond = "Code in('1')"
+            //    elseif ser(1)= "4" then
+            //       'whcond="Code in('1','2')"
+            //       whcond = "Code in('1')"
+            //    end if
+
+            //     dataTable = obj.singlerecordset("GENSERVICETYPESPMT", "CODE,NARRATION", cstr(whcond), "CODE")
+
+
+            //elseif left(strType,14)= "ChargeModuleid" then
+
+
+            //   atype = Split(strType, "|")
+
+
+            //    dataTable = obj1.ModuleID(cstr(atype(1)), "")
+
+
+            //  if atype(2) = "4" and atype(3)= "1" then
+
+
+            //    dataTable.Filter = "moduleid<>'CLG'"
+
+
+            //  elseif atype(2)= "4" and atype(3)= "2" then
+
+
+            //    dataTable.Filter = "moduleid='CA' or moduleid='DEP' or  moduleid='SB'"
+
+
+            // elseif atype(2)= "3" and atype(3)= "1" then
+
+
+            //    dataTable.Filter = "moduleid<>'CLG' AND moduleid<>'DEP' " & _
+
+            //    "AND moduleid<>'FXDEP' AND moduleid<>'FXREM' AND moduleid<>'REM' " & _
+
+            //    "AND moduleid<>'LOAN' AND moduleid<>'LOCKER'"
+
+
+
+            //  end if
+            //  ''' for contra moduleids,description
+            // elseif left(strType,14)= "ContraModuleid" then
+            //    atype = Split(strType, "|")
+
+            //        dataTable = obj1.ModuleID(cstr(atype(1)), "")
+
+
+            // ''' for contra glcodes,description
+
+            //    elseif left(strType,12)= "ContraGlcode" then
+            // dim strflds
+            //   strflds = split(strtype, "|")
+            //       dataTable = obj.singlerecordset(cstr(strflds(2)) & "typemst", _
+
+            //             strflds(3) & ",(select narration from genglsheetmst where " & _
+
+            //             "glcode=" & strflds(3) & " and branchcode='" & strflds(1) & "')", cstr(strflds(4)))
+
+
+            //  elseif left(strtype,13)= "ContraAccCode" then
+
+            //        k = split(strtype, "|")
+            //       dataTable = obj1.AccountNumbers(cstr(k(1)), cstr(k(2)), cstr(k(3)), cstr(k(4)))
+            //elseif left(strtype,12)= "ChargeGlcode" then
+
+            //      k = split(strtype, "|")
+            //        dataTable = obj1.GLCodes(cstr(k(1)), cstr(k(2)))
+
+
+            //elseif left(strtype,13)= "ChargeAccCode" then
+
+            //        k = split(strtype, "|")
+            //       dataTable = obj1.AccountNumbers(cstr(k(1)), cstr(k(2)), cstr(k(3)), cstr(k(4)))
+
+            //elseif strType = "remcode" then
+            //      dataTable = obj.singlerecordset("FXREMTYPEMST a,FXGENMODEOFREMITTANCEMST b", _
+
+            //             "a.modeofremittance, narration", "a.modeofremittance=b.modeofremittance")
+
+            //'Forex
+            //elseif left(strtype,11)= "fxratecodes" then
+            //dim strValue,strWhr
+            //     strValue = split(strtype, "|")
+
+
+            //     strWhr = "sourcecurrencycode='" & strValue(2) & "' AND ratecategory=category and upper(a.status)='R'"
+
+
+            //     if strValue(1) = "C" then
+            //         dataTable = obj.singlerecordset("FXGENCARDRATECATEGORIESMST b,FXGENCARDRATESPMT a", _
+
+            //                        "category,NARRATION,rate", cstr(strWhr))
+            //     elseif strValue(1)= "N" then
+            //        strWhr = "currencycode='" & strValue(2) & "' AND a.category=b.category and upper(a.status)='R'"
+            //         dataTable = obj.singlerecordset("FXGENNOTIONALCATEGORIESMST b,FXGENNOTIONALRATESPMT a", _
+            //        " a.category,NARRATION,rate", cstr(strWhr))
+            //     elseif strValue(1)= "D" then
+            //        strWhr = "status='R'"
+            //         dataTable = obj.singlerecordset("FXDEALINGROOMMST", "CODE,NARRATION,'0'", cstr(strWhr))
+            //     elseif strValue(1)= "F" then
+            //        strWhr = "upper(status)='R' and upper(transtatus)='A'"
+            //         dataTable = obj.singlerecordset("FXFCMST", "accno,name,rate", cstr(strWhr))
+            //     end if
+
+
+            //elseif left(strType, 7) = "BatchNo" then
+            //    strVal = split(strType, "|")
+
+            //    brcode = strVal(1)
+
+            //    crcode = strVal(2)
+
+            //    whrAdd = strVal(3)
+
+            //    abbYN = strVal(4)
+
+
+            //    dim whrBr
+
+            //    if ucase(abbYN) <> "Y" then
+            //      whrBr = "upper(branchcode)='" & ucase(brcode) & "' and abbbranchcode is null "
+
+            //    else
+            //                whrBr = "upper(abbbranchcode)='" & ucase(brcode) & "'"
+
+            //    end if
+
+
+            //    whrCond = whrBr & " and upper(currencycode)='" & _
+
+            //    ucase(trim(crcode)) & "' and upper(transtatus)='P' and approvedby is null " & _
+
+            //    "and approvedmachine is null " & whrAdd
+
+
+            //     dataTable = obj.singlerecordset("GENTRANSLOG", "distinct(BATCHNO)", cstr(whrCond), "batchno")
+            //'------Code Added by Monica-25-NOV-09 to display Name along with the BatchNo----------ORG----------	 
+
+            //     rsNew = Nothing
+
+            //     rsNew = obj.singlerecordset("GENTRANSLOG", "distinct(BATCHNO),NAME", cstr(whrCond), "batchno")
+
+            //     cnt = 0
+
+            //     DO UNTIL rsNew.EOF
+
+
+            //        IF(cnt = 0) THEN
+            //            strArrBatNo = rsNew(1).value & "-----" & rsNew(0).value
+
+            //        ELSEIf(strBatNo<>rsNew(0).value) THEN
+            //            strArrBatNo = strArrBatNo & "|" & rsNew(1).value & "-----" & rsNew(0).value
+
+            //        END IF
+
+
+            //        strBatNo = rsNew(0).value
+
+
+            //        rsNew.MoveNext
+            //        cnt = cnt + 1
+
+            //     LOOP
+            //     cnt = 0
+
+            //     strLstBatNo = split(strArrBatNo, "|")
+            //'-----End of -Code Added by Monica-25-NOV-09 to display Name along with the BatchNo----------ORG----------
+
+            //elseif left(strType,10)= "RefBatchNo" then
+            //    strVal = split(strType, "|")
+
+            //    brcode = strVal(1)
+
+            //    crcode = strVal(2)
+
+            //    whrAdd = strVal(3)
+
+            //    abbYN = strVal(4)
+
+
+            //    dim whrBr
+
+            //    if ucase(abbYN) <> "Y" then
+            //      whrBr = "upper(branchcode)='" & ucase(brcode) & "' and abbbranchcode is null "
+
+            //    else
+            //                whrBr = "upper(abbbranchcode)='" & ucase(brcode) & "'"
+
+            //    end if
+
+
+            //    whrCond = whrBr & " and upper(currencycode)='" & _
+
+            //    ucase(trim(crcode)) & "' and upper(transtatus)='P' and approvedby is null " & _
+
+            //    "and approvedmachine is null " & whrAdd
+
+
+            //     dataTable = obj.singlerecordset("GENTRANSLOG", "distinct(BATCHNO)", cstr(whrCond), "batchno")
+            //'------Code Added by Monica-25-NOV-09 to display Name along with the BatchNo----------ORG----------	 
+
+            //     rsNew = Nothing
+
+            //     rsNew = obj.singlerecordset("GENTRANSLOG", "distinct(BATCHNO),NAME,RATEREFCODE", cstr(whrCond), "batchno")
+
+            //     cnt = 0
+
+            //     DO UNTIL rsNew.EOF
+
+
+            //        IF(cnt = 0) THEN
+            //            strArrBatNo = rsNew(1).value & "-----" & rsNew(0).value & "-----" & rsNew(2).value
+
+            //        ELSEIf(strBatNo<>rsNew(0).value) THEN
+            //            strArrBatNo = strArrBatNo & "|" & rsNew(1).value & "-----" & rsNew(0).value & "-----" & rsNew(2).value
+
+            //        END IF
+
+
+            //        strBatNo = rsNew(0).value
+
+
+            //        rsNew.MoveNext
+            //        cnt = cnt + 1
+
+            //     LOOP
+            //     cnt = 0
+
+            //     strLstBatNo = split(strArrBatNo, "|")
+            //'-----End of -Code Added by Monica-25-NOV-09 to display Name along with the BatchNo----------ORG----------
+
+
+            //elseif left(strType,10)= "DelBatchNo" then
+            //    strVal = split(strType, "|")
+
+            //    brcode = strVal(1)
+
+            //    crcode = strVal(2)
+
+            //    abbYN = strVal(3)
+
+
+            //    dim whrBr
+
+            //    if ucase(abbYN) <> "Y" then
+            //      whrBr = "upper(branchcode)='" & ucase(brcode) & "' and abbbranchcode is null "
+
+            //    else
+            //                whrBr = "upper(abbbranchcode)='" & ucase(brcode) & "'"
+
+            //    end if
+
+
+            //    whrCond = whrBr & " and upper(currencycode)='" & _
+
+            //    ucase(trim(crcode)) & "' and upper(DELETEDTRANSTATUS)='P' and DELETEDAPPROVEDBY is null " & _
+
+            //    "and DELETEDAPPROVEDMACHINE  is null "
+
+
+            //     dataTable = obj.singlerecordset("GENDELETEDTRANSLOG", "distinct(BATCHNO)", cstr(whrCond), "batchno")
+
+
+            //     rsNew = Nothing
+
+            //     rsNew = obj.singlerecordset("GENDELETEDTRANSLOG", "distinct(BATCHNO),NAME", cstr(whrCond), "batchno")
+
+            //     cnt = 0
+
+            //     DO UNTIL rsNew.EOF
+
+
+            //        IF(cnt = 0) THEN
+            //            strArrBatNo = rsNew(1).value & "-----" & rsNew(0).value
+
+            //        ELSEIf(strBatNo<>rsNew(0).value) THEN
+            //            strArrBatNo = strArrBatNo & "|" & rsNew(1).value & "-----" & rsNew(0).value
+
+            //        END IF
+
+
+            //        strBatNo = rsNew(0).value
+
+
+            //        rsNew.MoveNext
+            //        cnt = cnt + 1
+
+            //     LOOP
+            //     cnt = 0
+
+            //     strLstBatNo = split(strArrBatNo, "|")
+
+            //elseif left(strType,8)= "BatchVer" then
+            //    strVal = split(strType, "|")
+
+            //    brcode = strVal(1)
+
+            //    crcode = strVal(2)
+
+            //    whrAdd = strVal(3)
+
+            //    payMode = strVal(4)
+
+            //    abbYN = strVal(5)
+
+            //    dim whrExt, strFld, strTab
+
+            //    if payMode = "ALL" then
+
+            //       if abbYN<>"Y" then
+
+            //          whrExt = "' and ((e.verifiedby IS NULL AND t.approvedby IS NOT NULL and " & _
+
+            //                "upper(t.exceptionyn)='Y' AND UPPER(e.branchcode)='" & _
+
+            //                ucase(brcode) & "') or " & _
+
+            //                " (p.verifiedby IS NULL AND UPPER(p.branchcode)='" & ucase(brcode) & _
+
+            //                "' and t.verifiedby is null AND t.approvedby IS NOT NULL " & _
+
+            //                " AND upper(t.cashpaidyn)='Y'))"
+            //       else
+            //                whrExt = "' and ((e.verifiedby IS NULL AND t.approvedby IS NOT NULL and " & _
+
+            //                 "upper(t.exceptionyn)='Y') or " & _
+
+            //                 " (p.verifiedby IS NULL and t.verifiedby is null AND t.approvedby " & _
+
+            //                 "IS NOT NULL AND upper(t.cashpaidyn)='Y'))"
+            //       end if
+
+
+            //        'strTab="GENEXCEPTIONALTRANDAY e,CASHTELLERPAYMENTSTRANDAY p,GENTRANSLOG t" 
+
+            //        strFld = "distinct(T.BATCHNO)"
+
+
+            //    elseif payMode = "TRANS" or payMode = "CLG" then
+            //        whrExt = "' and e.verifiedby IS NULL  AND t.approvedby IS NOT NULL " & _
+
+            //               " and UPPER(e.branchcode)='" & ucase(brcode) & "'"
+
+
+            //        'strTab="GENEXCEPTIONALTRANDAY e,CASHTELLERPAYMENTSTRANDAY p,GENTRANSLOG t"
+
+            //        strFld = "distinct(e.BATCHNO)"
+            //    elseif payMode = "TELLER" then
+            //        whrExt = "' and p.verifiedby IS NULL  and t.verifiedby is null " & _
+
+            //                " AND t.approvedby IS NOT NULL and upper(t.cashpaidyn)='Y'" & _
+
+            //                " and upper(p.branchcode)='" & ucase(brcode) & "'"
+
+
+            //        'strTab="CASHTELLERPAYMENTSTRANDAY p,GENTRANSLOG t"
+
+            //        strFld = "distinct(p.BATCHNO)"
+            //    elseif payMode = "CASH" then
+            //        whrExt = "' and e.verifiedby IS NULL  AND t.approvedby IS NOT NULL " & _
+
+            //               "and t.batchno not in(select batchno from CASHTELLERPAYMENTSTRANDAY)" & _
+
+            //               " and upper(e.branchcode)='" & ucase(brcode) & "'"
+
+
+            //        'strTab="GENEXCEPTIONALTRANDAY e,CASHTELLERPAYMENTSTRANDAY p,GENTRANSLOG t"
+
+            //        strFld = "distinct(e.BATCHNO)"
+
+            //    end if
+
+
+            //    strTab = "GENEXCEPTIONALTRANDAY e,CASHTELLERPAYMENTSTRANDAY p,GENTRANSLOG t"
+
+
+            //    if abbYN<>"Y" then
+            //    whrCond = "t.branchcode=p.branchcode(+) AND t.currencycode=p.currencycode(+)" & _
+            //            " AND t.batchno=p.batchno(+) AND t.branchcode=e.branchcode(+)" & _
+            //            " AND t.currencycode=e.currencycode(+) AND t.batchno=e.batchno(+)" & _
+
+            //            " and upper(t.branchcode)='" & ucase(brcode) & "' and upper(t.currencycode)='" & _
+
+            //            ucase(trim(crcode)) & whrExt & " and t.abbbranchcode is null AND " & _
+
+            //            "t.BATCHNO IN (SELECT t.batchno FROM " & _
+            //            " gentranslog t WHERE t.approvedby IS NOT NULL) AND t.batchno " & _
+            //            " NOT IN(SELECT t.batchno FROM gentranslog t WHERE t.approvedby IS NULL)" & _
+            //            whrAdd
+            //    else
+            //                whrCond = "t.branchcode=p.branchcode(+) AND t.currencycode=p.currencycode(+)" & _
+            //            " AND t.batchno=p.batchno(+) AND t.branchcode=e.branchcode(+)" & _
+            //            " AND t.currencycode=e.currencycode(+) AND t.batchno=e.batchno(+)" & _
+
+            //            " and upper(t.abbbranchcode)='" & ucase(brcode) & "' and upper(t.currencycode)='" & _
+
+            //            ucase(trim(crcode)) & whrExt & " AND t.BATCHNO IN (SELECT t.batchno FROM " & _
+            //            " gentranslog t WHERE t.approvedby IS NOT NULL) AND t.batchno " & _
+            //            " NOT IN(SELECT t.batchno FROM gentranslog t WHERE t.approvedby IS NULL)" & _
+            //            whrAdd
+            //    end if
+
+
+            //     dataTable = obj.singlerecordset(cstr(strTab), cstr(strFld), cstr(whrCond), "batchno")
+
+
+            //     '------Code Added by Monica-27-NOV-09 to display Name along with the BatchNo--------------------	 
+
+            //        strFld = "t.batchno, t.name FROM GENTRANSLOG t WHERE t.batchno IN (SELECT " & strFld
+
+            //        whrCond = whrCond & ")"
+
+
+            //        rsNew = Nothing
+
+            //        rsNew = obj.singlerecordset(cstr(strTab), cstr(strFld), cstr(whrCond), "batchno")
+
+            //        cnt = 0
+
+            //        DO UNTIL rsNew.EOF
+
+
+            //            IF(cnt = 0) THEN
+            //                strArrBatNo = rsNew(1).value & "-----" & rsNew(0).value
+
+            //            ELSEIf(strBatNo<>rsNew(0).value) THEN
+            //                strArrBatNo = strArrBatNo & "|" & rsNew(1).value & "-----" & rsNew(0).value
+
+            //            END IF
+
+
+            //            strBatNo = rsNew(0).value
+
+
+            //            rsNew.MoveNext
+            //            cnt = cnt + 1
+
+            //        LOOP
+            //        cnt = 0
+
+            //        strLstBatNo = split(strArrBatNo, "|")
+            //'-----End of -Code Added by Monica-27-NOV-09 to display Name along with the BatchNo--------------------	 
+
+
+
+            //elseif left(strType,8)= "BatchDel" then
+            //    strVal = split(strType, "|")
+
+            //    brcode = strVal(1)
+
+            //    crcode = strVal(2)
+
+            //    whrAdd = strVal(3)
+
+            //    abbYN = strVal(4)
+
+            //    moduleid = strVal(5)
+
+
+            //    dim whrBr
+
+            //    if abbYN<>"Y" then
+            //       whrBr = "upper(branchcode)='" & ucase(brcode) & "' and abbbranchcode is null"
+
+            //    else
+            //                whrBr = "upper(abbbranchcode)='" & ucase(brcode) & "'"
+
+            //    end if
+
+
+            //    'Note: This code was changed by Radhika on 22-oct-2007
+
+            //    if abbYN<>"Y" then
+
+            //    if moduleid = "CASH" then
+            //        whrCond = whrBr & " and upper(currencycode)='" & _
+
+            //        ucase(trim(crcode)) & "' and upper(nvl(cashpaidyn,'N')) in ('Y','N') " & _
+
+            //        whrAdd & " and Cashierid='" & userid & "'"
+
+            //    else
+            //                whrCond = whrBr & " and upper(currencycode)='" & _
+
+            //        ucase(trim(crcode)) & "' and upper(nvl(cashpaidyn,'N'))<>'Y' " & _
+
+            //        whrAdd & " And Cashierid is null"
+
+            //    end if
+
+            //    else '' ABB Entries Only
+            //        whrCond = whrBr & " and upper(currencycode)='" & _
+
+            //        ucase(trim(crcode)) & "' and upper(nvl(cashpaidyn,'N')) in ('Y','N') " & whrAdd
+
+            //    end if
+
+
+            //     dataTable = obj.singlerecordset("GENTRANSLOG", "distinct(BATCHNO)", cstr(whrCond), "batchno")
+
+            //'------Code Added by Monica-26-NOV-09 to display Name along with the BatchNo--------------------	 
+
+            //     rsNew = Nothing
+
+            //     rsNew = obj.singlerecordset("GENTRANSLOG", "distinct(BATCHNO),NAME", cstr(whrCond), "batchno")
+
+            //     cnt = 0
+
+            //     DO UNTIL rsNew.EOF
+
+
+            //        IF(cnt = 0) THEN
+            //            strArrBatNo = rsNew(1).value & "-----" & rsNew(0).value
+
+            //        ELSEIf(strBatNo<>rsNew(0).value) THEN
+            //            strArrBatNo = strArrBatNo & "|" & rsNew(1).value & "-----" & rsNew(0).value
+
+            //        END IF
+
+
+            //        strBatNo = rsNew(0).value
+
+
+            //        rsNew.MoveNext
+            //        cnt = cnt + 1
+
+            //     LOOP
+            //     cnt = 0
+
+            //     strLstBatNo = split(strArrBatNo, "|")
+            //'-----End of -Code Added by Monica-26-NOV-09 to display Name along with the BatchNo--------------------	 
+
+            //    'Response.Write whrcond
+
+            //elseif left(strType,16)= "NEFTRTGSBatchDel" then
+            //    strVal = split(strType, "|")
+
+            //    brcode = strVal(1)
+
+            //    crcode = strVal(2)
+
+            //    whrAdd = strVal(3)
+
+            //    abbYN = strVal(4)
+
+            //    moduleid = strVal(5)
+
+
+            //    dim whrBr
+
+            //    if abbYN<>"Y" then
+            //       whrBr = "upper(branchcode)='" & ucase(brcode) & "' and abbbranchcode is null"
+
+            //    else
+            //                whrBr = "upper(abbbranchcode)='" & ucase(brcode) & "'"
+
+            //    end if
+
+
+            //    'Note: This code was changed by Radhika on 22-oct-2007
+
+            //    if abbYN<>"Y" then
+
+            //    if moduleid = "CASH" then
+            //        whrCond = whrBr & " and upper(currencycode)='" & _
+
+            //        ucase(trim(crcode)) & "' and upper(nvl(cashpaidyn,'N')) in ('Y','N') " & _
+
+            //        whrAdd & " and Cashierid='" & userid & "'"
+
+            //    else
+            //                whrCond = whrBr & " and upper(currencycode)='" & _
+
+            //        ucase(trim(crcode)) & "' and upper(nvl(cashpaidyn,'N'))<>'Y' " & _
+
+            //        whrAdd & ""
+
+            //    end if
+
+            //    else '' ABB Entries Only
+            //        whrCond = whrBr & " and upper(currencycode)='" & _
+
+            //        ucase(trim(crcode)) & "' and upper(nvl(cashpaidyn,'N')) in ('Y','N') " & whrAdd
+
+            //    end if
+
+
+            //     dataTable = obj.singlerecordset("GENTRANSLOG", "distinct(BATCHNO)", cstr(whrCond), "batchno")
+
+            //'------Code Added by Monica-26-NOV-09 to display Name along with the BatchNo--------------------	 
+
+            //     rsNew = Nothing
+
+            //     rsNew = obj.singlerecordset("GENTRANSLOG", "distinct(BATCHNO),NAME", cstr(whrCond), "batchno")
+
+            //     cnt = 0
+
+            //     DO UNTIL rsNew.EOF
+
+
+            //        IF(cnt = 0) THEN
+            //            strArrBatNo = rsNew(1).value & "-----" & rsNew(0).value
+
+            //        ELSEIf(strBatNo<>rsNew(0).value) THEN
+            //            strArrBatNo = strArrBatNo & "|" & rsNew(1).value & "-----" & rsNew(0).value
+
+            //        END IF
+
+
+            //        strBatNo = rsNew(0).value
+
+
+            //        rsNew.MoveNext
+            //        cnt = cnt + 1
+
+            //     LOOP
+            //     cnt = 0
+
+            //     strLstBatNo = split(strArrBatNo, "|")
+            //'-----End of -Code Added by Monica-26-NOV-09 to display Name along with the BatchNo--------------------	 
+
+            //    'Response.Write whrcond
+
+
+
+            //    ''code added by jyothsna for transaction deletion report
+            //elseif left(strType, 8) = "BatchRep" then
+            //    strVal = split(strType, "|")
+
+            //    brcode = strVal(1)
+
+            //    crcode = strVal(2)
+
+            //    whrAdd = strVal(3)
+
+            //    abbYN = strVal(4)
+
+            //    moduleid = strVal(5)
+
+
+            //    dim whrBr
+
+            //    if abbYN<>"Y" then
+            //       whrBr = "upper(branchcode)='" & ucase(brcode) & "' and abbbranchcode is null"
+
+            //    else
+            //                whrBr = "upper(abbbranchcode)='" & ucase(brcode) & "'"
+
+            //    end if
+
+
+            //        whrCond = whrBr & " and upper(currencycode)='" & _
+
+            //        ucase(trim(crcode)) & "' " & whrAdd
+
+
+            //         dataTable = obj.singlerecordset("GENTRANSLOGDEM", "distinct(BATCHNO)", cstr(whrCond), "batchno")
+
+
+            //        rsNew = Nothing
+
+            //        rsNew = obj.singlerecordset("GENTRANSLOGDEM", "distinct(BATCHNO),NAME", cstr(whrCond), "batchno")
+
+
+            //        cnt = 0
+
+            //     DO UNTIL rsNew.EOF
+
+
+            //        IF(cnt = 0) THEN
+            //            strArrBatNo = rsNew(1).value & "-----" & rsNew(0).value
+
+            //        ELSEIf(strBatNo<>rsNew(0).value) THEN
+            //            strArrBatNo = strArrBatNo & "|" & rsNew(1).value & "-----" & rsNew(0).value
+
+            //        END IF
+
+
+            //        strBatNo = rsNew(0).value
+
+
+            //        rsNew.MoveNext
+            //        cnt = cnt + 1
+
+            //     LOOP
+            //     cnt = 0
+
+            //     strLstBatNo = split(strArrBatNo, "|")
+
+
+
+            //    ''end of code , jyo
+
+            //elseif left(strType, 16) = "DepRenCloseAccno" then
+            //     strVal = split(strType, "|")
+
+            //     brcode = strVal(1)
+
+            //     modId = strVal(2)
+
+            //     glCode = strval(3)
+
+            //     crcode = strVal(4)
+
+            //     serId = strVal(5)
+
+
+            //     whrCond = "upper(branchcode)='" & ucase(trim(brcode)) & _
+
+            //             "' and upper(currencycode)='" & ucase(trim(crcode)) & _
+
+            //             "' and upper(linkmoduleid)='" & ucase(trim(modId)) & _
+
+            //             "' and upper(linkglcode)='" & ucase(trim(glCode)) & "' and upper(status)='P'" & _
+
+            //             "  and batchno IN(SELECT DISTINCT(batchno) from gentemptranslog " & _
+            //             " WHERE moduleid='DEP' AND serviceid='" & trim(serId) & "')"
+
+
+            //      dataTable = obj.singlerecordset("GENTEMPTRANSLOG", "DISTINCT(linkaccno),linkaccname", cstr(whrCond), "linkaccname")
+
+
+            //elseif left(strType,10)= "GETSCHOOLS" then
+            //    strVal = split(strType, "|")
+
+            //    if strVal(1) = "CASH" then
+            //        dataTable = obj.singlerecordset("SCHOOLBATCHDTLS A, SCHOOLMST V", "A.ACCNO, V.NAME, A.CASHBATCHNO", "NVL(A.CASHBATCHSTATUS, 'O')='O' AND A.APPLICATIONDATE='" & session("applicationdate") & "' AND A.ACCNO=V.ACCNO AND V.GLCODE=A.GLCODE AND V.BRANCHCODE=A.BRANCHCODE AND V.CURRENCYCODE=A.CURRENCYCODE", "TO_NUMBER(A.ACCNO)")
+
+            //    else
+            //                dataTable = obj.singlerecordset("SCHOOLBATCHDTLS A, SCHOOLMST V", "A.ACCNO, V.NAME, A.TRANSFERBATCHNO", "NVL(A.TRANSFERBATCHSTATUS, 'O')='O' AND A.APPLICATIONDATE='" & session("applicationdate") & "' AND A.ACCNO=V.ACCNO AND V.GLCODE=A.GLCODE AND V.BRANCHCODE=A.BRANCHCODE AND V.CURRENCYCODE=A.CURRENCYCODE", "TO_NUMBER(A.ACCNO)")
+
+            //    end if
+            //elseif left(strType, 11) = "GETBRANCHES" then
+            //    strVal = split(strType, "|")
+
+            //    if strVal(4) = "CASH" then
+            //        dataTable = obj.singlerecordset("SCHOOLBRANCHMST", "SCHOOLBRANCHID, SCHBRANCHNAME", "SCHOOLACCNO='" & strVal(1) & "' AND (SCHOOLACCNO, GLCODE)=(SELECT ACCNO, GLCODE FROM SCHOOLBATCHDTLS WHERE CASHBATCHNO='" & strVal(2) & "' AND APPLICATIONDATE='" & strVal(3) & "')")
+
+            //    else
+            //                dataTable = obj.singlerecordset("SCHOOLBRANCHMST", "SCHOOLBRANCHID, SCHBRANCHNAME", "SCHOOLACCNO='" & strVal(1) & "' AND (SCHOOLACCNO, GLCODE)=(SELECT ACCNO, GLCODE FROM SCHOOLBATCHDTLS WHERE TRANSFERBATCHNO='" & strVal(2) & "' AND APPLICATIONDATE='" & strVal(3) & "')")
+
+            //    end if
+
+
+            //elseif left(strType, 11) = "GETSTUDENTS" then
+            //    strVal = split(strType, "|")
+
+            //    if strVal(3) = "CASH" then
+            //        dataTable = obj.singlerecordset("SCHOOLSTUDENTINFOMST", "STUDENTID, NAME", "(SCHOOLACCNO, GLCODE)=(SELECT ACCNO, GLCODE FROM SCHOOLBATCHDTLS WHERE CASHBATCHNO='" & strVal(1) & "' AND APPLICATIONDATE='" & strVal(2) & "') AND SCHOOLBRANCHID='" & strVal(4) & "'")
+
+            //    else
+            //                dataTable = obj.singlerecordset("SCHOOLSTUDENTINFOMST", "STUDENTID, NAME", "(SCHOOLACCNO, GLCODE)=(SELECT ACCNO, GLCODE FROM SCHOOLBATCHDTLS WHERE TRANSFERBATCHNO='" & strVal(1) & "' AND APPLICATIONDATE='" & strVal(2) & "') AND SCHOOLBRANCHID='" & strVal(4) & "'")
+
+            //    end if
+            //end if
         }
 
         public void GetDetailsFunction()
@@ -18864,1510 +20364,6 @@ namespace Banking.Services
             //    window.close()
 
             //    }
-        }
-
-        public void GetTransList()
-        {
-            //<% Response.CacheControl = "no-cache" %>
-            //<% Response.AddHeader("Pragma", "no-cache") %>
-            //<% Response.Expires = -1 %>
-            //<% hidsearch = request.form("hidsearch") %>
-            //<%
-
-            //    dim strType,userid,brchCd,atype,Modid,status,strBatNo,strArrBatNo,strLstBatNo
-            //    strType = Request.QueryString("st")
-
-            //    userid = session("userid")
-
-            //    brchCd = Request.QueryString("brchCd")
-
-            //    atype = Request.QueryString("atype")
-
-            //    Modid = Request.QueryString("Modid")
-
-            //    status = "Y"
-
-            //    strLstBatNo = ""
-
-            //    strArrBatNo = ""
-
-            //    strBatNo = ""
-
-            //%>
-
-            //dim connerr
-            //dim obj, dataTable, rsNew
-            //dim cnt
-            //dim objrep
-            //'dim disp,brCode,glcode,crCode
-            // '   disp=split(strType,"|")
-            //   ' brCode=disp(1)
-
-            //    'modid=disp(2)
-            //    'glcode=disp(3)
-            //    'crCode=disp(4)
-            //   dataTable = server.CreateObject("adodb.recordset")
-            //   rs1 = server.CreateObject("adodb.recordset")
-            //   obj = server.CreateObject("queryrecordsets.fetchrecordsets")
-            //   objbr = server.CreateObject("GeneralTranQueries.TransactionQueries")
-
-            //     obj1 = server.CreateObject("generaltranqueries.transactionqueries")
-
-            //     objrep = server.CreateObject("ReportPurposeOnly.Reportonly")
-            //if strType = "Branch" then
-
-            //     dataTable = obj.singlerecordset("GENBANKBRANCHMST", "Branchcode,narration")
-
-
-            //elseif strType = "BLevel" then
-            //     dataTable = obj.singlerecordset("GENBANKLEVELMST", "code,narration")
-
-
-            //elseif strType = "Bruser" then
-            //     dataTable = objbr.BranchCodes(cstr(userid))
-
-
-            //elseif left(strType,6)= "Userid" then
-            //    atype = mid(strType, 7, len(strType))
-            //     dataTable = obj.singlerecordset("genusermst", "userid,name", "branchcode='" & atype & "'")
-
-            //elseif strType = "Currency" then
-            //     dataTable = obj.singlerecordset("GENCURRENCYTYPEMST", "currencycode,narration")
-
-            //elseif strType = "Curr" then
-
-            //     dataTable = obj.singlerecordset("GENCURRENCYTYPEMST", "currencycode,narration,precision")
-            //elseif strType = "FxCurr" then
-
-            //     dataTable = obj.singlerecordset("GENCURRENCYTYPEMST", "currencycode,narration,precision")
-
-            //elseif left(strType,12)= "Tellermodule" then
-            //    obj = server.CreateObject("GeneralTranQueries.TransactionQueries")
-            //    k = split(strType, "|")
-            //     dataTable = obj.ModuleID(cstr(k(1)), "")
-
-            //elseif left(strType,11)= "Telleraccno" then
-
-            //    k = split(strType, "|")
-
-            //     obj = server.CreateObject("GeneralTranQueries.TransactionQueries")
-
-            //    'Response.Write k(5)
-
-            //    if cstr(k(2)) = "FXREM" then
-            //         dataTable = obj.AccountNumbers(cstr(k(1)), cstr(k(2)), cstr(k(3)), cstr(k(4)),,, cstr(k(6)))
-
-            //    else
-            //                dataTable = obj.AccountNumbers(cstr(k(1)), cstr(k(2)), cstr(k(3)), cstr(k(4)),,,, cstr(hidsearch))
-
-            //    end if
-
-            //    connerr = obj.ConnError
-
-
-            //    if obj.connerror<>"" then
-            //        kstr = "Norecords"
-
-            //        Errstr = obj.ConnError
-
-            //    end if
-            //elseif left(strType, 12) = "Tellerglcode" then
-
-            //     obj = server.CreateObject("GeneralTranQueries.TransactionQueries")
-
-            //    k = split(strType, "|")
-
-            //     dataTable = obj.GLCodes(cstr(k(1)), cstr(k(2)))
-
-
-            //elseif strType = "Module" then
-            //     dataTable = obj.singlerecordset("genmoduletypesmst", "moduleid,Narration", "implementedyn='Y'")
-
-
-            //elseif left(strType,6)= "Glcode" then
-            //   'stname=left(strType,2)
-            //   'atype=mid(strType,7,len(strType))
-            //    dataTable = obj.singlerecordset("genglsheetmst", "glcode,NARRATION", "moduleid='" & atype & "'")
-            //elseif left(strType,14)= "PigTelleraggno" then
-            //   k = split(strType, "|")
-            //    dataTable = obj.singlerecordset("pigmyagentmst", "agentcode,agentname", "branchcode='" & k(1) & "' and moduleid='" & k(2) & "' and glcode='" & k(3) & "' and accno='" & k(4) & "' and status='R'")
-
-
-            //  elseif left(strType,14)= "PigTelleraccno" then
-            //   k = split(strType, "|")
-            //    dataTable = obj.singlerecordset("pigmyaccountsmst", "accno,name,LIENSTATUS", "branchcode='" & k(1) & "' and currencycode='" & k(2) & "' and glcode='" & k(3) & "' and agentcode='" & k(4) & "' and status='R' order by to_number(accno)")
-            //elseif left(strType,5)= "Accno" then
-            //    'stname=left(strType,5)
-            //    'atype=mid(strType,6,len(strType))
-            //    dim objTrn
-            //    objTrn = Server.CreateObject("GeneralTranQueries.TransactionQueries")
-            //    dataTable = objTrn.AccountNumbers(cstr(brchCd), cstr(Modid), cstr(atype))
-
-            //     objTrn = nothing
-
-
-            //elseif left(strType,6)= "CustID" then
-            //dim stname
-            //    stname = left(strType, 4)
-            //    atype = mid(strType, 7)
-            //     dataTable = obj.singlerecordset("GENCUSTINFOMST", "customerid,custname", "")
-
-
-            //elseif left(strType,7)= "TransNo" then
-            //dim stname
-            //    stname = left(strType, 5)
-            //    atype = mid(strType, 8)
-            //     dataTable = obj.singlerecordset("translog", "tranno,amount", "glcode='" & atype & "'", "tranno")
-
-
-            //elseif left(strType,11)= "Cashiertype" then
-            //dim stname
-            //    stname = left(strType, 11)
-
-            //    k = split(strType, "*")
-
-            //     dataTable = obj.singlerecordset("CASHCASHIERTYPEMST", "cashiertypeid,narration", "BRANCHCODE='" & k(1) & "'", "cashiertypeid")
-            //elseif strType = "Cashier" then
-            //dim stname,strcond,strfld,strtab
-
-            //    stname = strType
-
-            //    strcond = " W.USERID = U.USERID AND W.USERID NOT IN (SELECT CASHIERID FROM CASHCOUNTERMST)"
-
-            //    strfld = "DISTINCT W.USERID,U.NAME"
-
-            //    strtab = "GENWORKALLOTMENTMST W,GENUSERMST U"
-
-            //     dataTable = obj.singlerecordset(cstr(strtab), cstr(strfld), cstr(strcond))
-
-
-            //elseif left(strType,9)= "Cashierid" then
-            //dim stname
-            //    stname = strType
-
-            //    k = split(strType, "*")
-
-            //     dataTable = obj.singlerecordset("cashcashierposmst cash,genusermst gen", "cash.cashierid,gen.name", "cash.cashierid=gen.userid and cash.cashierid <> '" & cstr(userid) & "' ")
-
-
-            //elseif left(strType,6)= "CashID" then
-            //    k = split(strType, "|")
-
-            //     dataTable = obj.singlerecordset("cashcountermst cash,genusermst gen", "distinct(cash.cashierid),gen.name", "cash.cashierid=gen.userid and upper(trim(cash.cashierid)) <> '" & ucase(trim(cstr(userid))) & "' and gen.branchcode='" & k(1) & "'")
-
-
-            //elseif left(strType,14)= "AllotedCashier" then
-            //dim stname,cash
-            //    stname = strType
-
-            //    cash = split(stname, "*")
-            //     dataTable = obj.singlerecordset("CASHALLOTMENTSTRN CASH,GENUSERMST GEN", "DISTINCT(CASH.CASHIERID),GEN.NAME", "CASH.CASHIERID=GEN.USERID AND CASH.BRANCHCODE='" & CASH(1) & "' AND CASH.CURRENCYCODE='" & CASH(2) & "'", "CASH.CASHIERID")
-
-
-            //elseif left(strType,9)= "Allotment" then
-            //    k = split(strType, "*")
-
-
-            //     dataTable = obj.singlerecordset("cashallotmentstrn", "Allotmentno", "cashierid='" & k(1) & "' and counterno = '" & k(2) & "' and status='P'", "allotmentno")
-
-
-            //elseif strtype = "Bankcode" then
-            //     dataTable = obj.singlerecordset("Genbankmst", "Bankname,BANKCODE")
-
-
-            //elseif left(strtype,10)= "Cashiermgt" then
-            //    k = split(strtype, "*")
-
-            //     dataTable = obj.singlerecordset("cashcountermst cash,genusermst gen", "distinct(cash.cashierid),gen.name", "cash.branchcode='" & k(1) & "' and cash.currencycode='" & k(2) & "' and cash.cashierid=gen.userid and cash.cashierid not in ('" & ucase(userid) & "')")
-
-
-            //elseif left(strtype,16)= "Cashrefundaccept" then
-            //    k = split(strtype, "*")
-
-            //     dataTable = obj.singlerecordset("cashrefundstrn cash,genusermst gen", "distinct(cash.REFUNDEDUSERID),gen.name", "cash.branchcode='" & k(1) & "' and cash.currencycode='" & k(2) & "' and cash.REFUNDEDUSERID=gen.userid  and cash.status='P' and cash.USERID <> '" & userid & "'")
-
-
-            //elseif left(strtype,7)= "Cashacc" then
-            //    k = split(strtype, "*")
-
-            //     dataTable = obj.singlerecordset("CASHTRANSBTCASHIERSTRN cash,genusermst gen", "distinct(cash.fromcashierid),gen.name", "cash.branchcode='" & k(1) & "' and cash.currencycode='" & k(2) & "' and cash.FROMcashierid=gen.userid and cash.status='P' and cash.tocashierid='" & cstr(userid) & "'", "cash.fromcashierid")
-
-
-            //' Suspence Start
-            //elseif left(strtype,12)= "Categorycode" then
-
-            //    k = split(strtype, "|")
-
-
-            //     dataTable = obj.singlerecordset("SCRCATEGORYMST", "DISTINCT CATEGORYCODE,CATEGORYNAME")
-            //' Suspence End
-
-            //elseif left(strtype,11)= "CutsoiledNo" then
-
-            //    k = split(strtype, "|")
-
-
-            //     dataTable = obj.singlerecordset("CASHCUTNSPOILNOTESMST", "CUTSOILTRANNO,custid,RECEIVEDFROM", "UPPER(TRIM(branchcode))='" & UCASE(TRIM(k(1))) & "' and UPPER(TRIM(currencycode))='" & UCASE(TRIM(k(2))) & "'")
-
-            //'-------prsrem
-
-            //elseif left(strType,8)= "issonbnk" then
-            //   k = split(strType, "~")
-
-            //      ''' for fetching the remtype from the remittypemst for selected glcode
-
-            //    'dataTable=obj.singlerecordset("REMTYPEMST","REMTYPE","upper(REMGLCODE)='"&k(1)&"' and " & _
-
-            //    '						" upper(NATIVAORAGENCY)='A' and upper(status)='R'")
-
-            //    dataTable = obj.singlerecordset("REMTYPEMST", "REMTYPE,upper(NATIVAORAGENCY)", _
-
-            //        "upper(REMGLCODE)='" & k(1) & "' and upper(status)='R'")
-
-
-            //    if not dataTable.EOF and not dataTable.BOF then
-
-            //          if dataTable(0).value = "ADD" or dataTable(0).value = "TC" then
-
-            //            'dataTable=obj.singlerecordset("GENOTHERBANKMST","Bankcode,BANKNAME", _
-
-            //            '"upper(status)='R'")
-
-
-            //            dim strCond
-
-
-            //            'Code commented by radhika on 13 may 2008
-
-            //            'reason: Agency DD can issue on different branches of same bank 
-
-            //            '        But this concept is under testing
-
-            //            'strCond="upper(trim(OURBRANCHCODE))='" & trim(k(2)) & "' AND status='R' " & _
-
-            //            '" AND bankcode IN (SELECT DISTINCT OTHERBANKCODE  FROM REMISSUEBANKMST " & _
-
-            //            '" WHERE upper(trim(BRANCHCODE))='" & trim(k(2)) & "' AND  " & _
-
-            //            '" upper(trim(CURRENCYCODE))='" & trim(k(3)) & "' " & _
-
-            //            '" AND upper(trim(REMTYPE))='" & trim(dataTable(0).value) & "' AND status='R')"
-
-
-            //            'response.write("<br><br> strCond=" & strCond)
-
-            //            'response.end
-
-
-            //            'dataTable=obj.singlerecordset("GENOTHERBANKMST","BANKCODE,BANKNAME", _
-
-            //            'strCond)		 
-
-
-            //            'New code is
-
-            //            strCond = "status='R' AND bankcode IN (SELECT DISTINCT OTHERBANKCODE" & _
-
-            //                " FROM REMISSUEBANKMST WHERE UPPER(trim(CURRENCYCODE))='" & _
-
-            //                trim(k(3)) & "' AND UPPER(trim(REMTYPE))='" & _
-
-            //                 trim(dataTable(0).value) & "' AND status='R')"
-
-
-            //            dataTable = obj.singlerecordset("GENCORRESPBANKSMST", "BANKCODE,BANKNAME", _
-
-            //            strCond)
-
-
-            //        elseif dataTable(0).value = "DD" or dataTable(0).value = "TT" or dataTable(0).value = "MT"  _
-            //            or dataTable(0).value = "BC" or dataTable(0).value = "GC" or dataTable(0).value = "PO" then
-            //            dataTable = obj.singleRecordSet("GENBANKPARM", "BANKCODE,bankname", "")
-
-            //        else
-            //                dataTable = obj.singleRecordSet("GENBANKPARM", "BANKCODE,bankname", "")
-
-            //        end if
-
-            //    else
-            //                    dataTable = obj.singleRecordSet("GENBANKPARM", "BANKCODE,bankname", "")
-
-            //    end if
-
-            //elseif left(strType, 9) = "nftsonbnk" or left(strType,12)= "Matnftsonbnk" or left(strType,13)= "Autonftsonbnk" then
-
-            //dataTable = obj.singlerecordset("GENCORRESPBANKSMST", "BANKCODE,BANKNAME", "status = 'R'")
-
-            //elseif left(strType,8)= "IMPSBank" then
-
-            //sqlStr = "SELECT DISTINCT bank bank ,bank bank1 FROM BANKIFSCDTLS ORDER BY bank"
-            //dataTable = objrep.SingleSelectStat(sqlStr)
-
-
-            //elseif left(strType,9)= "IMPSState" then
-            //k = split(strType, "~")
-            //sqlStr = "select distinct state state , state state1 from BANKIFSCDTLS where bank = '" & k(1) & "' order by state"
-            //dataTable = objrep.SingleSelectStat(sqlStr)
-
-            //elseif left(strType,12)= "IMPSDistrict" then
-
-            //k = split(strType, "~")
-            //sqlStr = "select distinct DISTRICT DISTRICT,DISTRICT DISTRICT1 from BANKIFSCDTLS where bank = '" & k(1) & "' and state ='" & k(2) & "' order by DISTRICT"
-            //dataTable = objrep.SingleSelectStat(sqlStr)
-
-            //elseif left(strType,8)= "IMPSCity" then
-
-            //k = split(strType, "~")
-            //sqlStr = "select distinct CITY CITY,CITY CITY1 from BANKIFSCDTLS where bank = '" & k(1) & "' and state ='" & k(2) & "' and district = '" & k(3) & "' order by CITY"
-            //dataTable = objrep.SingleSelectStat(sqlStr)
-
-
-            //elseif left(strType,10)= "IMPSBranch" then
-
-            //k = split(strType, "~")
-            //sqlStr = "select distinct BRANCH BRANCH,BRANCH BRANCH1 from BANKIFSCDTLS where bank = '" & k(1) & "' and state ='" & k(2) & "' and district = '" & k(3) & "' and CITY = '" & k(4) & "' order by BRANCH"
-            //dataTable = objrep.SingleSelectStat(sqlStr)
-
-
-            //elseif left(strType,12)= "nftsonbranch" or left(strType,15)= "Matnftsonbranch" or left(strType,16)= "Autonftsonbranch" then
-
-            //k = split(strType, "~")
-            //dataTable = obj.singlerecordset("GENCORRESPBANKBRANCHESMST", "BRANCHCODE, BRANCHNAME", "BANKCODE = '" & k(1) & "' and status = 'R'")
-
-            //elseif left(strType,11)= "nftsacctype" or left(strType,14)= "Matnftsacctype"  or left(strType,15)= "Autonftsacctype" then
-
-            //dataTable = obj.singlerecordset("CLGMICRINSTRTYPEMST", "MICRINSTRCODE, MICRINSTRDESC", "ACTIVEYN= 'Y' AND status = 'R'")
-
-            //elseif left(strType,12)= "stopissonbnk" then
-            //   k = split(strType, "~")
-
-
-            //      if k(1) = "ADD" then
-            //        dataTable = obj.singlerecordset("GENCORRESPBANKSMST", "Bankcode,BANKNAME", "upper(status)='R'")
-
-            //    else
-            //                dataTable = obj.singleRecordSet("GENBANKPARM", "BANKCODE,bankname", "")
-
-
-            //    end if
-            //'elseif strType="issonbr" then
-            //elseif left(strType,7)= "issonbr" then
-            //    dim bankcode, strCond
-
-            //        'original code commented by radhika on 14 may 2008
-
-            //     'dataTable=obj.singlerecordset("GENBANKBRANCHMST","BRANCHCODE,BRANCHNAME")	
-
-
-            //     'new code is
-
-            //     bankcode = split(strType, "~")
-
-            //     if bankcode(1) = "ADD" or bankcode(1)= "TC" then
-            //        strCond = "status='R' AND upper(trim(BANKCODE))='" & trim(bankcode(2)) & "'"
-
-
-            //        dataTable = obj.singlerecordset("GENCORRESPBANKBRANCHESMST", "BRANCHCODE, BRANCHNAME", _
-
-            //        strCond)
-
-            //     else
-            //                dataTable = obj.singlerecordset("GENBANKBRANCHMST", "BRANCHCODE,BRANCHNAME")
-
-            //     end if
-
-
-            //elseif left(strType, 10) = "issonothbr" then
-            //dim bankcode
-            //    bankcode = split(strType, "~")
-            //    dim strCond
-
-
-            //    if bankcode(1) = "ADD" or bankcode(1)= "TC" then
-            //'		 dataTable=obj.singlerecordset("GENOTHERBRANCHMST", _
-            //'		"BRANCHCODE,BRANCHNAME","UPPER(BANKCODE)='" & ucase(trim(bankcode(2))) & _
-            //'		"' ")	
-
-
-            //        'strCond="upper(trim(OURBRANCHCODE))='" & trim(bankcode(3)) & "' AND status='R' "& _
-
-            //        '" AND upper(trim(BANKCODE))='" & trim(bankcode(2)) & "'" & _
-
-            //        '" AND BRANCHCODE IN (SELECT DISTINCT OTHERBRANCHCODE FROM REMISSUEBANKMST " & _
-
-            //        '" WHERE upper(trim(BRANCHCODE))='" & trim(bankcode(3)) & "' AND  " & _
-
-            //        '" upper(trim(CURRENCYCODE))='" & trim(bankcode(4)) & "' " & _
-
-            //        '" AND upper(trim(REMTYPE))='" & trim(bankcode(1)) & "'" & _
-
-            //        '" AND upper(trim(OTHERBANKCODE))='" & trim(bankcode(2)) & "'" & _
-
-            //        '" AND status='R')"
-
-
-            //         'dataTable=obj.singlerecordset("GENOTHERBRANCHMST", "BRANCHCODE, BRANCHNAME",strCond)
-
-
-            //        'new code is 
-
-            //        strCond = "status='R' AND upper(trim(BANKCODE))='" & trim(bankcode(2)) & "'"
-
-
-            //        dataTable = obj.singlerecordset("GENCORRESPBANKBRANCHESMST", "BRANCHCODE, BRANCHNAME", _
-
-            //        strCond)
-
-
-            //    elseif bankcode(1)= "AOB" then
-            //         dataTable = obj.singlerecordset("GENBANKBRANCHMST", _
-
-            //        "BRANCHCODE,BRANCHNAME", "UPPER(BANKCODE)='" & trim(bankcode(2)) & "' and status='R'")
-
-            //    elseif bankcode(1)= "OthBrs" then
-            //    dataTable = obj.singlerecordset("GENCORRESPBANKBRANCHESMST", "BRANCHCODE,BRANCHNAME", "STATUS='R' AND UPPER(BANKCODE)='" & ucase(trim(bankcode(2))) & "'")
-
-            //    else
-            //                dataTable = obj.singlerecordset("GENBANKBRANCHMST", _
-           
-            //                   "BRANCHCODE,BRANCHNAME", "UPPER(BANKCODE)='" & ucase(trim(bankcode(2))) & "' " & _
-           
-            //                   "")
-
-            //    end if
-
-            //elseif left(strType,9)= "DispAccNo" then
-            //disp = split(strType, "|")
-            //    brCode = disp(1)
-            //    modid = disp(2)
-            //    glcode = disp(3)
-            //    crCode = disp(4)
-            // if left(ucase(modid), 2) <> "TM" then
-            // dim strWhr
-            //    strWhr = "upper(moduleid)='" & ucase(trim(modid)) & "'"
-            //     '''or  upper(M.accno)=upper(D.disposalaccno)
-            //     dataTable = obj.singlerecordset("GENMODULEMST", "mastertable", cstr(strWhr))
-            //    if dataTable.RecordCount > 0 then
-            //    dim table1,tables
-            //        table1 = dataTable(0).value
-            //        tables = dataTable(0).value & " M,GENDISPOSALDTLSTEMP D"
-
-
-            //        strWhr = "upper(D.branchcode)='" & ucase(trim(brCode)) & "' and upper(D.currencycode)='" & _
-
-            //                ucase(trim(crCode)) & "'and upper(D.moduleid)='" & ucase(trim(modid)) & "'" & _
-
-            //               " and upper(D.glcode)='" & ucase(trim(glcode)) & "' and upper(D.transtatus)='P'" & _
-
-            //               " and D.batchno is null and D.tranno is null and " & _
-
-            //               "upper(M.branchcode)=upper(D.branchcode) and upper(M.currencycode)" & _
-
-            //               "=upper(D.currencycode) " & _
-
-            //              " and upper(M.glcode)=upper(D.glcode) and upper(M.accno)=upper(D.accno)"
-
-
-            //        'and upper(M.moduleid)=upper(D.moduleid) 
-            //         dataTable = obj.singlerecordset(cstr(tables), _
-            //        "distinct(nvl(D.accno,D.disposalaccno)),M.name", cstr(strWhr))
-
-
-            //   end if
-            // else
-            //                    dim strWhr
-
-
-            //       strWhr = "upper(D.branchcode)='" & ucase(trim(brCode)) & "' and upper(D.currencycode)='" & _
-
-            //                ucase(trim(crCode)) & "'and upper(D.moduleid)='" & ucase(trim(modid)) & "'" & _
-
-            //               " and upper(D.glcode)='" & ucase(trim(glcode)) & "' and upper(D.transtatus)='P'" & _
-
-            //               " and D.batchno is null and D.tranno is null "
-
-
-
-            //  dataTable = obj.singlerecordset("GENDISPOSALDTLSTEMP D", "distinct(nvl(D.accno,D.disposalaccno))", cstr(strWhr))
-
-            // end if
-
-
-            //'-----Link Module
-            //elseif left(strType,9)= "LnkModule" then
-
-            //     obj = server.CreateObject("GeneralTranQueries.TransactionQueries")
-
-
-            //    k = split(strType, "|")
-
-
-            //     dataTable = obj.ModuleID(cstr(k(1)), "N", "N")
-
-
-            //elseif left(strType,9)= "LnkGlcode" then
-            // obj = server.CreateObject("GeneralTranQueries.TransactionQueries")
-
-            //    k = split(strType, "|")
-
-            //     dataTable = obj.GLCodes(cstr(k(1)), cstr(k(2)))
-
-
-            //elseif left(strType,8)= "LnkAccno" then
-
-            //    k = split(strType, "|")
-            //    modId = ucase(k(2))
-            //    glCode = ucase(k(3))
-            //    if modId<>"TM" then
-            //       obj = server.CreateObject("GeneralTranQueries.TransactionQueries")
-
-            //       dataTable = obj.AccountNumbers(cstr(k(1)), cstr(modId), cstr(glCode), cstr(k(4)))
-
-            //    else
-            //                dim strWhr
-
-            //       strWhr = "upper(glcode)='" & glCode & "' and upper(status)='R'"
-
-            //        dataTable = obj.singlerecordset("TMGENTYPEMST", "upper(mastertable) mstTab", cstr(strWhr))
-
-            //       if dataTable.RecordCount > 0 and dataTable("mstTab")<> "" then
-            //       dim mstTab
-            //          mstTab = dataTable("mstTab")
-
-            //          strWhr = "upper(status)='R'"
-
-            //         dataTable = obj.singlerecordset(cstr(mstTab), "accno", cstr(strWhr), "to_number(accno)")
-
-            //       end if
-
-            //    end if
-
-
-            //    connerr = obj.ConnError
-
-            //      if obj.connerror<>"" then
-            //        kstr = "Norecords"
-
-            //        Errstr = obj.ConnError
-
-            //    end if
-
-
-            //'-----Link Module Ends 
-            //''''--------clearing--------------------------------------------------------------
-            //''' for clearing moduleid
-            //elseif left(strType,9)= "CLGModule" then
-
-            //     obj = server.CreateObject("GeneralTranQueries.TransactionQueries")
-
-
-            //    k = split(strType, "|")
-
-
-            //     dataTable = obj.ModuleID(cstr(k(1)), "N", "N")
-            //''' for clearing glcode
-
-            //elseif left(strType,9)= "CLGGlcode" then
-            //obj = server.CreateObject("GeneralTranQueries.TransactionQueries")
-
-            //    k = split(strType, "|")
-
-            //     dataTable = obj.GLCodes(cstr(k(1)), cstr(k(2)))
-
-            //elseif left(strType,8)= "CLGAccno" then
-
-            //    k = split(strType, "|")
-
-            //     obj = server.CreateObject("GeneralTranQueries.TransactionQueries")
-
-            //     dataTable = obj.AccountNumbers(cstr(k(1)), cstr(k(2)), cstr(k(3)), cstr(k(4)))
-
-
-            //    connerr = obj.ConnError
-
-
-            //    if obj.connerror<>"" then
-            //        kstr = "Norecords"
-
-            //        Errstr = obj.ConnError
-
-            //    end if
-
-
-
-            //elseif left(strType, 11) = "retCLGAccno" then
-
-            //    k = split(strType, "|")
-
-            //     'obj=server.CreateObject("GeneralTranQueries.TransactionQueries")
-
-            //     'dataTable=obj.AccountNumbers(cstr(k(1)),cstr(k(2)),cstr(k(3)),cstr(k(4)))
-
-            //    modid1 = k(2) & "MST"
-
-            //    objaccno = server.CreateObject("ReportPurposeOnly.Reportonly")
-
-            //'sqlstr= "SELECT ACCNO,Name,Customerid,status FROM " & modid1 & " WHERE UPPER(trim(branchcode))='"& k(1) &"' AND UPPER(trim(glcode))='"& k(3) &"' AND  transtatus IN ('A') AND UPPER(trim(currencycode))='"& k(4) &"'  ORDER BY to_number(accno)"
-            //sqlstr = "SELECT ACCNO,Name,Customerid FROM " & modid1 & " WHERE UPPER(trim(branchcode))='" & k(1) & "' AND UPPER(trim(glcode))='" & k(3) & "' AND  transtatus IN ('A') AND UPPER(trim(currencycode))='" & k(4) & "'  ORDER BY to_number(accno)"
-
-            //dataTable = objaccno.SingleSelectStat(sqlstr)
-            //if not hidsearch = "" then
-            //        searchby = split(hidsearch, "|")
-
-            //            if searchby(0) = "name" then
-            //        sqlstr = "SELECT ACCNO,Name,Customerid FROM " & modid1 & " WHERE UPPER(trim(branchcode))='" & k(1) & "' AND UPPER(trim(glcode))='" & k(3) & "' AND  transtatus IN ('A') AND UPPER(trim(currencycode))='" & k(4) & "' and name like '" & Ucase(searchby(1)) & "%' ORDER BY to_number(accno)"
-
-            //        dataTable = objaccno.SingleSelectStat(sqlstr)
-
-
-            //            else if searchby(0) = "num" then
-            //        sqlstr = "SELECT ACCNO,Name,Customerid FROM " & modid1 & " WHERE UPPER(trim(branchcode))='" & k(1) & "' AND UPPER(trim(glcode))='" & k(3) & "' AND  transtatus IN ('A') AND UPPER(trim(currencycode))='" & k(4) & "' and accno like '" & Ucase(searchby(1)) & "%' ORDER BY to_number(accno)"
-
-            //        dataTable = objaccno.SingleSelectStat(sqlstr)
-
-
-            //            end if
-
-            //    end if
-
-
-            //    connerr = obj.ConnError
-
-
-            //    if obj.connerror<>"" then
-            //        kstr = "Norecords"
-
-            //        Errstr = obj.ConnError
-
-            //    end if
-
-
-            //''for bankcode
-
-            //elseif left(strType, 7) = "CLGBank" then
-
-            //    k = split(strType, "|")
-
-            //     dataTable = obj.singlerecordset("GENOTHERBANKMST", "BANKCODE,BANKNAME", _
-
-            //    "ourbranchcode='" & k(1) & "'", "BANKCODE")
-
-            //    if obj.connerror<>"" then
-            //        kstr = "Norecords"
-
-            //        Errstr = obj.ConnError
-
-            //    end if
-
-            //''for clgbranchcodes
-
-            //elseif left(strType, 9) = "CLGBranch" then
-
-            //    k = split(strType, "|")
-
-            //     dataTable = obj.singlerecordset("GENOTHERBRANCHMST", "BRANCHCODE,BRANCHNAME", _
-
-            //    "BANKCODE='" & k(1) & "' and ourbranchcode='" & k(2) & "'", "BANKCODE")
-
-            //    if obj.connerror<>"" then
-            //        kstr = "Norecords"
-
-            //        Errstr = obj.ConnError
-
-            //    end if
-
-            //''for clgReasoncodes
-
-            //elseif left(strType, 9) = "CLGReason" then
-
-            //    k = split(strType, "|")
-
-            //     dataTable = obj.singlerecordset("CLGRETURNREASONMST", "CODE,DESCRIPTION", "", "CODE")
-
-            //    if obj.connerror<>"" then
-            //        kstr = "Norecords"
-
-            //        Errstr = obj.ConnError
-
-            //    end if
-            //''''-------------------------------------------------------------------------------- -
-            //'''''This is Code is for vouching  Details.
-            //'''-----------------------------------------------------------------------------------
-            //elseif left(strType,13)= "VochServiceid" then
-            //dim ser,whcond
-
-            //      ser = split(strtype, "|")
-
-
-            //    if ser(1) = "3" then
-            //       whcond = "Code in('1')"
-            //    elseif ser(1)= "4" then
-            //       'whcond="Code in('1','2')"
-            //       whcond = "Code in('1')"
-            //    end if
-
-            //     dataTable = obj.singlerecordset("GENSERVICETYPESPMT", "CODE,NARRATION", cstr(whcond), "CODE")
-
-
-            //elseif left(strType,14)= "ChargeModuleid" then
-
-
-            //   atype = Split(strType, "|")
-
-
-            //    dataTable = obj1.ModuleID(cstr(atype(1)), "")
-
-
-            //  if atype(2) = "4" and atype(3)= "1" then
-
-
-            //    dataTable.Filter = "moduleid<>'CLG'"
-
-
-            //  elseif atype(2)= "4" and atype(3)= "2" then
-
-
-            //    dataTable.Filter = "moduleid='CA' or moduleid='DEP' or  moduleid='SB'"
-
-
-            // elseif atype(2)= "3" and atype(3)= "1" then
-
-
-            //    dataTable.Filter = "moduleid<>'CLG' AND moduleid<>'DEP' " & _
-
-            //    "AND moduleid<>'FXDEP' AND moduleid<>'FXREM' AND moduleid<>'REM' " & _
-
-            //    "AND moduleid<>'LOAN' AND moduleid<>'LOCKER'"
-
-
-
-            //  end if
-            //  ''' for contra moduleids,description
-            // elseif left(strType,14)= "ContraModuleid" then
-            //    atype = Split(strType, "|")
-
-            //        dataTable = obj1.ModuleID(cstr(atype(1)), "")
-
-
-            // ''' for contra glcodes,description
-
-            //    elseif left(strType,12)= "ContraGlcode" then
-            // dim strflds
-            //   strflds = split(strtype, "|")
-            //       dataTable = obj.singlerecordset(cstr(strflds(2)) & "typemst", _
-
-            //             strflds(3) & ",(select narration from genglsheetmst where " & _
-
-            //             "glcode=" & strflds(3) & " and branchcode='" & strflds(1) & "')", cstr(strflds(4)))
-
-
-            //  elseif left(strtype,13)= "ContraAccCode" then
-
-            //        k = split(strtype, "|")
-            //       dataTable = obj1.AccountNumbers(cstr(k(1)), cstr(k(2)), cstr(k(3)), cstr(k(4)))
-            //elseif left(strtype,12)= "ChargeGlcode" then
-
-            //      k = split(strtype, "|")
-            //        dataTable = obj1.GLCodes(cstr(k(1)), cstr(k(2)))
-
-
-            //elseif left(strtype,13)= "ChargeAccCode" then
-
-            //        k = split(strtype, "|")
-            //       dataTable = obj1.AccountNumbers(cstr(k(1)), cstr(k(2)), cstr(k(3)), cstr(k(4)))
-
-
-            //elseif strType = "catcode" then
-            //      dataTable = obj.singlerecordset("GENCATEGORYMST", "CATEGORYCODE,NARRATION", "categorycode<>'99'")
-
-
-            //elseif strType = "remcode" then
-            //      dataTable = obj.singlerecordset("FXREMTYPEMST a,FXGENMODEOFREMITTANCEMST b", _
-
-            //             "a.modeofremittance, narration", "a.modeofremittance=b.modeofremittance")
-
-
-
-            //'Forex
-            //elseif left(strtype,11)= "fxratecodes" then
-            //dim strValue,strWhr
-            //     strValue = split(strtype, "|")
-
-
-            //     strWhr = "sourcecurrencycode='" & strValue(2) & "' AND ratecategory=category and upper(a.status)='R'"
-
-
-            //     if strValue(1) = "C" then
-            //         dataTable = obj.singlerecordset("FXGENCARDRATECATEGORIESMST b,FXGENCARDRATESPMT a", _
-
-            //                        "category,NARRATION,rate", cstr(strWhr))
-            //     elseif strValue(1)= "N" then
-            //        strWhr = "currencycode='" & strValue(2) & "' AND a.category=b.category and upper(a.status)='R'"
-            //         dataTable = obj.singlerecordset("FXGENNOTIONALCATEGORIESMST b,FXGENNOTIONALRATESPMT a", _
-            //        " a.category,NARRATION,rate", cstr(strWhr))
-            //     elseif strValue(1)= "D" then
-            //        strWhr = "status='R'"
-            //         dataTable = obj.singlerecordset("FXDEALINGROOMMST", "CODE,NARRATION,'0'", cstr(strWhr))
-            //     elseif strValue(1)= "F" then
-            //        strWhr = "upper(status)='R' and upper(transtatus)='A'"
-            //         dataTable = obj.singlerecordset("FXFCMST", "accno,name,rate", cstr(strWhr))
-            //     end if
-
-
-            //elseif left(strType, 7) = "BatchNo" then
-            //    strVal = split(strType, "|")
-
-            //    brcode = strVal(1)
-
-            //    crcode = strVal(2)
-
-            //    whrAdd = strVal(3)
-
-            //    abbYN = strVal(4)
-
-
-            //    dim whrBr
-
-            //    if ucase(abbYN) <> "Y" then
-            //      whrBr = "upper(branchcode)='" & ucase(brcode) & "' and abbbranchcode is null "
-
-            //    else
-            //                whrBr = "upper(abbbranchcode)='" & ucase(brcode) & "'"
-
-            //    end if
-
-
-            //    whrCond = whrBr & " and upper(currencycode)='" & _
-
-            //    ucase(trim(crcode)) & "' and upper(transtatus)='P' and approvedby is null " & _
-
-            //    "and approvedmachine is null " & whrAdd
-
-
-            //     dataTable = obj.singlerecordset("GENTRANSLOG", "distinct(BATCHNO)", cstr(whrCond), "batchno")
-            //'------Code Added by Monica-25-NOV-09 to display Name along with the BatchNo----------ORG----------	 
-
-            //     rsNew = Nothing
-
-            //     rsNew = obj.singlerecordset("GENTRANSLOG", "distinct(BATCHNO),NAME", cstr(whrCond), "batchno")
-
-            //     cnt = 0
-
-            //     DO UNTIL rsNew.EOF
-
-
-            //        IF(cnt = 0) THEN
-            //            strArrBatNo = rsNew(1).value & "-----" & rsNew(0).value
-
-            //        ELSEIf(strBatNo<>rsNew(0).value) THEN
-            //            strArrBatNo = strArrBatNo & "|" & rsNew(1).value & "-----" & rsNew(0).value
-
-            //        END IF
-
-
-            //        strBatNo = rsNew(0).value
-
-
-            //        rsNew.MoveNext
-            //        cnt = cnt + 1
-
-            //     LOOP
-            //     cnt = 0
-
-            //     strLstBatNo = split(strArrBatNo, "|")
-            //'-----End of -Code Added by Monica-25-NOV-09 to display Name along with the BatchNo----------ORG----------
-
-            //elseif left(strType,10)= "RefBatchNo" then
-            //    strVal = split(strType, "|")
-
-            //    brcode = strVal(1)
-
-            //    crcode = strVal(2)
-
-            //    whrAdd = strVal(3)
-
-            //    abbYN = strVal(4)
-
-
-            //    dim whrBr
-
-            //    if ucase(abbYN) <> "Y" then
-            //      whrBr = "upper(branchcode)='" & ucase(brcode) & "' and abbbranchcode is null "
-
-            //    else
-            //                whrBr = "upper(abbbranchcode)='" & ucase(brcode) & "'"
-
-            //    end if
-
-
-            //    whrCond = whrBr & " and upper(currencycode)='" & _
-
-            //    ucase(trim(crcode)) & "' and upper(transtatus)='P' and approvedby is null " & _
-
-            //    "and approvedmachine is null " & whrAdd
-
-
-            //     dataTable = obj.singlerecordset("GENTRANSLOG", "distinct(BATCHNO)", cstr(whrCond), "batchno")
-            //'------Code Added by Monica-25-NOV-09 to display Name along with the BatchNo----------ORG----------	 
-
-            //     rsNew = Nothing
-
-            //     rsNew = obj.singlerecordset("GENTRANSLOG", "distinct(BATCHNO),NAME,RATEREFCODE", cstr(whrCond), "batchno")
-
-            //     cnt = 0
-
-            //     DO UNTIL rsNew.EOF
-
-
-            //        IF(cnt = 0) THEN
-            //            strArrBatNo = rsNew(1).value & "-----" & rsNew(0).value & "-----" & rsNew(2).value
-
-            //        ELSEIf(strBatNo<>rsNew(0).value) THEN
-            //            strArrBatNo = strArrBatNo & "|" & rsNew(1).value & "-----" & rsNew(0).value & "-----" & rsNew(2).value
-
-            //        END IF
-
-
-            //        strBatNo = rsNew(0).value
-
-
-            //        rsNew.MoveNext
-            //        cnt = cnt + 1
-
-            //     LOOP
-            //     cnt = 0
-
-            //     strLstBatNo = split(strArrBatNo, "|")
-            //'-----End of -Code Added by Monica-25-NOV-09 to display Name along with the BatchNo----------ORG----------
-
-
-            //elseif left(strType,10)= "DelBatchNo" then
-            //    strVal = split(strType, "|")
-
-            //    brcode = strVal(1)
-
-            //    crcode = strVal(2)
-
-            //    abbYN = strVal(3)
-
-
-            //    dim whrBr
-
-            //    if ucase(abbYN) <> "Y" then
-            //      whrBr = "upper(branchcode)='" & ucase(brcode) & "' and abbbranchcode is null "
-
-            //    else
-            //                whrBr = "upper(abbbranchcode)='" & ucase(brcode) & "'"
-
-            //    end if
-
-
-            //    whrCond = whrBr & " and upper(currencycode)='" & _
-
-            //    ucase(trim(crcode)) & "' and upper(DELETEDTRANSTATUS)='P' and DELETEDAPPROVEDBY is null " & _
-
-            //    "and DELETEDAPPROVEDMACHINE  is null "
-
-
-            //     dataTable = obj.singlerecordset("GENDELETEDTRANSLOG", "distinct(BATCHNO)", cstr(whrCond), "batchno")
-
-
-            //     rsNew = Nothing
-
-            //     rsNew = obj.singlerecordset("GENDELETEDTRANSLOG", "distinct(BATCHNO),NAME", cstr(whrCond), "batchno")
-
-            //     cnt = 0
-
-            //     DO UNTIL rsNew.EOF
-
-
-            //        IF(cnt = 0) THEN
-            //            strArrBatNo = rsNew(1).value & "-----" & rsNew(0).value
-
-            //        ELSEIf(strBatNo<>rsNew(0).value) THEN
-            //            strArrBatNo = strArrBatNo & "|" & rsNew(1).value & "-----" & rsNew(0).value
-
-            //        END IF
-
-
-            //        strBatNo = rsNew(0).value
-
-
-            //        rsNew.MoveNext
-            //        cnt = cnt + 1
-
-            //     LOOP
-            //     cnt = 0
-
-            //     strLstBatNo = split(strArrBatNo, "|")
-
-            //elseif left(strType,8)= "BatchVer" then
-            //    strVal = split(strType, "|")
-
-            //    brcode = strVal(1)
-
-            //    crcode = strVal(2)
-
-            //    whrAdd = strVal(3)
-
-            //    payMode = strVal(4)
-
-            //    abbYN = strVal(5)
-
-            //    dim whrExt, strFld, strTab
-
-            //    if payMode = "ALL" then
-
-            //       if abbYN<>"Y" then
-
-            //          whrExt = "' and ((e.verifiedby IS NULL AND t.approvedby IS NOT NULL and " & _
-
-            //                "upper(t.exceptionyn)='Y' AND UPPER(e.branchcode)='" & _
-
-            //                ucase(brcode) & "') or " & _
-
-            //                " (p.verifiedby IS NULL AND UPPER(p.branchcode)='" & ucase(brcode) & _
-
-            //                "' and t.verifiedby is null AND t.approvedby IS NOT NULL " & _
-
-            //                " AND upper(t.cashpaidyn)='Y'))"
-            //       else
-            //                whrExt = "' and ((e.verifiedby IS NULL AND t.approvedby IS NOT NULL and " & _
-
-            //                 "upper(t.exceptionyn)='Y') or " & _
-
-            //                 " (p.verifiedby IS NULL and t.verifiedby is null AND t.approvedby " & _
-
-            //                 "IS NOT NULL AND upper(t.cashpaidyn)='Y'))"
-            //       end if
-
-
-            //        'strTab="GENEXCEPTIONALTRANDAY e,CASHTELLERPAYMENTSTRANDAY p,GENTRANSLOG t" 
-
-            //        strFld = "distinct(T.BATCHNO)"
-
-
-            //    elseif payMode = "TRANS" or payMode = "CLG" then
-            //        whrExt = "' and e.verifiedby IS NULL  AND t.approvedby IS NOT NULL " & _
-
-            //               " and UPPER(e.branchcode)='" & ucase(brcode) & "'"
-
-
-            //        'strTab="GENEXCEPTIONALTRANDAY e,CASHTELLERPAYMENTSTRANDAY p,GENTRANSLOG t"
-
-            //        strFld = "distinct(e.BATCHNO)"
-            //    elseif payMode = "TELLER" then
-            //        whrExt = "' and p.verifiedby IS NULL  and t.verifiedby is null " & _
-
-            //                " AND t.approvedby IS NOT NULL and upper(t.cashpaidyn)='Y'" & _
-
-            //                " and upper(p.branchcode)='" & ucase(brcode) & "'"
-
-
-            //        'strTab="CASHTELLERPAYMENTSTRANDAY p,GENTRANSLOG t"
-
-            //        strFld = "distinct(p.BATCHNO)"
-            //    elseif payMode = "CASH" then
-            //        whrExt = "' and e.verifiedby IS NULL  AND t.approvedby IS NOT NULL " & _
-
-            //               "and t.batchno not in(select batchno from CASHTELLERPAYMENTSTRANDAY)" & _
-
-            //               " and upper(e.branchcode)='" & ucase(brcode) & "'"
-
-
-            //        'strTab="GENEXCEPTIONALTRANDAY e,CASHTELLERPAYMENTSTRANDAY p,GENTRANSLOG t"
-
-            //        strFld = "distinct(e.BATCHNO)"
-
-            //    end if
-
-
-            //    strTab = "GENEXCEPTIONALTRANDAY e,CASHTELLERPAYMENTSTRANDAY p,GENTRANSLOG t"
-
-
-            //    if abbYN<>"Y" then
-            //    whrCond = "t.branchcode=p.branchcode(+) AND t.currencycode=p.currencycode(+)" & _
-            //            " AND t.batchno=p.batchno(+) AND t.branchcode=e.branchcode(+)" & _
-            //            " AND t.currencycode=e.currencycode(+) AND t.batchno=e.batchno(+)" & _
-
-            //            " and upper(t.branchcode)='" & ucase(brcode) & "' and upper(t.currencycode)='" & _
-
-            //            ucase(trim(crcode)) & whrExt & " and t.abbbranchcode is null AND " & _
-
-            //            "t.BATCHNO IN (SELECT t.batchno FROM " & _
-            //            " gentranslog t WHERE t.approvedby IS NOT NULL) AND t.batchno " & _
-            //            " NOT IN(SELECT t.batchno FROM gentranslog t WHERE t.approvedby IS NULL)" & _
-            //            whrAdd
-            //    else
-            //                whrCond = "t.branchcode=p.branchcode(+) AND t.currencycode=p.currencycode(+)" & _
-            //            " AND t.batchno=p.batchno(+) AND t.branchcode=e.branchcode(+)" & _
-            //            " AND t.currencycode=e.currencycode(+) AND t.batchno=e.batchno(+)" & _
-
-            //            " and upper(t.abbbranchcode)='" & ucase(brcode) & "' and upper(t.currencycode)='" & _
-
-            //            ucase(trim(crcode)) & whrExt & " AND t.BATCHNO IN (SELECT t.batchno FROM " & _
-            //            " gentranslog t WHERE t.approvedby IS NOT NULL) AND t.batchno " & _
-            //            " NOT IN(SELECT t.batchno FROM gentranslog t WHERE t.approvedby IS NULL)" & _
-            //            whrAdd
-            //    end if
-
-
-            //     dataTable = obj.singlerecordset(cstr(strTab), cstr(strFld), cstr(whrCond), "batchno")
-
-
-            //     '------Code Added by Monica-27-NOV-09 to display Name along with the BatchNo--------------------	 
-
-            //        strFld = "t.batchno, t.name FROM GENTRANSLOG t WHERE t.batchno IN (SELECT " & strFld
-
-            //        whrCond = whrCond & ")"
-
-
-            //        rsNew = Nothing
-
-            //        rsNew = obj.singlerecordset(cstr(strTab), cstr(strFld), cstr(whrCond), "batchno")
-
-            //        cnt = 0
-
-            //        DO UNTIL rsNew.EOF
-
-
-            //            IF(cnt = 0) THEN
-            //                strArrBatNo = rsNew(1).value & "-----" & rsNew(0).value
-
-            //            ELSEIf(strBatNo<>rsNew(0).value) THEN
-            //                strArrBatNo = strArrBatNo & "|" & rsNew(1).value & "-----" & rsNew(0).value
-
-            //            END IF
-
-
-            //            strBatNo = rsNew(0).value
-
-
-            //            rsNew.MoveNext
-            //            cnt = cnt + 1
-
-            //        LOOP
-            //        cnt = 0
-
-            //        strLstBatNo = split(strArrBatNo, "|")
-            //'-----End of -Code Added by Monica-27-NOV-09 to display Name along with the BatchNo--------------------	 
-
-
-
-            //elseif left(strType,8)= "BatchDel" then
-            //    strVal = split(strType, "|")
-
-            //    brcode = strVal(1)
-
-            //    crcode = strVal(2)
-
-            //    whrAdd = strVal(3)
-
-            //    abbYN = strVal(4)
-
-            //    moduleid = strVal(5)
-
-
-            //    dim whrBr
-
-            //    if abbYN<>"Y" then
-            //       whrBr = "upper(branchcode)='" & ucase(brcode) & "' and abbbranchcode is null"
-
-            //    else
-            //                whrBr = "upper(abbbranchcode)='" & ucase(brcode) & "'"
-
-            //    end if
-
-
-            //    'Note: This code was changed by Radhika on 22-oct-2007
-
-            //    if abbYN<>"Y" then
-
-            //    if moduleid = "CASH" then
-            //        whrCond = whrBr & " and upper(currencycode)='" & _
-
-            //        ucase(trim(crcode)) & "' and upper(nvl(cashpaidyn,'N')) in ('Y','N') " & _
-
-            //        whrAdd & " and Cashierid='" & userid & "'"
-
-            //    else
-            //                whrCond = whrBr & " and upper(currencycode)='" & _
-
-            //        ucase(trim(crcode)) & "' and upper(nvl(cashpaidyn,'N'))<>'Y' " & _
-
-            //        whrAdd & " And Cashierid is null"
-
-            //    end if
-
-            //    else '' ABB Entries Only
-            //        whrCond = whrBr & " and upper(currencycode)='" & _
-
-            //        ucase(trim(crcode)) & "' and upper(nvl(cashpaidyn,'N')) in ('Y','N') " & whrAdd
-
-            //    end if
-
-
-            //     dataTable = obj.singlerecordset("GENTRANSLOG", "distinct(BATCHNO)", cstr(whrCond), "batchno")
-
-            //'------Code Added by Monica-26-NOV-09 to display Name along with the BatchNo--------------------	 
-
-            //     rsNew = Nothing
-
-            //     rsNew = obj.singlerecordset("GENTRANSLOG", "distinct(BATCHNO),NAME", cstr(whrCond), "batchno")
-
-            //     cnt = 0
-
-            //     DO UNTIL rsNew.EOF
-
-
-            //        IF(cnt = 0) THEN
-            //            strArrBatNo = rsNew(1).value & "-----" & rsNew(0).value
-
-            //        ELSEIf(strBatNo<>rsNew(0).value) THEN
-            //            strArrBatNo = strArrBatNo & "|" & rsNew(1).value & "-----" & rsNew(0).value
-
-            //        END IF
-
-
-            //        strBatNo = rsNew(0).value
-
-
-            //        rsNew.MoveNext
-            //        cnt = cnt + 1
-
-            //     LOOP
-            //     cnt = 0
-
-            //     strLstBatNo = split(strArrBatNo, "|")
-            //'-----End of -Code Added by Monica-26-NOV-09 to display Name along with the BatchNo--------------------	 
-
-            //    'Response.Write whrcond
-
-            //elseif left(strType,16)= "NEFTRTGSBatchDel" then
-            //    strVal = split(strType, "|")
-
-            //    brcode = strVal(1)
-
-            //    crcode = strVal(2)
-
-            //    whrAdd = strVal(3)
-
-            //    abbYN = strVal(4)
-
-            //    moduleid = strVal(5)
-
-
-            //    dim whrBr
-
-            //    if abbYN<>"Y" then
-            //       whrBr = "upper(branchcode)='" & ucase(brcode) & "' and abbbranchcode is null"
-
-            //    else
-            //                whrBr = "upper(abbbranchcode)='" & ucase(brcode) & "'"
-
-            //    end if
-
-
-            //    'Note: This code was changed by Radhika on 22-oct-2007
-
-            //    if abbYN<>"Y" then
-
-            //    if moduleid = "CASH" then
-            //        whrCond = whrBr & " and upper(currencycode)='" & _
-
-            //        ucase(trim(crcode)) & "' and upper(nvl(cashpaidyn,'N')) in ('Y','N') " & _
-
-            //        whrAdd & " and Cashierid='" & userid & "'"
-
-            //    else
-            //                whrCond = whrBr & " and upper(currencycode)='" & _
-
-            //        ucase(trim(crcode)) & "' and upper(nvl(cashpaidyn,'N'))<>'Y' " & _
-
-            //        whrAdd & ""
-
-            //    end if
-
-            //    else '' ABB Entries Only
-            //        whrCond = whrBr & " and upper(currencycode)='" & _
-
-            //        ucase(trim(crcode)) & "' and upper(nvl(cashpaidyn,'N')) in ('Y','N') " & whrAdd
-
-            //    end if
-
-
-            //     dataTable = obj.singlerecordset("GENTRANSLOG", "distinct(BATCHNO)", cstr(whrCond), "batchno")
-
-            //'------Code Added by Monica-26-NOV-09 to display Name along with the BatchNo--------------------	 
-
-            //     rsNew = Nothing
-
-            //     rsNew = obj.singlerecordset("GENTRANSLOG", "distinct(BATCHNO),NAME", cstr(whrCond), "batchno")
-
-            //     cnt = 0
-
-            //     DO UNTIL rsNew.EOF
-
-
-            //        IF(cnt = 0) THEN
-            //            strArrBatNo = rsNew(1).value & "-----" & rsNew(0).value
-
-            //        ELSEIf(strBatNo<>rsNew(0).value) THEN
-            //            strArrBatNo = strArrBatNo & "|" & rsNew(1).value & "-----" & rsNew(0).value
-
-            //        END IF
-
-
-            //        strBatNo = rsNew(0).value
-
-
-            //        rsNew.MoveNext
-            //        cnt = cnt + 1
-
-            //     LOOP
-            //     cnt = 0
-
-            //     strLstBatNo = split(strArrBatNo, "|")
-            //'-----End of -Code Added by Monica-26-NOV-09 to display Name along with the BatchNo--------------------	 
-
-            //    'Response.Write whrcond
-
-
-
-            //    ''code added by jyothsna for transaction deletion report
-            //elseif left(strType, 8) = "BatchRep" then
-            //    strVal = split(strType, "|")
-
-            //    brcode = strVal(1)
-
-            //    crcode = strVal(2)
-
-            //    whrAdd = strVal(3)
-
-            //    abbYN = strVal(4)
-
-            //    moduleid = strVal(5)
-
-
-            //    dim whrBr
-
-            //    if abbYN<>"Y" then
-            //       whrBr = "upper(branchcode)='" & ucase(brcode) & "' and abbbranchcode is null"
-
-            //    else
-            //                whrBr = "upper(abbbranchcode)='" & ucase(brcode) & "'"
-
-            //    end if
-
-
-            //        whrCond = whrBr & " and upper(currencycode)='" & _
-
-            //        ucase(trim(crcode)) & "' " & whrAdd
-
-
-            //         dataTable = obj.singlerecordset("GENTRANSLOGDEM", "distinct(BATCHNO)", cstr(whrCond), "batchno")
-
-
-            //        rsNew = Nothing
-
-            //        rsNew = obj.singlerecordset("GENTRANSLOGDEM", "distinct(BATCHNO),NAME", cstr(whrCond), "batchno")
-
-
-            //        cnt = 0
-
-            //     DO UNTIL rsNew.EOF
-
-
-            //        IF(cnt = 0) THEN
-            //            strArrBatNo = rsNew(1).value & "-----" & rsNew(0).value
-
-            //        ELSEIf(strBatNo<>rsNew(0).value) THEN
-            //            strArrBatNo = strArrBatNo & "|" & rsNew(1).value & "-----" & rsNew(0).value
-
-            //        END IF
-
-
-            //        strBatNo = rsNew(0).value
-
-
-            //        rsNew.MoveNext
-            //        cnt = cnt + 1
-
-            //     LOOP
-            //     cnt = 0
-
-            //     strLstBatNo = split(strArrBatNo, "|")
-
-
-
-            //    ''end of code , jyo
-
-            //elseif left(strType, 16) = "DepRenCloseAccno" then
-            //     strVal = split(strType, "|")
-
-            //     brcode = strVal(1)
-
-            //     modId = strVal(2)
-
-            //     glCode = strval(3)
-
-            //     crcode = strVal(4)
-
-            //     serId = strVal(5)
-
-
-            //     whrCond = "upper(branchcode)='" & ucase(trim(brcode)) & _
-
-            //             "' and upper(currencycode)='" & ucase(trim(crcode)) & _
-
-            //             "' and upper(linkmoduleid)='" & ucase(trim(modId)) & _
-
-            //             "' and upper(linkglcode)='" & ucase(trim(glCode)) & "' and upper(status)='P'" & _
-
-            //             "  and batchno IN(SELECT DISTINCT(batchno) from gentemptranslog " & _
-            //             " WHERE moduleid='DEP' AND serviceid='" & trim(serId) & "')"
-
-
-            //      dataTable = obj.singlerecordset("GENTEMPTRANSLOG", "DISTINCT(linkaccno),linkaccname", cstr(whrCond), "linkaccname")
-
-
-            //elseif left(strType,10)= "GETSCHOOLS" then
-            //    strVal = split(strType, "|")
-
-            //    if strVal(1) = "CASH" then
-            //        dataTable = obj.singlerecordset("SCHOOLBATCHDTLS A, SCHOOLMST V", "A.ACCNO, V.NAME, A.CASHBATCHNO", "NVL(A.CASHBATCHSTATUS, 'O')='O' AND A.APPLICATIONDATE='" & session("applicationdate") & "' AND A.ACCNO=V.ACCNO AND V.GLCODE=A.GLCODE AND V.BRANCHCODE=A.BRANCHCODE AND V.CURRENCYCODE=A.CURRENCYCODE", "TO_NUMBER(A.ACCNO)")
-
-            //    else
-            //                dataTable = obj.singlerecordset("SCHOOLBATCHDTLS A, SCHOOLMST V", "A.ACCNO, V.NAME, A.TRANSFERBATCHNO", "NVL(A.TRANSFERBATCHSTATUS, 'O')='O' AND A.APPLICATIONDATE='" & session("applicationdate") & "' AND A.ACCNO=V.ACCNO AND V.GLCODE=A.GLCODE AND V.BRANCHCODE=A.BRANCHCODE AND V.CURRENCYCODE=A.CURRENCYCODE", "TO_NUMBER(A.ACCNO)")
-
-            //    end if
-            //elseif left(strType, 11) = "GETBRANCHES" then
-            //    strVal = split(strType, "|")
-
-            //    if strVal(4) = "CASH" then
-            //        dataTable = obj.singlerecordset("SCHOOLBRANCHMST", "SCHOOLBRANCHID, SCHBRANCHNAME", "SCHOOLACCNO='" & strVal(1) & "' AND (SCHOOLACCNO, GLCODE)=(SELECT ACCNO, GLCODE FROM SCHOOLBATCHDTLS WHERE CASHBATCHNO='" & strVal(2) & "' AND APPLICATIONDATE='" & strVal(3) & "')")
-
-            //    else
-            //                dataTable = obj.singlerecordset("SCHOOLBRANCHMST", "SCHOOLBRANCHID, SCHBRANCHNAME", "SCHOOLACCNO='" & strVal(1) & "' AND (SCHOOLACCNO, GLCODE)=(SELECT ACCNO, GLCODE FROM SCHOOLBATCHDTLS WHERE TRANSFERBATCHNO='" & strVal(2) & "' AND APPLICATIONDATE='" & strVal(3) & "')")
-
-            //    end if
-
-
-            //elseif left(strType, 11) = "GETSTUDENTS" then
-            //    strVal = split(strType, "|")
-
-            //    if strVal(3) = "CASH" then
-            //        dataTable = obj.singlerecordset("SCHOOLSTUDENTINFOMST", "STUDENTID, NAME", "(SCHOOLACCNO, GLCODE)=(SELECT ACCNO, GLCODE FROM SCHOOLBATCHDTLS WHERE CASHBATCHNO='" & strVal(1) & "' AND APPLICATIONDATE='" & strVal(2) & "') AND SCHOOLBRANCHID='" & strVal(4) & "'")
-
-            //    else
-            //                dataTable = obj.singlerecordset("SCHOOLSTUDENTINFOMST", "STUDENTID, NAME", "(SCHOOLACCNO, GLCODE)=(SELECT ACCNO, GLCODE FROM SCHOOLBATCHDTLS WHERE TRANSFERBATCHNO='" & strVal(1) & "' AND APPLICATIONDATE='" & strVal(2) & "') AND SCHOOLBRANCHID='" & strVal(4) & "'")
-
-            //    end if
-
-
-
-            //end if
-
         }
 
         public void GetTransListFunction()

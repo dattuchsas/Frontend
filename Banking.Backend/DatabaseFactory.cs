@@ -1,7 +1,18 @@
 ﻿using Banking.Framework;
 using Banking.Interfaces;
 using Banking.Models;
+using Banking.Models.DTO;
+using Humanizer;
+using Microsoft.Extensions.Options;
+using System.Collections.Generic;
 using System.Data;
+using System.Diagnostics.Eventing.Reader;
+using System.Reflection;
+using System.Reflection.Emit;
+using System.Runtime.InteropServices;
+using System.Text;
+using System.Xml.Linq;
+using static System.Runtime.CompilerServices.RuntimeHelpers;
 
 namespace Banking.Backend
 {
@@ -1284,7 +1295,6 @@ namespace Banking.Backend
             string strAccno = string.IsNullOrWhiteSpace(Accno) ? "" : Accno.Trim().ToUpper();
             string CatCode = string.IsNullOrWhiteSpace(CategoryCode) ? "" : CategoryCode.Trim().ToUpper();
             string ChqBkYN = string.IsNullOrWhiteSpace(ChqBookYN) ? "" : ChqBookYN.Trim().ToUpper();
-            string TrannDate = string.Format("dd-Mmm-yyyy", TransactionDate);
             var arrModCond = ModuleConditions;
 
             DataTable Rstemp = null!, RsAccParam = null!;
@@ -1315,7 +1325,7 @@ namespace Banking.Backend
                     TDSYN = "";
                 }
 
-                if (Rstemp.Rows.Count > 0)
+                if (Rstemp != null && Rstemp.Rows.Count > 0)
                 {
                     DataRow row = Rstemp.Rows[0];
 
@@ -1327,13 +1337,13 @@ namespace Banking.Backend
             // Retrieving the branch category code
             Rstemp = await ProcessQueryAsync("Select BRANCHCATCODE from GENBANKBRANCHMST where branchcode='" + strBranchCode + "'");
 
-            if (Rstemp.Rows.Count > 0)
+            if (Rstemp != null && Rstemp.Rows.Count > 0)
             {
                 DataRow row = Rstemp.Rows[0];
                 strBrCatCode = Convert.IsDBNull(row["BRANCHCATCODE"]) ? "" : Conversions.ToString(row["BRANCHCATCODE"]);
             }
 
-            BankingExtensions.ReleaseMemory(Rstemp);
+            BankingExtensions.ReleaseMemory(Rstemp!);
 
             string strParamTabs = "";
 
@@ -1350,7 +1360,7 @@ namespace Banking.Backend
                 strCurCode + "'";
 
             await ParameterRecord("GENMINMAXBALANCEMST", strQuery, "GENMINMAXBALANCEMSTHIST", strCondition, StrModuleCode, strGLCode,
-                strCurCode, TrannDate, strDelimiter);
+                strCurCode, TransactionDate, strDelimiter);
 
             strParamTabs = "GENMINMAXBALANCEMST,";
 
@@ -1369,7 +1379,7 @@ namespace Banking.Backend
             strCondition = " (CATEGORYCODE='" + CatCode + "' or CATEGORYCODE='99') and (BRANCHCATCODE='" + strBrCatCode + "' or BRANCHCATCODE='99') and currencycode='" + strCurCode + "'";
 
             await ParameterRecord("GENCHARGESMST", strQuery, "GENCHARGESMSTHIST", strCondition, StrModuleCode, strGLCode,
-                strCurCode, TrannDate, strDelimiter);
+                strCurCode, TransactionDate, strDelimiter);
 
             strParamTabs = strParamTabs + "GENCHARGESMST";
 
@@ -1380,7 +1390,7 @@ namespace Banking.Backend
             {
                 strCondition = " (CATEGORYCODE='" + CatCode + "' or CATEGORYCODE='99') and currencycode='" + strCurCode + "'";
                 await ParameterRecord("DEPPENALINTDTLS", "PNLINTPCNT", "DEPPENALINTDTLSHIST", strCondition, StrModuleCode,
-                    strGLCode, strCurCode, TrannDate, strDelimiter);
+                    strGLCode, strCurCode, TransactionDate, strDelimiter);
                 strParamTabs = strParamTabs + ",DEPPENALINTDTLS";
             }
 
@@ -1414,47 +1424,276 @@ namespace Banking.Backend
             //objErrlog.LogError "GeneralTranQueries", "DBConnection", Err.Number, Err.Description
         }
 
-        //public Variant RecordsetCollection(string[] ArrRecRS)
-        //{
-        //    Variant RecordsetCollectionRet = default;
-        //    string[] TempArr;
-        //    string strquery;
-        //    int recAff;
-        //    try
-        //    {
-        //        // Fetching the multiple Recordsets.
-        //        TempArr = ArrRecRS;
+        public async Task<string> GetAccountDetail(string BranchCode, string CurrencyCode, string ModuleId, string GlCode, string AccNo)
+        {
+            double dblLimitAmt, dblLoanSchAmt, dblIntAccr, dblDPAmt, dblOverDueBal, dblLoanPrnc, dblClearBal = 0, dblpendamt = 0;
+            string strChqBookYN = "", strOprBy = "", strOprInstr = "", strCustId = "", sBrApplDate, strGetBal, strTotValues = "", strFlds, strWhereCond = "", strMstTable = "";
 
-        //        AdoRs = new ADODB.Recordset[Information.UBound(TempArr) + 1];
+            AccountBalanceModel accountBalanceModel = new AccountBalanceModel();
 
-        //        var loopTo = TempArr.Length - 1;
-        //        for (int i = 0; i <= loopTo; i++)
-        //        {
-        //            strquery = "";
-        //            OracleDataReader AdoRs[i];
-        //            strquery = "Select " + TempArr(i, 1) + " from  " + TempArr(i, 0) + DataLink + " where " + TempArr(i, 2);
-        //            AdoRs[i].Open(strquery, AdoConnObj, adOpenDynamic, adLockOptimistic);
-        //        }
+            DataTable recIntPaidUpto = null!, recIntAccured = null!, dataTable = null!, recLoanBal = null!, recdepdet = null!, 
+                recLoanRecovery = null!, recLoanRecoveryDtls = null!;
 
-        //        RecordsetCollectionRet = AdoRs;
+            if (ModuleId.Equals("ATM", StringComparison.OrdinalIgnoreCase))
+            {
+                accountBalanceModel = await GetBalance(BranchCode, CurrencyCode, ModuleId, GlCode, AccNo, "Y");
+                strGetBal = accountBalanceModel.GetBalance;
 
-        //        var loopTo1 = Information.UBound(TempArr);
-        //        for (int i = 0; i <= loopTo1; i++)
-        //            AdoRs[ICount].ActiveConnection = null!;
+                if (!string.IsNullOrWhiteSpace(strGetBal) && strGetBal!.Substring(0, 5) == "ERROR")
+                    throw new Exception();
+                
+                strTotValues = accountBalanceModel.dblClearBal + "|" + accountBalanceModel.dblUnclrBal + "|" + accountBalanceModel.dblNetBal + "|" + 
+                    strCustId + "|" + strOprBy + "|" + strOprInstr + "|" + strChqBookYN + "|" + accountBalanceModel.dblpendamt;
+            }
 
-        //        return RecordsetCollectionRet;
-        //    }
-        //    catch
-        //    {
-        //        //if (string.IsNullOrEmpty(ConnError))
-        //        //    ConnError = "Connection Failed Due to : " + Information.Err().Number + " : " + Information.Err().Description;
-        //        //else
-        //        //    ConnError = "Records Could Not Be Retrieved Due to : " + Information.Err().Number + " : " + Information.Err().Description;
-        //        //LogError("QueryRecordsets", "RecordsetCollection", Information.Err().Number, Information.Err().Description);
-        //    }
+            if (ModuleId.Equals("SB") || ModuleId.Equals("CA") || ModuleId.Equals("LOAN") || ModuleId.Equals("CC") ||
+                ModuleId.Equals("PIGMY") || ModuleId.Equals("INV") || ModuleId.Equals("SHARES") || ModuleId.Equals("SCHOOL"))
+            {
+                // To know Custmer Id, Cheque Book fecility
+                accountBalanceModel = await GetBalance(BranchCode, CurrencyCode, ModuleId, GlCode, AccNo, "Y");
+                strGetBal = accountBalanceModel.GetBalance;
 
-        //    return RecordsetCollectionRet;
-        //}
+                if (!string.IsNullOrWhiteSpace(strGetBal) && strGetBal!.Substring(0, 5) == "ERROR")
+                    throw new Exception();
+
+                strFlds = "customerid,chequebook,operatinginstr,operatedby";
+                strMstTable = accountBalanceModel.StrMstTable;
+                strWhereCond = " accno='" + AccNo.Trim() + "' and glcode='" + GlCode.Trim() + "' and branchcode='" + BranchCode.Trim() + "' and Currencycode='" + 
+                    CurrencyCode.Trim().ToUpper() + "'";
+                dataTable = await SingleRecordSet(strMstTable, strFlds, strWhereCond);
+
+                if (dataTable.Rows.Count > 0)
+                {
+                    strCustId = Conversions.ToString(dataTable.Rows[0]["customerid"]);
+                    strOprInstr = Conversions.ToString(dataTable.Rows[0]["operatinginstr"]);
+                    if (!string.IsNullOrWhiteSpace(strOprInstr))
+                    {
+                        string whCond = "opercode='" + strOprInstr + "'";
+                        DataTable recOprInstr = await SingleRecordSet("GENOPERINSTMST", "narration", whCond);
+                        if (recOprInstr.Rows.Count > 0)
+                            strOprInstr = Conversions.ToString(recOprInstr.Rows[0]["narration"]);
+                        BankingExtensions.ReleaseMemory(recOprInstr);
+                    }
+                    strOprBy = Conversions.ToString(dataTable.Rows[0]["operatedby"]);
+                    if (!string.IsNullOrEmpty(Conversions.ToString(dataTable.Rows[0]["chequebook"])))
+                        strChqBookYN = "Y";
+                    else
+                        strChqBookYN = "N";
+                }
+
+                // Concatenating all these values with "|" to return function
+                if (ModuleId.ToUpper() == "SB" || ModuleId.ToUpper() == "CA" || ModuleId.ToUpper() == "SCHOOL")
+                    strTotValues = accountBalanceModel.dblClearBal + "|" + accountBalanceModel.dblUnclrBal + "|" + accountBalanceModel.dblNetBal + "|" + 
+                        strCustId + "|" + strOprBy + "|" + strOprInstr + "|" + strChqBookYN + "|" + accountBalanceModel.dblpendamt;
+                else
+                    strTotValues = accountBalanceModel.dblClearBal + "|" + accountBalanceModel.dblUnclrBal + "|" + accountBalanceModel.dblNetBal + "|" + 
+                        strCustId + "|" + strOprBy + "|" + strOprInstr + "|" + strChqBookYN;
+            }
+            else if (ModuleId.Equals("FXLOANS") || ModuleId.Equals("FXDEP") || ModuleId.Equals("FXBILLS") || ModuleId.Equals("PL") ||
+                ModuleId.Equals("MISC") || ModuleId.Equals("BILLS") || ModuleId.Equals("LC") || ModuleId.Equals("LG"))
+            {
+                accountBalanceModel = await GetBalance(BranchCode, CurrencyCode, ModuleId, GlCode, AccNo, "N");
+                strGetBal = accountBalanceModel.GetBalance;
+
+                if (ModuleId.Equals("FXLOANS") || ModuleId.Equals("FXDEP") || ModuleId.Equals("FXBILLS") ||
+                    ModuleId.Equals("LC") || ModuleId.Equals("LG"))
+                {
+                    strTotValues = accountBalanceModel.dblClearBal + "|" + accountBalanceModel.dblUnclrBal + "|" + accountBalanceModel.dblNetBal + "|" +
+                        strCustId + "|" + strOprBy + "|" + strOprInstr + "|";
+                }
+                else if (ModuleId.Equals("PL") || ModuleId.Equals("MISC") || ModuleId.Equals("BILLS"))
+                {
+                    strTotValues = accountBalanceModel.dblClearBal + "|" + accountBalanceModel.dblUnclrBal + "|" + accountBalanceModel.dblNetBal + "|" + 
+                        strCustId + "|" + strOprBy + "|" + strOprInstr + "|" + accountBalanceModel.dblpendamt;
+                }
+            }
+
+            // LOANS
+            if (ModuleId.Equals("LOAN"))
+            {
+                strFlds = "nvl(SANCTIONEDAMT,0) SANCTIONAMOUNT";
+                recLoanBal = await SingleRecordSet(strMstTable, strFlds, strWhereCond);
+
+                if (recLoanBal.Rows.Count > 0)
+                    strTotValues = strTotValues + "|" + recLoanBal.Rows[0]["SANCTIONAMOUNT"].ToString();
+                else
+                    strTotValues = strTotValues + "|" + "0";
+
+                strFlds = "nvl(sum(PRINCIPLEDB),0) principalamt";
+
+                recLoanRecovery = await SingleRecordSet("loanrecoverydaydtls", strFlds, strWhereCond);
+
+                if (recLoanRecovery.Rows.Count > 0)
+                    dblLoanPrnc = Convert.ToDouble(recLoanRecovery.Rows[0]["principalamt"]);
+                else
+                    dblLoanPrnc = 0;
+
+                strFlds = "nvl(sum(PRINCIPLEDB),0) principalamt";
+
+                recLoanRecoveryDtls = await SingleRecordSet("loanrecoverydtls", strFlds, strWhereCond);
+
+                if (recLoanRecoveryDtls.Rows.Count > 0)
+                    dblLoanPrnc = dblLoanPrnc + Convert.ToDouble(recLoanRecoveryDtls.Rows[0]["principalamt"]);
+                else
+                    dblLoanPrnc = dblLoanPrnc + 0;
+
+                strTotValues = strTotValues + "|" + dblLoanPrnc;
+
+                // Get Interest Accrued
+                dblIntAccr = await GetIntAccrued(BranchCode, CurrencyCode, ModuleId, GlCode, AccNo);
+                strTotValues = strTotValues + "|" + dblIntAccr;
+
+                // Get application date of given branch
+                sBrApplDate = await GetBranchApplDate(BranchCode);
+
+                // Get Loan Schedule Amt as on application date
+                dblLoanSchAmt = await GetLoanScheduleAmt(BranchCode, CurrencyCode, GlCode, AccNo, sBrApplDate);
+
+                // Calculate Overdue Balance
+                dblOverDueBal = 0;
+                if (Math.Abs(dblClearBal) > dblLoanSchAmt)
+                    dblOverDueBal = Math.Abs(dblClearBal) - dblLoanSchAmt;
+
+                strTotValues = strTotValues + "|" + dblOverDueBal;
+                strTotValues = strTotValues + "|" + dblpendamt;
+            }
+
+            // Cash Credit
+            if (ModuleId.Equals("CC"))
+            {
+                sBrApplDate = await GetBranchApplDate(BranchCode);
+                dblLimitAmt = await GetLimitAmt(BranchCode, CurrencyCode, ModuleId, GlCode, AccNo, sBrApplDate);
+                dblDPAmt = await GetDrawingPowerAmt(BranchCode, CurrencyCode, ModuleId, GlCode, AccNo);
+
+                if (Math.Abs(dblDPAmt) > 0)
+                    if (Math.Abs(dblDPAmt) < Math.Abs(dblLimitAmt))
+                        dblLimitAmt = dblDPAmt;
+
+                strTotValues = strTotValues + "|" + dblLimitAmt;
+
+                // Calculate Overdue Balance
+                dblOverDueBal = 0;
+                if (Math.Abs(dblClearBal) > Math.Abs(dblLimitAmt))
+                    dblOverDueBal = Math.Abs(dblClearBal) - Math.Abs(dblLimitAmt);
+                strTotValues = strTotValues + "|" + dblOverDueBal + "|" + dblpendamt;
+            }
+
+            // Deposits
+            if (ModuleId.Equals("DEP"))
+            {
+                accountBalanceModel = await GetBalance(BranchCode, CurrencyCode, ModuleId, GlCode, AccNo);
+                strGetBal = accountBalanceModel.GetBalance;
+                if (!string.IsNullOrWhiteSpace(strGetBal) && strGetBal!.Substring(0, 5) == "ERROR")
+                    throw new Exception();
+
+                strTotValues = "";
+                int i;
+                string strDepMstTab = "DEPMST";
+                string strDepIntAccTab = "DEPINTACCRUEDDTLS";
+                string strDepIntPaidTab = "DEPINTPAIDTOCUSTOMERDTLS";
+                string strFldsMst = "nvl(OPBAL,0) OPENINGAMOUNT,nvl(MATURITYVALUE,0),CUSTOMERID,to_char(OPDATE,'dd-Mon-yyyy') OPDATE,to_char(EFFDATE,'dd-Mon-yyyy') EFFDATE," +
+                    "to_char(MATURITYDATE,'dd-Mon-yyyy') MATDATE,OPERATEDBY,ROI,OPERATINGINSTR";
+                string strFldsIntAccured = "nvl(sum(INTAMOUNT),0) INTACCURED";
+                string strFldsPaidupto = "TO_CHAR(MAX(TO_DATE(TO_CHAR(intpaidupto,'dd-Mon-yyyy'),'dd-Mon-yyyy')),'dd-Mon-yyyy')";
+                strWhereCond = " accno='" + AccNo.Trim() + "' and glcode='" + GlCode.Trim().ToUpper() + "' and branchcode='" + BranchCode.Trim() + "' and Currencycode='" + 
+                    CurrencyCode + "'";
+                string strIntAccuredWhereCond = strWhereCond;
+
+                recdepdet = await SingleRecordSet(strDepMstTab, strFldsMst, strWhereCond);
+                if (recdepdet.Rows.Count > 0)
+                {
+                    foreach (DataColumn col in recdepdet.Columns)
+                        strTotValues += recdepdet.Rows[0][col].ToString() + "|";
+                    strTotValues = strGetBal + "|" + strTotValues.Substring(0, strTotValues.Length - 1);
+                    recIntAccured = await SingleRecordSet(strDepIntAccTab, strFldsIntAccured, strIntAccuredWhereCond);
+                    recIntPaidUpto = await SingleRecordSet(strDepIntPaidTab, strFldsPaidupto, strWhereCond);
+                    if (recIntAccured.Rows.Count > 0)
+                        strTotValues = strTotValues + "|" + recIntAccured.Rows[0].ItemArray[0] + "|" + recIntPaidUpto.Rows[0].ItemArray[0];
+                    else
+                        strTotValues = strTotValues + "|" + "|";
+                }
+                else
+                    strTotValues = strTotValues + "|NO";
+                strTotValues = strTotValues + "|" + dblpendamt;
+            }
+
+            // Final total values
+            return strTotValues;
+
+            //ErrHand:
+            //objErrlog.LogError "AccountDetails", "AccountDetail", Err.Number, Err.Description
+        }
+
+        public async Task<string> GetCustomerPhoto(string customerId)
+        {
+            string sqlQuery = "select CUSTOMERID, photo from genphotomst where customerid = '" + customerId + "' and status = 'R'";
+
+            return await _oracleRetryHelper.GetImage(sqlQuery);
+        }
+
+        public async Task<string> GetCustomerSignature(string customerId)
+        {
+            string sqlQuery = "select CUSTOMERID, signature from gensignaturemst where customerid = '" + customerId + "' and status = 'R'";
+
+            return await _oracleRetryHelper.GetImage(sqlQuery);
+        }
+
+        public async Task<string> GetBatchNo(string branchCode)
+        {
+            if (string.IsNullOrWhiteSpace(branchCode))
+                throw new Exception("Branch Code should be sent or Sequence doesnot exists");
+
+            string seqName = "SEQBATCHNO" + branchCode;
+            string sqname = "select " + seqName + _dataLink + ".nextval BatchNo from dual";
+
+            DataTable dataTable = await ProcessQueryAsync(sqname);
+
+            string batchNo = "";
+
+            if (dataTable.Rows.Count > 0)
+            {
+                DataRow row = dataTable.Rows[0];
+                batchNo = Conversions.ToString(row["BatchNo"]);
+            }
+            else
+                batchNo = "Batch No is Locked";
+
+            BankingExtensions.ReleaseMemory(dataTable);
+            return batchNo;
+
+            //objErrlog.LogError "GeneralTranQueries", "GetBatchno", Err.Number, Err.Description
+        }
+
+        public async Task<string> GetTranNo(string branchCode)
+        {
+            if (string.IsNullOrWhiteSpace(branchCode))
+                throw new Exception("Branch Code should be sent or Sequence doesnot exists");
+
+            string seqName = "SEQTRANNO" + branchCode;
+
+            string sqname = "select " + seqName + _dataLink + ".nextval Tranno from dual";
+
+            DataTable dataTable = await ProcessQueryAsync(sqname);
+
+            string tranNo = "";
+
+            if (dataTable.Rows.Count > 0)
+            {
+                DataRow row = dataTable.Rows[0];
+                tranNo = Conversions.ToString(row["tranno"]);
+            }
+            else
+                tranNo = "Tran No is Locked";
+
+            BankingExtensions.ReleaseMemory(dataTable);
+            return tranNo;
+
+            // objErrlog.LogError "GeneralTranQueries", "GetTranNo", Err.Number, Err.Description
+        }
+
+
+
+        #region Private Methods
 
         private async Task ModuleParameterRecord(string ModulePMTtable, string ModuleMSTtable = "", string Condition = "", string strGLCode = "", 
             string tranDate = "", string strAccNo = "", string strBranchCode = "")
@@ -1527,19 +1766,507 @@ namespace Banking.Backend
 
             Rstemp = await ProcessQueryAsync(strQuery);
 
-            DataRow row = Rstemp.Rows.Count > 0 ? Rstemp.Rows[0] : null!;
-
-            for (int i = 0; i < Rstemp.Columns.Count; i++)
+            foreach (DataColumn col in Rstemp.Columns)
             {
-                strParamFlds += Rstemp.Columns[i].ColumnName + ",";
+                strParamFlds += col.ColumnName + ",";
 
-                if (row != null)
-                    strParamVals += row[i] == DBNull.Value ? "" : row[i].ToString() + strDelimiter;
+                if (Rstemp.Rows.Count > 0)
+                {
+                    object val = Rstemp.Rows[0][col];
+                    strParamVals += (val == DBNull.Value ? "" : val.ToString()) + strDelimiter;
+                }
                 else
                     strParamVals += "" + strDelimiter;
             }
 
             //    objErrlog.LogError "GeneralTranQueries", "ParameterRecord", Err.Number, Err.Description
         }
+
+        private async Task<AccountBalanceModel> GetBalance(string BranchCode, string CurrencyCode, string ModuleId, string GlCode, string AccNo, 
+            string NetBalYN = "", string FCurBalYN = "")
+        {
+            AccountBalanceModel accountBalanceModel = new AccountBalanceModel();
+            string strFlds, strWhereCond, strTranTable, FxCurCode = "", strBalTable;
+
+            ModuleId = ModuleId.Trim().ToUpper();
+            GlCode = GlCode.Trim().ToUpper();
+
+            //Dim recObj As Object
+            DataTable recTabName = null!;
+
+            // To find master, tranday, backup, balance tables for the module id
+            if (ModuleId.Equals("FXLOANS") || ModuleId.Equals("FXDEP") || ModuleId.Equals("FXBILLS") || ModuleId.Equals("LC") || 
+                ModuleId.Equals("PIGMY") || ModuleId.Equals("LG") || ModuleId.Equals("INV") || ModuleId.Equals("SHARES"))
+            {
+                strFlds = "MASTERTABLE,BACKUPTABLE,BALANCETABLE";
+                strWhereCond = "moduleid='" + ModuleId.Trim().ToUpper() + "'";
+
+                recTabName = await SingleRecordSet("GENMODULEMST", strFlds, strWhereCond, "mastertable");
+
+                if (!string.IsNullOrWhiteSpace(Conversions.ToString(recTabName.Rows[0]["mastertable"])) &&
+                    !string.IsNullOrWhiteSpace(Conversions.ToString(recTabName.Rows[0]["BALANCETABLE"])))
+                {
+                    // To get Current Balance from respective balance tables
+                    accountBalanceModel.StrMstTable = Conversions.ToString(recTabName.Rows[0]["mastertable"]);
+                    accountBalanceModel.StrBalTable = Conversions.ToString(recTabName.Rows[0]["BALANCETABLE"]);
+                    strBalTable = Conversions.ToString(recTabName.Rows[0]["BALANCETABLE"]);
+                    if (ModuleId.Trim().ToUpper().Substring(0, 2).Equals("FX") && FCurBalYN.ToUpper() == "Y")
+                        strFlds = "nvl(curbal,0) Curbal,nvl(fcurbal,0) FCurbal,FCurrencycode";
+                    else
+                        strFlds = "nvl(curbal,0) Curbal";
+
+                    strWhereCond = " accno='" + AccNo.Trim() + "' and glcode='" + GlCode.Trim().ToUpper() + "' and branchcode='" + BranchCode.Trim() + 
+                        "' and Currencycode='" + CurrencyCode.Trim() + "'";
+
+                    recTabName = await SingleRecordSet(strBalTable, strFlds, strWhereCond);
+
+                    if (recTabName.Rows.Count > 0)
+                    {
+                        if (ModuleId.Substring(0, 2) == "FX" && FCurBalYN.ToUpper() == "Y")
+                        {
+                            accountBalanceModel.dblFxClBal = Convert.ToDouble(Conversions.ToString(recTabName.Rows[0]["FCurbal"]));
+                            FxCurCode = Conversions.ToString(recTabName.Rows[0]["FCurrencycode"]);
+                        }
+                        else
+                            accountBalanceModel.dblFxClBal = 0;
+                        accountBalanceModel.dblClBal = Convert.ToDouble(Conversions.ToString(recTabName.Rows[0]["Curbal"]));
+                    }
+                    else
+                    {
+                        accountBalanceModel.dblClBal = 0;
+                        accountBalanceModel.dblFxClBal = 0;
+                    }
+
+                    // To find sum(debits) or sum(credits) from respective trandaytables, if any
+                    if (ModuleId.Trim().ToUpper().Substring(0, 2) == "FX" && FCurBalYN == "Y")
+                        strFlds = "nvl(sum(nvl(amount,0)),0) Amt,nvl(sum(nvl(famount,0)),0) fAmt";
+                    else
+                        strFlds = "nvl(sum(nvl(amount,0)),0) Amt";
+
+                    strWhereCond = " accno='" + AccNo.Trim().ToUpper() + "' and glcode='" + GlCode.Trim().ToUpper() + "' and branchcode='" + BranchCode.Trim().ToUpper() + 
+                        "' and Currencycode='" + CurrencyCode.Trim().ToUpper() + "' and moduleid='" + ModuleId + "' and ((modeoftran in('2','4') and " +
+                        "transtatus='A') or (modeoftran in('1','3','5','6')))";
+
+                    strTranTable = "GENTRANSLOG";
+
+                    recTabName = await SingleRecordSet(strTranTable, strFlds, strWhereCond);
+
+                    if (recTabName.Rows.Count > 0)
+                    {
+                        if (ModuleId.Substring(0, 2) == "FX" && FCurBalYN.ToUpper() == "Y")
+                            accountBalanceModel.dblFxTranBal = Convert.ToDouble(Conversions.ToString(recTabName.Rows[0]["Famt"]));
+                        else
+                            accountBalanceModel.dblFxTranBal = 0;
+                        accountBalanceModel.dblTranBal = Convert.ToDouble(Conversions.ToString(recTabName.Rows[0]["amt"]));
+                    }
+                    else
+                    {
+                        accountBalanceModel.dblTranBal = 0;
+                        accountBalanceModel.dblFxTranBal = 0;
+                    }
+
+                    // To get sum(debits) or sum(credits) from gentranslog, if any
+                    if (ModuleId.Substring(0, 2) == "FX" && FCurBalYN.ToUpper() == "Y")
+                        strFlds = "nvl(sum(nvl(amount,0)),0) Amt,nvl(sum(nvl(famount,0)),0) fAmt";
+                    else
+                        strFlds = "nvl(sum(nvl(amount,0)),0) Amt";
+
+                    strWhereCond = "  accno='" + AccNo.Trim() + "' and glcode='" + GlCode + "' AND branchcode='" + BranchCode + "' and upper(Currencycode)='" + 
+                        CurrencyCode.ToUpper() + "' and upper(moduleid)='" + ModuleId + "' and (modeoftran in('1','3','5') and upper(transtatus)='P')";
+
+                    strTranTable = "gentemptranslog";
+
+                    recTabName = await SingleRecordSet(strTranTable, strFlds, strWhereCond);
+
+                    if (recTabName.Rows.Count > 0)
+                    {
+                        if (ModuleId.Substring(0, 2) == "FX" && FCurBalYN.ToUpper() == "Y")
+                            accountBalanceModel.dblFxTmpTrnBal = Convert.ToDouble(Conversions.ToString(recTabName.Rows[0]["Famt"]));
+                        else
+                            accountBalanceModel.dblFxTmpTrnBal = 0;
+                        accountBalanceModel.dblTmpTrnBal = Convert.ToDouble(Conversions.ToString(recTabName.Rows[0]["amt"]));
+                    }
+                    else
+                    {
+                        accountBalanceModel.dblTmpTrnBal = 0;
+                        accountBalanceModel.dblFxTmpTrnBal = 0;
+                    }
+
+                    // Calculating Clear Balance, Unclear Balance, Net Balance
+                    accountBalanceModel.dblClearBal = accountBalanceModel.dblClBal + accountBalanceModel.dblTranBal + accountBalanceModel.dblTmpTrnBal;
+                    accountBalanceModel.dblFxClearBal = accountBalanceModel.dblFxClBal + accountBalanceModel.dblFxTranBal + accountBalanceModel.dblFxTmpTrnBal;
+
+                    // Calculating Unclear Balance only for domestic purpose
+                    if (NetBalYN.ToUpper() == "Y" && (FCurBalYN == "" || FCurBalYN == "N"))
+                    {
+                        strFlds = "nvl(sum(nvl(amount,0)),0) Amt";
+                        strTranTable = "genunclearbalancedtls";
+                        strWhereCond = " accno='" + AccNo.Trim() + "' and glcode='" + GlCode + "' and branchcode='" + BranchCode + "' and upper(Currencycode)='" + 
+                            CurrencyCode.ToUpper() + "' and upper(moduleid)='" + ModuleId + "'";
+                        recTabName = await SingleRecordSet(strTranTable, strFlds, strWhereCond);
+                        if (recTabName.Rows.Count > 0)
+                            accountBalanceModel.dblUnclrBal = Convert.ToDouble(Conversions.ToString(recTabName.Rows[0]["amt"]));
+                        else
+                            accountBalanceModel.dblUnclrBal = 0;
+                        accountBalanceModel.dblNetBal = accountBalanceModel.dblClearBal - accountBalanceModel.dblUnclrBal;
+
+                        // This line of code was uncommented by Radhika Reason: For CC accounts I didnot get balances
+                        accountBalanceModel.GetBalance = Conversions.ToString(accountBalanceModel.dblNetBal);
+                    }
+
+                    if (NetBalYN == "Y")
+                        accountBalanceModel.GetBalance = Conversions.ToString(accountBalanceModel.dblNetBal);
+                    else
+                    {
+                        if (ModuleId.Substring(0, 2) == "FX" && FCurBalYN == "Y")
+                            accountBalanceModel.GetBalance = accountBalanceModel.dblClearBal + "~" + accountBalanceModel.dblFxClearBal + "~" + FxCurCode;
+                        else
+                            accountBalanceModel.GetBalance = Conversions.ToString(accountBalanceModel.dblClearBal);
+                    }
+                }
+            }
+            else if (ModuleId.Equals("SB") || ModuleId.Equals("CA") || ModuleId.Equals("SCHOOL") || ModuleId.Equals("DEP") ||
+                ModuleId.Equals("LOAN") || ModuleId.Equals("CC") || ModuleId.Equals("PL") || ModuleId.Equals("MISC") || 
+                ModuleId.Equals("BILLS") || ModuleId.Equals("ATM"))
+            {
+                strFlds = "MASTERTABLE,BACKUPTABLE,BALANCETABLE";
+                strWhereCond = "moduleid='" + ModuleId + "'";
+                recTabName = await SingleRecordSet("GENMODULEMST", strFlds, strWhereCond, "mastertable");
+
+
+                if (!string.IsNullOrWhiteSpace(Conversions.ToString(recTabName.Rows[0]["mastertable"])) &&
+                    !string.IsNullOrWhiteSpace(Conversions.ToString(recTabName.Rows[0]["BALANCETABLE"])))
+                {
+                    // To get Current Balance from respective balance tables
+                    accountBalanceModel.StrMstTable = Conversions.ToString(recTabName.Rows[0]["mastertable"]);
+                    accountBalanceModel.StrBalTable = Conversions.ToString(recTabName.Rows[0]["BALANCETABLE"]);
+
+                    strBalTable = Conversions.ToString(recTabName.Rows[0]["BALANCETABLE"]);
+
+                    if (ModuleId.Substring(0, 2) == "FX" && FCurBalYN == "Y")
+                        strFlds = "nvl(curbal,0) Curbal,nvl(fcurbal,0) FCurbal,FCurrencycode";
+                    else
+                        strFlds = "nvl(curbal,0) Curbal";
+
+                    strWhereCond = " accno='" + AccNo.Trim() + "' and glcode='" + GlCode + "' and branchcode='" + BranchCode.Trim() + "' and Currencycode='" +
+                        CurrencyCode + "'";
+
+                    recTabName = await SingleRecordSet(strBalTable, strFlds, strWhereCond);
+
+                    if (recTabName.Rows.Count > 0)
+                        accountBalanceModel.dblClBal = Convert.ToDouble(Conversions.ToString(recTabName.Rows[0]["Curbal"]));
+                    else
+                        accountBalanceModel.dblClBal = 0;
+
+                    // To find sum(debits) or sum(credits) from respective trandaytables, if any
+                    strFlds = "nvl(sum(nvl(amount,0)),0) Amt";
+                    strTranTable = "GENTRANSLOG";
+                    strWhereCond = "accno='" + AccNo.Trim().ToUpper() + "' and glcode='" + GlCode + "' and branchcode='" + BranchCode.Trim().ToUpper() + 
+                        "' and moduleid='" + ModuleId + "' and ((modeoftran in('2','4') and transtatus='A') or (modeoftran in('1','3','5','6'))) and Currencycode='" + 
+                        CurrencyCode.Trim().ToUpper() + "'";
+
+                    recTabName = await SingleRecordSet(strTranTable, strFlds, strWhereCond);
+
+                    if (recTabName.Rows.Count > 0)
+                    {
+                        if (ModuleId.Substring(0, 2) == "FX" && FCurBalYN == "Y")
+                            accountBalanceModel.dblFxTranBal = Convert.ToDouble(Conversions.ToString(recTabName.Rows[0]["Famt"]));
+                        else
+                            accountBalanceModel.dblFxTranBal = 0;
+                        accountBalanceModel.dblTranBal = Convert.ToDouble(Conversions.ToString(recTabName.Rows[0]["amt"]));
+                    }
+                    else
+                    {
+                        accountBalanceModel.dblTranBal = 0;
+                        accountBalanceModel.dblFxTranBal = 0;
+                    }
+
+                    // To get sum(debits) or sum(credits) from gentranslog, if any
+                    if (ModuleId.Trim().ToUpper().StartsWith("FX") && FCurBalYN == "Y")
+                        strFlds = "nvl(sum(nvl(amount,0)),0) Amt,nvl(sum(nvl(famount,0)),0) fAmt";
+                    else
+                        strFlds = "nvl(sum(nvl(amount,0)),0) Amt";
+
+                    strWhereCond = " accno='" + AccNo.Trim() + "' and glcode='" + GlCode + "' and branchcode='" + BranchCode + "' and Currencycode='" + 
+                        CurrencyCode.ToUpper() + "' and upper(moduleid)='" + ModuleId + "' and (modeoftran in('1','3','5') and upper(transtatus)='P')";
+
+                    strTranTable = "gentemptranslog";
+
+                    recTabName = await SingleRecordSet(strTranTable, strFlds, strWhereCond);
+
+                    if (recTabName.Rows.Count > 0)
+                    {
+                        DataRow row = recTabName.Rows[0];
+
+                        if (ModuleId.Substring(0, 2) == "FX" && FCurBalYN == "Y")
+                            accountBalanceModel.dblFxTmpTrnBal = Convert.ToDouble(row["Famt"]);
+                        else
+                            accountBalanceModel.dblFxTmpTrnBal = 0;
+                        accountBalanceModel.dblTmpTrnBal = Convert.ToDouble(row["amt"]);
+                    }
+                    else
+                    {
+                        accountBalanceModel.dblTmpTrnBal = 0;
+                        accountBalanceModel.dblFxTmpTrnBal = 0;
+                    }
+
+                    strFlds = "nvl(sum(nvl(amount,0)),0) Amt";
+                    strTranTable = "GENTRANSLOG";
+
+                    strWhereCond = " accno='" + AccNo.Trim().ToUpper() + "' and glcode='" + GlCode + "' and branchcode='" + BranchCode.Trim().ToUpper() + 
+                        "' and Currencycode='" + CurrencyCode.Trim().ToUpper() + "' and moduleid='" + ModuleId + "' and ((modeoftran in('2','4') and transtatus='P'))";
+
+                    recTabName = await SingleRecordSet(strTranTable, strFlds, strWhereCond);
+
+                    if (recTabName.Rows.Count > 0)
+                    {
+                        DataRow row = recTabName.Rows[0];
+
+                        accountBalanceModel.dblTranBalp = Convert.ToDouble(row["amt"]);
+                        accountBalanceModel.dblpendbalp = Convert.ToDouble(row["amt"]);
+                    }
+                    else
+                    {
+                        accountBalanceModel.dblTranBalp = 0;
+                        accountBalanceModel.dblpendbalp = 0;
+                    }
+
+                    // Calculating Clear Balance, Unclear Balance, Net Balance, account bal
+                    accountBalanceModel.dblClearBal = accountBalanceModel.dblClBal + accountBalanceModel.dblTranBal + accountBalanceModel.dblTmpTrnBal;
+                    accountBalanceModel.dblpendamt = accountBalanceModel.dblpendbalp;
+
+                    // Calculating Unclear Balance only for domestic purpose
+                    if (NetBalYN.ToUpper() == "Y" && (FCurBalYN == "" || FCurBalYN == "N"))
+                    {
+                        strFlds = "nvl(sum(nvl(amount,0)),0) Amt";
+                        strTranTable = "genunclearbalancedtls";
+
+                        strWhereCond =
+                        " accno='" + AccNo.Trim() +
+                        "' and glcode='" + GlCode.Trim().ToUpper() +
+                        "' and branchcode='" + BranchCode +
+                        "' and Currencycode='" + CurrencyCode.ToUpper() +
+                        "' and moduleid='" + ModuleId.Trim().ToUpper() + "'";
+
+                        recTabName = await SingleRecordSet(strTranTable, strFlds, strWhereCond);
+
+                        if (recTabName.Rows.Count > 0)
+                            accountBalanceModel.dblUnclrBal = Convert.ToDouble(recTabName.Rows[0]["amt"]);
+                        else
+                            accountBalanceModel.dblUnclrBal = 0;
+
+                        recTabName = await SingleRecordSet("GENCONFIGMST", "IMPYN", "CODE='CLGCTS'");
+
+                        string strCtsClg = "N";
+
+                        if (recTabName.Rows.Count > 0)
+                            strCtsClg = Conversions.ToString(recTabName.Rows[0]["IMPYN"]);
+                        else
+                            strCtsClg = "N";
+
+                        // Clearing Bal
+                        accountBalanceModel.dblNetBal = accountBalanceModel.dblClearBal - accountBalanceModel.dblUnclrBal + accountBalanceModel.dblpendbalp;
+                        if (strCtsClg == "Y")
+                        {
+                            accountBalanceModel.dblNetBal = Convert.ToDouble(accountBalanceModel.dblClearBal) + accountBalanceModel.dblpendbalp;
+                            accountBalanceModel.dblClearBal = Convert.ToDouble(accountBalanceModel.dblClearBal) + Convert.ToDouble(accountBalanceModel.dblUnclrBal);
+                        }
+                        else
+                        {
+                            accountBalanceModel.dblNetBal = Convert.ToDouble(accountBalanceModel.dblClearBal) - Convert.ToDouble(accountBalanceModel.dblUnclrBal) + accountBalanceModel.dblpendbalp;
+                        }
+
+                        // This line of code was uncommented by Radhika Reason: For CC accounts I didnot get balances
+                        accountBalanceModel.GetBalance = Conversions.ToString(accountBalanceModel.dblNetBal);
+                    }
+                }
+                else
+                {
+                    if (ModuleId.Substring(0, 2) == "FX" && FCurBalYN == "Y")
+                        accountBalanceModel.GetBalance = Conversions.ToString(accountBalanceModel.dblClearBal) + "~" + Conversions.ToString(accountBalanceModel.dblFxClearBal) + "~" + FxCurCode;
+                    else
+                        accountBalanceModel.GetBalance = Conversions.ToString(accountBalanceModel.dblClearBal);
+                }
+
+                // We need to handle Recurring type deposits separately
+                if (ModuleId.Equals("DEP"))
+                {
+                    // Check whether given Deposit GL is a RD type or not
+                    recTabName = await SingleRecordSet("deptypemst", "nvl(instsyn,'N') InstlmntYN", "upper(trim(moduleid))='DEP' and " +
+                        "upper(trim(glcode))='" + GlCode + "'");
+
+                    if (Conversions.ToString(recTabName.Rows[0]["InstlmntYN"]) == "Y") // i.e. Given Deposit GL is of RDtype
+                    {
+                        // So get & add Interest Accrued to A/C balance
+                        strTranTable = "DEPINTACCRUEDDTLS";
+                        strFlds = "nvl(SUM(nvl(intamount,0)),0) SumIntAmt";
+                        strWhereCond = " accno='" + AccNo.Trim() + "' AND glcode='" + GlCode + "' AND branchcode='" + BranchCode.Trim() + "' AND currencycode='" + 
+                            CurrencyCode + "' AND moduleid='DEP'";
+                        recTabName = await SingleRecordSet(strTranTable, strFlds, strWhereCond);
+                        if (NetBalYN == "Y")
+                            accountBalanceModel.GetBalance = Conversions.ToString(accountBalanceModel.dblNetBal);
+                        else
+                            accountBalanceModel.GetBalance = Conversions.ToString(accountBalanceModel.dblClearBal);
+                    }
+                }
+                else
+                    accountBalanceModel.GetBalance = "";
+            }
+
+            return accountBalanceModel;
+
+            //ErrHand:
+            // objErrlog.LogError "AccountDetails", "GetBalance", Err.Number, Err.Description
+        }
+
+        private async Task<double> GetIntAccrued(string BrCode, string CurCode, string ModId, string GlCode, string AccNo)
+        {
+            string sFlds;
+            string sTabName = ModId.Trim().ToUpper() + "INTACCRUEDDTLS";
+
+            if (ModId.ToUpper() == "DEP")
+                sFlds = "nvl(SUM(INTAMOUNT),'0') AMT";
+            else
+                sFlds = "Sum(nvl(debit, 0)) - Sum(nvl(credit, 0))   AMT ";
+
+            string sCond = " ACCNO='" + AccNo + "' and GLCODE='" + GlCode + "' AND BRANCHCODE='" + BrCode + "' AND CURRENCYCODE='" + CurCode + "' AND MODULEID='" + ModId + "'";
+
+            DataTable dataTable = await SingleRecordSet(sTabName, sFlds, sCond);
+
+            double dblAmt;
+
+            if (dataTable != null && dataTable.Rows.Count > 0)
+            {
+                DataRow row = dataTable.Rows[0];
+                dblAmt = Convert.IsDBNull(row["amt"]) ? 0 : Convert.ToDouble(row["amt"]);
+            }
+            else
+                dblAmt = 0;
+
+            BankingExtensions.ReleaseMemory(dataTable!);
+            return dblAmt;
+        }
+
+        private async Task<string> GetBranchApplDate(string BrCode)
+        {
+            string sCond = " branchcode='" + BrCode + "'";
+
+            DataTable dataTable = await SingleRecordSet("GENAPPLICATIONDATEMST", "to_char(applicationdate,'dd-Mon-yyyy')", sCond);
+
+            if (dataTable != null && dataTable.Rows.Count == 0)
+                throw new Exception("Application Date of Given Branch code not found");
+
+            string strResult = Conversions.ToString(dataTable!.Rows[0].ItemArray[0]);
+            BankingExtensions.ReleaseMemory(dataTable);
+            return strResult;
+        }
+
+        private async Task<double> GetLoanScheduleAmt(string BrCode, string CurCode, string GlCode, string AccNo, string CutOffDt)
+        {
+            string sCond = " ACCNO='" + AccNo + "' and repayduedate = (SELECT MAX(repayduedate) FROM LOANSCHEDULEDTLS b WHERE b.BRANCHCODE=a.BRANCHCODE AND " +
+                "b.CURRENCYCODE=a.CURRENCYCODE AND b.glcode=a.glcode AND b.accno=a.accno AND b.repayduedate <='" + CutOffDt + "') AND GLCODE='" + GlCode + 
+                "' AND BRANCHCODE='" + BrCode + "' AND CURRENCYCODE='" + CurCode + "'";
+
+            DataTable dataTable = await SingleRecordSet("LOANSCHEDULEDTLS a", "NVL(balanceamt,0) AMT", sCond);
+
+            double dblAmt;
+
+            if (dataTable != null && dataTable.Rows.Count > 0)
+            {
+                DataRow row = dataTable.Rows[0];
+                dblAmt = Convert.IsDBNull(row["amt"]) ? 0 : Convert.ToDouble(row["amt"]);
+            }
+            else
+                dblAmt = 0;
+
+            BankingExtensions.ReleaseMemory(dataTable!);
+            return dblAmt;
+        }
+
+        private async Task<double> GetLimitAmt(string BrCode, string CurCode, string ModId, string GlCode, string AccNo, string BrApplDate)
+        {
+            string sCond = " LINKEDACCNO='" + AccNo + "' and LINKEDGLCODE='" + GlCode + "' AND BRANCHCODE='" + BrCode + "' AND CURRENCYCODE='" + CurCode + 
+                "' AND LINKEDMODULEID='" + ModId + "' and closedate is null and status='R' and expirydate >='" + BrApplDate + "'";
+
+            DataTable dataTable = await SingleRecordSet("GENLIMITLNK", "Sum(nvl(LINKEDAMOUNT,0)) amt", sCond);
+
+            double dblLimitAmt;
+
+            if (dataTable != null && dataTable.Rows.Count > 0)
+            {
+                DataRow row = dataTable.Rows[0];
+                dblLimitAmt = Convert.IsDBNull(row["amt"]) ? 0 : Convert.ToDouble(row["amt"]);
+            }
+            else
+                dblLimitAmt = 0;
+
+            BankingExtensions.ReleaseMemory(dataTable!);
+            return dblLimitAmt;
+        }
+
+        private async Task<double> GetDrawingPowerAmt(string BrCode, string CurCode, string ModId, string GlCode, string AccNo)
+        {
+            string sCond = " ACCNO='" + AccNo + "' and GLCODE='" + GlCode + "' AND BRANCHCODE='" + BrCode + "' AND CURRENCYCODE='" + CurCode + "' AND MODULEID='" + 
+                ModId + "' and status='R'";
+
+            DataTable dataTable = await SingleRecordSet("gendpdtls", "nvl(DRAWINGPOWER,0) amt", sCond);
+
+            double dblLimitAmt;
+
+            if (dataTable != null && dataTable.Rows.Count > 0)
+            {
+                DataRow row = dataTable.Rows[0];
+                dblLimitAmt = Convert.IsDBNull(row["amt"]) ? 0 : Convert.ToDouble(row["amt"]);
+            }
+            else
+                dblLimitAmt = 0;
+
+            BankingExtensions.ReleaseMemory(dataTable!);
+            return dblLimitAmt;
+        }
+
+        //public Variant RecordsetCollection(string[] ArrRecRS)
+        //{
+        //    Variant RecordsetCollectionRet = default;
+        //    string[] TempArr;
+        //    string strquery;
+        //    int recAff;
+        //    try
+        //    {
+        //        // Fetching the multiple Recordsets.
+        //        TempArr = ArrRecRS;
+
+        //        AdoRs = new ADODB.Recordset[Information.UBound(TempArr) + 1];
+
+        //        var loopTo = TempArr.Length - 1;
+        //        for (int i = 0; i <= loopTo; i++)
+        //        {
+        //            strquery = "";
+        //            OracleDataReader AdoRs[i];
+        //            strquery = "Select " + TempArr(i, 1) + " from  " + TempArr(i, 0) + DataLink + " where " + TempArr(i, 2);
+        //            AdoRs[i].Open(strquery, AdoConnObj, adOpenDynamic, adLockOptimistic);
+        //        }
+
+        //        RecordsetCollectionRet = AdoRs;
+
+        //        var loopTo1 = Information.UBound(TempArr);
+        //        for (int i = 0; i <= loopTo1; i++)
+        //            AdoRs[ICount].ActiveConnection = null!;
+
+        //        return RecordsetCollectionRet;
+        //    }
+        //    catch
+        //    {
+        //        //if (string.IsNullOrEmpty(ConnError))
+        //        //    ConnError = "Connection Failed Due to : " + Information.Err().Number + " : " + Information.Err().Description;
+        //        //else
+        //        //    ConnError = "Records Could Not Be Retrieved Due to : " + Information.Err().Number + " : " + Information.Err().Description;
+        //        //LogError("QueryRecordsets", "RecordsetCollection", Information.Err().Number, Information.Err().Description);
+        //    }
+
+        //    return RecordsetCollectionRet;
+        //}
+
+        #endregion
     }
 }

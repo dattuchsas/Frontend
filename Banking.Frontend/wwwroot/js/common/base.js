@@ -356,12 +356,12 @@ function bankingModal(response) {
 
 function precision(number, pr) {
   var i, j, k, n, m, v;
-  var textvalue = number.value;
-  if (number.value) {
-    if (isNaN(number.value)) {
+  var textvalue = number;
+  if (number) {
+    if (isNaN(number)) {
       bankingAlert("Invalid Amount.");
-      number.value = "";
-      return;
+      number = "";
+      return number;
     }
   }
   if (pr.length == 0) {
@@ -374,8 +374,8 @@ function precision(number, pr) {
   k = 0;
   n = 0;
   if (textvalue == "") {
-    number.value = "0.00";
-    return;
+    number = "0.00";
+    return number;
   }
   for (i = 1; i < eval(p); i++) {
     j = j + "0";
@@ -384,15 +384,15 @@ function precision(number, pr) {
   if (textvalue != "") {
     var dotindex = textvalue.indexOf('.');
     if (dotindex == -1) {
-      number.value = eval(textvalue) + m;
-      if (number.value > 9999999999999.999) {
+      number = eval(textvalue) + m;
+      if (number > 9999999999999.999) {
         bankingAlert("Value too large");
-        number.value = "";
+        number = "";
       }
-      else if (number.value == 0) {
-        number.value = "0" + m;
+      else if (number == 0) {
+        number = "0" + m;
       }
-      return;
+      return number;
     }
     else if (dotindex > -1) {
       var dotafterchars = textvalue.substring(dotindex + 1);
@@ -402,27 +402,27 @@ function precision(number, pr) {
         for (i = 0; i < t - 1; i++) {
           n = n + "0";
         }
-        number.value = eval(textvalue);
-        number.value = number.value + n;
-        if (number.value > 9999999999999.999) {
+        number = eval(textvalue);
+        number = number + n;
+        if (number > 9999999999999.999) {
           bankingAlert("Value too large");
-          number.value = "";
+          number = "";
         }
-        else if (number.value == 0) {
-          number.value = "0" + m;
+        else if (number == 0) {
+          number = "0" + m;
         }
-        return;
+        return number;
       }
       else {
-        number.value = textvalue.substr(0, dotindex) + textvalue.substr(dotindex, p + 1)
-        if (number.value > 9999999999999.999) {
+        number = textvalue.substr(0, dotindex) + textvalue.substr(dotindex, p + 1)
+        if (number > 9999999999999.999) {
           bankingAlert("Value too large");
-          number.value = "";
+          number = "";
         }
-        else if (number.value == 0) {
-          number.value = "0" + m;
+        else if (number == 0) {
+          number = "0" + m;
         }
-        return;
+        return number;
       }
     }
   }
