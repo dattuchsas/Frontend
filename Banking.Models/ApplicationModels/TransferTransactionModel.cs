@@ -128,7 +128,7 @@ namespace Banking.Models
         public string? PendingIntAmount { get; set; }
         public string? InterestAmount { get; set; }
         public string? PendingInstallments { get; set; }
-        //public string? NPAIntAmount { get; set; }
+        public string? NPAIntAmount { get; set; }
         public string? SanctionAmount { get; set; }
         public string? DisbursementAmount { get; set; }
 
@@ -142,18 +142,25 @@ namespace Banking.Models
         public string? RD_EffectiveDate { get; set; }
         public string? RD_CurrAmount { get; set; }
 
-        //public string? Remm_IssuedOnBank { get; set; }
-        //public string? Remm_IssuedOnBranch { get; set; }
-        //public string? Remm_Favouring { get; set; }
-        //public string? Remm_Commission { get; set; }
-        //public string? Remm_RecipientName { get; set; }
-        //public string? Remm_GST { get; set; }
-        //public string? Remm_CESS { get; set; }
-        //public string? Remm_PAN { get; set; }
-        //public string? Remm_Mobile { get; set; }
-        //public string? Remm_Address1 { get; set; }
-        //public string? Remm_Address2 { get; set; }
-        //public string? Remm_Address3 { get; set; }
+        public string? REMBank { get; set; }
+        public List<SelectListItem>? REMBankList { get; set; }
+
+        public string? REMBranch { get; set; }
+        public List<SelectListItem>? REMBranchList { get; set; }
+
+        public string? REMFavouring { get; set; }
+        public string? REMCommission { get; set; }
+
+        public string? REMRecipientName { get; set; }
+        public List<SelectListItem>? REMRecipientList { get; set; }
+
+        public string? REMGST { get; set; }
+        public string? REMCESS { get; set; }
+        public string? REMPAN { get; set; }
+        public string? REMMobile { get; set; }
+        public string? REMAddress1 { get; set; }
+        public string? REMAddress2 { get; set; }
+        public string? REMAddress3 { get; set; }
     }
 
     public enum TransactionModes

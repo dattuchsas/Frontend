@@ -25,10 +25,8 @@ namespace Banking.Framework
     public static class Conversions
     {
         public static string ToString(this object? str)
-         
-        
         {
-            return Convert.ToString(str) ?? string.Empty;
+            return Convert.ToString(str)?.Trim() ?? string.Empty;
         }
 
         public static bool ToBoolean(this object? str)
@@ -163,7 +161,7 @@ namespace Banking.Framework
         {
             List<string> list = new List<string>
             {
-                "Branch", "Category", "Service", "Module"
+                "Branch", "Category", "Service", "Module", "GLCode"
             };
             var result = new List<SelectListItem>();
             if (isSelectRequired)

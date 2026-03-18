@@ -36,8 +36,6 @@ namespace Banking.Services
             return BankingExtensions.ReturnKeyValuePair(dataTable, "Relation");
         }
 
-
-
         public async Task<List<SelectListItem>> GetReligionList()
         {
             using DataTable dataTable = await _databaseFactory.SingleRecordSet("GENRELIGIONMST", "CODE,DESCRIPTION", "");
@@ -100,12 +98,11 @@ namespace Banking.Services
             DataTable dataTable = new DataTable();
 
             if (arr[1].Equals("View"))
-                dataTable = await _databaseFactory.SingleRecordSet("gencategorymst", "CATEGORYCODE,NARRATION", "", "NARRATION");
+                dataTable = await _databaseFactory.SingleRecordSet("GENCATEGORYMST", "CATEGORYCODE,NARRATION", "", "NARRATION");
             else if (arr[1].Equals("Cust"))
-                dataTable = await _databaseFactory.SingleRecordSet("gencategorymst", "CATEGORYCODE,NARRATION",
-                    "CATEGORYCODE<>'99'", "NARRATION");
+                dataTable = await _databaseFactory.SingleRecordSet("GENCATEGORYMST", "CATEGORYCODE,NARRATION", "CATEGORYCODE<>'99'", "NARRATION");
             else
-                dataTable = await _databaseFactory.SingleRecordSet("gencategorymst", "CATEGORYCODE,NARRATION", "", "NARRATION");
+                dataTable = await _databaseFactory.SingleRecordSet("GENCATEGORYMST", "CATEGORYCODE,NARRATION", "", "NARRATION");
 
             return BankingExtensions.ReturnKeyValuePair(dataTable, "Category");
         }

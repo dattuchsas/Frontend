@@ -1,5 +1,4 @@
 ﻿
-//----------------------------------------------------------------------------------
 var vUserId, vAppDate, vCounterNo, vCashierId, vBranchCode, vBrNarration, vCurCode, vCurNarration
 var vMachineId, vMode, vSubMode, tranNos, flexInsrtYN, pMaxRecPayAmt, MaxLimitAmt
 var trnMode, trnDesc, brCode, brDesc, curCode, curDesc, vAbbuser, abbYN, abbApplDt, accnoChng, Amt, mode, Rselect, oldAmt, diff, n = 0
@@ -9,7 +8,6 @@ var natinsdt, natadv, servicecond, scrgridYN
 var fxTransYN
 var amtval = ""
 var scrstr = ""
-
 var issonbnk = ""
 var advinstrdate = ""
 var balstr = new String()
@@ -49,10 +47,6 @@ var strUserCustId
 var strApprCustId
 
 var noOfDaysBDT = '<%=noOfDays%>'
-//narration
-
-
-
 
 //This function was written to send values to list form for Branch de[tails display, and used to store already selected brach code and description for later use. 
 function Tellerbranch() {
@@ -72,9 +66,6 @@ function txtbranchcode_onkeyup() {
   //ClgModClear()
   window.document.frmTrans.txtbranchdesc.value = ""
 }
-
-
-
 
 function fxRateTypes() {
   strpm = "FXRATETYPES"
@@ -122,10 +113,6 @@ function formClear() {
   forexClear()
   UnLockContAdd()
 }
-
-
-
-
 
 function Cls() {
   window.document.all['ChqDtl'].style.display = "none";
@@ -178,7 +165,6 @@ function ClgClear() {
   window.document.all.divCLG.style.display = "none"
 }
 
-//----------------------------------------------------------------------------------	
 function hdnFldClear() {
   window.document.frmTrans.hdnBatchNo.value = ""
   window.document.frmTrans.hdnTranNo.value = ""
@@ -191,9 +177,6 @@ function hdnFldClear() {
 
 }
 
-
-
-//----------------------------------------------------------------------------------
 function UnlockControls() {
 
   window.document.frmTrans.txtServiceId.readOnly = false
@@ -216,10 +199,6 @@ function UnlockControls() {
   window.document.frmTrans.chkDispAccNo.disabled = false
 
 }
-
-
-
-
 
 function PopupShow(keycode, ctnBrCode, ctnModid, ctnGlcode, ctnAccNo, pagePath, fieldName, ctnfield, saveorshow) {
   var branchcode = ctnBrCode.value.toUpperCase();
@@ -246,7 +225,6 @@ function PopupShow(keycode, ctnBrCode, ctnModid, ctnGlcode, ctnAccNo, pagePath, 
   }
 }
 
-
 function key(e) {
   strValVin = window.document.frmTrans.txtChqFVG
   kc = e.keyCode ? e.keyCode : e.which;
@@ -262,6 +240,7 @@ function key1(e) {
     "REMGLCODE", "REMACCNO", location.pathname,
     "txtNarran", window.document.frmTrans.txtfavg, "SHOW")
 }
+
 var strValVin
 
 function okNarrSave() {
@@ -284,7 +263,6 @@ function popclose(str) {
   strInsert = false
   strValVin.value = str
 }
-
 
 function getPayeeBank() {
   window.document.frmTrans.txtPayeeBank.value = ""
@@ -440,9 +418,6 @@ function branchDesc(str) {
   window.document.all['iBatch1'].src = '<%="http://" & session("moduledir")& "/HO/"%>' + "BankDetails.aspx?strPrm=" + strPrm
 }
 
-//testing purpose only---------->
-
-
 function getDateFormat(str) {
   var arr = str.split("-")
   var months = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC']
@@ -489,10 +464,7 @@ function bdtDateCheck() {
   }
 }
 
-//---------------------------------------------------------------------------------- 
-//This function is used to send parameters to List form to get various currency codes and
-//descriptions available and also used for storing already selected currency code and
-//currency description
+//This function is used to send parameters to List form to get various currency codes and descriptions available and also used for storing already selected currency code and currency description
 function curr() {
   curCode = window.document.frmTrans.txtcurrencycode.value.toUpperCase()
   curDesc = window.document.frmTrans.txtcurrencydesc.value
@@ -502,9 +474,7 @@ function curr() {
   window.showModalDialog('<%="http://" & session("moduledir")& "/GEN/"%>' + "TranList.aspx" + "?" + "st=" + st, window, "status:no;" +
     "DialogWidth:270px;DialogHeight:170px;DialogLeft:520px;DialogTop:170px")
 }
-//----------------------------------------------------------------------------------
 
-//---------------------------------------------------------------------------------- 
 //This function was written to send parameter values to List form to get various modules
 function lnkModule() {
 
@@ -515,17 +485,14 @@ function lnkModule() {
   window.showModalDialog('<%="http://" & session("moduledir")& "/GEN/"%>' + "TranList.aspx" + "?" + "st=" + kstr, window, "status:no;" +
     "DialogWidth:270px;DialogHeight:170px;DialogLeft:340px;DialogTop:100px")
 }
-//----------------------------------------------------------------------------------
-//This function displays various moduleids and descriptions,it also clear all lower level
-//fields.
+
+//This function displays various moduleids and descriptions,it also clear all lower level fields.
 function LnkModuleCode(kstr) {
   assign(kstr, window.document.frmTrans.txtLnkModDesc, window.document.frmTrans.txtLnkModId);
   LnkGLClear()
 }
-//----------------------------------------------------------------------------------
-//----------------------------------------------------------------------------------
-//This function is used to send parameters to List form to display various Glcodes avialabe
-//It displays Glcodes based on branchcode and module id.  
+
+//This function is used to send parameters to List form to display various Glcodes avialabe, It displays Glcodes based on branchcode and module id.  
 function lnkGlcode() {
   LnkGl = "LnkGlcode";
   brcode = window.document.frmTrans.txtbranchcode.value.toUpperCase();
@@ -537,13 +504,13 @@ function lnkGlcode() {
       "DialogWidth:270px;DialogHeight:170px;DialogLeft:340px;DialogTop:120px")
   }
 }
-//----------------------------------------------------------------------------------
+
 //This function is used to display Glcodes.And it clears all the lower level fields	
 function lnkGlcodeid(kstr) {
   assign(kstr, window.document.frmTrans.txtLnkGLname, window.document.frmTrans.txtLnkGLCode)
   LnkAccountClear()
 }
-//----------------------------------------------------------------------------------
+
 function round(number, precision) {
   var pair = (number + 'e').split('e')
   var value = Math.round(pair[0] + 'e' + (+pair[1] + precision))
@@ -559,15 +526,10 @@ function DispRemCancCharges(str) {
     gstPercent = strArr[1]
     CESSPercent = strArr[2]
     window.document.frmTrans.txtremchgsamt.value = strArr[0]
-
     window.document.frmTrans.txtremgstamt.value = parseFloat(window.document.frmTrans.txtremchgsamt.value) * parseFloat(strArr[1]) * 0.01
-
     window.document.frmTrans.txtremgstamt.value = Math.round(window.document.frmTrans.txtremgstamt.value)
-
-
     window.document.frmTrans.txtremcessamt.value = parseFloat(window.document.frmTrans.txtremchgsamt.value) * parseFloat(strArr[2]) * 0.01
     window.document.frmTrans.txtremcessamt.value = Math.round(window.document.frmTrans.txtremcessamt.value)
-
   }
   else {
     window.document.frmTrans.txtremchgsamt.value = "0"
@@ -623,9 +585,6 @@ function getRemCancGST() {
 
 }
 
-//----------------------------------------------------------------------------------
-
-//----------------------------------------------------------------------------------
 //This function is used to store category details
 function categorycode(kstr) {
 
@@ -645,32 +604,7 @@ function categorycode(kstr) {
   scrgridYN = "GRIDYES"
 
 }
-//----------------------------------------------------------------------------------
-//This function is used to see addtional checks
-function OkValidations() {
 
-  /* if(vMode=="REC"){
-    var totDen=eval(window.document.frames("idenom").frmDenom.txtTotAmt.value)
-    var entAmt=eval(eval(window.document.frmTrans.txtAmt.value)+
-           eval(window.document.frmTrans.txtcomm.value))
-       alert("Denominations not Tallied")    
-   } */
-
-  if (window.document.frmTrans.txtModId.value.toUpperCase() == "SCR") {
-    if (scrgridYN == "YES") {
-      alert("Amount should be selected from Account Details Grid")
-      if (window.document.frmTrans.chkDispAccNo.checked == false) {
-        window.document.frmTrans.txtAmt.value = ""
-      }
-      return false;
-    }
-    else if (scrgridYN == "GRIDYES") {
-      okValid = true
-      return true;
-    }
-  }
-}
-//----------------------------------------------------------------------------------
 // To Check Amount should not be greater than balance amount
 function Amountcheck() {
 
@@ -720,7 +654,7 @@ function Amountcheck() {
     } //(window.document.frmTrans.txtServiceId.value == "8")
   } //(window.document.frmTrans.tranmode[2].checked==true)
 }
-//-------------------------------------------------------------------------------------
+
 //------- Cash Debit Cash Credit ---------------------
 function cashdrcrcheck() {
 
@@ -746,18 +680,14 @@ function cashdrcrcheck() {
   }
 }
 
+//function CatCodeRtn(results) {
+//  var result = results.split("-----")
+//  window.document.frmTrans.txtAccCatCode.value = result[1]
+//  window.document.frmTrans.txtAccCatDesc.value = result[0]
+//  AmtNarrClear()
+//  AccParameters(window.document.frmTrans.txtAccCatCode.value, "CATCODE")
+//}
 
-//-------------------------------------------------------------------------------------
-function CatCodeRtn(results) {
-  var result = results.split("-----")
-  window.document.frmTrans.txtAccCatCode.value = result[1]
-  window.document.frmTrans.txtAccCatDesc.value = result[0]
-  AmtNarrClear()
-  AccParameters(window.document.frmTrans.txtAccCatCode.value, "CATCODE")
-}
-//-------------------------------------------------------------------------------------
-
-//--------------------------------------------------------------------
 //This function is used to populate account numbers and names based on module id, glcode.
 function lnkAccCode() {
   if (window.document.frmTrans.txtLnkModId.value == "REM") {
@@ -776,9 +706,8 @@ function lnkAccCode() {
       "DialogWidth:270px;DialogHeight:170px;DialogLeft:340px;DialogTop:80px")
   }
 }
-//----------------------------------------------------------------------------------	
-//This function is used to assign accno and name to textboxex and displays different divs
-//based on conditions
+
+//This function is used to assign accno and name to textboxex and displays different divs based on conditions
 function accountid(kstr) {
   var strval;
   var modId = window.document.frmTrans.txtModId.value.toUpperCase()
@@ -908,7 +837,6 @@ function popLoanNPAInt(str) {
   precision(window.document.frmTrans.txtloanaccbal, window.document.frmTrans.hpr.value)
 }
 
-//----------------------------------------------------------------------------------
 //This function is used to populate disposal accounts and names
 function dispAccChk() {
 
@@ -919,9 +847,8 @@ function dispAccChk() {
     window.document.frmTrans.txtAccNo.value
   window.document.all['iDisp'].src = '<%="http://" & session("moduledir")& "/GEN/"%>' + "minBalChk.aspx?strparam=" + kstr
 }
-//----------------------------------------------------------------------------------
-//This function is used to check whether the selected account no's batch already exists 
-//or not	 	 
+
+//This function is used to check whether the selected account no's batch already exists or not	 	 
 function dispBatchCheck(Rslt) {
 
   if (Rslt != "Proceed") {
@@ -940,9 +867,8 @@ function dispBatchCheck(Rslt) {
   }
 
 }
-//----------------------------------------------------------------------------------
-//This function is used to assign link module account no and name and clears off other
-//lower fields	 	 
+
+//This function is used to assign link module account no and name and clears off other lower fields	 	 
 function lnkAccountId(kstr) {
   var strval;
   strnew = kstr.split("-----")
@@ -950,7 +876,7 @@ function lnkAccountId(kstr) {
   window.document.frmTrans.txtLnkAccNo.value = strnew[1]
   LnkAddClear()
 }
-//----------------------------------------------------------------------------------	 	 	 
+
 //LOANS----------------------y.naveen kumar accountid
 //This function is used to checks wether the loan amount exceeds the sanction amount or not
 //and also sees loan amount is exceeding the available amount or not
@@ -979,9 +905,9 @@ function funloanminamt() {
   }
 }
 
-//----------------------------------------------------------------------------------
 
-//----------------------------------------------------------------------------------
+
+
 //function is used to populate combo box with diffrent loantypes.
 function funfillloantrantype(strloantype) {
 
@@ -1001,19 +927,19 @@ function funfillloantrantype(strloantype) {
     window.document.frmTrans.selloantrans.options[i + 1] = option0
   }
 }
-//----------------------------------------------------------------------------------
+
 function funloantran() {
   strpm = "loantrantype"
   window.document.all['iMsg'].src = '<%="http://" & session("moduledir")& "/GEN/"%>' + "minBalChk.aspx?strparam=" + strpm
 }
-//----------------------------------------------------------------------------------
+
 function funinsertloan() {
   var strqry
   strqry = "frmtrans" + "|" + "loanpreference"
   window.document.all['iGeneral'].src = '<%="http://" & session("moduledir")& "/GEN/"%>' + "cashloangetdtls.aspx" + "?" + "strqry=" + strqry
 }
 
-//----------------------------------------------------------------------------------
+
 function getloandtls(strvals) {
   var strsplit
   strsplit = strvals.split("|")
@@ -1023,7 +949,7 @@ function getloandtls(strvals) {
     }
   }
 }
-//---------------------------------------------------------------------------------- 
+
 function funloanintdetails(strloan) {
   var kstr
   kstr = "frmtrans" + "~" + "loandetails" + "~" + window.document.frmTrans.txtbranchcode.value +
@@ -1032,7 +958,7 @@ function funloanintdetails(strloan) {
 
   window.document.all['iloandtls'].src = "loaninterestdetails.aspx?kstr=" + kstr;
 }
-//----------------------------------------------------------------------------------
+
 function funinsertintdtls() {
 
   {
@@ -1154,7 +1080,7 @@ function funinsertintdtls() {
   }
 
 }
-//----------------------------------------------------------------------------------
+
 //This function is used to assign currency code and description and gives an alert
 //if user changes currency code after entering some data into flexgrid.	
 function currency(kstr) {
@@ -1173,7 +1099,7 @@ function currency(kstr) {
   }
 }
 
-//----------------------------------------------------------------------------------
+
 //This function is used to assign glcode and descrption and collects different parameters
 //based on glcode	
 
@@ -1203,30 +1129,6 @@ function glaccountid(kstr) {
   excptionAmt()
 }
 
-//---------------------------------------------------------------------------------- 
-//--------prsremit 
-function issbank() {
-
-  if (window.document.frmTrans.txtGLcode.value.length > 0) {
-    gl = window.document.frmTrans.txtGLcode.value.toUpperCase()
-
-    BranchCd = window.document.frmTrans.txtbranchcode.value.toUpperCase()
-    CurCd = window.document.frmTrans.txtcurrencycode.value.toUpperCase()
-
-    kstr = "issonbnk" + "~" + gl + "~" + BranchCd + "~" + CurCd
-
-    window.showModalDialog('<%="http://" & session("moduledir")& "/GEN/"%>' + "TranList.aspx" + "?" + "st=" + kstr, window, "status:no;" +
-      "DialogWidth:270px;DialogHeight:180px;DialogLeft:340px;DialogTop:100px")
-  }
-  //if(issonbnk==""){
-  kstr = "issonbnk";
-
-  //	window.showModalDialog('<%="http://" & session("moduledir")& "/GEN/"%>'+"TranList.aspx" + "?"+"st="+kstr,window,"status:no;"+
-  //	"DialogWidth:270px;DialogHeight:170px;DialogLeft:340px;DialogTop:100px")
-  //	}
-
-}
-//---------------------------------------------------------------------------------- 
 function issuedonbnk(kstr) {
   TranMode()
 
@@ -1251,52 +1153,7 @@ function issuedonbnk(kstr) {
     window.document.frmTrans.txtbybnkdesc.value = k[0]
   }
 }
-//----------------------------------------------------------------------------------
-function issbrnch() {
-  TranMode()
-  // alert("trnmode="+trnMode+",  rem type="+ remtype+", issonbnk="+issonbnk)
 
-  BranchCd = window.document.frmTrans.txtbranchcode.value.toUpperCase()
-  CurCd = window.document.frmTrans.txtcurrencycode.value.toUpperCase()
-
-
-
-  if (issonbnk != "") {
-    kstr = "issonbr";
-    if ((trnMode == "4") || (trnMode == "2")) { bankCode = window.document.frmTrans.txtissbnkcode.value; }
-    else if ((trnMode == "3") || (trnMode == "1")) { bankCode = window.document.frmTrans.txtbybnkcode.value; }
-    else { bankCode = issonbnk; }
-
-    kstr = kstr + "~" + remtype.toUpperCase() + "~" + bankCode;
-
-    window.showModalDialog('<%="http://" & session("moduledir")& "/GEN/"%>' + "TranList.aspx" + "?" + "st=" + kstr, window, "status:no;" +
-      "DialogWidth:270px;DialogHeight:180px;DialogLeft:340px;DialogTop:100px")
-  }
-  else
-    //if ((trnMode=="4") && ( (remtype.toUpperCase()=="DD") || (remtype.toUpperCase()=="MT")|| (remtype.toUpperCase()=="TT") ))
-    if ((remtype.toUpperCase() == "DD") || (remtype.toUpperCase() == "MT") || (remtype.toUpperCase() == "TT")) {
-      if (trnMode == "4") { bankCode = window.document.frmTrans.txtissbnkcode.value; }
-      else if (trnMode == "3") { bankCode = window.document.frmTrans.txtbybnkcode.value; }
-
-      kstr = "issonothbr" + "~~" + bankCode;
-
-      window.showModalDialog('<%="http://" & session("moduledir")& "/GEN/"%>' + "TranList.aspx" + "?" + "st=" + kstr, window, "status:no;" +
-        "DialogWidth:270px;DialogHeight:170px;DialogLeft:340px;DialogTop:100px")
-    }
-    /*else if ((trnMode=="4") && ( (remtype.toUpperCase()=="ADD") || 
-    (remtype.toUpperCase()=="TC") ))*/
-    else if ((remtype.toUpperCase() == "ADD") || (remtype.toUpperCase() == "TC")) {
-
-      if (trnMode == "4") { bankCode = window.document.frmTrans.txtissbnkcode.value; }
-      else if (trnMode == "3") { bankCode = window.document.frmTrans.txtbybnkcode.value; }
-
-      //kstr="issonothbr"+"~ADD~"+bankCode;
-      kstr = "issonothbr" + "~" + remtype.toUpperCase() + "~" + bankCode + "~" + BranchCd + "~" + CurCd
-      window.showModalDialog('<%="http://" & session("moduledir")& "/GEN/"%>' + "TranList.aspx" + "?" + "st=" + kstr, window, "status:no;" +
-        "DialogWidth:270px;DialogHeight:170px;DialogLeft:340px;DialogTop:100px")
-    }
-}
-//----------------------------------------------------------------------------------
 function issuedonbr(kstr) {
   //remclrbrclick()
 
@@ -1360,7 +1217,7 @@ function issuedonbr(kstr) {
   } //end of debit trnModes IF Condition
 
 }
-//---------------------------------------------------------------------------------- 
+ 
 function issuedonothbr(kstr) {
   TranMode()
   //remclrbrclick()
@@ -1376,7 +1233,7 @@ function issuedonothbr(kstr) {
 
   }
 }
-//----------------------------------------------------------------------------------
+
 function getremtype() {
   var vModId
   if (window.document.frmTrans.txtGLcode.value.length > 0) {
@@ -1391,7 +1248,7 @@ function getremtype() {
 
   }
 }
-//---------------------------------------------------------------------------------- 
+ 
 function remitype(kstr) {
   if (kstr == "NODATA") {
     alert("No Parameters Specified")
@@ -1498,7 +1355,7 @@ function remitype(kstr) {
     }
   }
 }
-//----------------------------------------------------------------------------------
+
 function Remcheck() {
   nullcheck()
 
@@ -1519,7 +1376,7 @@ function Remcheck() {
 
 
 }
-//----------------------------------------------------------------------------------
+
 function remcheckpay(kstr) {
   var remchstr = kstr.split("|");
 
@@ -1603,7 +1460,7 @@ function remcheckpay(kstr) {
 
   }
 }
-//----------------------------------------------------------------------------------
+
 function remcheckpaynat(kstr) {
 
   if (kstr == "StockLost") {
@@ -1710,7 +1567,7 @@ function remcheckpaynat(kstr) {
 
   window.document.all['iPhotoSign'].src = '<%="http://" & session("moduledir")&"/GENSBCA/"%>' + "GetPhotoSign.aspx?st=" + st
 }
-//----------------------------------------------------------------------------------
+
 //This function is used to check wether all mandatary fields are filled up or not
 function nullcheck() {
   nullchk = "true"
@@ -1727,7 +1584,7 @@ function nullcheck() {
     nullchk = "true"
   }
 }
-//----------------------------------------------------------------------------------
+
 function reminsert() {
   //stremval=""
   var bybrcode, brcode
@@ -1761,13 +1618,13 @@ function reminsert() {
 
   return stremval;
 }
-//---------------------------------------------------------------------------------- 
-function customerscreen(strbut) {
-  st = strbut + "~" + window.document.frmTrans.txtbranchcode.value + "~" + "NON-CUST"
+ 
+//function customerscreen(strbut) {
+//  st = strbut + "~" + window.document.frmTrans.txtbranchcode.value + "~" + "NON-CUST"
 
-  window.showModalDialog('<%="http://" & session("moduledir")& "/GEN/"%>' + "custlist.aspx" + "?" + "strbut=" + st, window, "status:no;dialogWidth:490px;dialogHeight:200px;DialogLeft:250px;DialogTop:235px")
-}
-//----------------------------------------------------------------------------------
+//  window.showModalDialog('<%="http://" & session("moduledir")& "/GEN/"%>' + "custlist.aspx" + "?" + "strbut=" + st, window, "status:no;dialogWidth:490px;dialogHeight:200px;DialogLeft:250px;DialogTop:235px")
+//}
+
 function getcustid(strcustid) {
   var strsplit
   strsplit = (strcustid).split("~")
@@ -1775,7 +1632,7 @@ function getcustid(strcustid) {
   window.document.frmTrans.txtcusn.value = strsplit[2]
 }
 
-//----------------------------------------------------------------------------------
+
 //function is used to assign branch code and desctiption and also gives an alert if
 //user changes branch code after entering some data into flexgrid
 function Branchcode(kstr) {
@@ -1814,160 +1671,9 @@ function AbbApplDt() {
 
 }
 
-//----------------------------------------------------------------------------------
-//This function displays various moduleids and descriptions,it also clear all lower level
-//fields.And makes different divs visible true and false based on condition
-function modulecode(kstr) {
-
-  if (bdt.toUpperCase() == "TRUE")
-    return
-  var strMod = kstr.split("-----")
-  window.document.frmTrans.txtModId.value = strMod[1]
-  window.document.frmTrans.txtModDesc.value = strMod[0]
-  /*if(strMod[0]!="")
-  {
-    window.document.frmTrans.txtGLcode.focus()
-  }*/
-  window.document.all['divRemRep'].style.display = "none";
-
-  var modId = window.document.frmTrans.txtModId.value.toUpperCase()
-  masterTabYN()
-  GLClear()
-  funloanclear()
-
-  //make ChequeBook check box false and hide respective Division
-  window.document.frmTrans.chkCheque.checked = false;
-  Cheque();
-
-  // Below code will work when service id <> 8 i.e other than clearing	
-  if (eval(window.document.frmTrans.txtServiceId.value) == "8") {
-    return
-  }
-
-  fxTransactionYN()
-  if (window.document.frmTrans.tranmode(2).checked == true) {
-    if (modId == "REM") {
-      window.document.frmTrans.chkCheque.checked = false;
-    }
-    else {
-      window.document.frmTrans.chkCheque.checked = true;
-    }
-    Cheque()
-  }
 
 
-  if ((modId == "REM") &&
-    ((window.document.frmTrans.tranmode(0).checked == true) ||
-      (window.document.frmTrans.tranmode(2).checked == true))) {
-    divsDisplay("remdr", "M")
-    window.document.frmTrans.Mfgpaydt.FormatString = ">Batch No     |>Tran No     |<GL Code       |<GL Description                       |>Acc No             |<Name                               |>Amount                     |>Entered Time Bal    |^Application Date   |<Cust ID                      |<Mode of Tran |<Mode of Tran Desc   |^ABB Application Date|<Tran Status  |>Currency Code   |<Entered By                    |<Entered M/C                  |<Module ID         |<Branch Code            |>Token No         |<Remarks                                  |<Cheque Series   |>Cheque No                 |^Cheque Date         |<Cheque Favouring              |<Sys Gen YN |<Module Description      |^ Effective Date        |<CLG Rate Type                |>Rate                   |<F Currency Code |>F Amount                   |<Link Module ID       |<Link Module Desc         |<Link GL Code   |<Link GL Desc            |>Link Account Type |>Link Account No |<Link Acc Name                   |>Service ID |<Service Desc  |<Resp Branch Code |<Resp Branch Desc          |<Resp Section Code |<Resp Section Desc        |<ABB Branch Code          |<Branch Desc                    |>Disposal Batch No |>Disposal Tran No  |<Acc Chk YN|Exception YN|Exception Codes|>Resp Bank Code|<Resp Bank Desc|<SI YN|>Counter No.|<Cashier Id               |>Scroll No.      |<Rate Ref Code     |<Rate Ref Desc     |>Issued by Branch Code |< Issued by Branch Desc|< Favouring        |>Instrument No    |>Advice Recceived|>Advice No.   |^Advice Rec Date|^Instrument Date|<Instrument Type|<Native Y/N"
-  }
 
-  else if ((modId == "REM") &&
-    (window.document.frmTrans.tranmode(1).checked == true)) {
-    divsDisplay("remcr", "M")
-    window.document.all.divComm.style.display = "block";
-    window.document.all['divfxRem'].style.display = "block";
-    window.document.all['divrembank'].style.display = "block";
-    window.document.all['divRemRep'].style.display = "block";
-
-    if ((CashDenom == 'Y') && (vMode == "REC")) {
-      window.document.frmTrans.chkRemRepeat.disabled = true
-      window.document.frmTrans.txtNoOfRepeat.disabled = true
-    }
-    else {
-      window.document.frmTrans.chkRemRepeat.disabled = false
-      window.document.frmTrans.txtNoOfRepeat.disabled = false
-    }
-
-
-  }
-  else if ((modId == "FXREM") &&
-    (window.document.frmTrans.tranmode(1).checked == true)) {
-    divsDisplay("remcr", "M")
-    window.document.all.divComm.style.display = "block";
-    window.document.all['divfxRem'].style.display = "block";
-    window.document.all['divrembank'].style.display = "none";
-
-  }
-  // suspence start
-  else if (modId == "SCR") {
-    divsDisplay("divaccno", "M")
-
-    window.document.all['divcheque'].style.display = "none";
-    window.document.frmTrans.Mfgpaydt.FormatString = ">Batch No     |>Tran No     |<GL Code       |<GL Description                       |>Acc No             |<Name                               |>Amount                     |>Entered Time Bal    |^Application Date   |<Cust ID                      |<Mode of Tran |<Mode of Tran Desc   |^ABB Application Date|<Tran Status  |>Currency Code   |<Entered By                    |<Entered M/C                  |<Module ID         |<Branch Code            |>Token No         |<Remarks                                  |<Cheque Series   |>Cheque No                 |^Cheque Date         |<Cheque Favouring              |<Sys Gen YN |<Module Description      |^ Effective Date        |<CLG Rate Type                |>Rate                   |<F Currency Code |>F Amount                   |<Link Module ID       |<Link Module Desc         |<Link GL Code   |<Link GL Desc            |>Link Account Type |>Link Account No |<Link Acc Name                   |>Service ID |<Service Desc  |<Resp Branch Code |<Resp Branch Desc          |<Resp Section Code |<Resp Section Desc        |<ABB Branch Code          |<Branch Desc                    |>Disposal Batch No |>Disposal Tran No  |<Acc Chk YN|Exception YN|Exception Codes|>Resp Bank Code|<Resp Bank Desc|<SI YN|>Counter No.|<Cashier Id               |>Scroll No.      |<Rate Ref Code     |<Rate Ref Desc     |^ Contra Date |>Contra Batch No       |>Contra Tran No       |>Appl's Name |>Cust Id      "
-  }
-  // Loan end
-  else if ((modId == "LOAN") &&
-    (window.document.frmTrans.tranmode(0).checked == true)) {
-
-    divsDisplay("loandtls", "M")
-
-    window.document.all['divaccno'].style.display = "block";
-    window.document.all.loanintdtls.style.display = "block"
-    window.document.frmTrans.selloantrans.style.display = "block";
-    funloantran()
-    funinsertloan()
-    window.document.frmTrans.Mfgpaydt.FormatString = ">Batch No     |>Tran No     |<GL Code       |<GL Description                       |>Acc No             |<Name                               |>Amount                     |>Entered Time Bal    |^Application Date   |<Cust ID                      |<Mode of Tran |<Mode of Tran Desc   |^ABB Application Date|<Tran Status  |>Currency Code   |<Entered By                    |<Entered M/C                  |<Module ID         |<Branch Code            |>Token No         |<Remarks                                  |<Cheque Series   |>Cheque No                 |^Cheque Date         |<Cheque Favouring              |<Sys Gen YN |<Module Description      |^ Effective Date        |<CLG Rate Type                |>Rate                   |<F Currency Code |>F Amount                   |<Link Module ID       |<Link Module Desc         |<Link GL Code   |<Link GL Desc            |>Link Account Type |>Link Account No |<Link Acc Name                   |>Service ID |<Service Desc  |<Resp Branch Code |<Resp Branch Desc          |<Resp Section Code |<Resp Section Desc        |<ABB Branch Code          |<Branch Desc                    |>Disposal Batch No |>Disposal Tran No  |<Acc Chk YN|Exception YN|Exception Codes|>Resp Bank Code|<Resp Bank Desc|<SI YN|>Counter No.|<Cashier Id               |>Scroll No.      |<Rate Ref Code     |<Rate Ref Desc     |>                  |>             |>             |>               |>               |>             |>           "
-    window.document.frmTrans.Mfgpaydt.TextMatrix(0, 44) = "Loan Trans"
-  }
-  else if ((modId == "LOAN") &&
-    (window.document.frmTrans.tranmode(1).checked == true)) {
-    divsDisplay("loandtls", "M")
-
-    window.document.all['divaccno'].style.display = "block";
-    window.document.all.loanintdtls.style.display = "block"
-    funloantran()
-    funinsertloan()
-    window.document.frmTrans.Mfgpaydt.FormatString = ">Batch No     |>Tran No     |<GL Code       |<GL Description                       |>Acc No             |<Name                               |>Amount                     |>Entered Time Bal    |^Application Date   |<Cust ID                      |<Mode of Tran |<Mode of Tran Desc   |^ABB Application Date|<Tran Status  |>Currency Code   |<Entered By                    |<Entered M/C                  |<Module ID         |<Branch Code            |>Token No         |<Remarks                                  |<Cheque Series   |>Cheque No                 |^Cheque Date         |<Cheque Favouring              |<Sys Gen YN |<Module Description      |^ Effective Date        |<CLG Rate Type                |>Rate                   |<F Currency Code |>F Amount                   |<Link Module ID       |<Link Module Desc         |<Link GL Code   |<Link GL Desc            |>Link Account Type |>Link Account No |<Link Acc Name                   |>Service ID |<Service Desc  |<Resp Branch Code |<Resp Branch Desc          |<Resp Section Code |<Resp Section Desc        |<ABB Branch Code          |<Branch Desc                    |>Disposal Batch No |>Disposal Tran No  |<Acc Chk YN|Exception YN|Exception Codes|>Resp Bank Code|<Resp Bank Desc|<SI YN|>Counter No.|<Cashier Id               |>Scroll No.      |<Rate Ref Code     |<Rate Ref Desc     |>Interest Amount |> Charges Amount |> Insurance Amount |>NPA Amount       |>Principalamount       |>Excessamount |>Cust ID      "
-  }
-  else if (modId == "DEP") {
-    divsDisplay("divDepDtls", "M")
-    window.document.all['divaccno'].style.display = "block";
-    window.document.frmTrans.Mfgpaydt.FormatString = ">Batch No     |>Tran No     |<GL Code       |<GL Description                       |>Acc No             |<Name                               |>Amount                     |>Entered Time Bal    |^Application Date   |<Cust ID                      |<Mode of Tran |<Mode of Tran Desc   |^ABB Application Date|<Tran Status  |>Currency Code   |<Entered By                    |<Entered M/C                  |<Module ID         |<Branch Code            |>Token No         |<Remarks                                  |<Cheque Series   |>Cheque No                 |^Cheque Date         |<Cheque Favouring              |<Sys Gen YN |<Module Description      |^ Effective Date        |<CLG Rate Type                |>Rate                   |<F Currency Code |>F Amount                   |<Link Module ID       |<Link Module Desc         |<Link GL Code   |<Link GL Desc            |>Link Account Type |>Link Account No |<Link Acc Name                   |>Service ID |<Service Desc  |<Resp Branch Code |<Resp Branch Desc          |<Resp Section Code |<Resp Section Desc        |<ABB Branch Code          |<Branch Desc                    |>Disposal Batch No |>Disposal Tran No  |<Acc Chk YN|Exception YN|Exception Codes|>Resp Bank Code|<Resp Bank Desc|<SI YN|>Counter No.|<Cashier Id               |>Scroll No.      |<Rate Ref Code     |<Rate Ref Desc     |>Opening Amount  |> Current Amount |> Maturity Amount |>Int Accrued       |>Opening Date       |>Effective Date |>Maturity Date  |>Int. Paid Upto |>ROI     "
-  }
-  else if (modId == "SI" && vMode != "REC") {
-    cnfrm = confirm("Do you want to Execute Standing Instructions ?")
-    if (cnfrm == true) {
-      SIGlcode()
-    }
-    else {
-      window.document.frmTrans.txtModId.value = ""
-      window.document.frmTrans.txtModDesc.value = ""
-    }
-  }
-  else {
-    //alert("trnsfer")
-    divsDisplay("trnsfer", "M")
-    window.document.frmTrans.txtpendbal.value = ""
-    window.document.all['divaccno'].style.display = "block";
-    window.document.all['divcheque'].style.display = "block";
-    if ((window.document.frmTrans.txtModId.value == "SB") || (window.document.frmTrans.txtModId.value == "CA") || (window.document.frmTrans.txtModId.value == "CC")) {
-      window.document.frmTrans.all.trcctod.style.display = "block"
-    }
-    else {
-      window.document.frmTrans.all.trcctod.style.display = "none"
-    }
-
-    if (window.document.frmTrans.txtModId.value == "CC") {
-      window.document.frmTrans.all.trcctod1.style.display = "block"
-    }
-    else {
-      window.document.frmTrans.all.trcctod1.style.display = "none"
-    }
-
-  }
-  ServiceIdDivs()
-  //code added by Radhika on 12 May 2008
-  //GetModDets()
-
-  if ((modId == "REM") &&
-    (window.document.frmTrans.tranmode(1).checked == true)) {
-    //alert("1")
-  }
-
-}
-//----------------------------------------------------------------------------------
 function Siglid(siglcode) {
   if (siglcode != "NOGLCODE") {
     sigl = siglcode.split("|")
@@ -1986,7 +1692,7 @@ function Siglid(siglcode) {
   }
 }
 
-//----------------------------------------------------------------------------------
+
 function SIGlcode() {
   lockControls()
   strpm = "SIGLCODE" + "~" +
@@ -1997,7 +1703,7 @@ function SIGlcode() {
   //window.status="Executing Standing Instructions......"
 
 }
-//----------------------------------------------------------------------------------
+
 function SIRslt(bNo) {
 
   var batchNo = ""
@@ -2047,7 +1753,7 @@ function SIRslt(bNo) {
   }
 
 }
-//----------------------------------------------------------------------------------
+
 function divsDisplay(visibleDiv, MainOrAddtional) {
 
   if (MainOrAddtional.toUpperCase() == "M") {
@@ -2070,19 +1776,19 @@ function divsDisplay(visibleDiv, MainOrAddtional) {
 
 }
 
-//----------------------------------------------------------------------------------
+
 function divsstring() {
   strDivs = "trnsfer" + "~" + "divDepDtls" + "~" + "selloantrans" + "~" + "loanintdtls" + "~" +
     "divLnkMod" + "~" + "loandtls" + "~" + "remdr" + "~" + "remcr" + "~" + "divCLG" + "~" +
     "divAccCat" + "~" + "divDenom"
 }
 
-//----------------------------------------------------------------------------------
+
 function divsstringAdd() {
   strDivs = "divTempTrans" + "~" + "divDisp" + "~" + "divFxRate"
 }
 
-//----------------------------------------------------------------------------------
+
 function DenomDtls() {
   if (vMode == "REC") {
     if (window.document.frmTrans.chkDenomDtls.checked == true) {
@@ -2195,7 +1901,7 @@ function ReceivedCashierScrlNo(strval) {
 var bdt = '<%=BDT%>'
 
 
-//----------------------------------------------------------------------------------
+
 //This function is used to get Cash GL code.
 function CshCode(code) {
 
@@ -2212,7 +1918,7 @@ function CshCode(code) {
   }
 
 }
-//-----------------------------------------------------------------------------------
+-
 //function Receipt Limit
 function RecLimit(vRLmt) {
 
@@ -2229,7 +1935,7 @@ function RecLimit(vRLmt) {
   }
   MaxLimitAmt = RecPayAmt[4]
 }
-//-----------------------------------------------------------------------------------
+-
 function RecPayLmtChk() {
   if (window.document.frmTrans.txtbranchcode.value.length > 0 &&
     window.document.frmTrans.txtcurrencycode.value.length > 0 &&
@@ -2255,28 +1961,6 @@ function RecPayLmtChk() {
   }
 }
 
-//-----------------------------------------------------------------------------------  
-//Checks for cheques mandatory field values
-function Cheque() {
-
-  if (window.document.frmTrans.chkCheque.checked == true) {
-    //  window.document.frmTrans.txtChqDt.value=vAppDate;
-    //   window.document.frmTrans.DtpChq.value=vAppDate;
-    window.document.all['ChqDtl'].style.display = "block";
-  }
-
-  if (window.document.frmTrans.chkCheque.checked == false) {
-    window.document.all['ChqDtl'].style.display = "none";
-    chequeClear()
-    window.document.frmTrans.txtChqDt.value = '<%=session("Applicationdate")%>'
-
-    if (mode != "MODIFY") {
-      excpChqSrs = ""
-      excpChqNo = ""
-    }
-
-  }
-}
 
 function displayret(kstr) {
   if (kstr == "") {
@@ -2472,291 +2156,11 @@ function trim(str) {
   }
 }
 
-//----------------------------------------------------------------------------------
-//This function is used to check for mandatory field values. 
-function checkNulls(modId, modeval, serId) {
-  //for General Mandatory fields
-  chkNull = "true"
-
-  if ((window.document.frmTrans.tranmode[2].checked == true) &&
-    (window.document.frmTrans.cmdcleartype.selectedIndex < 1)) {
-    alert("Please Select Clearing Type")
-    chkNull = "false"
-    return
-  }
-
-  if ((window.document.frmTrans.txtbranchcode.value == "") ||
-    (window.document.frmTrans.txtcurrencycode.value == "") ||
-    (window.document.frmTrans.txtModId.value == "") ||
-    (window.document.frmTrans.txtGLcode.value == "") ||
-    (eval(window.document.frmTrans.txtAmt.value == 0))) {
-    chkNull = "false"
-
-    if (window.document.frmTrans.txtbranchcode.value == "") {
-      alert("Please enter Branch Code")
-      window.document.frmTrans.txtbranchcode.focus()
-      return
-    }
-
-    if (window.document.frmTrans.txtcurrencycode.value == "") {
-      alert("Please enter Currency Code")
-      window.document.frmTrans.txtcurrencycode.focus()
-      return
-    }
-
-    if (window.document.frmTrans.txtModId.value == "") {
-      alert("Please enter Module id Code")
-      window.document.frmTrans.txtModId.focus()
-      return
-    }
-
-    if (window.document.frmTrans.txtAmt.value == "") {
-      alert("Please enter Amount")
-      window.document.frmTrans.txtAmt.focus()
-      return
-    }
 
 
 
-  }
 
-  // for deposit opening categorycode,application name   new
-
-
-  if ((window.document.frmTrans.tranmode[1].checked == true) && (serId == "2")) {
-    str1 = window.document.frmTrans.txtAppName.value
-    if ((window.document.frmTrans.txtAccCatCode.value == "") ||
-      (trim(str1) == "")) {
-      chkNull = "false"
-      alert("Please enter Category code")
-      window.document.frmTrans.txtAccCatCode.focus()
-      return
-    }
-  }
-
-  // end of new
-
-
-  //for Account Number
-
-  if ((window.document.frmTrans.tranmode[2].checked == true) || (serId == "2") || (mstTab == "NO") || (modId == "REM")) {
-
-  }
-  else {
-    if (window.document.frmTrans.txtAccNo.value == "") {
-      chkNull = "false"
-      alert("Please enter the Accnount Number")
-      window.document.frmTrans.txtAccNo.focus()
-      return
-    }
-  }
-
-  //for Cheques
-  if (window.document.frmTrans.chkCheque.checked == true) {
-    //if((window.document.frmTrans.txtChqSrs.value=="")||
-    if ((window.document.frmTrans.txtChqNo.value == "") ||
-      (window.document.frmTrans.txtChqDt.value == "")) {
-      chkNull = "false"
-      if (window.document.frmTrans.txtChqNo.value == "") {
-        alert("Please enter Cheque number")
-        window.document.frmTrans.txtChqNo.focus()
-      }
-
-      if (window.document.frmTrans.txtChqDt.value == "") {
-        alert("Please enter Cheque Date")
-        window.document.frmTrans.txtChqDt.focus()
-      }
-      return
-    }
-  }
-  //----------------
-
-  //for outward returns clearing Mandatory fields 
-  if ((window.document.frmTrans.tranmode[2].checked == true) &&
-    (window.document.frmTrans.txtServiceId.value == "8")) {
-
-    if ((window.document.frmTrans.txtCLGModId.value == "") ||
-      (window.document.frmTrans.txtCLGGLcode.value == "") ||
-      (window.document.frmTrans.txtCLGBranch.value == "") ||
-      (window.document.frmTrans.txtCLGReasoncode.value == "") ||
-      (window.document.frmTrans.txtCLGBankCode.value == "")) {
-      chkNull = "false"
-
-      if (window.document.frmTrans.txtCLGModId.value == "") {
-        alert("Please enter Clearing Module ID")
-        window.document.frmTrans.txtCLGModId.focus()
-      }
-
-      if (window.document.frmTrans.txtCLGGLcode.value == "") {
-        alert("Please enter Clearing GL Code")
-        window.document.frmTrans.txtCLGGLcode.focus()
-      }
-
-      if (window.document.frmTrans.txtCLGBranch.value == "") {
-        alert("Please enter Clearing Branch Code")
-        window.document.frmTrans.txtCLGBranch.focus()
-      }
-
-      if (window.document.frmTrans.txtCLGReasoncode.value == "") {
-        alert("Please enter Clearing Outward Return Reasond code")
-        window.document.frmTrans.txtCLGReasoncode.focus()
-      }
-
-      if (window.document.frmTrans.txtCLGBankCode.value == "") {
-        alert("Please enter Clearing Bank code")
-        window.document.frmTrans.txtCLGBankCode.focus()
-      }
-      return
-    }
-  }
-
-
-  //for Loans  
-  if ((modId == "LOAN") && (modeval == "3")) {
-    if (window.document.frmTrans.selloantrans.value == "Select") {
-      chkNull = "false"
-      alert("Mandatory fields cannot be Null")
-      return
-    }
-  }
-
-  //for Remittance 
-
-  if (((modId == "REM") && (modeval == "4")) || ((modId == "REM") && (modeval == "2"))) {
-
-    if ((window.document.frmTrans.txtissbnkcode.value == "") ||
-      (window.document.frmTrans.txtissbrcode.value == "") ||
-      (window.document.frmTrans.txtfavg.value == "")) {
-      chkNull = "false"
-
-      if (window.document.frmTrans.txtissbnkcode.value == "") {
-        window.document.frmTrans.txtissbnkcode.focus()
-        alert("Please enter Issued Bank Code")
-      }
-
-      if (window.document.frmTrans.txtissbrcode.value == "") {
-        window.document.frmTrans.txtissbrcode.focus()
-        alert("Please enter Issued Branch Code")
-      }
-      return
-    }
-
-    if ((window.document.frmTrans.chkDispAccNo.checked == false) && (mode != "MODIFY")) {
-      if ((eval(window.document.frmTrans.txtcomm.value) == 0) ||
-        (window.document.frmTrans.txtcomm.value == "")) {
-        var confrm = confirm("Commission not entered.  Do you want to Continue? ")
-        if (confrm == false) {
-          chkNull = "false"
-          return
-        }
-      }
-    } //end of Commision check
-
-    if ((window.document.frmTrans.chkDispAccNo.checked == false) && (mode != "MODIFY")) {
-      if ((eval(window.document.frmTrans.txtSerivceChrg.value) == 0) ||
-        (window.document.frmTrans.txtSerivceChrg.value == "")) {
-        var confrm = confirm("Service Charge not entered.  Do you want" +
-          " to Continue? ")
-        if (confrm == false) {
-          chkNull = "false"
-          return
-        }
-      }
-    } //end of Service Charge check	     
-  }
-  else if (((modId == "REM") && (modeval == "3")) || ((modId == "REM") && (modeval == "1"))) {
-    if ((window.document.frmTrans.txtbybnkcode.value == "") ||
-      (window.document.frmTrans.txtbybrcode.value == "") ||
-      (window.document.frmTrans.txtinstrno.value == "") ||
-      (window.document.frmTrans.txtinstrdt.value == "") ||
-      (window.document.frmTrans.txtfavgdr.value == "")) {
-      chkNull = "false"
-
-      if (window.document.frmTrans.txtbybnkcode.value == "") {
-        alert("Please enter By Bank code")
-        window.document.frmTrans.txtbybnkcode.focus()
-      }
-
-      if (window.document.frmTrans.txtbybrcode.value == "") {
-        alert("Please enter By Branch code")
-        window.document.frmTrans.txtbybrcode.focus()
-      }
-
-      if (window.document.frmTrans.txtinstrno.value == "") {
-        alert("Please enter By Instrument no:")
-        window.document.frmTrans.txtinstrno.focus()
-      }
-
-      if (window.document.frmTrans.txtfavgdr.value == "") {
-        alert("Please enter By Favoring")
-        window.document.frmTrans.txtfavgdr.focus()
-      }
-
-
-
-      return
-    }
-  }
-  //for Forex
-  if ((fxTransYN == "Y") && (window.document.frmTrans.chkDispAccNo.checked == false) &&
-    (window.document.frmTrans.chkFRateDtls == true)) {
-
-    if ((window.document.frmTrans.txtFCurCode.value == "") ||
-      (eval(window.document.frmTrans.txtFAmount.value == 0)) ||
-      (eval(window.document.frmTrans.txtFRate.value == 0)) ||
-      (window.document.frmTrans.txtFRateRefCode.value == "") ||
-      (window.document.frmTrans.cmbFRateType.options
-      [window.document.frmTrans.cmbFRateType.selectedIndex].value == "")) {
-      chkNull = "false"
-      alert("Mandatory fields cannot be Null")
-      return
-    }
-  }
-  if ((modId == "FXREM") && ((modeval == "4") || (modeval == "2"))) {
-
-    if ((window.document.frmTrans.txtfavg.value == "")) {
-      chkNull = "false"
-      alert("Mandatory fields cannot be Null")
-      return
-    }
-    if ((window.document.frmTrans.chkDispAccNo.checked == false) && (mode != "MODIFY")) {
-      if ((eval(window.document.frmTrans.txtcomm.value) == 0) ||
-        (window.document.frmTrans.txtcomm.value == "")) {
-        var confrm = confirm("Commission not entered.  Do you want to Continue? ")
-        if (confrm == false) {
-          chkNull = "false"
-          return
-        }
-      }
-    }//end of commission check
-
-    if ((window.document.frmTrans.chkDispAccNo.checked == false) && (mode != "MODIFY")) {
-      if ((eval(window.document.frmTrans.txtSerivceChrg.value) == 0) ||
-        (window.document.frmTrans.txtSerivceChrg.value == "")) {
-        var confrm = confirm("Service Charge not entered.  Do you want" +
-          " to Continue? ")
-        if (confrm == false) {
-          chkNull = "false"
-          return
-        }
-      }
-    }//end of Service Charge check
-
-  }
-
-  if ((vMode == "PAY") && (vSubMode == "")) {
-    if (window.document.frmTrans.txtTokenNo.value == "") {
-      chkNull = "false"
-      if (window.document.frmTrans.txtTokenNo.value == "") {
-        alert("Please enter TokenNo")
-        window.document.frmTrans.txtTokenNo.focus()
-      }
-      return
-    }
-  }
-
-}
-//---------------------------------------------------------------------------------- dtpinstDate
+ dtpinstDate
 //This function is used poplate different module ids and descriptions
 function CLGModule() {
   document.getElementById("divPhotoSignature").style.display = 'none';
@@ -2767,14 +2171,14 @@ function CLGModule() {
   window.showModalDialog('<%="http://" & session("moduledir")& "/GEN/"%>' + "TranList.aspx" + "?" + "st=" + kstr, window, "status:no;" +
     "DialogWidth:270px;DialogHeight:170px;DialogLeft:340px;DialogTop:100px")
 }
-//----------------------------------------------------------------------------------
+
 //This function is used to assign different module codes to the respective textboxes
 //and clears lower level fields.
 function CLGModuleCode(kstr) {
   assign(kstr, window.document.frmTrans.txtCLGModDesc, window.document.frmTrans.txtCLGModId);
   ClgGLClear()
 }
-//---------------------------------------------------------------------------------- 
+ 
 //This function is used to populate different glcodes and descriptions based on moduleid.
 function CLGGlcode() {
   document.getElementById("divPhotoSignature").style.display = 'none';
@@ -2793,7 +2197,7 @@ function CLGGlcode() {
   }
 
 }
-//----------------------------------------------------------------------------------
+
 //This function is used to assign different glcodes to the respective textboxes.
 //And also it clears off the lower level fields.
 function CLGGlcodeid(kstr) {
@@ -2804,7 +2208,7 @@ function CLGGlcodeid(kstr) {
   ClgAccountClear()
 }
 
-//----------------------------------------------------------------------------------
+
 //This function is used to populate different account numbers. 
 function CLGAccCode() {
   document.getElementById("divPhotoSignature").style.display = 'none'
@@ -2824,7 +2228,7 @@ function CLGAccCode() {
       "DialogWidth:460px;DialogHeight:200px;DialogLeft:340px;DialogTop:80px")
   }
 }
-//---------------------------------------------------------------------------------- 
+ 
 //This function is used to assign account number and name to the respective textboxes and
 //clears off lower level fields.
 function CLGAccountId(kstr) {
@@ -2961,7 +2365,7 @@ function Setphotosig(stri) {
 
 }
 
-//----------------------------------------------------------------------------------
+
 // function is used to populate different bank codes.
 function CLGBankCodeId() {
   if (window.document.frmTrans.txtCLGAccNo.value == "") {
@@ -2983,7 +2387,7 @@ function CLGBankCodeId() {
 
 }
 
-//----------------------------------------------------------------------------------
+
 //function is used to assign bank code to the vextbox. 
 function CLGBankCode(kstr) {
 
@@ -2993,7 +2397,7 @@ function CLGBankCode(kstr) {
   ClgPBranchClear()
 
 }
-//----------------------------------------------------------------------------------
+
 //this function is used for populating CLgBankBranches
 
 function CLGBranchCodeId() {
@@ -3016,14 +2420,14 @@ function CLGBranchCodeId() {
     "DialogWidth:270px;DialogHeight:170px;DialogLeft:340px;DialogTop:80px")
 
 }
-//----------------------------------------------------------------------------------
+
 //This function is used to assign branchcode to the textbox.
 function CLGBranchCode(kstr) {
   var strnew = new String()
   strnew = kstr.split("-----")
   window.document.frmTrans.txtCLGBranch.value = strnew[1]
 }
-//----------------------------------------------------------------------------------
+
 //function is used for reason codes population.
 function CLGReasonCodeId() {
 
@@ -3035,7 +2439,7 @@ function CLGReasonCodeId() {
     "DialogWidth:270px;DialogHeight:170px;DialogLeft:340px;DialogTop:80px")
   ClgPBankClear()
 }
-//---------------------------------------------------------------------------------- 
+ 
 //function is used to assign reason code and description to the text boxes. 
 function CLGReasonCode(kstr) {
   var strnew = new String()
@@ -3070,7 +2474,7 @@ function cmdcleartype_OnChange() {
   }
 }
 
-//----------------------------------------------------------------------------------
+
 //function for displaying the parameter moduleid,glcode,accno for outward return
 function paramAcc() {
   if (eval(window.document.frmTrans.txtServiceId.value == "8")) {
@@ -3086,7 +2490,7 @@ function paramAcc() {
     window.document.all['iGeneral'].src = '<%="http://" & session("moduledir")& "/GEN/"%>' + "minBalChk.aspx?strparam=" + strpm
   }
 }
-//----------------------------------------------------------------------------------
+
 //function for diplaying parameter moduleid,glcode,accno whicg is returned by
 ///flypage
 
@@ -3102,7 +2506,7 @@ function CLGParam(ClearParam) {
     window.document.frmTrans.txtGLDesc.value = StrArrMain[5]
   }
 }
-//----------------------------------------------------------------------------------
+
 //This function is used to populate different clearing types in the combo box.
 function CLGTypes(ClearType) {
 
@@ -3127,11 +2531,11 @@ function CLGTypes(ClearType) {
 
 }
 
-//----------------------------------------------------------------------------------	
+	
 
-//----------------------------------------------------------------------------------	
+	
 
-//----------------------------------------------------------------------------------
+
 //function for displaying the clgreturn moduleid,glciode etc div tag
 function CLGClearDiv() {
   window.document.all.loanintdtls.style.display = "none"
@@ -3147,7 +2551,7 @@ function CLGClearDiv() {
   window.document.all.divLnkMod.style.display = "none"
   window.document.all.divCLG.style.display = "block"
 }
-//----------------------------------------------------------------------------------
+
 //checks whether the given cheque is valid one or not.i.e, cheque series, cheque number,
 //cheque date,cheque favouring.
 
@@ -3217,29 +2621,6 @@ function AccDetails1() {
 } //end of AccDetails1() method
 var blnNpaInt = false
 var npaIntYN = "N"
-function closeLoanAuto() {
-  var brcodeclln
-  brcodeclln
-  if (window.document.frmTrans.chkABB.checked == false) {
-    brcodeclln = window.document.frmTrans.txtbranchcode.value
-  }
-  else {
-    brcodeclln = "ABB"
-  }
-  var sBatch = ""
-  if (window.document.frmTrans.Mfgpaydt.Rows >= 2) {
-    sBatch = window.document.frmTrans.Mfgpaydt.textmatrix(1, 0)
-  }
-
-  st = "POSTINTEREST|" + brcodeclln + "|" +
-    window.document.frmTrans.txtcurrencycode.value + "|" + window.document.frmTrans.txtModId.value + "|" +
-    window.document.frmTrans.txtGLcode.value + "|" + window.document.frmTrans.txtAccNo.value + "|" +
-    window.document.frmTrans.txtAmt.value + "|" + vMode + "|" + npaIntYN + "|" + sBatch
-
-  window.document.all['iGetDtls'].src = "getDtls.aspx?st=" + st
-  return;
-}
-
 var popbatchNo
 popbatchNo = ""
 function populateInterest(str) {
@@ -4004,10 +3385,7 @@ function closeLoanAutoRevert() {
   alert("hi")
 }
 
-//----------------------------------------------------------------------------------
-//This function checks for mandatory field values.
-//inserts rows into gentemptranslog
-//genrates batchno and tranno based on condition.
+//This function checks for mandatory field values. Inserts rows into gentemptranslog genrates batchno and tranno based on condition.
 
 var blnFlagAutoClose, blnCloseLoan, blnBatchLoanClose, blnBatchLoancheck
 
@@ -4016,487 +3394,121 @@ blnCloseLoan = false
 blnBatchLoanClose = false
 blnBatchLoancheck = false
 
-function cmdOkClick() {
+//function BatchTranNo(str) {
+//  strBatchTran = str
+//  var strArr = strBatchTran.split("|")
+//  var strVals = strArr[1].split("*")
+//  //alert(strArr)
+//  var noofDDs = eval(window.document.frmTrans.txtNoOfRepeat.value)
+//  var strBat
+//  var intCnt = 1
 
-  var strValues
-  var brCode
-  blnFlagAutoClose = false
-  blnBatchLoancheck = false
+//  if ((vMode == "PAY") || (vMode == "REC")) {
+//    noofDDs = noofDDs * 2
+//  }
+//  for (vCnt = 0; vCnt <= noofDDs - 1; vCnt++) {
+//    if ((vMode == "PAY") || (vMode == "REC")) {
+//      strBat = strArr[0] + "~" + strVals[vCnt + 1] + "~" + strVals[strVals.length - 2] + "~" + strVals[strVals.length - 1] + "~" + strVals[vCnt + 2]
 
-  //this code added by vinod for close loans where 0 balance in accounts
+//      DDRepetition(strBat)
+//      vCnt = vCnt + 1
+//    }
+//    else {
+//      strBat = strArr[0] + "~" + strVals[vCnt + 1] + "~" + strVals[strVals.length - 2] + "~" + strVals[strVals.length - 1]
+//      DDRepetition(strBat)
+//    }
+//  }
 
-  if ((window.document.frmTrans.tranmode[1].checked == true) &&
-    (window.document.frmTrans.txtModId.value == "LOAN")) {
-
-    if (CashDenom == 'Y') {
-      window.document.frmTrans.hdnMod.value = window.document.frmTrans.txtModId.value
-    }
-
-    if (Math.abs(window.document.frmTrans.txtloanaccbal.value) == Math.abs(window.document.frmTrans.txtAmt.value)) {
-      blnBatchLoancheck = true
-      blnCloseLoan = true
-      window.document.frmTrans.hdnblnCloseLoan.value = ""
-      window.document.frmTrans.hdnblnCloseLoan.value = "true1"
-      var result = confirm("Do you Want to Close This Loan");
-      if (result == true) {
-        var resultConfirm = confirm("Are you Sure Want to Close This Loan");
-        {
-          if (resultConfirm == true) {
-            blnFlagAutoClose = true
-            //blnCloseLoan=true
-            window.document.frames['iPost'].frmPost.hdnCloseLoan.value = window.document.frmTrans.txtAccNo.value + "|" + window.document.frmTrans.txtGLcode.value + "|" + window.document.frmTrans.txtbranchcode.value
-
-            /*if((window.document.frmTrans.txtIntPendAmt.value=="")||eval((window.document.frmTrans.txtIntPendAmt.value==0)))
-            {
-              blnBatchLoanClose=false
-            }
-            else
-            {*/
-            if (!((window.document.frmTrans.txtNPAIntAmt.value == "") || eval(window.document.frmTrans.txtNPAIntAmt.value == 0))) {
-              blnNpaInt = true
-              npaIntYN = "Y"
-              if ((Math.abs(window.document.frmTrans.txtloanaccbal.value) == Math.abs(window.document.frmTrans.txtAmt.value)) || (parseFloat(window.document.frmTrans.txtAmt.value) > parseFloat(window.document.frmTrans.txtNPAIntAmt.value))) {
-                alert("NPA Interest for This Account is " + window.document.frmTrans.txtNPAIntAmt.value + ", This Amount Adjusted to Loan")
-              }
-              if (parseFloat(window.document.frmTrans.txtAmt.value) <= parseFloat(window.document.frmTrans.txtNPAIntAmt.value)) {
-                alert("NPA Interest for This Account is " + window.document.frmTrans.txtNPAIntAmt.value + ", This Amount " + window.document.frmTrans.txtAmt.value + " Adjusted to Loan")
-              }
-            }
-            blnBatchLoanClose = true
-            //alert("hi")
-            closeLoanAuto()
-            //}
-          }
-          else {
-            window.document.frames['iPost'].frmPost.hdnCloseLoan.value = ""
-            blnFlagAutoClose = false
-            blnBatchLoanClose = false
-            closeLoanAuto()
-          }
-        }
-      }
-      else {
-        window.document.frames['iPost'].frmPost.hdnCloseLoan.value = ""
-        blnFlagAutoClose = false
-        blnBatchLoanClose = false
-        closeLoanAuto()
-      }
-    }
-    else if (Math.abs(window.document.frmTrans.txtAmt.value) > Math.abs(window.document.frmTrans.txtloanaccbal.value)) {
-      var resultConfirm = confirm("Entered Amt Is Crossing A/c Bal , Do You Want To Continue ?");
-      {
-        if (resultConfirm == true) {
-        }
-        else {
-          return
-        }
-
-      }
-    }
-    else {
-      if (!((window.document.frmTrans.txtNPAIntAmt.value == "") || eval(window.document.frmTrans.txtNPAIntAmt.value == 0))) {
-        blnNpaInt = true
-        npaIntYN = "Y"
-        if ((Math.abs(window.document.frmTrans.txtloanaccbal.value) == Math.abs(window.document.frmTrans.txtAmt.value)) || (parseFloat(window.document.frmTrans.txtAmt.value) > parseFloat(window.document.frmTrans.txtNPAIntAmt.value))) {
-          alert("NPA Interest for This Account is " + window.document.frmTrans.txtNPAIntAmt.value + ", This Amount Adjusted to Loan")
-        }
-        if (parseFloat(window.document.frmTrans.txtAmt.value) <= parseFloat(window.document.frmTrans.txtNPAIntAmt.value)) {
-          alert("NPA Interest for This Account is " + window.document.frmTrans.txtNPAIntAmt.value + ", This Amount " + window.document.frmTrans.txtAmt.value + " Adjusted to Loan")
-        }
-        blnBatchLoanClose = false
-        closeLoanAuto()
-      }
-    }
-  }
-
-  //this code added by vinod for close loans where 0 balance in accounts ended here
+//  //service charge and commision
+//  var flxRowCnt
+//  var yCnt = 0
+//  if ((vMode == "PAY") || (vMode == "REC")) {
+//    yCnt = noofDDs / 2
+//    flxRowCnt = window.document.frmTrans.Mfgpaydt.rows - 2
+//  }
+//  else {
+//    yCnt = noofDDs
+//    flxRowCnt = window.document.frmTrans.Mfgpaydt.rows - 1
+//  }
 
 
-  if (vSubMode == "TPAY" || vSubMode == "TREC") {
+//  if ((window.document.frmTrans.Mfgpaydt.TextMatrix(flxRowCnt, 17) == "REM") ||
+//    (window.document.frmTrans.Mfgpaydt.TextMatrix(flxRowCnt, 17) == "FXREM")) {
+//    if (window.document.frmTrans.Mfgpaydt.TextMatrix(flxRowCnt, 10) == "1") {
+//      FlexPopulateCash(BatchNo)
+//      flexRowInsert(flxRowCnt, "Y")
+//      PrecDrCr()
+//    }
+//    else if (window.document.frmTrans.Mfgpaydt.TextMatrix(flxRowCnt, 10) == "2") {
+//      if (eval(window.document.frmTrans.txtcomm.value) > 0) {
+//        window.document.frmTrans.txtcomm.value = eval(window.document.frmTrans.txtcomm.value) * yCnt
+//        FlexPopulateComm(strArr[0] + "~~" + strVals[noofDDs + 1])
+//      }
 
-    exceptionCodes()
-    if (excpYN == "Y" && "<%=TellerVerifyReqYN%>" == "N") {
-      alert("Exceptional Transactions are not allowed")
-      Cancel()
-      return
-    }
-  }
-  if (window.document.frmTrans.chkABB.checked == false) {
-    brCode = window.document.frmTrans.txtbranchcode.value
-  }
-  else {
-    brCode = "ABB"
-  }
-  var batchNo = ""
-  if (((vMode == "REC") || (vMode == "PAY")) && (window.document.frmTrans.Mfgpaydt.Rows > 1) && (mode != "MODIFY")) {
+//      if (eval(window.document.frmTrans.txtSerivceChrg.value) > 0) {
+//        window.document.frmTrans.txtSerivceChrg.value = eval(window.document.frmTrans.txtSerivceChrg.value) * yCnt
+//        FlexPopulateSrvCharge(strArr[0] + "~~~" + strVals[noofDDs + 2] + "~" + strVals[noofDDs + 3])
+//      }
+//      if (eval(window.document.frmTrans.txtCessChrg.value) > 0) {
+//        window.document.frmTrans.txtCessChrg.value = eval(window.document.frmTrans.txtCessChrg.value)
+//        FlexPopulateCessCharge(strArr[0] + "~~~~~" + strVals[noofDDs + 4])
+//      }
 
+//      if ((vMode == "PAY") || (vMode == "REC")) {
+//        //FlexPopulateCash(BatchNo)
+//        flxRowCnt = window.document.frmTrans.Mfgpaydt.rows - 2
+//        flexRowInsert(flxRowCnt, "Y")
+//        PrecDrCr()
+//      }
+//      else {
+//        FlexPopulateCash(BatchNo)
+//        flexRowInsert(flxRowCnt, "Y")
+//        PrecDrCr()
+//      }
 
-    if (window.document.frmTrans.chkDispAccNo.checked == true) {
-      //alert("Reddy2")
-    }
-    else {
-      alert("Only one Cash Transaction allowed at a time." + "\n" +
-        "Post already entered data.")
-      return
-    }
-  }
-  TranMode();
-  modId = window.document.frmTrans.txtModId.value
-  serId = window.document.frmTrans.txtServiceId.value
+//    }
+//    else if ((window.document.frmTrans.Mfgpaydt.TextMatrix(flxRowCnt, 10) == "3") ||
+//      (window.document.frmTrans.Mfgpaydt.TextMatrix(flxRowCnt, 10) == "5")) {
+//      flexRowInsert(flxRowCnt, "N")
+//      PrecDrCr()
+//    }
+//    else if (window.document.frmTrans.Mfgpaydt.TextMatrix(flxRowCnt, 10) == "4") {
+//      if (eval(window.document.frmTrans.txtcomm.value) > 0) {
+//        window.document.frmTrans.txtcomm.value = eval(window.document.frmTrans.txtcomm.value) * yCnt
+//        FlexPopulateComm(strArr[0] + "~~" + strVals[noofDDs + 1])
+//      }
 
-  checkNulls(modId, trnMode, serId)
-  if (chkNull == "false") {
-    return
-  }
-  if (OkValidations() == false) {
-    return
-  }
-  excpTranCheck()
-  //new code added by radhika on 25 nov 2008
-  MinBalCheck_modify()
-  //end of new code
-  TotTranNos()
-  var clgModId, clgGlCd2
-  clgModId = window.document.frmTrans.txtCLGModId.value.toUpperCase();
-  clgGlCd2 = window.document.frmTrans.txtCLGGLcode.value.toUpperCase();
-  var overdraft2
-  overdraft2 = "<%=ovrdrft%>"
-  //-----------------------------ClearingBatch No Generation------------------ 
-  if (window.document.frmTrans.tranmode[2].checked == true) {
-    //-------- for clearing , serviceid ==8, clearbal < 0 
-    if (window.document.frmTrans.txtServiceId.value == "8") {
-      if (overdraft2 == "N") {
-        if ((clgModId == "CC") || (clgModId == "LOAN") || (clgModId == "INV") || ((clgModId == "MISC") && (clgGlCd2.substr(0, 3) == "204"))) {
-        }
-        else {
-          if (window.document.frmTrans.txtretclearbal.value < 0) {
-            alert("Clearing Balance Is Less Than Zero , No Transaction Is Posted")
-            window.document.frmTrans.txtAmt.value = "0.00"
-            return;
-          }
-        } //((clgModId=="CC") || (clgModId=="LOAN") || (clgModId=="INV") || ((clgModId=="MISC") && (clgGlCd2.substr(0,3)=="204")))
-      }
-      else {
-      }//(overdraft2 == 'N')
-    } //(window.document.frmTrans.txtServiceId.value == "8")
+//      if (eval(window.document.frmTrans.txtSerivceChrg.value) > 0) {
+//        //window.document.frmTrans.txtSerivceChrg.value=eval(window.document.frmTrans.txtSerivceChrg.value)*yCnt
+//        window.document.frmTrans.txtSerivceChrg.value = eval(window.document.frmTrans.txtSerivceChrg.value)
+//        FlexPopulateSrvCharge(strArr[0] + "~~~" + strVals[noofDDs + 2] + "~" + strVals[noofDDs + 3])
+//      }
+//      if (eval(window.document.frmTrans.txtCessChrg.value) > 0) {
+//        window.document.frmTrans.txtCessChrg.value = eval(window.document.frmTrans.txtCessChrg.value)
+//        FlexPopulateCessCharge(strArr[0] + "~~~~~" + strVals[noofDDs + 4])
+//      }
 
-    sCurCode = window.document.frmTrans.txtcurrencycode.value
-    sClear = window.document.frmTrans.cmdcleartype.value
-    sAppDate = "<%=session("applicationdate")%>";
+//      if ((eval(window.document.frmTrans.txtcomm.value) > 0) || (eval(window.document.frmTrans.txtSerivceChrg.value) > 0)) {
+//        flexRowInsert(flxRowCnt + 1, "Y")
+//      }
+//      else {
+//        flexRowInsert(flxRowCnt + 1, "N")
+//      }
 
-    if (mode != "MODIFY") {
-      if (window.document.frmTrans.Mfgpaydt.Rows == 1) {
-        if (clgAbbimpyn == "Y") {
-          strValues = "CLG~*~" + "<%=session("branchcode")%>" + "~" + batchNo + "~" + "" + "~" + sCurCode + "~" + sClear + "~" + sAppDate + "~" + tranNos + "~" + "ABB"
-        }
-        else {
-          strValues = "CLG~*~" + brCode + "~" + batchNo + "~" + "" + "~" + sCurCode + "~" + sClear + "~" + sAppDate + "~" + tranNos + "~" + "<%=session("branchcode")%>"
-        }
-        //alert(" mahendr = "+strValues)
-
-      }
-      else if (window.document.frmTrans.Mfgpaydt.Rows >= 2) {
-        batchNo = window.document.frmTrans.Mfgpaydt.TextMatrix(1, 0)
-
-        if (clgAbbimpyn == "Y") {
-          strValues = "CLG~*~" + "<%=session("branchcode")%>" + "~" + batchNo + "~" + "" + "~" + sCurCode + "~" + sClear + "~" + sAppDate + "~" + tranNos + "~" + "ABB"
-        }
-        else {
-          strValues = "CLG~*~" + brCode + "~" + batchNo + "~" + "" + "~" + sCurCode + "~" + sClear + "~" + sAppDate + "~" + tranNos + "~" + "<%=session("branchcode")%>"
-        }
-        //alert(" reddy = "+strValues)
-      }
-    }
-    else if (mode == "MODIFY") {
-      batchNo = window.document.frmTrans.hdnBatchNo.value
-      tranNo = window.document.frmTrans.hdnTranNo.value
-      if (vMode == "TRANS") {
-        bNo = batchNo + "~" + tranNo
-        FlexPopulate(bNo)
-        return
-      }
-    }
-  }
-
-  //-----------------------------Genaral Batch No genration  
-
-  if ((window.document.frmTrans.tranmode[0].checked == true) ||
-    (window.document.frmTrans.tranmode[1].checked == true))
-
-    if (mode != "MODIFY") {
-
-      if (window.document.frmTrans.Mfgpaydt.Rows == 1) {
-
-        if (("<%=str194NYN%>" == 'Y') && (vMode == 'PAY') && (window.document.frmTrans.hdnchk194N.value == 'true')) {
-          if (eval(window.document.frmTrans.hdn194Nfinaltds.value) != 0) {
-            strValues = "GEN~*~" + brCode + "~" + batchNo + "~" + "" + "~" + 4
-          }
-          else {
-            strValues = "GEN~*~" + brCode + "~" + batchNo + "~" + "" + "~" + tranNos
-          }
-        }
-        else {
-          strValues = "GEN~*~" + brCode + "~" + batchNo + "~" + "" + "~" + tranNos
-        }
-      }
-      else if (window.document.frmTrans.Mfgpaydt.Rows >= 2) {
-        if ((window.document.frmTrans.hdnblnCloseLoan.value == "true1") && (window.document.frmTrans.tranmode[0].checked == true)) {
-          //	alert("blnCloseLoan")
-          batchNo = window.document.frmTrans.Mfgpaydt.TextMatrix(window.document.frmTrans.Mfgpaydt.rows - 1, 0)
-          strValues = "GEN~*~" + brCode + "~" + batchNo + "~" + "" + "~" + tranNos
-        }
-        else {
-          batchNo = window.document.frmTrans.Mfgpaydt.TextMatrix(1, 0)
-          strValues = "GEN~*~" + brCode + "~" + batchNo + "~" + "" + "~" + tranNos
-        }
-      }
-
-    }
-    else if (mode == "MODIFY") {
-
-      batchNo = window.document.frmTrans.hdnBatchNo.value
-      tranNo = window.document.frmTrans.hdnTranNo.value
-      var tranNo2 = window.document.frmTrans.hdnTranNo2.value
-      var tranNo3 = window.document.frmTrans.hdnTranNo3.value
-      var tranNo4 = window.document.frmTrans.hdnTranNo4.value
-      var vModId = window.document.frmTrans.txtModId.value.toUpperCase()
-      TranMode()
-
-      if ((vModId == "REM") || (vModId == "FXREM")) {
-        if (trnMode == "4") {
-          /*if(eval(window.document.frmTrans.txtcomm.value)>0)
-          { 
-          bNo=batchNo+"~"+tranNo+"~"+tranNo2
-          }
-          else
-          {
-          bNo=batchNo+"~"+tranNo
-          }*/
-
-          //New code is 
-          bNo = batchNo + "~" + tranNo
-
-          if (eval(window.document.frmTrans.txtcomm.value) > 0)
-            bNo = bNo + "~" + tranNo2
-
-          if (eval(window.document.frmTrans.txtSerivceChrg.value) > 0)
-            bNo = bNo + "~" + tranNo3
-
-          FlexPopulate(bNo)
-        }
-        else if (trnMode == "2") {
-          /*if(eval(window.document.frmTrans.txtcomm.value)>0)
-          { 
-          bNo=batchNo+"~"+tranNo+"~"+tranNo2+"~"+tranNo3
-          }
-          else
-          {
-          bNo=batchNo+"~"+tranNo+"~"+tranNo2
-          }*/
-
-          // New Code is 
-          bNo = batchNo + "~" + tranNo + "~" + tranNo2
-
-          if (eval(window.document.frmTrans.txtcomm.value) > 0)
-            bNo = bNo + "~" + tranNo3
-
-          if (eval(window.document.frmTrans.txtSerivceChrg.value) > 0)
-            bNo = bNo + "~" + tranNo4
-
-          FlexPopulate(bNo)
-        }
-        else if (trnMode == "3") {
-          bNo = batchNo + "~" + tranNo
-          FlexPopulate(bNo)
-        }
-        else if (trnMode == "1") {
-          bNo = batchNo + "~" + tranNo + "~" + tranNo2
-          FlexPopulate(bNo)
-        }
-      }
-      else if (vMode == "TRANS") {
-
-        bNo = batchNo + "~" + tranNo
-        FlexPopulate(bNo)
-      }
-      else if ((vMode == "PAY") || (vMode == "REC")) {
-
-        bNo = batchNo + "~" + tranNo + "~" + tranNo2
-        FlexPopulate(bNo)
-      }
-      return
-    }
-
-  //clear denom tally
-  window.document.frames("idenomtally").denomtallyclear()
-  //----------------------------post to iframe page
-
-  if ((window.document.frmTrans.tranmode(1).checked == true) && (window.document.frmTrans.txtModId.value == "REM") &&
-    (window.document.frmTrans.chkRemRepeat.checked == true)) {
-    if (window.document.frmTrans.txtNoOfRepeat.value == "") {
-      alert("Please Enter Number of Repetitions.")
-      window.document.frmTrans.txtNoOfRepeat.focus()
-      return;
-    }
-
-    if ((vMode == "PAY") || (vMode == "REC")) {
-
-      var st = "GETBATCHTRANNO|" + window.document.frmTrans.txtbranchcode.value + "*" + (window.document.frmTrans.txtNoOfRepeat.value) * 2
-    }
-    else {
-      var stTnno
-
-      stTnno = window.document.frmTrans.txtNoOfRepeat.value
-      if (eval(window.document.frmTrans.txtSerivceChrg.value) > 0)
-        stTnno = eval(stTnno) + 1
-
-      if (eval(window.document.frmTrans.txtCessChrg.value) > 0)
-        stTnno = eval(stTnno) + 1
-
-      //var st="GETBATCHTRANNO|"+window.document.frmTrans.txtbranchcode.value+"*"+window.document.frmTrans.txtNoOfRepeat.value stTnno
-
-      var st = "GETBATCHTRANNO|" + window.document.frmTrans.txtbranchcode.value + "*" + stTnno
-    }
-    //alert(" st = "+st)
-    window.document.all['iGetDtls'].src = "getDtls.aspx?st=" + st
-  }
-  else {
-    if (blnBatchLoancheck == true) {
-      //	alert("hi")
-      //	strValues="GEN~*~"+brCode+"~"+strLoanBatchNo+"~"+""+"~"+tranNos
-      //blnBatchLoanClose=false
-      //window.document.all['iGeneral'].src='<%="http://" & session("moduledir")& "/GEN/"%>'+"batchNoGen.aspx?strVal="+strValues
-    }
-    else if ((window.document.frmTrans.tranmode[0].checked == true) && (window.document.frmTrans.txtServiceId.value == 9) && ("<%=strRemCancAutoChrgsYN%>" == "Y") && ("<%=strRemCancCommYN%>" == "Y") && (vMode == "TRANS")) {
-      tranNos = 5
-      strValues = "GEN~*~" + brCode + "~" + batchNo + "~" + "" + "~" + tranNos
-      //alert(strValues1)
-      window.document.all['iGeneral1'].src = '<%="http://" & session("moduledir")& "/GEN/"%>' + "batchnoGenRemCanc.aspx?strVal=" + strValues
-    }
-    else {
-      //alert("Gen")
-      //	alert("strValues " + strValues)
-      //	alert("vMode " + vMode)
-      window.document.all['iGeneral'].src = '<%="http://" & session("moduledir")& "/GEN/"%>' + "batchNoGen.aspx?strVal=" + strValues
-    }
-  }
-}
-
-function BatchTranNo(str) {
-  strBatchTran = str
-  var strArr = strBatchTran.split("|")
-  var strVals = strArr[1].split("*")
-  //alert(strArr)
-  var noofDDs = eval(window.document.frmTrans.txtNoOfRepeat.value)
-  var strBat
-  var intCnt = 1
-
-  if ((vMode == "PAY") || (vMode == "REC")) {
-    noofDDs = noofDDs * 2
-  }
-  for (vCnt = 0; vCnt <= noofDDs - 1; vCnt++) {
-    if ((vMode == "PAY") || (vMode == "REC")) {
-      strBat = strArr[0] + "~" + strVals[vCnt + 1] + "~" + strVals[strVals.length - 2] + "~" + strVals[strVals.length - 1] + "~" + strVals[vCnt + 2]
-
-      DDRepetition(strBat)
-      vCnt = vCnt + 1
-    }
-    else {
-      strBat = strArr[0] + "~" + strVals[vCnt + 1] + "~" + strVals[strVals.length - 2] + "~" + strVals[strVals.length - 1]
-      DDRepetition(strBat)
-    }
-  }
-
-  //service charge and commision
-  var flxRowCnt
-  var yCnt = 0
-  if ((vMode == "PAY") || (vMode == "REC")) {
-    yCnt = noofDDs / 2
-    flxRowCnt = window.document.frmTrans.Mfgpaydt.rows - 2
-  }
-  else {
-    yCnt = noofDDs
-    flxRowCnt = window.document.frmTrans.Mfgpaydt.rows - 1
-  }
+//      PrecDrCr()
+//    }
+//  }
+//  //service charge and commision
+//  OkClear()
+//  window.document.frmTrans.txtNoOfRepeat.value = ""
+//  window.document.frmTrans.txtPanNo.value = ""
+//  window.document.frmTrans.txtMobile.value = ""
+//  window.document.frmTrans.txtAddress1.value = ""
+//  window.document.frmTrans.txtAddress2.value = ""
+//  window.document.frmTrans.txtAddress3.value = ""
+//}
 
 
-  if ((window.document.frmTrans.Mfgpaydt.TextMatrix(flxRowCnt, 17) == "REM") ||
-    (window.document.frmTrans.Mfgpaydt.TextMatrix(flxRowCnt, 17) == "FXREM")) {
-    if (window.document.frmTrans.Mfgpaydt.TextMatrix(flxRowCnt, 10) == "1") {
-      FlexPopulateCash(BatchNo)
-      flexRowInsert(flxRowCnt, "Y")
-      PrecDrCr()
-    }
-    else if (window.document.frmTrans.Mfgpaydt.TextMatrix(flxRowCnt, 10) == "2") {
-      if (eval(window.document.frmTrans.txtcomm.value) > 0) {
-        window.document.frmTrans.txtcomm.value = eval(window.document.frmTrans.txtcomm.value) * yCnt
-        FlexPopulateComm(strArr[0] + "~~" + strVals[noofDDs + 1])
-      }
-
-      if (eval(window.document.frmTrans.txtSerivceChrg.value) > 0) {
-        window.document.frmTrans.txtSerivceChrg.value = eval(window.document.frmTrans.txtSerivceChrg.value) * yCnt
-        FlexPopulateSrvCharge(strArr[0] + "~~~" + strVals[noofDDs + 2] + "~" + strVals[noofDDs + 3])
-      }
-      if (eval(window.document.frmTrans.txtCessChrg.value) > 0) {
-        window.document.frmTrans.txtCessChrg.value = eval(window.document.frmTrans.txtCessChrg.value)
-        FlexPopulateCessCharge(strArr[0] + "~~~~~" + strVals[noofDDs + 4])
-      }
-
-      if ((vMode == "PAY") || (vMode == "REC")) {
-        //FlexPopulateCash(BatchNo)
-        flxRowCnt = window.document.frmTrans.Mfgpaydt.rows - 2
-        flexRowInsert(flxRowCnt, "Y")
-        PrecDrCr()
-      }
-      else {
-        FlexPopulateCash(BatchNo)
-        flexRowInsert(flxRowCnt, "Y")
-        PrecDrCr()
-      }
-
-    }
-    else if ((window.document.frmTrans.Mfgpaydt.TextMatrix(flxRowCnt, 10) == "3") ||
-      (window.document.frmTrans.Mfgpaydt.TextMatrix(flxRowCnt, 10) == "5")) {
-      flexRowInsert(flxRowCnt, "N")
-      PrecDrCr()
-    }
-    else if (window.document.frmTrans.Mfgpaydt.TextMatrix(flxRowCnt, 10) == "4") {
-      if (eval(window.document.frmTrans.txtcomm.value) > 0) {
-        window.document.frmTrans.txtcomm.value = eval(window.document.frmTrans.txtcomm.value) * yCnt
-        FlexPopulateComm(strArr[0] + "~~" + strVals[noofDDs + 1])
-      }
-
-      if (eval(window.document.frmTrans.txtSerivceChrg.value) > 0) {
-        //window.document.frmTrans.txtSerivceChrg.value=eval(window.document.frmTrans.txtSerivceChrg.value)*yCnt
-        window.document.frmTrans.txtSerivceChrg.value = eval(window.document.frmTrans.txtSerivceChrg.value)
-        FlexPopulateSrvCharge(strArr[0] + "~~~" + strVals[noofDDs + 2] + "~" + strVals[noofDDs + 3])
-      }
-      if (eval(window.document.frmTrans.txtCessChrg.value) > 0) {
-        window.document.frmTrans.txtCessChrg.value = eval(window.document.frmTrans.txtCessChrg.value)
-        FlexPopulateCessCharge(strArr[0] + "~~~~~" + strVals[noofDDs + 4])
-      }
-
-      if ((eval(window.document.frmTrans.txtcomm.value) > 0) || (eval(window.document.frmTrans.txtSerivceChrg.value) > 0)) {
-        flexRowInsert(flxRowCnt + 1, "Y")
-      }
-      else {
-        flexRowInsert(flxRowCnt + 1, "N")
-      }
-
-      PrecDrCr()
-    }
-  }
-  //service charge and commision
-  OkClear()
-  window.document.frmTrans.txtNoOfRepeat.value = ""
-  window.document.frmTrans.txtPanNo.value = ""
-  window.document.frmTrans.txtMobile.value = ""
-  window.document.frmTrans.txtAddress1.value = ""
-  window.document.frmTrans.txtAddress2.value = ""
-  window.document.frmTrans.txtAddress3.value = ""
-}
-
-//----------------------------------------------------------------------------------
 function TotTranNos() {
   TranMode()
   if ((window.document.frmTrans.txtModId.value == "REM") ||
@@ -4582,473 +3594,473 @@ function SetWaitMethod() {
 
 }
 
-// this function added by vinod on 25--mar-2014 for repetition of DDs
-function DDRepetition(BatchNo) {//alert(" Teddr ")
-
-  flexInsrtYN = ""
-  depIntacccond = true
-  if (eval(window.document.frmTrans.txtAmt.value == 0)) {
-    return
-  }
-  var flxRowCnt = window.document.frmTrans.Mfgpaydt.Rows
-  window.document.frmTrans.Mfgpaydt.Rows = flxRowCnt + 1
-
-  Populate(BatchNo, flxRowCnt)
-
-  var BatchNoAuto = BatchNo.split('~')
-  with (window.document.frmTrans.Mfgpaydt) {
-    TranMode()
-    if (window.document.frmTrans.chkDispAccNo.checked == true) {
-      TextMatrix(flxRowCnt, 25) = "Q"
-      TextMatrix(flxRowCnt, 28) = window.document.frmTrans.mfgDisp.TextMatrix(Rselect, 37)//Rate Type
-      TextMatrix(flxRowCnt, 29) = window.document.frmTrans.mfgDisp.TextMatrix(Rselect, 40)//Rate
-      TextMatrix(flxRowCnt, 30) = window.document.frmTrans.mfgDisp.TextMatrix(Rselect, 42)//F Currrency Code
-      TextMatrix(flxRowCnt, 31) = window.document.frmTrans.mfgDisp.TextMatrix(Rselect, 43)//F Amount
-      TextMatrix(flxRowCnt, 32) = window.document.frmTrans.mfgDisp.TextMatrix(Rselect, 19)//lnkmoduleid
-      TextMatrix(flxRowCnt, 33) = window.document.frmTrans.mfgDisp.TextMatrix(Rselect, 20)//lnkmoduledesc
-      TextMatrix(flxRowCnt, 34) = window.document.frmTrans.mfgDisp.TextMatrix(Rselect, 21)//lnkglcode
-      TextMatrix(flxRowCnt, 35) = window.document.frmTrans.mfgDisp.TextMatrix(Rselect, 22)//lnkgldesc
-      TextMatrix(flxRowCnt, 36) = window.document.frmTrans.mfgDisp.TextMatrix(Rselect, 23)//lnkacctype
-      TextMatrix(flxRowCnt, 37) = window.document.frmTrans.mfgDisp.TextMatrix(Rselect, 24)//lnkaccno
-      TextMatrix(flxRowCnt, 38) = window.document.frmTrans.mfgDisp.TextMatrix(Rselect, 26)//lnkaccname  
-
-      TextMatrix(flxRowCnt, 43) = window.document.frmTrans.mfgDisp.TextMatrix(Rselect, 50)//Responding Section Code
-      TextMatrix(flxRowCnt, 47) = window.document.frmTrans.mfgDisp.TextMatrix(Rselect, 8)
-      TextMatrix(flxRowCnt, 48) = window.document.frmTrans.mfgDisp.TextMatrix(Rselect, 9)
-      TextMatrix(flxRowCnt, 49) = "Y"
-      TextMatrix(flxRowCnt, 52) = window.document.frmTrans.mfgDisp.TextMatrix(Rselect, 49)//Responding Bank Code
-      TextMatrix(flxRowCnt, 58) = window.document.frmTrans.mfgDisp.TextMatrix(Rselect, 38)//Rate Ref Code
-
-
-      //TextMatrix(flxRowCnt,60)=window.document.frmTrans.mfgDisp.TextMatrix(Rselect,4)   
-      TextMatrix(flxRowCnt, 80) = window.document.frmTrans.mfgDisp.TextMatrix(Rselect, 4)
-      TextMatrix(flxRowCnt, 81) = window.document.frmTrans.mfgDisp.TextMatrix(Rselect, 10)
-      TextMatrix(flxRowCnt, 82) = window.document.frmTrans.mfgDisp.TextMatrix(Rselect, 26)
-      TextMatrix(flxRowCnt, 83) = window.document.frmTrans.mfgDisp.TextMatrix(Rselect, 27)
-      TextMatrix(flxRowCnt, 84) = window.document.frmTrans.mfgDisp.TextMatrix(Rselect, 28)
-      TextMatrix(flxRowCnt, 85) = window.document.frmTrans.mfgDisp.TextMatrix(Rselect, 29)
-
-      TextMatrix(flxRowCnt, 86) = window.document.frmTrans.mfgDisp.TextMatrix(Rselect, 35)
-      TextMatrix(flxRowCnt, 87) = window.document.frmTrans.mfgDisp.TextMatrix(Rselect, 36)
-
-      TextMatrix(flxRowCnt, 88) = window.document.frmTrans.mfgDisp.TextMatrix(Rselect, 39)//Ref No.
-      TextMatrix(flxRowCnt, 89) = window.document.frmTrans.mfgDisp.TextMatrix(Rselect, 41)//Ref Date
-      TextMatrix(flxRowCnt, 90) = window.document.frmTrans.mfgDisp.TextMatrix(Rselect, 44)//Corresponding Bank Code
-      TextMatrix(flxRowCnt, 91) = window.document.frmTrans.mfgDisp.TextMatrix(Rselect, 45)//Corresponding Branch Code
-      TextMatrix(flxRowCnt, 92) = window.document.frmTrans.mfgDisp.TextMatrix(Rselect, 46)//NOSTRO Debit Date
-      TextMatrix(flxRowCnt, 93) = window.document.frmTrans.mfgDisp.TextMatrix(Rselect, 47)//NOSTRO Credit Date
-      TextMatrix(flxRowCnt, 94) = window.document.frmTrans.mfgDisp.TextMatrix(Rselect, 48)//Charge Type
-
-      TextMatrix(flxRowCnt, 95) = window.document.frmTrans.mfgDisp.TextMatrix(Rselect, 51)//User Id.
-      TextMatrix(flxRowCnt, 96) = window.document.frmTrans.mfgDisp.TextMatrix(Rselect, 52)//Machine Id.
-      TextMatrix(flxRowCnt, 97) = window.document.frmTrans.mfgDisp.TextMatrix(Rselect, 55)//Approved By
-      TextMatrix(flxRowCnt, 98) = window.document.frmTrans.mfgDisp.TextMatrix(Rselect, 56)//Approved M/C                      
-    }
-    if (TextMatrix(flxRowCnt, 39) == "2") {
-      TextMatrix(flxRowCnt, 60) = window.document.frmTrans.txtAppName.value
-      TextMatrix(flxRowCnt, 61) = window.document.frmTrans.txtAccCatCode.value
-      TextMatrix(flxRowCnt, 62) = window.document.frmTrans.txtAccCatDesc.value
-    }
-
-    if (vSubMode == "TPAY") {
-      TextMatrix(flxRowCnt, 79) = "TPAY"
-    }
-    //-------------------------------------------Remittance   
-    else if ((TextMatrix(flxRowCnt, 17) == "REM") && ((TextMatrix(flxRowCnt, 10) == "1") || (TextMatrix(flxRowCnt, 10) == "3") || (TextMatrix(flxRowCnt, 10) == "5"))) {
-      TextMatrix(flxRowCnt, 52) = window.document.frmTrans.txtbybnkcode.value;
-      TextMatrix(flxRowCnt, 53) = window.document.frmTrans.txtbybnkdesc.value;
-      TextMatrix(flxRowCnt, 60) = window.document.frmTrans.txtbybrcode.value;
-      TextMatrix(flxRowCnt, 61) = window.document.frmTrans.txtbybrdesc.value;
-      TextMatrix(flxRowCnt, 62) = window.document.frmTrans.txtfavgdr.value;
-      TextMatrix(flxRowCnt, 63) = window.document.frmTrans.txtinstrno.value;
-
-      TextMatrix(0, 64) = "Advice Rec"
-      if (remtype != "ADD") {
-        TextMatrix(flxRowCnt, 64) = natadv
-        natadv = ""
-        TextMatrix(flxRowCnt, 68) = remtype
-        TextMatrix(0, 69) = "Native"
-        TextMatrix(flxRowCnt, 69) = "Y"
-        remtype = ""
-        if (natinsdt != "") {
-          TextMatrix(flxRowCnt, 67) = natinsdt
-        }
-        else {
-          natinsdt = window.document.frmTrans.txtinstrdt.value;
-        }
-        TextMatrix(flxRowCnt, 67) = natinsdt
-        natinsdt = ""
-      }
-      else {
-        TextMatrix(flxRowCnt, 64) = remadv[0]
-        TextMatrix(flxRowCnt, 65) = remadv[1]
-
-        //TextMatrix(flxRowCnt,66)=remadv[2]
-        TextMatrix(flxRowCnt, 66) = remadvdate
-        TextMatrix(flxRowCnt, 68) = remtype
-        TextMatrix(0, 69) = "Native"
-        TextMatrix(flxRowCnt, 69) = "N"
-        remtype = ""
-        TextMatrix(0, 69) = "Native"
-        TextMatrix(flxRowCnt, 69) = "N"
-        if (advinstrdate != "") {
-
-          TextMatrix(flxRowCnt, 67) = advinstrdate
-        }
-        else {
-          advinstrdate = window.document.frmTrans.txtinstrdt.value;
-        }
-        TextMatrix(flxRowCnt, 67) = advinstrdate
-        advinstrdate = ""
-      }
-    }
-
-    //----------	
-    //alert("YYY")
-    else if ((TextMatrix(flxRowCnt, 17) == "REM") && ((TextMatrix(flxRowCnt, 10) == "2") || (TextMatrix(flxRowCnt, 10) == "4"))) {
-      //alert("1")
-      TextMatrix(flxRowCnt, 9) = window.document.frmTrans.txtcustrid.value;
-      window.document.frmTrans.hidRecnam.value = window.document.frmTrans.txtcustrid.value;
-      TextMatrix(flxRowCnt, 52) = window.document.frmTrans.txtissbnkcode.value;
-      TextMatrix(flxRowCnt, 53) = window.document.frmTrans.txtissbnkdesc.value;
-
-      TextMatrix(flxRowCnt, 60) = window.document.frmTrans.txtissbrcode.value;
-      TextMatrix(flxRowCnt, 61) = window.document.frmTrans.txtissbrdesc.value;
-      TextMatrix(flxRowCnt, 62) = window.document.frmTrans.txtfavg.value;
-      //---63nr
-      TextMatrix(flxRowCnt, 64) = window.document.frmTrans.txtcomm.value;
-      TextMatrix(flxRowCnt, 65) = window.document.frmTrans.txtcustrid.value;
-      TextMatrix(flxRowCnt, 66) = window.document.frmTrans.txtcusn.value;
-
-
-      //new code is 
-      if ((eval(window.document.frmTrans.txtcomm.value) > 0) &&
-        (eval(window.document.frmTrans.txtSerivceChrg.value) > 0)) {
-        TextMatrix(flxRowCnt, 67) = BatchNoAuto[2] + "," + BatchNoAuto[3]
-        TextMatrix(flxRowCnt, 64) = window.document.frmTrans.txtcomm.value +
-          "," + window.document.frmTrans.txtSerivceChrg.value
-      }
-      else if (eval(window.document.frmTrans.txtcomm.value) > 0) {
-        TextMatrix(flxRowCnt, 67) = BatchNoAuto[2] + ",0"
-        TextMatrix(flxRowCnt, 64) = window.document.frmTrans.txtcomm.value + ",0"
-      }
-      else if (eval(window.document.frmTrans.txtSerivceChrg.value) > 0) {
-        TextMatrix(flxRowCnt, 67) = "0," + BatchNoAuto[2]
-        TextMatrix(flxRowCnt, 64) = "0," + window.document.frmTrans.txtSerivceChrg.value
-      }
-      TextMatrix(flxRowCnt, 68) = remtype
-
-      TextMatrix(flxRowCnt, 69) = window.document.frmTrans.txtPanNo.value;
-      TextMatrix(flxRowCnt, 70) = window.document.frmTrans.txtMobile.value;
-      TextMatrix(flxRowCnt, 71) = window.document.frmTrans.txtAddress1.value;
-      TextMatrix(flxRowCnt, 72) = window.document.frmTrans.txtAddress2.value;
-      TextMatrix(flxRowCnt, 73) = window.document.frmTrans.txtAddress3.value;
-
-    }
-    //-------------------------------------------Deposits
-
-    else if (TextMatrix(flxRowCnt, 17) == "DEP" &&
-      window.document.frmTrans.txtServiceId.value != "2") {
-      TextMatrix(flxRowCnt, 60) = window.document.frmTrans.txtDOpAmt.value
-      TextMatrix(flxRowCnt, 61) = window.document.frmTrans.txtDCurrAmt.value
-      TextMatrix(flxRowCnt, 62) = window.document.frmTrans.txtDMatAmt.value
-      TextMatrix(flxRowCnt, 63) = window.document.frmTrans.txtDIntAcc.value
-      TextMatrix(flxRowCnt, 64) = window.document.frmTrans.txtDOpDate.value
-      TextMatrix(flxRowCnt, 65) = window.document.frmTrans.txtDEffDt.value
-      TextMatrix(flxRowCnt, 66) = window.document.frmTrans.txtDMatDt.value
-      TextMatrix(flxRowCnt, 67) = window.document.frmTrans.txtDPaidupto.value
-      TextMatrix(flxRowCnt, 68) = window.document.frmTrans.txtDROI.value
-
-      if (flxRowCnt == 1 && window.document.frmTrans.txtServiceId.value != "2") {
-        TextMatrix(flxRowCnt, 32) = window.document.frmTrans.txtModId.value
-        TextMatrix(flxRowCnt, 33) = window.document.frmTrans.txtModDesc.value
-        TextMatrix(flxRowCnt, 34) = window.document.frmTrans.txtGLcode.value
-        TextMatrix(flxRowCnt, 35) = window.document.frmTrans.txtGLDesc.value
-        TextMatrix(flxRowCnt, 37) = window.document.frmTrans.txtAccNo.value
-        TextMatrix(flxRowCnt, 38) = window.document.frmTrans.txtAccNm.value
-        TextMatrix(flxRowCnt, 25) = "Y"
-        TextMatrix(flxRowCnt, 26) = "Deposits"
-      }
-
-      if (window.document.frmTrans.Mfgpaydt.Rows > 1 && (servicecond == "RENEWAL" || servicecond == "CLOSING")) {
-
-        TextMatrix(flxRowCnt, 32) = TextMatrix(1, 32)
-        TextMatrix(flxRowCnt, 33) = TextMatrix(1, 33)
-        TextMatrix(flxRowCnt, 34) = TextMatrix(1, 34)
-        TextMatrix(flxRowCnt, 35) = TextMatrix(1, 35)
-        TextMatrix(flxRowCnt, 37) = TextMatrix(1, 37)
-        TextMatrix(flxRowCnt, 38) = TextMatrix(1, 38)
-        TextMatrix(flxRowCnt, 25) = "Y"
-        TextMatrix(flxRowCnt, 26) = "Deposits"
-      }
-    }
-    //-------------------------------------------Suspense and Sundry 
-
-    else if ((TextMatrix(flxRowCnt, 17) == "SCR") && ((TextMatrix(flxRowCnt, 10) == "3") ||
-      (TextMatrix(flxRowCnt, 10) == "1"))) {
-      var hidamt = window.document.frmTrans.hidscr.value
-      var amt = window.document.frmTrans.txtAmt.value
-      var diffamt = eval(hidamt) - eval(amt)
-      TextMatrix(flxRowCnt, 79) = scrstr
-      if (window.document.frmTrans.hidtrnno.value) {
-        TextMatrix(flxRowCnt, 60) = window.document.frmTrans.hiddate.value
-        TextMatrix(flxRowCnt, 61) = window.document.frmTrans.hidbatchno.value
-        TextMatrix(flxRowCnt, 62) = window.document.frmTrans.hidtrnno.value
-        if (eval(diffamt) > 0) {
-          TextMatrix(flxRowCnt, 71) = "P"
-        }
-        else {
-          TextMatrix(flxRowCnt, 71) = "F"
-        }
-
-      }
-      else {
-        TextMatrix(flxRowCnt, 60) = ""
-        TextMatrix(flxRowCnt, 61) = ""
-        TextMatrix(flxRowCnt, 62) = ""
-        TextMatrix(flxRowCnt, 71) = ""
-
-      }
-    }
-    else if ((TextMatrix(flxRowCnt, 17) == "SCR") && ((TextMatrix(flxRowCnt, 10) == "4") || (TextMatrix(flxRowCnt, 10) == "2"))) {
-      var hidamt = window.document.frmTrans.hidscr.value
-      var amt = window.document.frmTrans.txtAmt.value
-      var diffamt = eval(hidamt) - eval(amt)
-      TextMatrix(flxRowCnt, 79) = scrstr
-
-      if (window.document.frmTrans.hidtrnno.value) {
-        TextMatrix(flxRowCnt, 60) = window.document.frmTrans.hiddate.value
-        TextMatrix(flxRowCnt, 61) = window.document.frmTrans.hidbatchno.value
-        TextMatrix(flxRowCnt, 62) = window.document.frmTrans.hidtrnno.value
-        if (eval(diffamt) > 0) {
-          TextMatrix(flxRowCnt, 71) = "P"
-        }
-        else {
-          TextMatrix(flxRowCnt, 71) = "F"
-        }
-      }
-      else {
-        TextMatrix(flxRowCnt, 60) = ""
-        TextMatrix(flxRowCnt, 61) = ""
-        TextMatrix(flxRowCnt, 62) = ""
-        TextMatrix(flxRowCnt, 71) = ""
-      }
-    }
-
-    //-------------------------------------------Loans
-
-    else if ((TextMatrix(flxRowCnt, 17) == "LOAN") &&
-      ((TextMatrix(flxRowCnt, 10) == "4") || (TextMatrix(flxRowCnt, 10) == "2"))) {
-      TextMatrix(flxRowCnt, 60) = window.document.frames("iloandtls").frmloaninterestdetails.txtintamt.value
-      TextMatrix(flxRowCnt, 61) = window.document.frames("iloandtls").frmloaninterestdetails.txtchrgamt.value
-      TextMatrix(flxRowCnt, 62) = window.document.frames("iloandtls").frmloaninterestdetails.txtinsuramt.value
-      TextMatrix(flxRowCnt, 63) = window.document.frames("iloandtls").frmloaninterestdetails.txtnpaamt.value
-      //window.document.frames("iloandtls").frmloaninterestdetails.txtprncamt.value=""
-      TextMatrix(flxRowCnt, 64) = window.document.frames("iloandtls").frmloaninterestdetails.txtprncamt.value
-      TextMatrix(flxRowCnt, 65) = window.document.frames("iloandtls").frmloaninterestdetails.txtprncpalamt.value
-    }
-    else if ((TextMatrix(flxRowCnt, 17) == "LOAN") && ((TextMatrix(flxRowCnt, 10) == "3") || (TextMatrix(flxRowCnt, 10) == "1"))) {
-      TextMatrix(flxRowCnt, 60) = window.document.frmTrans.selloantrans.options(window.document.frmTrans.selloantrans.selectedIndex).text
-
-    }
-
-    //-------------------------------------------Clearing
-
-    // for inward clearing add clearingtype to CLG Rate Type column in grid
-
-    else if (window.document.frmTrans.tranmode[2].checked == true) {
-      TextMatrix(flxRowCnt, 28) = window.document.frmTrans.cmdcleartype.value;//clearing type
-      TextMatrix(flxRowCnt, 60) = window.document.frmTrans.cmdcleartype.options
-        (window.document.frmTrans.cmdcleartype.selectedIndex).text
-
-      if (eval(window.document.frmTrans.txtServiceId.value) == "8") {
-
-        TextMatrix(flxRowCnt, 32) = window.document.frmTrans.txtCLGModId.value.toUpperCase()//lnkmoduleid
-        TextMatrix(flxRowCnt, 33) = window.document.frmTrans.txtCLGModDesc.value//lnkmoduledesc
-        TextMatrix(flxRowCnt, 34) = window.document.frmTrans.txtCLGGLcode.value//lnkglcode
-        TextMatrix(flxRowCnt, 35) = window.document.frmTrans.txtCLGGLname.value//lnkgldesc
-        TextMatrix(flxRowCnt, 37) = window.document.frmTrans.txtCLGAccNo.value//lnkaccno
-        TextMatrix(flxRowCnt, 38) = window.document.frmTrans.txtCLGAccNm.value//lnkaccname
-        TextMatrix(flxRowCnt, 60) = window.document.frmTrans.txtCLGBankCode.value
-        TextMatrix(flxRowCnt, 61) = window.document.frmTrans.txtCLGBranch.value
-        TextMatrix(flxRowCnt, 62) = window.document.frmTrans.txtCLGReason.value
-        TextMatrix(flxRowCnt, 63) = window.document.frmTrans.txtCLGReasoncode.value
-        TextMatrix(flxRowCnt, 79) = "CLGOWRETURN"
-
-      }
-    }
-
-    else if ((TextMatrix(flxRowCnt, 17) == "FXREM") && ((TextMatrix(flxRowCnt, 10) == "4") || (TextMatrix(flxRowCnt, 10) == "2"))) {
-      TextMatrix(flxRowCnt, 9) = window.document.frmTrans.txtcustrid.value;
-      window.document.frmTrans.hidRecnam.value = window.document.frmTrans.txtcustrid.value;
-      TextMatrix(flxRowCnt, 60) = "O"
-      TextMatrix(flxRowCnt, 61) = window.document.frmTrans.txtfavg.value;
-      //TextMatrix(flxRowCnt,62)=window.document.frmTrans.txtcomm.value; 
-      TextMatrix(flxRowCnt, 64) = window.document.frmTrans.txtcomm.value;
-      TextMatrix(flxRowCnt, 63) = window.document.frmTrans.txtcusn.value;
-
-      if (eval(window.document.frmTrans.txtcomm.value) > 0) {
-        TextMatrix(flxRowCnt, 67) = BatchNoAuto[2]
-      }
-      TextMatrix(flxRowCnt, 65) = remtype
-      remtype = ""
-
-    }
-
-    else {
-
-    }
-
-
-    PrecDrCr()
-
-    if (window.document.frmTrans.txtModId.value != "DEP") {
-      Depdivclear()
-    }
-
-    //------------------   
-
-    if ((TextMatrix(flxRowCnt, 17) == "REM") || (TextMatrix(flxRowCnt, 17) == "FXREM")) {
-
-      if (TextMatrix(flxRowCnt, 10) == "1") {
-        FlexPopulateCash(BatchNo)
-        flexRowInsert(flxRowCnt, "Y")
-        PrecDrCr()
-      }
-      else if (TextMatrix(flxRowCnt, 10) == "2") {
-
-        //New code is 
-        if (eval(window.document.frmTrans.txtcomm.value) > 0)
-          //FlexPopulateComm(BatchNo)
-
-          if (eval(window.document.frmTrans.txtSerivceChrg.value) > 0)
-            //FlexPopulateSrvCharge(BatchNo)
-
-            FlexPopulateCash(BatchNo)
-        flexRowInsert(flxRowCnt, "Y")
-        PrecDrCr()
-      }
-      else if ((TextMatrix(flxRowCnt, 10) == "3") || (TextMatrix(flxRowCnt, 10) == "5")) {
-        //alert(flxRowCnt + 'main')
-        flexRowInsert(flxRowCnt, "N")
-        PrecDrCr()
-      }
-      else if (TextMatrix(flxRowCnt, 10) == "4") {
-
-        // New code is 
-        if (eval(window.document.frmTrans.txtcomm.value) > 0)
-          //FlexPopulateComm(BatchNo)
-
-          if (eval(window.document.frmTrans.txtSerivceChrg.value) > 0)
-            //FlexPopulateSrvCharge(BatchNo)
-
-            if ((eval(window.document.frmTrans.txtcomm.value) > 0) ||
-              (eval(window.document.frmTrans.txtSerivceChrg.value) > 0)) {
-              //SetWaitMethod()
-
-              if (window.document.frmTrans.txtNoOfRepeat.value > 0) {
-
-                noofreap = eval(window.document.frmTrans.txtNoOfRepeat.value)
-
-                intmaxval = 1000 * eval(noofreap)
-
-                for (i = 1; i < intmaxval; i++) {
-                }
-
-              }
-
-              flexRowInsert(flxRowCnt, "Y")
-
-              if (window.document.frmTrans.txtNoOfRepeat.value > 0) {
-
-                noofreap = eval(window.document.frmTrans.txtNoOfRepeat.value)
-
-                intmaxval = 1000 * eval(noofreap)
-
-                for (i = 1; i < intmaxval; i++) {
-                }
-
-              }
-              //SetWaitMethod()
-            }
-            else {
-
-              flexRowInsert(flxRowCnt, "N")
-            }
-
-        PrecDrCr()
-
-      }
-
-
-    }
-
-    else if (vMode == "TRANS") {
-      //alert( "flexRowInsert")         
-      // alert(flxRowCnt)
-
-
-      if ((window.document.frmTrans.tranmode[2].checked == true) && (eval(window.document.frmTrans.txtServiceId.value) == "8")) {
-
-        if ((clgretchgsautoyn1 == 'Y') && (clgCommRetChrgsYN1 == 'Y')) {
-          var confrmclg
-          confrmclg = confirm("Do U Want To Post Clearing Return Charges Now  Y/N ? ")
-          if (confrmclg == true) {
-            var brCode1
-            var strValues1
-            var tranNosc
-            var batchNoc
-            var lnkmodid
-            var lnkglcode
-            batchNoc = ""
-            brCode1 = window.document.frmTrans.txtbranchcode.value
-            tranNosc = 5
-            lnkmodid = window.document.frmTrans.txtCLGModId.value.toUpperCase()
-            lnkglcode = window.document.frmTrans.txtCLGGLcode.value
-
-            if (window.document.frmTrans.Mfgpaydt.Rows >= 2) {
-              strValues1 = "GEN~*~" + brCode1 + "~" + batchNoc + "~" + "" + "~" + tranNosc + "~" + lnkmodid + "~" + lnkglcode
-            }
-
-            //alert(strValues1)
-            window.document.all['iGeneral1'].src = '<%="http://" & session("moduledir")& "/GEN/"%>' + "batchNoGenclgret.aspx?strVal=" + strValues1
-            return
-          }
-          else {
-            flexRowInsert(flxRowCnt, "N")
-          }
-        }
-        else {
-          flexRowInsert(flxRowCnt, "N")
-        }
-      }
-      else {
-        flexRowInsert(flxRowCnt, "N")
-        //  PrecDrCr()
-      }
-    }
-    else if ((vMode == "PAY") || (vMode == "REC")) {
-      //	alert("cash gl = " + vCashGlCode)
-      FlexPopulateCash(BatchNo)
-      flexRowInsert(flxRowCnt, "Y")
-      PrecDrCr()
-    }
-    //------------------  
-
-    if (flexInsrtYN != "YES") {
-
-      TempTranInsrt("Transaction Failed", flxRowCnt, "1")
-    }
-
-    //OkClear()
-
-    mode = "ADD"
-  }
-
-}
-
-
-//----------------------------------------------------------------------------------
+//// this function added by vinod on 25--mar-2014 for repetition of DDs
+//function DDRepetition(BatchNo) {//alert(" Teddr ")
+
+//  flexInsrtYN = ""
+//  depIntacccond = true
+//  if (eval(window.document.frmTrans.txtAmt.value == 0)) {
+//    return
+//  }
+//  var flxRowCnt = window.document.frmTrans.Mfgpaydt.Rows
+//  window.document.frmTrans.Mfgpaydt.Rows = flxRowCnt + 1
+
+//  Populate(BatchNo, flxRowCnt)
+
+//  var BatchNoAuto = BatchNo.split('~')
+//  with (window.document.frmTrans.Mfgpaydt) {
+//    TranMode()
+//    if (window.document.frmTrans.chkDispAccNo.checked == true) {
+//      TextMatrix(flxRowCnt, 25) = "Q"
+//      TextMatrix(flxRowCnt, 28) = window.document.frmTrans.mfgDisp.TextMatrix(Rselect, 37)//Rate Type
+//      TextMatrix(flxRowCnt, 29) = window.document.frmTrans.mfgDisp.TextMatrix(Rselect, 40)//Rate
+//      TextMatrix(flxRowCnt, 30) = window.document.frmTrans.mfgDisp.TextMatrix(Rselect, 42)//F Currrency Code
+//      TextMatrix(flxRowCnt, 31) = window.document.frmTrans.mfgDisp.TextMatrix(Rselect, 43)//F Amount
+//      TextMatrix(flxRowCnt, 32) = window.document.frmTrans.mfgDisp.TextMatrix(Rselect, 19)//lnkmoduleid
+//      TextMatrix(flxRowCnt, 33) = window.document.frmTrans.mfgDisp.TextMatrix(Rselect, 20)//lnkmoduledesc
+//      TextMatrix(flxRowCnt, 34) = window.document.frmTrans.mfgDisp.TextMatrix(Rselect, 21)//lnkglcode
+//      TextMatrix(flxRowCnt, 35) = window.document.frmTrans.mfgDisp.TextMatrix(Rselect, 22)//lnkgldesc
+//      TextMatrix(flxRowCnt, 36) = window.document.frmTrans.mfgDisp.TextMatrix(Rselect, 23)//lnkacctype
+//      TextMatrix(flxRowCnt, 37) = window.document.frmTrans.mfgDisp.TextMatrix(Rselect, 24)//lnkaccno
+//      TextMatrix(flxRowCnt, 38) = window.document.frmTrans.mfgDisp.TextMatrix(Rselect, 26)//lnkaccname  
+
+//      TextMatrix(flxRowCnt, 43) = window.document.frmTrans.mfgDisp.TextMatrix(Rselect, 50)//Responding Section Code
+//      TextMatrix(flxRowCnt, 47) = window.document.frmTrans.mfgDisp.TextMatrix(Rselect, 8)
+//      TextMatrix(flxRowCnt, 48) = window.document.frmTrans.mfgDisp.TextMatrix(Rselect, 9)
+//      TextMatrix(flxRowCnt, 49) = "Y"
+//      TextMatrix(flxRowCnt, 52) = window.document.frmTrans.mfgDisp.TextMatrix(Rselect, 49)//Responding Bank Code
+//      TextMatrix(flxRowCnt, 58) = window.document.frmTrans.mfgDisp.TextMatrix(Rselect, 38)//Rate Ref Code
+
+
+//      //TextMatrix(flxRowCnt,60)=window.document.frmTrans.mfgDisp.TextMatrix(Rselect,4)   
+//      TextMatrix(flxRowCnt, 80) = window.document.frmTrans.mfgDisp.TextMatrix(Rselect, 4)
+//      TextMatrix(flxRowCnt, 81) = window.document.frmTrans.mfgDisp.TextMatrix(Rselect, 10)
+//      TextMatrix(flxRowCnt, 82) = window.document.frmTrans.mfgDisp.TextMatrix(Rselect, 26)
+//      TextMatrix(flxRowCnt, 83) = window.document.frmTrans.mfgDisp.TextMatrix(Rselect, 27)
+//      TextMatrix(flxRowCnt, 84) = window.document.frmTrans.mfgDisp.TextMatrix(Rselect, 28)
+//      TextMatrix(flxRowCnt, 85) = window.document.frmTrans.mfgDisp.TextMatrix(Rselect, 29)
+
+//      TextMatrix(flxRowCnt, 86) = window.document.frmTrans.mfgDisp.TextMatrix(Rselect, 35)
+//      TextMatrix(flxRowCnt, 87) = window.document.frmTrans.mfgDisp.TextMatrix(Rselect, 36)
+
+//      TextMatrix(flxRowCnt, 88) = window.document.frmTrans.mfgDisp.TextMatrix(Rselect, 39)//Ref No.
+//      TextMatrix(flxRowCnt, 89) = window.document.frmTrans.mfgDisp.TextMatrix(Rselect, 41)//Ref Date
+//      TextMatrix(flxRowCnt, 90) = window.document.frmTrans.mfgDisp.TextMatrix(Rselect, 44)//Corresponding Bank Code
+//      TextMatrix(flxRowCnt, 91) = window.document.frmTrans.mfgDisp.TextMatrix(Rselect, 45)//Corresponding Branch Code
+//      TextMatrix(flxRowCnt, 92) = window.document.frmTrans.mfgDisp.TextMatrix(Rselect, 46)//NOSTRO Debit Date
+//      TextMatrix(flxRowCnt, 93) = window.document.frmTrans.mfgDisp.TextMatrix(Rselect, 47)//NOSTRO Credit Date
+//      TextMatrix(flxRowCnt, 94) = window.document.frmTrans.mfgDisp.TextMatrix(Rselect, 48)//Charge Type
+
+//      TextMatrix(flxRowCnt, 95) = window.document.frmTrans.mfgDisp.TextMatrix(Rselect, 51)//User Id.
+//      TextMatrix(flxRowCnt, 96) = window.document.frmTrans.mfgDisp.TextMatrix(Rselect, 52)//Machine Id.
+//      TextMatrix(flxRowCnt, 97) = window.document.frmTrans.mfgDisp.TextMatrix(Rselect, 55)//Approved By
+//      TextMatrix(flxRowCnt, 98) = window.document.frmTrans.mfgDisp.TextMatrix(Rselect, 56)//Approved M/C                      
+//    }
+//    if (TextMatrix(flxRowCnt, 39) == "2") {
+//      TextMatrix(flxRowCnt, 60) = window.document.frmTrans.txtAppName.value
+//      TextMatrix(flxRowCnt, 61) = window.document.frmTrans.txtAccCatCode.value
+//      TextMatrix(flxRowCnt, 62) = window.document.frmTrans.txtAccCatDesc.value
+//    }
+
+//    if (vSubMode == "TPAY") {
+//      TextMatrix(flxRowCnt, 79) = "TPAY"
+//    }
+//    //-------------------------------------------Remittance   
+//    else if ((TextMatrix(flxRowCnt, 17) == "REM") && ((TextMatrix(flxRowCnt, 10) == "1") || (TextMatrix(flxRowCnt, 10) == "3") || (TextMatrix(flxRowCnt, 10) == "5"))) {
+//      TextMatrix(flxRowCnt, 52) = window.document.frmTrans.txtbybnkcode.value;
+//      TextMatrix(flxRowCnt, 53) = window.document.frmTrans.txtbybnkdesc.value;
+//      TextMatrix(flxRowCnt, 60) = window.document.frmTrans.txtbybrcode.value;
+//      TextMatrix(flxRowCnt, 61) = window.document.frmTrans.txtbybrdesc.value;
+//      TextMatrix(flxRowCnt, 62) = window.document.frmTrans.txtfavgdr.value;
+//      TextMatrix(flxRowCnt, 63) = window.document.frmTrans.txtinstrno.value;
+
+//      TextMatrix(0, 64) = "Advice Rec"
+//      if (remtype != "ADD") {
+//        TextMatrix(flxRowCnt, 64) = natadv
+//        natadv = ""
+//        TextMatrix(flxRowCnt, 68) = remtype
+//        TextMatrix(0, 69) = "Native"
+//        TextMatrix(flxRowCnt, 69) = "Y"
+//        remtype = ""
+//        if (natinsdt != "") {
+//          TextMatrix(flxRowCnt, 67) = natinsdt
+//        }
+//        else {
+//          natinsdt = window.document.frmTrans.txtinstrdt.value;
+//        }
+//        TextMatrix(flxRowCnt, 67) = natinsdt
+//        natinsdt = ""
+//      }
+//      else {
+//        TextMatrix(flxRowCnt, 64) = remadv[0]
+//        TextMatrix(flxRowCnt, 65) = remadv[1]
+
+//        //TextMatrix(flxRowCnt,66)=remadv[2]
+//        TextMatrix(flxRowCnt, 66) = remadvdate
+//        TextMatrix(flxRowCnt, 68) = remtype
+//        TextMatrix(0, 69) = "Native"
+//        TextMatrix(flxRowCnt, 69) = "N"
+//        remtype = ""
+//        TextMatrix(0, 69) = "Native"
+//        TextMatrix(flxRowCnt, 69) = "N"
+//        if (advinstrdate != "") {
+
+//          TextMatrix(flxRowCnt, 67) = advinstrdate
+//        }
+//        else {
+//          advinstrdate = window.document.frmTrans.txtinstrdt.value;
+//        }
+//        TextMatrix(flxRowCnt, 67) = advinstrdate
+//        advinstrdate = ""
+//      }
+//    }
+
+//    //----------	
+//    //alert("YYY")
+//    else if ((TextMatrix(flxRowCnt, 17) == "REM") && ((TextMatrix(flxRowCnt, 10) == "2") || (TextMatrix(flxRowCnt, 10) == "4"))) {
+//      //alert("1")
+//      TextMatrix(flxRowCnt, 9) = window.document.frmTrans.txtcustrid.value;
+//      window.document.frmTrans.hidRecnam.value = window.document.frmTrans.txtcustrid.value;
+//      TextMatrix(flxRowCnt, 52) = window.document.frmTrans.txtissbnkcode.value;
+//      TextMatrix(flxRowCnt, 53) = window.document.frmTrans.txtissbnkdesc.value;
+
+//      TextMatrix(flxRowCnt, 60) = window.document.frmTrans.txtissbrcode.value;
+//      TextMatrix(flxRowCnt, 61) = window.document.frmTrans.txtissbrdesc.value;
+//      TextMatrix(flxRowCnt, 62) = window.document.frmTrans.txtfavg.value;
+//      //---63nr
+//      TextMatrix(flxRowCnt, 64) = window.document.frmTrans.txtcomm.value;
+//      TextMatrix(flxRowCnt, 65) = window.document.frmTrans.txtcustrid.value;
+//      TextMatrix(flxRowCnt, 66) = window.document.frmTrans.txtcusn.value;
+
+
+//      //new code is 
+//      if ((eval(window.document.frmTrans.txtcomm.value) > 0) &&
+//        (eval(window.document.frmTrans.txtSerivceChrg.value) > 0)) {
+//        TextMatrix(flxRowCnt, 67) = BatchNoAuto[2] + "," + BatchNoAuto[3]
+//        TextMatrix(flxRowCnt, 64) = window.document.frmTrans.txtcomm.value +
+//          "," + window.document.frmTrans.txtSerivceChrg.value
+//      }
+//      else if (eval(window.document.frmTrans.txtcomm.value) > 0) {
+//        TextMatrix(flxRowCnt, 67) = BatchNoAuto[2] + ",0"
+//        TextMatrix(flxRowCnt, 64) = window.document.frmTrans.txtcomm.value + ",0"
+//      }
+//      else if (eval(window.document.frmTrans.txtSerivceChrg.value) > 0) {
+//        TextMatrix(flxRowCnt, 67) = "0," + BatchNoAuto[2]
+//        TextMatrix(flxRowCnt, 64) = "0," + window.document.frmTrans.txtSerivceChrg.value
+//      }
+//      TextMatrix(flxRowCnt, 68) = remtype
+
+//      TextMatrix(flxRowCnt, 69) = window.document.frmTrans.txtPanNo.value;
+//      TextMatrix(flxRowCnt, 70) = window.document.frmTrans.txtMobile.value;
+//      TextMatrix(flxRowCnt, 71) = window.document.frmTrans.txtAddress1.value;
+//      TextMatrix(flxRowCnt, 72) = window.document.frmTrans.txtAddress2.value;
+//      TextMatrix(flxRowCnt, 73) = window.document.frmTrans.txtAddress3.value;
+
+//    }
+//    //-------------------------------------------Deposits
+
+//    else if (TextMatrix(flxRowCnt, 17) == "DEP" &&
+//      window.document.frmTrans.txtServiceId.value != "2") {
+//      TextMatrix(flxRowCnt, 60) = window.document.frmTrans.txtDOpAmt.value
+//      TextMatrix(flxRowCnt, 61) = window.document.frmTrans.txtDCurrAmt.value
+//      TextMatrix(flxRowCnt, 62) = window.document.frmTrans.txtDMatAmt.value
+//      TextMatrix(flxRowCnt, 63) = window.document.frmTrans.txtDIntAcc.value
+//      TextMatrix(flxRowCnt, 64) = window.document.frmTrans.txtDOpDate.value
+//      TextMatrix(flxRowCnt, 65) = window.document.frmTrans.txtDEffDt.value
+//      TextMatrix(flxRowCnt, 66) = window.document.frmTrans.txtDMatDt.value
+//      TextMatrix(flxRowCnt, 67) = window.document.frmTrans.txtDPaidupto.value
+//      TextMatrix(flxRowCnt, 68) = window.document.frmTrans.txtDROI.value
+
+//      if (flxRowCnt == 1 && window.document.frmTrans.txtServiceId.value != "2") {
+//        TextMatrix(flxRowCnt, 32) = window.document.frmTrans.txtModId.value
+//        TextMatrix(flxRowCnt, 33) = window.document.frmTrans.txtModDesc.value
+//        TextMatrix(flxRowCnt, 34) = window.document.frmTrans.txtGLcode.value
+//        TextMatrix(flxRowCnt, 35) = window.document.frmTrans.txtGLDesc.value
+//        TextMatrix(flxRowCnt, 37) = window.document.frmTrans.txtAccNo.value
+//        TextMatrix(flxRowCnt, 38) = window.document.frmTrans.txtAccNm.value
+//        TextMatrix(flxRowCnt, 25) = "Y"
+//        TextMatrix(flxRowCnt, 26) = "Deposits"
+//      }
+
+//      if (window.document.frmTrans.Mfgpaydt.Rows > 1 && (servicecond == "RENEWAL" || servicecond == "CLOSING")) {
+
+//        TextMatrix(flxRowCnt, 32) = TextMatrix(1, 32)
+//        TextMatrix(flxRowCnt, 33) = TextMatrix(1, 33)
+//        TextMatrix(flxRowCnt, 34) = TextMatrix(1, 34)
+//        TextMatrix(flxRowCnt, 35) = TextMatrix(1, 35)
+//        TextMatrix(flxRowCnt, 37) = TextMatrix(1, 37)
+//        TextMatrix(flxRowCnt, 38) = TextMatrix(1, 38)
+//        TextMatrix(flxRowCnt, 25) = "Y"
+//        TextMatrix(flxRowCnt, 26) = "Deposits"
+//      }
+//    }
+//    //-------------------------------------------Suspense and Sundry 
+
+//    else if ((TextMatrix(flxRowCnt, 17) == "SCR") && ((TextMatrix(flxRowCnt, 10) == "3") ||
+//      (TextMatrix(flxRowCnt, 10) == "1"))) {
+//      var hidamt = window.document.frmTrans.hidscr.value
+//      var amt = window.document.frmTrans.txtAmt.value
+//      var diffamt = eval(hidamt) - eval(amt)
+//      TextMatrix(flxRowCnt, 79) = scrstr
+//      if (window.document.frmTrans.hidtrnno.value) {
+//        TextMatrix(flxRowCnt, 60) = window.document.frmTrans.hiddate.value
+//        TextMatrix(flxRowCnt, 61) = window.document.frmTrans.hidbatchno.value
+//        TextMatrix(flxRowCnt, 62) = window.document.frmTrans.hidtrnno.value
+//        if (eval(diffamt) > 0) {
+//          TextMatrix(flxRowCnt, 71) = "P"
+//        }
+//        else {
+//          TextMatrix(flxRowCnt, 71) = "F"
+//        }
+
+//      }
+//      else {
+//        TextMatrix(flxRowCnt, 60) = ""
+//        TextMatrix(flxRowCnt, 61) = ""
+//        TextMatrix(flxRowCnt, 62) = ""
+//        TextMatrix(flxRowCnt, 71) = ""
+
+//      }
+//    }
+//    else if ((TextMatrix(flxRowCnt, 17) == "SCR") && ((TextMatrix(flxRowCnt, 10) == "4") || (TextMatrix(flxRowCnt, 10) == "2"))) {
+//      var hidamt = window.document.frmTrans.hidscr.value
+//      var amt = window.document.frmTrans.txtAmt.value
+//      var diffamt = eval(hidamt) - eval(amt)
+//      TextMatrix(flxRowCnt, 79) = scrstr
+
+//      if (window.document.frmTrans.hidtrnno.value) {
+//        TextMatrix(flxRowCnt, 60) = window.document.frmTrans.hiddate.value
+//        TextMatrix(flxRowCnt, 61) = window.document.frmTrans.hidbatchno.value
+//        TextMatrix(flxRowCnt, 62) = window.document.frmTrans.hidtrnno.value
+//        if (eval(diffamt) > 0) {
+//          TextMatrix(flxRowCnt, 71) = "P"
+//        }
+//        else {
+//          TextMatrix(flxRowCnt, 71) = "F"
+//        }
+//      }
+//      else {
+//        TextMatrix(flxRowCnt, 60) = ""
+//        TextMatrix(flxRowCnt, 61) = ""
+//        TextMatrix(flxRowCnt, 62) = ""
+//        TextMatrix(flxRowCnt, 71) = ""
+//      }
+//    }
+
+//    //-------------------------------------------Loans
+
+//    else if ((TextMatrix(flxRowCnt, 17) == "LOAN") &&
+//      ((TextMatrix(flxRowCnt, 10) == "4") || (TextMatrix(flxRowCnt, 10) == "2"))) {
+//      TextMatrix(flxRowCnt, 60) = window.document.frames("iloandtls").frmloaninterestdetails.txtintamt.value
+//      TextMatrix(flxRowCnt, 61) = window.document.frames("iloandtls").frmloaninterestdetails.txtchrgamt.value
+//      TextMatrix(flxRowCnt, 62) = window.document.frames("iloandtls").frmloaninterestdetails.txtinsuramt.value
+//      TextMatrix(flxRowCnt, 63) = window.document.frames("iloandtls").frmloaninterestdetails.txtnpaamt.value
+//      //window.document.frames("iloandtls").frmloaninterestdetails.txtprncamt.value=""
+//      TextMatrix(flxRowCnt, 64) = window.document.frames("iloandtls").frmloaninterestdetails.txtprncamt.value
+//      TextMatrix(flxRowCnt, 65) = window.document.frames("iloandtls").frmloaninterestdetails.txtprncpalamt.value
+//    }
+//    else if ((TextMatrix(flxRowCnt, 17) == "LOAN") && ((TextMatrix(flxRowCnt, 10) == "3") || (TextMatrix(flxRowCnt, 10) == "1"))) {
+//      TextMatrix(flxRowCnt, 60) = window.document.frmTrans.selloantrans.options(window.document.frmTrans.selloantrans.selectedIndex).text
+
+//    }
+
+//    //-------------------------------------------Clearing
+
+//    // for inward clearing add clearingtype to CLG Rate Type column in grid
+
+//    else if (window.document.frmTrans.tranmode[2].checked == true) {
+//      TextMatrix(flxRowCnt, 28) = window.document.frmTrans.cmdcleartype.value;//clearing type
+//      TextMatrix(flxRowCnt, 60) = window.document.frmTrans.cmdcleartype.options
+//        (window.document.frmTrans.cmdcleartype.selectedIndex).text
+
+//      if (eval(window.document.frmTrans.txtServiceId.value) == "8") {
+
+//        TextMatrix(flxRowCnt, 32) = window.document.frmTrans.txtCLGModId.value.toUpperCase()//lnkmoduleid
+//        TextMatrix(flxRowCnt, 33) = window.document.frmTrans.txtCLGModDesc.value//lnkmoduledesc
+//        TextMatrix(flxRowCnt, 34) = window.document.frmTrans.txtCLGGLcode.value//lnkglcode
+//        TextMatrix(flxRowCnt, 35) = window.document.frmTrans.txtCLGGLname.value//lnkgldesc
+//        TextMatrix(flxRowCnt, 37) = window.document.frmTrans.txtCLGAccNo.value//lnkaccno
+//        TextMatrix(flxRowCnt, 38) = window.document.frmTrans.txtCLGAccNm.value//lnkaccname
+//        TextMatrix(flxRowCnt, 60) = window.document.frmTrans.txtCLGBankCode.value
+//        TextMatrix(flxRowCnt, 61) = window.document.frmTrans.txtCLGBranch.value
+//        TextMatrix(flxRowCnt, 62) = window.document.frmTrans.txtCLGReason.value
+//        TextMatrix(flxRowCnt, 63) = window.document.frmTrans.txtCLGReasoncode.value
+//        TextMatrix(flxRowCnt, 79) = "CLGOWRETURN"
+
+//      }
+//    }
+
+//    else if ((TextMatrix(flxRowCnt, 17) == "FXREM") && ((TextMatrix(flxRowCnt, 10) == "4") || (TextMatrix(flxRowCnt, 10) == "2"))) {
+//      TextMatrix(flxRowCnt, 9) = window.document.frmTrans.txtcustrid.value;
+//      window.document.frmTrans.hidRecnam.value = window.document.frmTrans.txtcustrid.value;
+//      TextMatrix(flxRowCnt, 60) = "O"
+//      TextMatrix(flxRowCnt, 61) = window.document.frmTrans.txtfavg.value;
+//      //TextMatrix(flxRowCnt,62)=window.document.frmTrans.txtcomm.value; 
+//      TextMatrix(flxRowCnt, 64) = window.document.frmTrans.txtcomm.value;
+//      TextMatrix(flxRowCnt, 63) = window.document.frmTrans.txtcusn.value;
+
+//      if (eval(window.document.frmTrans.txtcomm.value) > 0) {
+//        TextMatrix(flxRowCnt, 67) = BatchNoAuto[2]
+//      }
+//      TextMatrix(flxRowCnt, 65) = remtype
+//      remtype = ""
+
+//    }
+
+//    else {
+
+//    }
+
+
+//    PrecDrCr()
+
+//    if (window.document.frmTrans.txtModId.value != "DEP") {
+//      Depdivclear()
+//    }
+
+//    //------------------   
+
+//    if ((TextMatrix(flxRowCnt, 17) == "REM") || (TextMatrix(flxRowCnt, 17) == "FXREM")) {
+
+//      if (TextMatrix(flxRowCnt, 10) == "1") {
+//        FlexPopulateCash(BatchNo)
+//        flexRowInsert(flxRowCnt, "Y")
+//        PrecDrCr()
+//      }
+//      else if (TextMatrix(flxRowCnt, 10) == "2") {
+
+//        //New code is 
+//        if (eval(window.document.frmTrans.txtcomm.value) > 0)
+//          //FlexPopulateComm(BatchNo)
+
+//          if (eval(window.document.frmTrans.txtSerivceChrg.value) > 0)
+//            //FlexPopulateSrvCharge(BatchNo)
+
+//            FlexPopulateCash(BatchNo)
+//        flexRowInsert(flxRowCnt, "Y")
+//        PrecDrCr()
+//      }
+//      else if ((TextMatrix(flxRowCnt, 10) == "3") || (TextMatrix(flxRowCnt, 10) == "5")) {
+//        //alert(flxRowCnt + 'main')
+//        flexRowInsert(flxRowCnt, "N")
+//        PrecDrCr()
+//      }
+//      else if (TextMatrix(flxRowCnt, 10) == "4") {
+
+//        // New code is 
+//        if (eval(window.document.frmTrans.txtcomm.value) > 0)
+//          //FlexPopulateComm(BatchNo)
+
+//          if (eval(window.document.frmTrans.txtSerivceChrg.value) > 0)
+//            //FlexPopulateSrvCharge(BatchNo)
+
+//            if ((eval(window.document.frmTrans.txtcomm.value) > 0) ||
+//              (eval(window.document.frmTrans.txtSerivceChrg.value) > 0)) {
+//              //SetWaitMethod()
+
+//              if (window.document.frmTrans.txtNoOfRepeat.value > 0) {
+
+//                noofreap = eval(window.document.frmTrans.txtNoOfRepeat.value)
+
+//                intmaxval = 1000 * eval(noofreap)
+
+//                for (i = 1; i < intmaxval; i++) {
+//                }
+
+//              }
+
+//              flexRowInsert(flxRowCnt, "Y")
+
+//              if (window.document.frmTrans.txtNoOfRepeat.value > 0) {
+
+//                noofreap = eval(window.document.frmTrans.txtNoOfRepeat.value)
+
+//                intmaxval = 1000 * eval(noofreap)
+
+//                for (i = 1; i < intmaxval; i++) {
+//                }
+
+//              }
+//              //SetWaitMethod()
+//            }
+//            else {
+
+//              flexRowInsert(flxRowCnt, "N")
+//            }
+
+//        PrecDrCr()
+
+//      }
+
+
+//    }
+
+//    else if (vMode == "TRANS") {
+//      //alert( "flexRowInsert")         
+//      // alert(flxRowCnt)
+
+
+//      if ((window.document.frmTrans.tranmode[2].checked == true) && (eval(window.document.frmTrans.txtServiceId.value) == "8")) {
+
+//        if ((clgretchgsautoyn1 == 'Y') && (clgCommRetChrgsYN1 == 'Y')) {
+//          var confrmclg
+//          confrmclg = confirm("Do U Want To Post Clearing Return Charges Now  Y/N ? ")
+//          if (confrmclg == true) {
+//            var brCode1
+//            var strValues1
+//            var tranNosc
+//            var batchNoc
+//            var lnkmodid
+//            var lnkglcode
+//            batchNoc = ""
+//            brCode1 = window.document.frmTrans.txtbranchcode.value
+//            tranNosc = 5
+//            lnkmodid = window.document.frmTrans.txtCLGModId.value.toUpperCase()
+//            lnkglcode = window.document.frmTrans.txtCLGGLcode.value
+
+//            if (window.document.frmTrans.Mfgpaydt.Rows >= 2) {
+//              strValues1 = "GEN~*~" + brCode1 + "~" + batchNoc + "~" + "" + "~" + tranNosc + "~" + lnkmodid + "~" + lnkglcode
+//            }
+
+//            //alert(strValues1)
+//            window.document.all['iGeneral1'].src = '<%="http://" & session("moduledir")& "/GEN/"%>' + "batchNoGenclgret.aspx?strVal=" + strValues1
+//            return
+//          }
+//          else {
+//            flexRowInsert(flxRowCnt, "N")
+//          }
+//        }
+//        else {
+//          flexRowInsert(flxRowCnt, "N")
+//        }
+//      }
+//      else {
+//        flexRowInsert(flxRowCnt, "N")
+//        //  PrecDrCr()
+//      }
+//    }
+//    else if ((vMode == "PAY") || (vMode == "REC")) {
+//      //	alert("cash gl = " + vCashGlCode)
+//      FlexPopulateCash(BatchNo)
+//      flexRowInsert(flxRowCnt, "Y")
+//      PrecDrCr()
+//    }
+//    //------------------  
+
+//    if (flexInsrtYN != "YES") {
+
+//      TempTranInsrt("Transaction Failed", flxRowCnt, "1")
+//    }
+
+//    //OkClear()
+
+//    mode = "ADD"
+//  }
+
+//}
+
+
+
 //This function is used to populate main flex grid based on different modules and 
 //conditions with batchno and tranno.
 function FlexPopulate(BatchNo) {
@@ -5569,8 +4581,8 @@ function FlexPopulate(BatchNo) {
     //	} blnBatchLoanClose
 
   }
-
 }
+
 /// end of function FlexPopulate
 
 function FlexPopulate194NCust(BatchNo) {
@@ -6889,7 +5901,7 @@ function FlexPopulateRemCanc(BatchNo2) {
 }
 
 
-//----------------------------------------------------------------------------------
+
 function Populate(BatchNo, flxRowCnt) {
   depIntacccond = true
   //alert("populate" + BatchNo)
@@ -7106,7 +6118,7 @@ function Populate(BatchNo, flxRowCnt) {
 
 }
 
-//----------------------------------------------------------------------------------	
+	
 function FlexPopulateCash(BatchNo) {
 
   if (eval(window.document.frmTrans.txtAmt.value == 0)) {
@@ -7258,7 +6270,7 @@ function FlexPopulateCash(BatchNo) {
   }
 
 }
-//----------------------------------------------------------------------------------
+
 function FlexPopulateComm(BatchNo) {
 
   //depIntacccond=true
@@ -7369,7 +6381,7 @@ function FlexPopulateComm(BatchNo) {
 
 }
 
-//----------------------------------------------------------------------------------
+
 function FlexPopulateSrvCharge(BatchNo) {
 
   //depIntacccond=true
@@ -7720,7 +6732,7 @@ function FlexPopulateCessCharge(BatchNo) {
 }
 
 
-//----------------------------------------------------------------------------------		
+		
 //This function is used to insert row into gentemptranslog that was populated in the
 //flexgrid.
 function flexRowInsert(intRow, moreThanOneRowYN) {
@@ -7818,7 +6830,7 @@ function flexRowInsert(intRow, moreThanOneRowYN) {
   }
 }
 
-//-----------------------------------------------------------------------------------
+-
 //This is the return function form server page after inserting row in gentemptranslog
 //if it fails to insert row into gentemptranslog because of any reasons it will remove 
 //that row from the flex grid.
@@ -7853,7 +6865,7 @@ function TempTranInsrtclgret(strRslt, flxRow, NoOfRows) {
 }
 
 
-//-----------------------------------------------------------------------------------
+-
 //This is the return function form server page after inserting row in gentemptranslog
 //if it fails to insert row into gentemptranslog because of any reasons it will remove 
 //that row from the flex grid.
@@ -7916,7 +6928,7 @@ function TempTranInsrt(strRslt, flxRow, NoOfRows) {
 
 }
 
-//----------------------------------------------------------------------------------
+
 
 //this function is used to clear the cheque related textboxes
 function ChequeDetClear() {
@@ -7924,33 +6936,9 @@ function ChequeDetClear() {
   window.document.frmTrans.txtChqDt.value = '<%=session("Applicationdate")%>';
   window.document.frmTrans.txtChqFVG.value = "";
 }
-//----------------------------------------------------------------------------------
-
-//this function is used to clear all the field and to set default format field values
-// to the flexgrid.
-function Cancel() {
-  window.document.frmTrans.txtbranchcode.value = "<%=session("branchcode")%>"
-  window.document.frmTrans.txtbranchdesc.value = "<%=session("branchnarration")%>"
-  formClear()
-  NatBranch()
-
-  window.document.frmTrans.Mfgpaydt.Rows = 1;
-  window.document.frmTrans.cmdPost.disabled = false
-  sumDrCrDefault()
-  window.document.frmTrans.txtTotDebit.value = "0";
-  window.document.frmTrans.txtTotCredit.value = "0";
-  chkboxUnCheck()
-  defaultValues()
-  if (vMode == "REC") {
-    GetCashierBalance()
-  }
 
 
-}
-//----------------------------------------------------------------------------------
 
-
-//----------------------------------------------------------------------------------
 //this function is used to set default div visible true and others visible false.
 function dispUncheck() {
   //window.document.frmTrans.tranmode(0).checked=true
@@ -7966,13 +6954,13 @@ function dispUncheck() {
 
 }
 
-//----------------------------------------------------------------------------------
+
 
 function chqlen() {
   if ((window.document.frmTrans.txtChqNo.value).length > 14)
     event.keyCode = 0
 }
-//----------------------------------------------------------------------------------
+
 function SubPost() {
 
   if (window.document.frmTrans.Mfgpaydt.Rows > 1) {
@@ -8049,7 +7037,7 @@ function SubPost() {
   }
 
 }
-//----------------------------------------------------------------------------------
+
 //// function for String grid values in array variables
 function gridvalues() {
 
@@ -8171,7 +7159,7 @@ function gridvalues() {
   // location.replace('<%="http://" & session("moduledir")& "/GEN/"%>'+"TrnInsert.aspx?kstr="+strTot)
 }
 
-//----------------------------------------------------------------------------------
+
 function DelTran() {
 
   if (window.document.frmTrans.Mfgpaydt.Rows > 1) {
@@ -8216,7 +7204,7 @@ function DelTran() {
 
   }
 }
-//----------------------------------------------------------------------------------
+
 function ABBCheck() {
   window.document.frmTrans.chkDispAccNo.disabled = true
   if (window.document.frmTrans.chkABB.checked == false) {
@@ -8236,7 +7224,7 @@ function ABBCheck() {
   }
   AbbApplDt()
 }
-//----------------------------------------------------------------------------------
+
 
 //code added by Radhika on 12 May 2008
 //Desc: To select CheckBook Check box, when modules are CC,CA,SB in Debit Tran mode
@@ -8280,7 +7268,7 @@ function ModParamRtn(str) {	//alert("md param="+str)
 }
 
 
-//----------------------------------------------------------------------------------
+
 function MinBalCheck() {
   if ((window.document.frmTrans.tranmode(0).checked == true) && (window.document.frmTrans.txtServiceId.value == "4") && ((window.document.frmTrans.txtModId.value == "SB") || (window.document.frmTrans.txtModId.value == "CA"))) {
 
@@ -8493,7 +7481,7 @@ function MinBalCheck_modify() {
 
 }//end of  MinBalCheck_modify() method
 
-//----------------------------------------------------------------------------------
+
 //Function for validating deposit details
 function AccOpening() {
 
@@ -8554,7 +7542,7 @@ function AccOpening() {
 }
 
 
-//-------------------------------------------------------------------------------------
+---
 //Closing,If deposit is of unit type
 function DepUnitCheck() {
   if (window.document.frmTrans.txtUnits.value != "") {
@@ -8575,7 +7563,7 @@ function ChqOnFocus() {
   return
 }
 
-//---------------------------------------------------------------------------------- 
+ 
 function ChqValidation() {
 
   if (window.document.frmTrans.txtChqNo.value.length == 0) {
@@ -8700,7 +7688,7 @@ function ChqValidation() {
     }
   }
 }
-//----------------------------------------------------------------------------------
+
 function ChqSerValidation() {
   window.document.frmTrans.txtChqNo.value = ""
   /* if(window.document.frmTrans.txtChqSrs.value.length==0){
@@ -8759,7 +7747,7 @@ function ChqSerValidation() {
   }
 
 }
-//---------------------------------------------------------------------------------
+
 function ChqVerification(ChqNo) {
 
   excpChqNo = ""
@@ -8840,7 +7828,7 @@ function ChqVerification(ChqNo) {
     }
   }
 }
-//----------------------------------------------------------------------------------
+
 function ChqSerVerification(ChqSer) {
   excpChqSrs = ""
   excpChq = ""
@@ -8858,7 +7846,7 @@ function ChqSerVerification(ChqSer) {
   }
 }
 
-//----------------------------------------------------------------------------------
+
 function TempTranslog() {
   var strprm = "";
   var modTrn = "";
@@ -8898,7 +7886,7 @@ function TempTranslog() {
     window.document.all['iCommon'].src = '<%="http://" & session("moduledir")& "/GEN/"%>' + "temptranpop.aspx?st=" + strprm
   }
 }
-//----------------------------------------------------------------------------------
+
 function TempTranslogpop(strdata) {
   //alert(strdata)
   var K, i, m, b, pos, j, h, n, p, s
@@ -8945,7 +7933,7 @@ function TempTranslogpop(strdata) {
   }
 }
 
-//----------------------------------------------------------------------------------
+
 function disposal(prmVal) {
 
   var strprm = "";
@@ -8965,7 +7953,7 @@ function disposal(prmVal) {
     window.document.all['iCommon'].src = '<%="http://" & session("moduledir")& "/GEN/"%>' + "temptranpop.aspx?st=" + strprm
   }
 }
-//----------------------------------------------------------------------------------
+
 function dispoalPop(strdata) {
   var K, i, m, b, pos, j, h, n, p, s
   for (m = 1; m <= 2; m++) {
@@ -8997,7 +7985,7 @@ function dispoalPop(strdata) {
     }
   }
 }
-//----------------------------------------------------------------------------------
+
 function MainFlexPop(strdata) {
 
   branchCurrCode()
@@ -9055,7 +8043,7 @@ function MainFlexPop(strdata) {
 
   PrecDrCr()
 }
-//----------------------------------------------------------------------------------
+
 function ChqDateVald() {
 
   if (window.document.frmTrans.txtChqDt.value.length == 0) {
@@ -9137,7 +8125,7 @@ function ChqDateVerify(chqVldDt) {
   }
   DateChk()
 }
-//----------------------------------------------------------------------------------
+
 
 function DateChk() {
   if (window.document.frmTrans.txtChqDt.value.length == 0) {
@@ -9301,7 +8289,7 @@ function Trandel() {
     }
   }
 }
-//----------------------------------------------------------------------------------
+
 function dispData(batchNo) {
 
   var strpm = "";
@@ -9343,7 +8331,7 @@ function dispData(batchNo) {
   }
 }
 
-//----------------------------------------------------------------------------------
+
 function DepRenClose() {
   var modId = window.document.frmTrans.txtModId.value.toUpperCase()
   var glCode = window.document.frmTrans.txtGLcode.value.toUpperCase()
@@ -9364,7 +8352,7 @@ function DepRenClose() {
 
   }
 }
-//----------------------------------------------------------------------------------
+
 function LockContAdd() {
   window.document.frmTrans.cmdModify.disabled = true
   window.document.frmTrans.cmdDelete.disabled = true
@@ -9373,7 +8361,7 @@ function LockContAdd() {
   //    window.document.frmTrans.cmdCont.disabled=true
 
 }
-//----------------------------------------------------------------------------------
+
 function TempTransData() {
   var batchno = ""
   var strpm = "";
@@ -9434,8 +8422,6 @@ function TempTransData() {
   }
 }
 
-
-//----------------------------------------------------------------------------------
 function DelTempTranslog(Rst) {
 
   var balstr2 = new String();
@@ -9461,14 +8447,7 @@ function DelTempTranslog(Rst) {
     alert(balstr2[0])
   }
 }
-//----------------------------------------------------------------------------------
 
-
-//----------------------------------------------------------------------------------
-
-
-
-//----------------------------------------------------------------------------------
 function dispGridRemove() {
   window.document.frmTrans.mfgTranslog.Clear();
   window.document.frmTrans.mfgTranslog.FormatString = ">Batch No  |>Tran No   |<GL Code        |<GL Description                   |>Acc No         |>Amount            |>Entered Time Bal |^Applicatin Date   |<Cust ID               |<Mode of Tran  |<Status  |>Currency Code     |<Entered By             |<Entered M/C             |<ABB Branch Code          |<Branch Desc                    |<Module ID         |<Branch Code            |>Token No   |<Remarks                           |<Disposals";
@@ -9483,52 +8462,47 @@ function dispGridRemove() {
     }
   }
 }
+	
+//function OkClear() {
 
-//----------------------------------------------------------------------------------	
+//  ModuleClear();//clear module and 
+//  LnkModClear()
+//  hdnFldClear()
+//  Cls();
+//  defaultValues();
+//  forexClear()
+//  if ((window.document.frmTrans.chkDispAccNo.checked == false) &&
+//    (window.document.frmTrans.chkABB.checked == false)) {
+//    chkboxUnCheck();
+//  }
 
-//----------------------------------------------------------------------------------	
-function OkClear() {
+//  if (mode != "MODIFY") {
+//    excpIntValues();
+//  }
+//  Remclear();
+//  if (mode != "MODIFY") {
+//    funloanclear();
+//  } ServiceId
 
-  ModuleClear();//clear module and 
-  LnkModClear()
-  hdnFldClear()
-  Cls();
-  defaultValues();
-  forexClear()
-  if ((window.document.frmTrans.chkDispAccNo.checked == false) &&
-    (window.document.frmTrans.chkABB.checked == false)) {
-    chkboxUnCheck();
-  }
+//  if (window.document.frmTrans.tranmode(2).checked == true) {
+//    ClgModClear()
+//    clearflds()
+//  }
+//  //ClgClear()
 
-  if (mode != "MODIFY") {
-    excpIntValues();
-  }
-  Remclear();
-  if (mode != "MODIFY") {
-    funloanclear();
-  } ServiceId
+//  Depdivclear()
 
-  if (window.document.frmTrans.tranmode(2).checked == true) {
-    ClgModClear()
-    clearflds()
-  }
-  //ClgClear()
+//  if (window.document.frmTrans.chkDispAccNo.checked == true) {
+//    dispUncheck()
+//  }
+//  dispGridRemove()
 
-  Depdivclear()
-
-  if (window.document.frmTrans.chkDispAccNo.checked == true) {
-    dispUncheck()
-  }
-  dispGridRemove()
-
-  if ((window.document.frmTrans.chkDispAccNo.checked == true) &&
-    (window.document.frmTrans.mfgDisp.Rows == 1)) {
-    UnlockControls()
-  }
-
-}
-
-//----------------------------------------------------------------------------------	
+//  if ((window.document.frmTrans.chkDispAccNo.checked == true) &&
+//    (window.document.frmTrans.mfgDisp.Rows == 1)) {
+//    UnlockControls()
+//  }
+//}
+	
 function FlexModify(GridRowSel) {
 
   formClear()
@@ -9908,8 +8882,7 @@ function FlexModify(GridRowSel) {
 
   }
 }
-
-//---------------------------------------------------------------------------------- 
+ 
 function Flexrowdelete() {
 
   var rowno = window.document.frmTrans.Mfgpaydt.Row
@@ -10045,7 +9018,7 @@ function GLParameters() {
   window.document.all['iPrm'].src = '<%="http://" & session("moduledir")& "/GEN/"%>' + "genparameters.aspx?strparam=" + strPrm
 }
 
-//----------------------------------------------------------------------------------   
+   
 function GLParamRtn(strRslt) {
 
   var arrInd
@@ -10078,7 +9051,7 @@ function GLParamRtn(strRslt) {
   DRandCRCheck()
 }
 
-//----------------------------------------------------------------------------------  
+  
 function DRandCRCheck() {
   if (window.document.frmTrans.tranmode(0).checked == true) {
     if ((pTransDrYN == "N") && (vMode == "TRANS")) {
@@ -10113,7 +9086,7 @@ function DRandCRCheck() {
     }
   }
 }
-//----------------------------------------------------------------------------------        
+        
 //Assigning precision when  form is loading.
 function precform(amount) {
   if (window.document.frmTrans.hpr.value == "") {
@@ -10131,19 +9104,19 @@ function precform(amount) {
 
 
 }
-//----------------------------------------------------------------------------------
+
 function amtPrec() {
   precform(window.document.frmTrans.txtAmt)
   precision(window.document.frmTrans.txtAmt, eval(window.document.frmTrans.hpr.value))
 }
-//----------------------------------------------------------------------------------	
+	
 function fxAmtPrec() {
   precform(window.document.frmTrans.txtFAmount)
   precision(window.document.frmTrans.txtFAmount, eval(window.document.frmTrans.fxhpr.value))
 }
-//----------------------------------------------------------------------------------	
+	
 
-//------------------------------------------------------------------------------------	
+--	
 function mfgPaydtMod() {
 
   if (window.document.frmTrans.txtModId.value != "") {
@@ -10158,7 +9131,7 @@ function mfgPaydtMod() {
   }
 
 }
-//----------------------------------------------------------------------------------
+
 
 function dispDetModify(Rselect) {
   ModuleClear()
@@ -10287,8 +9260,8 @@ function dispDetModify(Rselect) {
     Flexrowdelete()
   }
 }
-//----------------------------------------------------------------------------------
-//----------------------------------------------------------------------------------
+
+
 function lnkMod() {
   if (window.document.frmTrans.chkLnkMod.checked == true) {
     divsDisplay("divLnkMod", "M")
@@ -10303,7 +9276,7 @@ function lnkMod() {
   }
 
 }
-//----------------------------------------------------------------------------------
+
 function tempTrans() {
 
   if (window.document.frmTrans.chkTransDet.checked == true) {
@@ -10328,20 +9301,20 @@ function tempTrans() {
 
 
 }
-//----------------------------------------------------------------------------------
 
-//----------------------------------------------------------------------------------
+
+
 function txtAmt_onfocus() {
   // window.document.frmTrans.txtAmt.value=""
 }
-//----------------------------------------------------------------------------------
 
-//----------------------------------------------------------------------------------
+
+
 function txtChqFVG_onkeypress() {
   if ((window.document.frmTrans.txtChqFVG.value).length > 39)
     event.keyCode = 0
 }
-//----------------------------------------------------------------------------------
+
 function UnclrDiv() {
 
   if (window.document.frmTrans.txtbranchcode.value != "" &&
@@ -10382,7 +9355,7 @@ function cntrlOnblurret(txtName) {
 }
 
 
-//----------------------------------------------------------------------------------
+
 function dispDetails() {
   if (window.document.frmTrans.chkDispDtls.checked == true) {
     // window.document.all.divTempTrans.style.display="none"
@@ -10395,13 +9368,13 @@ function dispDetails() {
   }
 }
 
-//----------------------------------------------------------------------------------
+
 function DispAccNo() {
 
   AccountClear()
   DispGrid()
 }
-//----------------------------------------------------------------------------------
+
 function DispGrid() {
   if (window.document.frmTrans.chkDispAccNo.checked == true) {
     window.document.frmTrans.chkDispDtls.checked = true
@@ -10416,7 +9389,7 @@ function DispGrid() {
     window.document.frmTrans.mfgDisp.Rows = 1
   }
 }
-//----------------------------------------------------------------------------------
+
 function dispAccDetails(Rsel) {
   if (mode == "MODIFY" && window.document.frmTrans.mfgDisp.TextMatrix(Rsel, 34) != "MODIFY") {
     alert("Modify already selected row")
@@ -10495,7 +9468,7 @@ function dispAccDetails(Rsel) {
   }
 
 }
-//----------------------------------------------------------------------------------
+
 function dispValidations(Rsel) {
   var modId = window.document.frmTrans.txtModId.value.toUpperCase()
   with (window.document.frmTrans.mfgDisp) {
@@ -10529,17 +9502,6 @@ function dispValidations(Rsel) {
   }
 }
 
-//----------------------------------------------------------------------------------
-function masterTabYN() {
-  if (window.document.frmTrans.txtModId.value != "") {
-    strpm = "MASTTAB" + "~" + window.document.frmTrans.txtModId.value.toUpperCase()
-
-    window.document.all['iMsg'].src = '<%="http://" & session("moduledir")& "/GEN/"%>' + "minBalChk.aspx?strparam=" + strpm
-
-  }
-
-}
-//----------------------------------------------------------------------------------
 function masterTabRtn(strMstTab) {
 
   mstTab = "YES"
@@ -10554,7 +9516,7 @@ function masterTabRtn(strMstTab) {
   }
 
 }
-//----------------------------------------------------------------------------------
+
 function lockControls() {
 
   window.document.frmTrans.txtServiceId.readOnly = true
@@ -10584,7 +9546,7 @@ function lockControls() {
 
 
 
-//----------------------------------------------------------------------------------
+
 function branchCurrCode() {
   curCode = window.document.frmTrans.txtcurrencycode.value.toUpperCase()
   curDesc = window.document.frmTrans.txtcurrencydesc.value
@@ -10592,7 +9554,7 @@ function branchCurrCode() {
   brDesc = window.document.frmTrans.txtbranchdesc.value
 }
 
-//----------------------------------------------------------------------------------
+
 function ModuleMandChk(MandFld, OrgFld) {
   if (MandFld.value == "") {
     alert("Branch Code should not be Null")
@@ -10600,7 +9562,7 @@ function ModuleMandChk(MandFld, OrgFld) {
     OrgFld.value = ""
   }
 }
-//----------------------------------------------------------------------------------
+
 function GLMandChk(MandFld, OrgFld) {
   if (MandFld.value == "") {
     alert("Module id should not be Null")
@@ -10608,7 +9570,7 @@ function GLMandChk(MandFld, OrgFld) {
     OrgFld.value = ""
   }
 }
-//----------------------------------------------------------------------------------
+
 function AccMandChk(MandFld, OrgFld) {
   if (MandFld.value == "") {
     alert("GL Code should not be Null")
@@ -10616,14 +9578,14 @@ function AccMandChk(MandFld, OrgFld) {
     OrgFld.value = ""
   }
 }
-//---------------------------------------------------------------------------------- 
+ 
 function LstMandChk(MandFld, OrgFld, Message) {
   if (MandFld.value == "") {
     alert(Message)
     OrgFld.value = ""
   }
 }
-//----------------------------------------------------------------------------------
+
 function ModifyClick() {
   if (window.document.frmTrans.Mfgpaydt.Rows > 1) {
     Rselect = window.document.frmTrans.Mfgpaydt.RowSel
@@ -10643,41 +9605,6 @@ function ModifyClick() {
 
 }
 
-//----------------------------------------------------------------------------------
-// Checks wether the transaction is exceptional one or not.
-function exceptionCodes() {
-  excpCodes = ""
-  excpYN = "N"
-  if (excpMinBal != "") {
-    excpCodes = excpMinBal + "^"
-    excpYN = "Y"
-  }
-  if (excpLmtAmt != "") {
-    excpCodes = excpCodes + excpLmtAmt + "^"
-    excpYN = "Y"
-  }
-  if (excpParmAmt != "") {
-    excpCodes = excpCodes + excpParmAmt + "^"
-    excpYN = "Y"
-  }
-  excpChq = ""
-  if (excpChqSrs != "" || excpChqNo != "") {
-    excpChq = "4"
-    excpCodes = excpCodes + excpChq + "^"
-    excpYN = "Y"
-  }
-  if (excpEffDt != "") {
-    excpCodes = excpCodes + excpEffDt + "^"
-    excpYN = "Y"
-  }
-  if (excpOverDraft != "") {
-    excpCodes = excpCodes + excpOverDraft + "^"
-    excpYN = "Y"
-  }
-
-}
-
-//----------------------------------------------------------------------------------
 function excpTranCheck() {
   if (mode == "MODIFY") {
     excptionAmt()
@@ -10703,7 +9630,7 @@ function excpTranCheck() {
   }
 
 }
-//----------------------------------------------------------------------------------
+
 function excptionAmt() {
   TranMode()
 
@@ -10712,7 +9639,7 @@ function excptionAmt() {
     window.document.frmTrans.txtGLcode.value + "~" + trnMode
   window.document.all['iMsg'].src = '<%="http://" & session("moduledir")& "/GEN/"%>' + "minBalChk.aspx?strparam=" + strpm
 }
-//----------------------------------------------------------------------------------
+
 function exceptionAmtRtn(amtRtn) {
 
   if (amtRtn == "NODATA") {
@@ -10736,12 +9663,7 @@ function validateSpecialCharacters(txt) {
   }
   window.document.frmTrans.txtNarran.value = window.document.frmTrans.txtNarran.value.toUpperCase()
 }
-
-
-//*********************************************************************************
-
-
-//----------------------------------------------------------------------------------  
+  
 //This function was written to form denomination values,no of pieces,available amount,
 //exchange amount array values.
 function denomStrForm() {
@@ -10790,7 +9712,7 @@ function denomStrForm() {
   strDenom = DValStr + "|" + DPayamtStr + "|" + DExamtStr + "|" + DTypStr;
 }
 
-//----------------------------------------------------------------------------------
+
 function PostRslt(vRslt) {
 
   window.document.frmTrans.cmdPost.disabled = false
@@ -10816,7 +9738,7 @@ function PostRslt(vRslt) {
   }
   strLoanBatchNo = window.document.frames['iPost'].frmPost.hdnBatch.value
 }
-//----------------------------------------------------------------------------------    
+    
 function tellerPayments() {
 
   var kstr = vBranchCode + "~" +
@@ -10855,10 +9777,8 @@ function TranRslt(vRslt) {
     window.location.replace('<%="http://" & session("moduledir")& "/" %>' + "GEN/transfertransactions.aspx?st=TPAY.aspx")
   }
 }
-
-//----------------------------------------------------------------------------------    
+    
 //FOREX functions 
-//----------------------------------------------------------------------------------   
 function fxTransactionYN() {
   var fxText = window.document.frmTrans.txtModId.value.substr(0, 2)
   if ((fxText == "FX") && (window.document.frmTrans.chkDispAccNo.checked == false)) {
@@ -10881,9 +9801,6 @@ function TrnDeleteTrn(kstr) {
   Cancel()
 }
 
-
-
-//----------------------------------------------------------------------------------
 //This function is used to populate different Rate types in the combo box.
 function fxRateTypesRtn(fxRateType) {
   var StrArrMain = new String()
@@ -10907,7 +9824,7 @@ function fxRateTypesRtn(fxRateType) {
   }
 
 }
-//----------------------------------------------------------------------------------  
+  
 function fxRateTypeCodes() {
   if (window.document.frmTrans.cmbFRateType.options
   [window.document.frmTrans.cmbFRateType.selectedIndex].value == "") {
@@ -10923,21 +9840,21 @@ function fxRateTypeCodes() {
     "DialogWidth:270px;DialogHeight:170px;DialogLeft:470px;DialogTop:170px")
 
 }
-//----------------------------------------------------------------------------------  
+  
 function fxRateTypeCodesRtn(strValue) {
   var strRate
   strRate = strValue.split("-----")
   window.document.frmTrans.txtFRateRefCode.value = strRate[1]
   window.document.frmTrans.txtFRateRefDesc.value = strRate[0]
 }
-//---------------------------------------------------------------------------------- 
+ 
 function fxcurr() {
   st = "FxCurr"
 
   window.showModalDialog('<%="http://" & session("moduledir")& "/GEN/"%>' + "TranList.aspx" + "?" + "st=" + st, window, "status:no;" +
     "DialogWidth:270px;DialogHeight:170px;DialogLeft:370px;DialogTop:170px")
 }
-//---------------------------------------------------------------------------------- 
+ 
 function Fxcurrency(kstr) {
   var k
   k = kstr.split("-----")
@@ -10947,7 +9864,7 @@ function Fxcurrency(kstr) {
   precision(window.document.frmTrans.txtFAmount, window.document.frmTrans.fxhpr.value)
 
 }
-//---------------------------------------------------------------------------------- 	
+ 	
 function fxRateDtls() {
   if (window.document.frmTrans.chkFRateDtls.checked == true) {
     window.document.all['divFxRate'].style.display = "block"
@@ -10964,7 +9881,7 @@ function fxRateDtls() {
 
 }
 
-//---------------------------------------------------------------------------------- 	
+ 	
 function chkDenomTally() {
   if (window.document.frmTrans.chkdenomtally.checked == true) {
     window.document.all['divDenomtally'].style.display = "block"
@@ -10978,8 +9895,6 @@ function chkDenomTally() {
 
 }
 
-
-//---------------------------------------------------------------------------------- 	
 function fxAmount() {
   window.document.frmTrans.txtAmt.value = ""
   if ((eval(window.document.frmTrans.txtFRate.value) > 0) &&
@@ -10991,20 +9906,18 @@ function fxAmount() {
   }
 
 }
-//---------------------------------------------------------------------------------- 	
 
-//----------------------------------------------------------------------------------        
 function txtcurrencycode_onkeyup() {
   ModuleClear()
   ClearAlert('Cur')
   window.document.frmTrans.txtcurrencydesc.value = ""
 }
-//----------------------------------------------------------------------------------        
+        
 function txtServiceId_onkeyup() {
   ModuleClear()
   window.document.frmTrans.txtServiceName.value = ""
 }
-//----------------------------------------------------------------------------------        
+        
 function txtModId_onkeyup() {
 
   ModuleMandChk(window.document.frmTrans.txtbranchcode, window.document.frmTrans.txtModId)
@@ -11013,13 +9926,13 @@ function txtModId_onkeyup() {
 
 }
 
-//----------------------------------------------------------------------------------        
+        
 function txtGLcode_onkeyup() {
   GLMandChk(window.document.frmTrans.txtModId, window.document.frmTrans.txtGLcode)
   AccountClear()
   window.document.frmTrans.txtGLDesc.value = ""
 }
-//----------------------------------------------------------------------------------        
+        
 function txtLnkModId_onkeyup() {
   ModuleMandChk(window.document.frmTrans.txtbranchcode, window.document.frmTrans.txtLnkModId)
   LnkGLClear()
