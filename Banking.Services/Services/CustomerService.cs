@@ -251,6 +251,7 @@ namespace Banking.Services
         {
             try
             {
+                string kycidcols = string.Empty, kycdtlsvals1 = string.Empty;
                 // These three should not be null for customer insertion
                 string appdate = session.GetString(SessionConstants.ApplicationDate);
                 string userid = session.GetString(SessionConstants.UserId);
@@ -293,7 +294,7 @@ namespace Banking.Services
                 customerid = newbrcode + customerid;
 
                 string CKYCENROLLDTLScols = string.Empty, CKYCENROLLDTLSvals = string.Empty;
-
+              
                 if (kycDocuments.Count > 0)
                 {
                     kycidcols = "BRANCHCODE, CUSTOMERID, KYCID, DESCRIPTION, STATUS, USERID, MACHINEID, SYSTEMDATE";
