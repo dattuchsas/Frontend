@@ -60,56 +60,6 @@ namespace Banking.Models
         public string? ABBUser { get; set; }
         public string? SelectedModule { get; set; }
 
-
-
-        #region Hidden Fields
-
-        public string? Hidden_194NModId { get; set; }
-        public string? Hidden_194NCustomerId { get; set; }
-        public string? Hidden_194NGLCode { get; set; }
-        public string? Hidden_194NAccNo { get; set; }
-
-        public string? Hidden_194NModDesc { get; set; }
-        public string? Hidden_Mode { get; set; }
-        public string? Hidden_SubMode { get; set; }
-
-        public string? Hidden_RemCanCESSYN { get; set; } = "N";
-        public string? Hidden_RemCanGSTYN { get; set; } = "N";
-        public string? Hidden_OlimpYN { get; set; } = "Y";
-        public string? Hidden_impClgYN { get; set; } = "N";
-        public string? Hidden_AutoRetChrgsYN { get; set; } = "N";
-        public string? Hidden_CommRetChrgsYN { get; set; } = "N";
-        public string? Hidden_RemCanAutoChrgsYN { get; set; } = "N";
-        public string? Hidden_RemCanCommYN { get; set; } = "N";
-        public string? Hidden_194NYN { get; set; } = "N";
-        public string? Hidden_ThrLmt { get; set; } = "N";
-        public string? Hidden_TellerVerifyReqYN { get; set; } = "Y";
-        public bool? Hidden_BDT { get; set; } = false;
-
-        public string? Hidden_Title { get; set; }
-        public string? Hidden_TotalNarration { get; set; }
-
-        public string? Hidden_194NAccName { get; set; }
-        public string? Hidden_BDTStartDate { get; set; }
-        public string? Hidden_194NGLDesc { get; set; }
-        public string? Hidden_RemCanCommAmt { get; set; }
-        public string? Hidden_RemCanGSTTax { get; set; }
-        public string? Hidden_RemCanCESSTax { get; set; }
-        public string? Hidden_GST { get; set; }
-
-        public string? Hidden_SBCAAccClose { get; set; }
-
-        public string? Hidden_CustomerId { get; set; }
-        public string? Hidden_ReceipientName { get; set; }
-
-        public string? Hidden_ChequeValidPeriod { get; set; }
-        public string? Hidden_ChequeLength { get; set; }
-
-        public string? Hidden_Precision { get; set; }
-        public string? Hidden_MaxAmount { get; set; }
-
-        #endregion
-
         public string? ClearBalance { get; set; }
         public string? UnclearBalance { get; set; }
         public string? AccountBalance { get; set; }
@@ -161,6 +111,65 @@ namespace Banking.Models
         public string? REMAddress1 { get; set; }
         public string? REMAddress2 { get; set; }
         public string? REMAddress3 { get; set; }
+
+
+
+        #region Hidden Fields
+
+        public string? Hidden_194NModId { get; set; }
+        public string? Hidden_194NCustomerId { get; set; }
+        public string? Hidden_194NGLCode { get; set; }
+        public string? Hidden_194NAccNo { get; set; }
+
+        public string? Hidden_194NModDesc { get; set; }
+        public string? Hidden_Mode { get; set; }
+        public string? Hidden_SubMode { get; set; }
+
+        public string? Hidden_RemCanCESSYN { get; set; } = "N";
+        public string? Hidden_RemCanGSTYN { get; set; } = "N";
+        public string? Hidden_OlimpYN { get; set; } = "Y";
+        public string? Hidden_impClgYN { get; set; } = "N";
+        public string? Hidden_AutoRetChrgsYN { get; set; } = "N";
+        public string? Hidden_CommRetChrgsYN { get; set; } = "N";
+        public string? Hidden_RemCanAutoChrgsYN { get; set; } = "N";
+        public string? Hidden_RemCanCommYN { get; set; } = "N";
+        public string? Hidden_194NYN { get; set; } = "N";
+        public string? Hidden_ThrLmt { get; set; } = "N";
+        public string? Hidden_TellerVerifyReqYN { get; set; } = "Y";
+        public bool? Hidden_BDT { get; set; } = false;
+
+        public string? Hidden_Title { get; set; }
+        public string? Hidden_TotalNarration { get; set; }
+
+        public string? Hidden_194NAccName { get; set; }
+        public string? Hidden_BDTStartDate { get; set; }
+        public string? Hidden_194NGLDesc { get; set; }
+        public string? Hidden_RemCanCommAmt { get; set; }
+        public string? Hidden_RemCanGSTTax { get; set; }
+        public string? Hidden_RemCanCESSTax { get; set; }
+        public string? Hidden_GST { get; set; }
+
+        public string? Hidden_SBCAAccClose { get; set; }
+
+        public string? Hidden_CustomerId { get; set; }
+        public string? Hidden_ReceipientName { get; set; }
+
+        public string? Hidden_ChequeValidPeriod { get; set; }
+        public string? Hidden_ChequeLength { get; set; }
+
+        public string? Hidden_Precision { get; set; }
+        public string? Hidden_MaxAmount { get; set; }
+        public string? Hidden_CheckThresholdLimit { get; set; }
+
+
+
+        public string? Overdraft { get; set; }
+        public string? VTotalAmount { get; set; }
+        public string? ImpYnWek { get; set; }
+        public string? ImpYnDay { get; set; }
+        public string? WekLmt { get; set; }
+
+        #endregion
     }
 
     public enum TransactionModes

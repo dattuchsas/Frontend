@@ -277,6 +277,11 @@ table.table-sm .form-control {
     margin-right: 0.25rem;
 }
 
+#transferTransactionTable th,
+#transferTransactionTable td {
+    white-space: nowrap;
+}
+
 .card-header .form-check-label {
     font-weight: 600;
 }

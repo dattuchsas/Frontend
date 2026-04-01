@@ -1127,7 +1127,7 @@ namespace Banking.Services
         }
 
         public async Task<string> GetSBCADrCrLienYN(string strMode, string strBrCode, string strCurcode, string strModId, string strGlcode, string strAccno, 
-            double TransAmt, DateTime TranDate)
+            double TransAmt, string TranDate)
         {
             DataTable rsneftAck;
             double dblDrLnAmt, dblCrLnAmt, dblAccBal, dblfinLeinLimAmt;
@@ -1144,7 +1144,7 @@ namespace Banking.Services
                 }
 
                 strSql = "select GETANYDAYBAL('" + strBrCode + "'," + " '" + strCurcode + "' ,'" + strModId + "'," + " '" + strGlcode + "','" +
-                        strAccno + "'," + " '" + string.Format("dd-MMM-yyyy", TranDate) + "') bal from dual";
+                        strAccno + "'," + " '" + TranDate + "') bal from dual";
 
                 rsneftAck = await _databaseFactory.ProcessQueryAsync(strSql);
 

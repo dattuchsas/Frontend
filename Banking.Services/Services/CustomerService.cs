@@ -41,6 +41,7 @@ namespace Banking.Services
             customerModel.KYCTypeList = await _commonService.GetKYCList();
 
             customerModel.Relation_List = await _commonService.GetRelationList();
+            customerModel.ModuleList = await _commonService.GetModuleList();
 
             customerModel.Occupation_List = await _commonService.GetOccupationList();
             customerModel.Occupation_IncomeList = await _commonService.GetIncomeList();
