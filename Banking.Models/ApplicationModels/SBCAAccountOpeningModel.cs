@@ -54,6 +54,7 @@ namespace Banking.Models
         public string? Intro_Relation { get; set; }
         public List<SelectListItem>? Intro_RelationList { get; set; }
         public string? Intro_RelationName { get; set; }
+        public string? Intro_MinorDOB { get; set; }
 
         // Joint Account Details
         public string? JntCustId { get; set; }
@@ -64,6 +65,7 @@ namespace Banking.Models
         public string? Jnt_Relation { get; set; }
         public List<SelectListItem>? Jnt_RelationList { get; set; }
         public string? Jnt_RelationName { get; set; }
+        public string? Jnt_MinorDOB { get; set; }
 
         // Guardian Details
         public string? GuardCustId { get; set; }
@@ -74,6 +76,7 @@ namespace Banking.Models
         public string? Guard_Relation { get; set; }
         public List<SelectListItem>? Guard_RelationList { get; set; }
         public string? Guard_RelationName { get; set; }
+        public string? Guard_MinorDOB { get; set; }
 
         // Nominee Details
         public string? NomineeCustId { get; set; }
@@ -84,13 +87,24 @@ namespace Banking.Models
         public string? Nominee_Relation { get; set; }
         public List<SelectListItem>? Nominee_RelationList { get; set; }
         public string? Nominee_RelationName { get; set; }
+        public string? Nominee_MinorDOB { get; set; }
 
+        public List<Introducer>? Introducerdtls { get; set; }
         public List<JntAcc>? JntAccdtls { get; set; }
 
         public List<Guardian>? Guardiandtls { get; set; }
         public List<Nominee>? Nomineedtls { get; set; }
+       
     }
 
+    public class Introducer
+    {
+        public string? IntCustId { get; set; }
+        public string? IntCustName { get; set; }
+        public bool CheckIntMinor { get; set; }
+        public string? Int_MinorDOB { get; set; }
+        public string? Int_Relation { get; set; }
+    }
     public class JntAcc
     {
         public string? JntCustId { get; set; }
@@ -107,7 +121,10 @@ namespace Banking.Models
         public string? GuardCustId { get; set; }
         public string? GuardCustName { get; set; }
         public bool CheckGuardMinor { get; set; }
+        public string? Guard_MinorDOB { get; set; }
+        
         public string? Guard_Relation { get; set; }
+
         public string? Guard_RelationName { get; set; }
     }
 

@@ -236,9 +236,18 @@
                                     </label>
                             </div>
                         </div>
+                            <div class="col-md-4 col-lg-3 col-xl-2 col-xxl-2">
+                                <label asp-for="Intro_MinorDOB" class="form-label">DOB</label>
+                                <div class="input-group date" data-provide="datepicker">
+                                    <input asp-for="Intro_MinorDOB" type="text" class="form-control">
+                                    <div class="input-group-addon input-group-text">
+                                        <img src="~/images/datepicker_icon.svg" width="24">
+                                    </div>
+                                </div>
+                            </div>
                         <div class="col-md-12 pb-3 text-center">
-                            <a href="#" target="_self" class="btn btn-primary mb-2">Ok</a>
-                            <a href="#" target="_self" class="btn btn-primary mb-2">Clear</a>
+                                <button type="button" class="btn btn-primary" id="IntroAddToGrid">Add</button>
+                                <button type="button" class="btn btn-primary" id="IntroClear">Clear</button>
                         </div>
                     </div>
                     <div class="table-responsive">
@@ -254,15 +263,22 @@
                                 </tr>
                             </thead>
                                 <tbody id="IntroDetails">
-                                  <tr>
-                                    <td>1</td>
-                                    <td>10100053178</td>
-                                    <td>Shaik Abdul Gafoor</td>
-                                    <td>N</td>
-                                    <td></td>
-                                    <td>3</td>
-                                </tr>
-                            </tbody>
+                                    @if (Model.Introducerdtls  != null)
+                                    {
+                                        int i = 1;
+                                        foreach (var item in Model.Introducerdtls)
+                                        {
+                                            <tr>
+                                                <th scope="row">@(i++)</th>
+                                                <td>@item.IntCustId</td>
+                                                <td>@item.IntCustName </td>
+                                                <td>@item.CheckIntMinor </td>
+                                                <td>@item.Int_MinorDOB </td>
+                                                <td>@item.Int_Relation </td>
+                                            </tr>
+                                        }
+                                    }
+                                </tbody>
                         </table>
                     </div>
                 </div>
@@ -300,9 +316,18 @@
                                     </label>
                             </div>
                         </div>
+                            <div class="col-md-4 col-lg-3 col-xl-2 col-xxl-2">
+                                <label asp-for="Jnt_MinorDOB" class="form-label">DOB</label>
+                                <div class="input-group date" data-provide="datepicker">
+                                    <input asp-for="Jnt_MinorDOB" type="text" class="form-control">
+                                    <div class="input-group-addon input-group-text">
+                                        <img src="~/images/datepicker_icon.svg" width="24">
+                                    </div>
+                                </div>
+                            </div>
                         <div class="col-md-12 pb-3 text-center">
-                            <a href="#" target="_self" class="btn btn-primary mb-2">Ok</a>
-                            <a href="#" target="_self" class="btn btn-primary mb-2">Clear</a>
+                                <button type="button" class="btn btn-primary" id="JntAddToGrid">Add</button>
+                                <button type="button" class="btn btn-primary" id="JntClear">Clear</button>
                         </div>
                     </div>
                     <div class="table-responsive">
@@ -372,9 +397,18 @@
                                     </label>
                             </div>
                         </div>
+                            <div class="col-md-4 col-lg-3 col-xl-2 col-xxl-2">
+                                <label asp-for="Guard_MinorDOB" class="form-label">DOB</label>
+                                <div class="input-group date" data-provide="datepicker">
+                                    <input asp-for="Guard_MinorDOB" type="text" class="form-control">
+                                    <div class="input-group-addon input-group-text">
+                                        <img src="~/images/datepicker_icon.svg" width="24">
+                                    </div>
+                                </div>
+                            </div>
                         <div class="col-md-12 pb-3 text-center">
-                            <a href="#" target="_self" class="btn btn-primary mb-2">Ok</a>
-                            <a href="#" target="_self" class="btn btn-primary mb-2">Clear</a>
+                                <button type="button" class="btn btn-primary" id="GuardAddToGrid">Add</button>
+                                <button type="button" class="btn btn-primary" id="GuardClear">Clear</button>
                         </div>
                     </div>
                     <div class="table-responsive">
@@ -400,7 +434,7 @@
                                                 <td>@item.GuardCustId</td>
                                                 <td>@item.GuardCustName </td>
                                                 <td>@item.CheckGuardMinor </td>
-                                                <td> </td>
+                                                <td>@item.Guard_MinorDOB  </td>
                                                 <td>@item.Guard_Relation </td>
                                             </tr>
                                         }
@@ -445,9 +479,18 @@
                                     </label>
                             </div>
                         </div>
+                            <div class="col-md-4 col-lg-3 col-xl-2 col-xxl-2">
+                                <label asp-for="Nominee_MinorDOB" class="form-label">DOB</label>
+                                <div class="input-group date" data-provide="datepicker">
+                                    <input asp-for="Nominee_MinorDOB" type="text" class="form-control">
+                                    <div class="input-group-addon input-group-text">
+                                        <img src="~/images/datepicker_icon.svg" width="24">
+                                    </div>
+                                </div>
+                            </div>
                         <div class="col-md-12 pb-3 text-center">
-                            <a href="#" target="_self" class="btn btn-primary mb-2">Ok</a>
-                            <a href="#" target="_self" class="btn btn-primary mb-2">Clear</a>
+                                <button type="button" class="btn btn-primary" id="NomineeAddToGrid">Add</button>
+                                <button type="button" class="btn btn-primary" id="NomineeClear">Clear</button>
                         </div>
                     </div>
                     <div class="table-responsive">
@@ -486,9 +529,121 @@
         </div>
     </div>
     <div class="text-center py-3">
-        <button type="button" class="btn btn-primary">Ok</button>
-        <button type="button" class="btn btn-primary">Cancel</button>
-        <button type="button" class="btn btn-primary">Exit</button>
+            <button type="submit" class="btn btn-primary">Ok</button>
+            <a asp-controller="@Model.ReferrerController" asp-action="@Model.ReferrerAction" class="btn btn-primary">Cancel</a>
+            <button type="button" class="btn btn-primary" id="Cancel">Exit</button>
     </div>
 </div>
+
+    <input type="hidden" id="hiddenCustId" name="hiddenCustId" />
+    <input type="hidden" id="HiddenIntroMemField" name="HiddenIntroMemField" />
+    <input type="hidden" id="HiddenJntMemField" name="HiddenJntMemField"/>
+    <input type="hidden" id="HiddenGuardMemField" name="HiddenGuardMemField" />
+    <input type="hidden" id="HiddenNomineeMemField" name="HiddenNomineeMemField" />
+
+
 </form>
+
+
+<!-- Customer List Modal -->
+<div class="modal fade" id="CustomerListBackdrop" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h1 class="modal-title fs-5" id="staticBackdropLabel">Customer List</h1>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="fw-bold">
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" name="search_type" id="radio_account" checked
+                               value="account">
+                        <label class="form-check-label" for="radio_account">Account Wise</label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" name="search_type" id="radio_name" value="name">
+                        <label class="form-check-label" for="radio_name">Name Wise</label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" name="search_type" id="radio_pan" value="pan">
+                        <label class="form-check-label" for="radio_pan">Panno</label>
+                    </div>
+                </div>
+                <hr class="my-3" />
+                <!-- Account wise fields -->
+                <div id="search_account" class="search-section">
+                    <div class="row align-items-end gx-3 gy-2">
+                        <div class="col-xl-12">
+                            <label for="Cust-Type" class="form-label">Branch Code</label>
+                            <select class="form-select">
+                                <option selected="">Main Branch - 100</option>
+                                <option selected="">Dwarakanagar - 101</option>
+                            </select>
+                        </div>
+                        <div class="col-xl-12">
+                            <label for="Cust-Type" class="form-label">Module ID</label>
+                            <select class="form-select">
+                                <option selected="">Saving Bank - SB</option>
+                            </select>
+                        </div>
+                        <div class="col-xl-12">
+                            <label for="Cust-Type" class="form-label">GL Code</label>
+                            <select class="form-select">
+                                <option selected="">Savings Account - 102020</option>
+                            </select>
+                        </div>
+                        <div class="col-xl-12">
+                            <label for="Cust-Type" class="form-label">Acc. No.</label>
+                            <select class="form-select">
+                                <option selected="">Ganta Vishwera Rao - 106</option>
+                            </select>
+                        </div>
+                        <div class="col-xl-12">
+                            <label for="Cust-Type" class="form-label">Cust. ID</label>
+                            <input type="text" class="form-control">
+                        </div>
+                    </div>
+                </div>
+                <!-- Name wise fields -->
+                <div id="search_name" class="search-section d-none">
+                    <div class="row align-items-end gx-3 gy-2">
+                        <div class="col-xl-12">
+                            <label for="Cust-Type" class="form-label">Name</label>
+                            <input type="text" class="form-control">
+                        </div>
+                        <div class="col-xl-12">
+                            <label for="Cust-Type" class="form-label">Cust. ID</label>
+                            <select class="form-select">
+                                <option selected="">Ganta Vishwera Rao - 1010020631</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <!-- PAN wise fields -->
+                <div id="search_pan" class="search-section d-none">
+                    <div class="row align-items-end gx-3 gy-2">
+                        <div class="col-xl-12">
+                            <label for="Cust-Type" class="form-label">Panno</label>
+                            <input type="text" class="form-control">
+                        </div>
+                        <div class="col-xl-12">
+                            <label for="Cust-Type" class="form-label">Cust. ID</label>
+                            <select class="form-select">
+                                <option selected="">Manthena Muralikrishna - 1010020631</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer justify-content-center">
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Ok</button>
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
+<script asp-append-version="true" src="~/js/app/SBCAAccountOpening.js"></script>
