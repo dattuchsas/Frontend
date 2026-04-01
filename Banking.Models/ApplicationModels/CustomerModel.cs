@@ -24,9 +24,15 @@ namespace Banking.Models
         public string? RiskCategory { get; set; }
         public List<SelectListItem>? RiskCategoryList { get; set; }
 
+        public string? ModuleCode { get; set; }
+        public List<SelectListItem>? ModuleList { get; set; }
+        public string? GLCode { get; set; }
+        public List<SelectListItem>? GLCodeList { get; set; }
+        public string? AccountNumber { get; set; }
+        public List<SelectListItem>? AccountNumberList { get; set; }
+
         public bool SMS_YesNo { get; set; }
         public bool MobileAccess_YesNo { get; set; }
-
 
         public string? Personal_Relation { get; set; }
         public List<SelectListItem>? Personal_RelationList { get; set; }

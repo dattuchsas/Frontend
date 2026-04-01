@@ -8,7 +8,7 @@
         Task<string> PANDefuctInfo(string searchString);
         Task<string> GetModifiedCustomerPANDetails(string searchString);
         Task<string> GetModifiedCustomerAadhaarDetails(string searchString);
-        Task<string> GetDetails(string searchString = "");
+        Task<string> GetDetails(string searchString = "", string applicationDate = "");
         Task<string> GetQueryDisplay(string searchString = "");
         Task<string[,]> GetSCRFlex(string searchString = "", int precision = 0);
         Task<string> GetGenParameters(string searchString = "");

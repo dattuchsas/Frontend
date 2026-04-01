@@ -3,10 +3,9 @@ using Banking.Interfaces;
 using Banking.Models;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.Extensions.Options;
-using Microsoft.VisualBasic;
 using System;
 using System.Data;
-using System.Diagnostics.Eventing.Reader;
+using System.Globalization;
 
 namespace Banking.Services
 {
@@ -191,10 +190,10 @@ namespace Banking.Services
             return strResult;
         }
 
-        public async Task<string> GetDetails(string searchString = "")
+        public async Task<string> GetDetails(string searchString = "", string applicationDate = "")
         {
             DataTable dataTable = null!;
-            string strResult = string.Empty, strErrMessage = "";
+            string strResult = string.Empty;
             string[] strArr = searchString.Split("|");
 
             if (strArr.Length <= 0)
@@ -212,11 +211,11 @@ namespace Banking.Services
                 strArr[0].Equals("GETDRCRLIENAMT", StringComparison.OrdinalIgnoreCase))
             {
                 strResult = await _generalValidationService.GetSBCADrCrLienYN(strArr[1], strArr[2], strArr[3], strArr[4], strArr[5], strArr[6],
-                    Convert.ToDouble(strArr[7]), Convert.ToDateTime(strArr[8]));
+                    Convert.ToDouble(strArr[7]), strArr[8]);
             }
             else if (strArr[0].Equals("GETCCDRCRLIENYN", StringComparison.OrdinalIgnoreCase))
             {
-                // strResult = await _generalValidationService.GetCCDrCrLienYN(strArr[1], strArr[2], strArr[3], strArr[4], strArr[5], strArr[6]);
+                strResult = await _generalValidationService.GetCCDrCrLienYN(strArr[1], strArr[2], strArr[3], strArr[4], strArr[5]);
             }
             else if (strArr[0].Equals("GETBATCHTRANNO", StringComparison.OrdinalIgnoreCase))
             {
@@ -232,9 +231,398 @@ namespace Banking.Services
                     strResult += "*" + tranNo;
                 }
             }
+            else if (strArr[0].Equals("CHECK194N", StringComparison.OrdinalIgnoreCase))
+            {
+                string strPAN206AAYN = "", strPAN206ABYN = "";
+                double dblFrmAmt, dbltdsrate, dblCurTdAmt, dblExistingTdsAmt, dblBalance, dblFinalTdAmt, dblcummamt = 0, dblamtpaid;
+
+                int frmyear, toyear;
+
+                string strPanno = "", strcategorycode, strcustomertype = "", strnonpanrate = "";
+                string blncheckpanno = "YES";
+
+                //dim frm3finyr
+                //dim arrtdsrates(2)
+                //dim arrfrmamt(2)
+                //dim arrtoamt(2)
+
+                double dblCurTdAmtTot, dblcummamtTemp;
+
+                string strAppdate1 = strArr[6];
+                double dblAmount = Convert.ToDouble(strArr[7]);
+                int strmon = Convert.ToDateTime(strAppdate1).Month;
+
+                if (strmon <= 3)
+                {
+                    frmyear = Convert.ToDateTime(strAppdate1).Year - 1;
+                    toyear = Convert.ToDateTime(strAppdate1).Year;
+                }
+                else
+                {
+                    frmyear = Convert.ToDateTime(strAppdate1).Year;
+                    toyear = Convert.ToDateTime(strAppdate1).Year + 1;
+                }
+
+                string frmfinyr = "01-Apr-" + frmyear;
+                string tofinyr = "31-Mar-" + toyear;
+
+                int assyear = toyear + Convert.ToInt32(toyear.ToString().Substring(2, 2)) + 1;
+
+                double dblTranAmt = 0;
+
+                // Trans Amount
+                DataTable rspan = null!, rscust = null!, rsmstall = null!;
+
+                string sqlStr = "select panno,PAN206AAYN,PAN206ABYN,customertype from gencustinfomst where customerid = (select customerid from " + strArr[5] +
+                    "mst where branchcode = '" + strArr[1] + "' AND currencycode = '" + strArr[2] + "' and glcode = '" + strArr[3] + "' AND accno = '" + strArr[4] + "')";
+
+                rspan = await _databaseFactory.ProcessQueryAsync(sqlStr);
+
+                if (rspan.Rows.Count > 0)
+                {
+                    strPanno = Convert.IsDBNull(rspan.Rows[0].ItemArray[0]) ? "" : Conversions.ToString(rspan.Rows[0].ItemArray[0]);
+                    strPAN206AAYN = Convert.IsDBNull(rspan.Rows[0].ItemArray[1]) ? "N" : Conversions.ToString(rspan.Rows[0].ItemArray[1]);
+                    strPAN206ABYN = Convert.IsDBNull(rspan.Rows[0].ItemArray[2]) ? "N" : Conversions.ToString(rspan.Rows[0].ItemArray[2]);
+                    strcustomertype = Convert.IsDBNull(rspan.Rows[0].ItemArray[3]) ? "1" : Conversions.ToString(rspan.Rows[0].ItemArray[3]);
+
+                    if (string.IsNullOrWhiteSpace(strPanno))
+                        sqlStr = "select customerid from " + strArr[5] + "mst where branchcode = '" + strArr[1] + "' AND currencycode = '" + strArr[2] + "' and glcode = '" +
+                            strArr[3] + "' AND accno = '" + strArr[4] + "'";
+                    else
+                        sqlStr = "select customerid from gencustinfomst where panno ='" + strPanno + "'";
+
+                    rscust = await _databaseFactory.ProcessQueryAsync(sqlStr);
+
+                    if (rscust.Rows.Count > 0)
+                    {
+                        foreach (DataRow row in rscust.Rows)
+                        {
+                            sqlStr = " select branchcode,currencycode,'SB' moduleid,glcode,accno from sbmst where customerid = '" + Conversions.ToString(row.ItemArray[0]) + 
+                                "' union all select branchcode,currencycode,'CA' moduleid,glcode,accno from camst where customerid =  '" + 
+                                Conversions.ToString(row.ItemArray[0]) + "' union all select branchcode,currencycode,'CC' moduleid,glcode,accno from ccmst " +
+                                "where customerid = '" + Conversions.ToString(row.ItemArray[0]) + "' union all select branchcode,currencycode,'DEP' moduleid,glcode,accno " +
+                                "from depmst where customerid =  '" + Conversions.ToString(row.ItemArray[0]) + "' union all select branchcode,currencycode,'LOAN' moduleid," +
+                                "glcode,accno from loanmst where customerid = '" + Conversions.ToString(row.ItemArray[0]) + "'";
+
+                            rsmstall = await _databaseFactory.ProcessQueryAsync(sqlStr);
+
+                            if (rsmstall.Rows.Count > 0)
+                            {
+                                sqlStr = "SELECT SUM(amount) FROM (SELECT nvl(SUM(nvl(amount,0)),0) amount FROM " + Conversions.ToString(rsmstall.Rows[0].ItemArray[2]) +
+                                    "tranday WHERE modeoftran = 1 AND branchcode = '" + Conversions.ToString(rsmstall.Rows[0].ItemArray[0]) + "' AND glcode = '" +
+                                    Conversions.ToString(rsmstall.Rows[0].ItemArray[3]) + "' AND accno = '" + Conversions.ToString(rsmstall.Rows[0].ItemArray[4]) +
+                                    "' AND applicationdate BETWEEN '" + frmfinyr + "' AND '" + tofinyr + "' UNION ALL SELECT nvl(SUM(nvl(amount,0)),0) amount FROM " +
+                                    Conversions.ToString(rsmstall.Rows[0].ItemArray[2]) + " tran WHERE modeoftran = 1 AND branchcode = '" +
+                                    Conversions.ToString(rsmstall.Rows[0].ItemArray[0]) + "' AND glcode = '" + Conversions.ToString(rsmstall.Rows[0].ItemArray[3]) +
+                                    "' AND accno = '" + Conversions.ToString(rsmstall.Rows[0].ItemArray[4]) + "' AND applicationdate BETWEEN '" + frmfinyr + "' AND '" +
+                                    tofinyr + "') a";
+
+                                dataTable = await _databaseFactory.ProcessQueryAsync(sqlStr);
+
+                                if (dataTable.Rows.Count > 0)
+                                    dblTranAmt = dblTranAmt + (Convert.IsDBNull(dataTable.Rows[0].ItemArray[0]) ? 0 : Convert.ToDouble(dataTable.Rows[0].ItemArray[0]));
+                            }
+                        }
+                    }
+                }
+
+                dblFrmAmt = 0;
+                dbltdsrate = 0;
+
+                // Cummulative Amount
+                dblcummamt = Math.Abs(dblTranAmt) + dblAmount;
+                var frm3finyr = Convert.ToDateTime(frmfinyr).AddYears(-3);
+                string strreturnfileyn = "D";
+                
+                if (strPanno != "")
+                {
+                    sqlStr = "select RTNFILE from TDSRETURNFILEDTLS where TRANSTATUS = 'A' and panno =  '" + strPanno + "' AND fromdate >= '" +
+                        string.Format("dd-MMM-yyyy", frm3finyr) + "' AND todate <= '" + tofinyr + "'";
+
+                    dataTable = await _databaseFactory.ProcessQueryAsync(sqlStr);
+
+                    if (dataTable.Rows.Count > 0)
+                        strreturnfileyn = Convert.IsDBNull(dataTable.Rows[0].ItemArray[0]) ? "N" : Conversions.ToString(dataTable.Rows[0].ItemArray[0]);
+                }
+
+                sqlStr = "SELECT RATE, nonpanrate FROM TDSPARM t where status = 'R' and (category = '" + strcustomertype + "' or category = '99') AND EFFECTIVEDATE = " +
+                    "(SELECT MAX(EFFECTIVEDATE) FROM TDSPARM where status = 'R' and category = t.category AND effectivedate <= '" + frmfinyr + "')";
+
+                dataTable = await _databaseFactory.ProcessQueryAsync(sqlStr);
+
+                if (dataTable.Rows.Count > 0)
+                    strnonpanrate = Convert.IsDBNull(dataTable.Rows[0].ItemArray[1]) ? "0" : Conversions.ToString(dataTable.Rows[0].ItemArray[1]);
+
+                strcategorycode = "A";
+                if (strreturnfileyn == "Y")
+                    strcategorycode = "B";
+                else
+                    strcategorycode = "A";
+
+                // tds rate, toamount
+                sqlStr = "SELECT tdsrate,fromamt,toamt FROM gentdsdedslab WHERE CATEGORYCODE = '" + strcategorycode + "' and fromamt <= " + dblcummamt + " AND EFFECTIVEDATE = " +
+                    "(SELECT MAX(EFFECTIVEDATE) FROM gentdsdedslab WHERE CATEGORYCODE = '" + strcategorycode + "' and fromamt <= " + dblcummamt + " AND effectivedate <= '" +
+                    frmfinyr + "')";
+
+                int i = 0;
+                dataTable = await _databaseFactory.ProcessQueryAsync(sqlStr);
+
+                double[] arrtdsrates = null!;
+                double[] arrfrmamt = null!;
+                double[] arrtoamt = null!;
+
+                if (dataTable.Rows.Count > 0)
+                {
+                    foreach (DataRow row in dataTable.Rows)
+                    {
+                        arrtdsrates[i] = Convert.IsDBNull(dataTable.Rows[0].ItemArray[0]) ? 0 : Convert.ToDouble(dataTable.Rows[0].ItemArray[0]);
+                        arrfrmamt[i] = Convert.IsDBNull(dataTable.Rows[0].ItemArray[1]) ? 0 : Convert.ToDouble(dataTable.Rows[0].ItemArray[1]);
+                        arrtoamt[i] = Convert.IsDBNull(dataTable.Rows[0].ItemArray[2]) ? 0 : Convert.ToDouble(dataTable.Rows[0].ItemArray[2]);
+                        i = i + 1;
+                    }
+                }
+                else
+                    dbltdsrate = 0;
+                dblFrmAmt = 0;
+
+                if (Math.Abs(dblTranAmt) > dblFrmAmt)
+                    dblamtpaid = dblAmount;
+                else
+                    dblamtpaid = dblcummamt;
+
+                // existing tds amount
+                dblExistingTdsAmt = 0;
+
+                if (!string.IsNullOrWhiteSpace(strPanno))
+                    sqlStr = "SELECT nvl(SUM(nvl(amount,0)),0) amount FROM tdsdtls WHERE ITFORM = '194N' and panno = '" + strPanno + "' AND fromdate >= '" + frmfinyr +
+                        "' AND todate <= '" + tofinyr + "'";
+                else
+                    sqlStr = "SELECT nvl(SUM(nvl(amount,0)),0) amount FROM tdsdtls WHERE ITFORM = '194N' AND fromdate >= '" + frmfinyr + "' AND todate <= '" + tofinyr +
+                        "' and customerid in (select customerid from " + strArr[5] + "mst where branchcode = '" + strArr[1] + "' AND currencycode = '" + strArr[2] +
+                        "' and glcode = '" + strArr[3] + "' AND accno = '" + strArr[4] + "')";
+
+                dataTable = await _databaseFactory.ProcessQueryAsync(sqlStr);
+
+                if (dataTable.Rows.Count > 0)
+                    dblExistingTdsAmt = Convert.IsDBNull(dataTable.Rows[0].ItemArray[0]) ? 0 : Convert.ToDouble(dataTable.Rows[0].ItemArray[0]);
+                else
+                    dblExistingTdsAmt = 0;
+
+                // balance
+                dblBalance = 0;
+                sqlStr = "SELECT GETANYDAYBAL('" + strArr[1] + "','" + strArr[2] + "','" + strArr[5] + "','" + strArr[3] + "','" + strArr[4] + "','" + strAppdate1 + 
+                    "') FROM DUAL";
+
+                dataTable = await _databaseFactory.ProcessQueryAsync(sqlStr);
+
+                if (dataTable.Rows.Count > 0)
+                {
+                    dblBalance = Convert.IsDBNull(dataTable.Rows[0].ItemArray[0]) ? 0 : Convert.ToDouble(dataTable.Rows[0].ItemArray[0]);
+                    dblBalance = Math.Abs(dblBalance);
+                }
+                else
+                    dblBalance = 0;
+
+                // Current TDS
+                i = 0;
+                dblCurTdAmt = 0;
+                dblCurTdAmtTot = 0;
+                dblcummamtTemp = 0;
+                dblcummamtTemp = dblcummamt;
+                double dblcummamtTemp1 = 0;
+
+                for (int j = 0; j < arrtdsrates.Length - 1; j++)
+                {
+                    if (arrtoamt[j] > 0)
+                    {
+                        if (dblcummamtTemp > arrtoamt[i])
+                            dblcummamtTemp1 = arrtoamt[i] - dblcummamtTemp1;
+                        else
+                            dblcummamtTemp1 = dblcummamtTemp - (arrfrmamt[i] - 1);
+
+                        if (strPAN206AAYN == "Y")
+                        {
+                            if (dblcummamtTemp1 > 0)
+                            {
+                                dblCurTdAmtTot = dblCurTdAmtTot + Math.Round(dblcummamtTemp1 * arrtdsrates[i] / 100);
+                                dblFrmAmt = arrfrmamt[i] - 1;
+                                dbltdsrate = arrtdsrates[i];
+                            }
+                        }
+                        else
+                        {
+                            if (dblcummamtTemp1 > 0)
+                            {
+                                if (arrtdsrates[i] > 0)
+                                {
+                                    dblCurTdAmtTot = dblCurTdAmtTot + Math.Round(dblcummamtTemp1 * Convert.ToDouble(strnonpanrate) / 100);
+                                    dblFrmAmt = arrfrmamt[i] - 1;
+                                    dbltdsrate = Convert.ToDouble(strnonpanrate);
+                                }
+                                else
+                                {
+                                    dblCurTdAmtTot = dblCurTdAmtTot + Math.Round(dblcummamtTemp1 * arrtdsrates[i] / 100);
+                                    dblFrmAmt = arrfrmamt[i] - 1;
+                                    dbltdsrate = arrtdsrates[i];
+                                }
+                            }
+                        }
+                    }
+                }
+
+                dblCurTdAmt = dblCurTdAmtTot;
+                dblFinalTdAmt = 0;
+                dblFinalTdAmt = Math.Round(dblCurTdAmt) - Math.Abs(dblExistingTdsAmt);
+                if (dblFinalTdAmt <= 0)
+                    dblFinalTdAmt = 0;
+
+                if (blncheckpanno == "NO")
+                    strResult = "No Panno|||||||||";
+                else
+                    strResult = dblBalance + "|" + dblFinalTdAmt + "|" + dblFrmAmt + "|" + dbltdsrate + "|" + dblTranAmt + "|" + frmfinyr + "|" + tofinyr + "|" + 
+                        assyear + "|" + strPanno + "|" + dblamtpaid + "|" + strPAN206AAYN + "|" + strPAN206ABYN;
+            }
+            else if (strArr[0].Equals("GETRDAMOUNTCHECK", StringComparison.OrdinalIgnoreCase))
+            {
+                string strmessage = "";
+                //strResult = ""
+
+                strResult = await _databaseFactory.GetAccountDetail(strArr[1], strArr[2], strArr[3], strArr[4], strArr[5]);
+                string[] arrval = strResult.Split("|");
+
+                double dblcuramt = Convert.ToDouble(arrval[0]);
+                string sqlStr = "SELECT MONINSTAMOUNT, MATURITYDATE, DEPPRDMONS noofinstall FROM depmst WHERE branchcode = '" + strArr[1] + "' AND glcode = '" + strArr[4] +
+                    "' and accno = '" + strArr[5] + "' AND status = 'R'";
+
+                dataTable = await _databaseFactory.ProcessQueryAsync(sqlStr);
+
+                if (dataTable.Rows.Count > 0)
+                {
+                    string strMONINSTAMOUNT = Conversions.ToString(dataTable.Rows[0].ItemArray[0]);
+                    string strMATURITYDATE = Conversions.ToString(dataTable.Rows[0].ItemArray[1]);
+                    string strDEPPRDMONS = Conversions.ToString(dataTable.Rows[0].ItemArray[2]);
+
+                    if ((Convert.ToDouble(strArr[6]) + dblcuramt) > (Convert.ToDouble(strMONINSTAMOUNT) * Convert.ToDouble(strDEPPRDMONS)))
+                        strmessage = "NO";
+                    else
+                    {
+                        strmessage = "YES";
+                        DateTime appDate = DateTime.ParseExact(applicationDate, "dd-MMM-yyyy", CultureInfo.InvariantCulture);
+                        DateTime maturityDate = DateTime.ParseExact(strMATURITYDATE, "dd-MMM-yyyy", CultureInfo.InvariantCulture);
+
+                        if (appDate > maturityDate)
+                            strmessage = "GREATER";
+                    }
+                }
+
+                strResult = strmessage;
+            }
+            else if (strArr[0].Equals("CHECKTHRESHHOLDLIMIT", StringComparison.OrdinalIgnoreCase))
+            {
+                int frmyear, toyear, strmon;
+                string strAppdate1 = strArr[6];
+                double dblAmount = Convert.ToDouble(strArr[7]);
+                strmon = Convert.ToDateTime(strAppdate1).Month;
+
+                if (strmon <= 3)
+                {
+                    frmyear = Convert.ToDateTime(strAppdate1).Year - 1;
+                    toyear = Convert.ToDateTime(strAppdate1).Year;
+                }
+                else
+                {
+                    frmyear = Convert.ToDateTime(strAppdate1).Year;
+                    toyear = Convert.ToDateTime(strAppdate1).Year + 1;
+                }
+
+                string frmfinyr = "01-Apr-" + frmyear;
+                string tofinyr = "31-Mar-" + toyear;
+
+                string sqlStr = "SELECT SUM(amount) FROM ( SELECT SUM(amount) amount FROM " + strArr[5] + "tranday WHERE transtatus = 'A' AND modeoftran IN (2,4,6) AND " +
+                    "branchcode = '" + strArr[1] + "' AND glcode = '" + strArr[3] + "' AND accno = '" + strArr[4] + "' AND applicationdate BETWEEN '" + frmfinyr + "' AND '" +
+                    tofinyr + "' UNION ALL SELECT SUM(amount) amount FROM  " + strArr[5] + "tran WHERE transtatus = 'A' AND modeoftran IN (2,4,6) AND branchcode = '" +
+                    strArr[1] + "' AND glcode = '" + strArr[3] + "' AND accno = '" + strArr[4] + "' AND applicationdate BETWEEN '" + frmfinyr + "' AND '" + tofinyr + "') a";
+
+                dataTable = await _databaseFactory.ProcessQueryAsync(sqlStr);
+
+                double dblTranAmt = 0;
+
+                if (dataTable.Rows.Count > 0)
+                    dblTranAmt = Convert.IsDBNull(dataTable.Rows[0].ItemArray[0]) ? 0 : Convert.ToDouble(dataTable.Rows[0].ItemArray[0]);
+                else
+                    dblTranAmt = 0;
+
+                double dblThresHoldLmt = 0;
+                bool blnthresaccchk = false;
+
+                sqlStr = "SELECT (SELECT NVL(upperlimit,0) * 3 FROM GenIncomeMst WHERE CODE = G.CUSTMONTHLYINCOME) threshholdlimit FROM gencustinfomst G WHERE " +
+                    "CUSTOMERID = (SELECT customerid FROM " + strArr[2] + "mst WHERE ACCNO = '" + strArr[4] + "' AND GLCODE = '" + strArr[3] + "' AND BRANCHCODE = '" +
+                    strArr[1] + "')";
+
+                dataTable = await _databaseFactory.ProcessQueryAsync(sqlStr);
+
+                if (dataTable.Rows.Count > 0)
+                {
+                    dblThresHoldLmt = Convert.IsDBNull(dataTable.Rows[0].ItemArray[0]) ? 0 : Convert.ToDouble(dataTable.Rows[0].ItemArray[0]);
+                    blnthresaccchk = true;
+                }
+                else
+                {
+                    dblThresHoldLmt = 0;
+                    blnthresaccchk = false;
+                }
+
+                if (!blnthresaccchk)
+                {
+                    sqlStr = "SELECT NVL(upperlimit,0) * 3 FROM GenIncomeMst WHERE CODE = 1";
+                    dataTable = await _databaseFactory.ProcessQueryAsync(sqlStr);
+
+                    if (dataTable.Rows.Count > 0)
+                        dblThresHoldLmt = Convert.IsDBNull(dataTable.Rows[0].ItemArray[0]) ? 0 : Convert.ToDouble(dataTable.Rows[0].ItemArray[0]);
+                    else
+                        dblThresHoldLmt = 0;
+                }
+
+                if ((dblAmount + dblTranAmt) > dblThresHoldLmt)
+                    return "true";
+                else
+                    return "false";
+            }
+            else if (strArr[0].Equals("POSTINTEREST", StringComparison.OrdinalIgnoreCase))
+            {
+                string sqlStr = "SELECT MOD,INTDEBITGLCODE, (SELECT GLDESCRIPTION FROM GENGLMASTMST B WHERE B.MODULEID=A.MOD AND B.GLCODE=A.INTDEBITGLCODE) GLDESC, " +
+                    "INTDEBITACCNO, (SELECT NAME FROM PLMST C WHERE C.ACCNO=A.INTDEBITACCNO AND C.GLCODE=A.INTDEBITGLCODE AND BRANCHCODE='" + strArr[1] + "') ACCNAME, " +
+                    "(SELECT NARRATION FROM GENMODULEMST D WHERE D.MODULEID=A.MOD) MODDESC FROM (SELECT 'PL' MOD, INTDEBITGLCODE, INTDEBITACCNO FROM LOANTYPEMST WHERE " +
+                    "GLCODE='" + strArr[4] + "') A";
+
+                dataTable = await _databaseFactory.ProcessQueryAsync(sqlStr);
+
+                if (dataTable.Rows.Count > 0)
+                {
+                    string strBatch, strTran4;
+
+                    if (strArr[9] == "")
+                        strBatch = await _databaseFactory.GetBatchNo(strArr[1]);
+                    else
+                        strBatch = strArr[9];
+
+                    string strTran1 = await _databaseFactory.GetTranNo(strArr[1]);
+                    string strTran2 = await _databaseFactory.GetTranNo(strArr[1]);
+                    string strTran3 = await _databaseFactory.GetTranNo(strArr[1]);
+
+                    if (strArr[7] == "REC")
+                        strTran4 = await _databaseFactory.GetTranNo(strArr[1]);
+                    else
+                        strTran4 = "";
+
+                    return Conversions.ToString(dataTable.Rows[0].ItemArray[0]) + "|" + Conversions.ToString(dataTable.Rows[0].ItemArray[1]) + "|" +
+                        Conversions.ToString(dataTable.Rows[0].ItemArray[2]) + "|" + Conversions.ToString(dataTable.Rows[0].ItemArray[3]) + "|" +
+                        Conversions.ToString(dataTable.Rows[0].ItemArray[4]) + "|" + Conversions.ToString(dataTable.Rows[0].ItemArray[5]) + "|" +
+                        strBatch + "|" + strTran1 + "|" + strTran2 + "|" + strTran3 + "|" + strTran4;
+                }
+            }
 
             return strResult;
-
 
             //dim objgenval as new GENVALIDATIONS.Validations
             //objGen = server.CreateObject("ProGeneral.clsGeneral")
@@ -1429,71 +1817,6 @@ namespace Banking.Services
 
             //        dataTable = nothing
 
-            //    elseif strArr(0)= "POSTINTEREST" then
-            //        dim arrTran(2, 4)
-
-
-            //        strResult = ""
-
-
-            //        obj = server.CreateObject("ReportPurposeOnly.Reportonly")
-
-            //        sqlStr = "SELECT MOD,INTDEBITGLCODE, (SELECT GLDESCRIPTION FROM GENGLMASTMST B WHERE " & _
-
-            //               "B.MODULEID=A.MOD AND B.GLCODE=A.INTDEBITGLCODE) GLDESC, INTDEBITACCNO, " & _
-
-            //               "(SELECT NAME FROM PLMST C WHERE C.ACCNO=A.INTDEBITACCNO AND C.GLCODE=A.INTDEBITGLCODE " & _
-
-            //               "AND BRANCHCODE='" & strArr(1) & "') ACCNAME, (SELECT NARRATION FROM GENMODULEMST D " & _
-
-            //               "WHERE D.MODULEID=A.MOD) MODDESC FROM (SELECT 'PL' MOD, INTDEBITGLCODE, " & _
-
-            //               "INTDEBITACCNO FROM LOANTYPEMST WHERE GLCODE='" & strArr(4) & "') A"
-
-            //        dataTable = obj.SingleSelectStat(sqlStr)
-
-
-            //        if obj.ConnError = "Connected" then
-
-            //            if not dataTable.BOF and not dataTable.EOF then
-
-            //                dim strBatch, strBatchDup, strTran1, strTran2, strTran3, strTran4
-
-            //                ObjBatchNo = Server.CreateObject("GeneralTranQueries.TransactionQueries")
-
-            //                strBatch = ""
-
-            //                if strArr(9) = "" then
-            //                    strBatch = ObjBatchNo.GetBatchno(strArr(1))
-
-            //                else
-            //                strBatch = strArr(9)
-
-            //                end if
-
-            //                strTran1 = ObjBatchNo.GetTranNo(strArr(1))
-
-            //                strTran2 = ObjBatchNo.GetTranNo(strArr(1))
-
-            //                strTran3 = ObjBatchNo.GetTranNo(strArr(1))
-
-            //                if strArr(7) = "REC" then
-            //                    strTran4 = ObjBatchNo.GetTranNo(strArr(1))
-
-            //                else
-            //                strTran4 = ""
-
-            //                end if
-
-
-            //                strResult = dataTable(0).value & "|" & dataTable(1).value & "|" & dataTable(2).value & "|" & dataTable(3).value & "|" & dataTable(4).value & "|" & dataTable(5).value & "|" & strBatch & "|" & strTran1 & "|" & strTran2 & "|" & strTran3 & "|" & strTran4
-
-            //            end if
-
-            //        end if
-
-            //        dataTable = nothing
-
 
             //    elseif strArr(0)= "GETCERTIFICATES" then
             //        strResult = ""
@@ -1616,133 +1939,6 @@ namespace Banking.Services
             //        end if
 
             //        dataTable = nothing
-
-            //    elseif strArr(0) = "CheckThreshHoldLimit" then
-            //    dim frmfinyr,tofinyr,frmyear,toyear,strmon,strAppdate1,dblAmount,dblTranAmt,dblThresHoldLmt
-            //    dim blnThresHoldCheck
-            //    blnThresHoldCheck = "false"
-
-            //    strAppdate1 = strArr(6)
-
-            //    dblAmount = strArr(7)
-
-
-            //    strmon = Month(cdate(strAppdate1))
-
-
-            //    if cint(strmon) <= 3  then
-            //    frmyear = cint(Year(cdate(strAppdate1))) - 1
-            //    toyear = Year(cdate(strAppdate1))
-            //    else
-            //                frmyear = Year(cdate(strAppdate1))
-            //    toyear = cint(Year(cdate(strAppdate1))) + 1
-
-            //    end if
-
-            //    frmfinyr = "01-Apr-" & frmyear
-
-            //    tofinyr = "31-Mar-" & toyear
-
-
-            //    strResult = ""
-
-
-            //        obj = server.CreateObject("ReportPurposeOnly.Reportonly")
-
-            //        dblTranAmt = 0
-
-            //        sqlStr = "SELECT SUM(amount) FROM ( SELECT SUM(amount) amount FROM  " & strArr(5) & "tranday WHERE transtatus = 'A' AND modeoftran IN (2,4,6) AND branchcode = '" & strArr(1) & "' AND glcode = '" & strArr(3) & "' AND accno = '" & strArr(4) & "' AND applicationdate BETWEEN '" & frmfinyr & "' AND '" & tofinyr & "' UNION ALL SELECT SUM(amount) amount FROM  " & strArr(5) & "tran WHERE transtatus = 'A' AND modeoftran IN (2,4,6) AND branchcode = '" & strArr(1) & "' AND glcode = '" & strArr(3) & "' AND accno = '" & strArr(4) & "' AND applicationdate BETWEEN '" & frmfinyr & "' AND '" & tofinyr & "') a"
-
-
-            //        dataTable = obj.SingleSelectStat(sqlStr)
-
-            //        if obj.ConnError = "Connected" then
-
-            //            if not dataTable.BOF and not dataTable.EOF then
-
-            //                dblTranAmt = iif(isdbnull(dataTable(0).value), 0, dataTable(0).value)
-
-            //                else
-            //                dblTranAmt = 0
-
-            //            end if
-
-            //        end if
-
-
-            //        dblThresHoldLmt = 0
-
-            //        dim blnthresaccchk
-
-            //        blnthresaccchk = false
-
-            //        sqlstr = "SELECT (SELECT NVL(upperlimit,0) * 3 FROM GenIncomeMst WHERE CODE = G.CUSTMONTHLYINCOME) threshholdlimit FROM gencustinfomst G WHERE CUSTOMERID = (SELECT customerid FROM " & strArr(2) & "mst WHERE ACCNO = '" & strArr(4) & "' AND GLCODE = '" & strArr(3) & "' AND BRANCHCODE = '" & strArr(1) & "')"
-
-
-            //        dataTable = obj.SingleSelectStat(sqlStr)
-
-            //        if obj.ConnError = "Connected" then
-
-
-            //            if not dataTable.BOF and not dataTable.EOF then
-
-            //                dblThresHoldLmt = iif(isdbnull(dataTable(0).value), 0, dataTable(0).value)
-
-            //                blnthresaccchk = true
-
-            //                else
-            //                dblThresHoldLmt = 0
-
-            //                blnthresaccchk = false
-
-            //            end if
-
-            //            else
-            //                    dblThresHoldLmt = 0
-
-            //                blnthresaccchk = false
-
-            //        end if
-
-            //        dataTable = nothing
-
-            //        if blnthresaccchk = false then
-            //        sqlstr = "SELECT NVL(upperlimit,0) * 3 FROM GenIncomeMst WHERE CODE = 1"
-
-            //        dataTable = obj.SingleSelectStat(sqlStr)
-
-            //            if obj.ConnError = "Connected" then
-
-            //                if not dataTable.BOF and not dataTable.EOF then
-
-            //                dblThresHoldLmt = iif(isdbnull(dataTable(0).value), 0, dataTable(0).value)
-
-            //                else
-            //                dblThresHoldLmt = 0
-
-            //                end if
-
-            //            else
-            //                    dblThresHoldLmt = 0
-
-            //            end if
-
-            //        end if
-
-
-            //            if cdbl(dblAmount) + cdbl(dblTranAmt) > cdbl(dblThresHoldLmt) then
-            //                blnThresHoldCheck = "true"
-
-            //            else
-            //                        blnThresHoldCheck = "false"
-
-            //            end if
-
-
-            //        strResult = blnThresHoldCheck
-
-
-
 
             //    elseif strArr(0)= "GETMINPERIOD" then
             //        strResult = ""
@@ -15259,162 +15455,95 @@ namespace Banking.Services
                         break;
                 case "STWEKLMT":
                     {
-                        //        dim rsDat, rs1, rs2, obj1, obj2, obj3, sqlStr, sqlStr1, sqlStr2
-                        //        dim startdate, enddate, tempstartdate, tempenddate
-                        //        obj1 = server.CreateObject("ReportPurposeOnly.Reportonly")
-
-                        //        obj2 = server.CreateObject("ReportPurposeOnly.Reportonly")
-
-                        //        obj3 = server.CreateObject("ReportPurposeOnly.Reportonly")
-
-                        //        rsDat = server.CreateObject("adodb.recordset")
-
-                        //        rs1 = server.CreateObject("adodb.recordset")
-
-                        //        rs2 = server.CreateObject("adodb.recordset")
-                        //        startdate = "10-Nov-2016"
-                        //        ''startdate = "08-OCT-2016"
-                        //        enddate = "30-Dec-2016"
-                        //        tempstartdate = ""
-                        //        tempenddate = ""
-                        //        tempstartdate1 = ""
-                        //        tempenddate1 = ""
-
-
-                        //        pappdate = strVal(6)
-
-
-                        //        Do While CDate(startdate) < CDate(enddate)
-                        //        tempenddate1 = DateAdd("d", 6, CDate(startdate))
-                        //        If CDate(pappdate) >= CDate(startdate) And CDate(pappdate) <= CDate(tempenddate1) Then
-                        //        tempstartdate = Format(cdate(startdate), "dd-MMM-yyyy")
-                        //        tempenddate = Format(cdate(tempenddate1), "dd-MMM-yyyy")
-                        //        Exit Do
-                        //        End If
-                        //        startdate = DateAdd("d", 7, CDate(startdate))
-                        //        Loop
-
-
-                        //        sqlStr = "SELECT DISTINCT MODULEID FROM CUSTLNKMODULE" ''for table name
-
-
-                        //        rsDat = obj1.SingleSelectStat(sqlStr)
-
-
-                        //        if obj1.ConnError = "Connected" then
-
-                        //            if not rsDat.BOF and not rsDat.EOF then
-
-                        //                do until rsDat.EOF
-
-
-                        //                    sqlStr1 = ""
-
-
-                        //                    sqlStr1 = " SELECT GLCODE, ACCNO, BRANCHCODE FROM " & rsDat(0).value & "MST WHERE customerid = (SELECT customerid FROM " & cstr(ucase(trim(strVal(1)))) & "MST WHERE ACCNO='" & cstr(ucase(trim(strVal(3)))) & "' AND GLCODE='" & cstr(ucase(trim(strVal(2)))) & "' AND BRANCHCODE='" & cstr(ucase(trim(strVal(5)))) & "') ORDER BY TO_NUMBER(GLCODE),TO_NUMBER(ACCNO) " ''for table GLCODE, accno ,branchcode
-
-
-                        //                    rs1 = obj2.SingleSelectStat(sqlStr1)
-
-
-                        //                    if obj2.ConnError = "Connected" then
-
-                        //                        if not rs1.BOF and not rs1.EOF then
-
-                        //                            do until rs1.EOF
-
-
-                        //                                sqlStr2 = ""
-
-
-                        //                                if rsDat(0).value<> "LOCKER" then
-
-                        //                                if rsDat(0).value<> "SHARES" then
-
-
-                        //                                    'sqlStr2 = "SELECT SUM(a.amount) FROM ( SELECT SUM(abs(NVL(amount,0))) amount FROM GENTRANSLOG WHERE MODEOFTRAN = 1 AND CASHPAIDYN = 'Y' AND ACCNO ='" & rs1(1).value & "' AND GLCODE = '" & rs1(0).value & "' AND BRANCHCODE ='" & rs1(2).value & "' AND  APPLICATIONDATE >= '"& tempstartdate &"' AND  APPLICATIONDATE <= '"& tempenddate &"'" & _ 
-
-
-                        //                                    if strVal(7) = "Y" then
-
-                        //                                        sqlStr2 = "SELECT SUM(a.amount) FROM ( SELECT SUM(abs(NVL(amount,0))) amount FROM GENTRANSLOG WHERE MODEOFTRAN = 1 AND CASHPAIDYN = 'Y' AND ACCNO ='" & rs1(1).value & "' AND GLCODE = '" & rs1(0).value & "' AND BRANCHCODE ='" & rs1(2).value & "' AND  APPLICATIONDATE >= '" & tempstartdate & "' AND  APPLICATIONDATE <= '" & tempenddate & "'" & _
-                        //" UNION ALL " & _
-                        //" SELECT SUM(abs(NVL(amount,0))) FROM GENTRANSLOGBKP WHERE MODEOFTRAN = 1 AND CASHPAIDYN = 'Y' AND ACCNO ='" & rs1(1).value & "' AND GLCODE = '" & rs1(0).value & "' AND BRANCHCODE ='" & rs1(2).value & "' AND  APPLICATIONDATE >= '" & tempstartdate & "' AND  APPLICATIONDATE <= '" & tempenddate & "') a  "
-
-
-                        //                                    else
-
-                        //                                                                sqlStr2 = "SELECT SUM(a.amount) FROM ( SELECT SUM(abs(NVL(amount,0))) amount FROM GENTRANSLOG WHERE MODEOFTRAN = 1 AND ACCNO ='" & rs1(1).value & "' AND GLCODE = '" & rs1(0).value & "' AND BRANCHCODE ='" & rs1(2).value & "' AND  APPLICATIONDATE >= '" & tempstartdate & "' AND  APPLICATIONDATE <= '" & tempenddate & "'" & _
-                        //" UNION ALL " & _
-                        //" SELECT SUM(abs(NVL(amount,0))) FROM GENTRANSLOGBKP WHERE MODEOFTRAN = 1 AND CASHPAIDYN = 'Y' AND ACCNO ='" & rs1(1).value & "' AND GLCODE = '" & rs1(0).value & "' AND BRANCHCODE ='" & rs1(2).value & "' AND  APPLICATIONDATE >= '" & tempstartdate & "' AND  APPLICATIONDATE <= '" & tempenddate & "') a  "
-
-
-                        //                                    end if
-
-
-
-                        //                                    rs2 = obj3.SingleSelectStat(sqlStr2)
-
-
-                        //                                    if obj3.ConnError = "Connected" then
-
-                        //                                        if not rs2.BOF and not rs2.EOF then
-
-                        //                                            do until rs2.EOF
-
-                        //                                                amt = 0
-
-                        //                                                if isdbnull(rs2(0).value) then
-                        //                                                amt = 0
-
-                        //                                                else
-                        //                                                                amt = rs2(0).value
-
-                        //                                                end if
-
-                        //                                                strRest = strRest & amt & "|"
-
-
-                        //                                            rs2.movenext()
-
-                        //                                            loop
-                        //                                        end if
-
-                        //                                    end if
-
-                        //                                    rs2 = nothing ''end of balance
-
-                        //                                end if
-
-                        //                                end if
-
-                        //                            rs1.movenext()
-
-                        //                            loop
-                        //                        end if
-
-                        //                    end if
-
-                        //                    rs1 = nothing '' end of accno
-
-
-                        //                rsDat.movenext()
-
-                        //                loop
-
-                        //            end if
-
-                        //        end if
-
-
-
-                        //         if strRest<> "" then
-                        //            strRest = mid(strRest, 1, strRest.length - 1)
-                        //         else
-                        //                                                                strRest = "No Amount"
-                        //         end if
+                        string tempstartdate = "", tempenddate = "", strRest = "";
+
+                        DateTime startdate = DateTime.ParseExact("10-Nov-2016", "dd-MMM-yyyy", CultureInfo.InvariantCulture);
+                        DateTime enddate = DateTime.ParseExact("30-Dec-2016", "dd-MMM-yyyy", CultureInfo.InvariantCulture);
+                        DateTime pappdate = DateTime.ParseExact(strVal[6], "dd-MMM-yyyy", CultureInfo.InvariantCulture);
+
+                        while (startdate < enddate)
+                        {
+                            DateTime tempenddate1 = Convert.ToDateTime(startdate).AddDays(6);
+
+                            if (pappdate >= startdate && pappdate <= tempenddate1)
+                            {
+                                tempstartdate = startdate.ToString("dd-MMM-yyyy", CultureInfo.InvariantCulture);
+                                tempenddate = tempenddate1.ToString("dd-MMM-yyyy", CultureInfo.InvariantCulture);
+                                break;
+                            }
+
+                            startdate = startdate.AddDays(7);
+                        }
+
+                        // For table name
+                        string sqlStr = "SELECT DISTINCT MODULEID FROM CUSTLNKMODULE";
+
+                        dataTable = await _databaseFactory.ProcessQueryAsync(sqlStr);
+
+                        if (dataTable.Rows.Count > 0)
+                        {
+                            foreach (DataRow row in dataTable.Rows)
+                            {
+                                // For table GLCODE, accno, branchcode
+                                sqlStr = "SELECT GLCODE, ACCNO, BRANCHCODE FROM " + row.ItemArray[0] + "MST WHERE customerid = (SELECT customerid FROM " +
+                                    Conversions.ToString(strVal[1]).ToUpper() + "MST WHERE ACCNO='" + Conversions.ToString(strVal[3]).ToUpper() +
+                                    "' AND GLCODE='" + Conversions.ToString(strVal[2]).ToUpper() + "' AND BRANCHCODE='" + Conversions.ToString(strVal[5]).ToUpper() +
+                                    "') ORDER BY TO_NUMBER(GLCODE),TO_NUMBER(ACCNO) ";
+
+                                DataTable rs1 = await _databaseFactory.ProcessQueryAsync(sqlStr);
+
+                                if (rs1.Rows.Count > 0)
+                                {
+                                    foreach (DataRow rows in rs1.Rows)
+                                    {
+                                        if (Conversions.ToString(dataTable.Rows[0].ItemArray[0]) != "LOCKER")
+                                        {
+                                            if (Conversions.ToString(dataTable.Rows[0].ItemArray[0]) != "SHARES")
+                                            {
+                                                // For balance
+                                                if (strVal[7] == "Y")
+                                                    sqlStr = "SELECT SUM(a.amount) FROM ( SELECT SUM(abs(NVL(amount,0))) amount FROM GENTRANSLOG WHERE MODEOFTRAN = 1 AND " +
+                                                        "CASHPAIDYN = 'Y' AND ACCNO ='" + Conversions.ToString(rows.ItemArray[1]) + "' AND GLCODE = '" +
+                                                        Conversions.ToString(rows.ItemArray[0]) + "' AND BRANCHCODE ='" + Conversions.ToString(rows.ItemArray[2]) +
+                                                        "' AND APPLICATIONDATE >= '" + tempstartdate + "' AND APPLICATIONDATE <= '" + tempenddate +
+                                                        "' UNION ALL SELECT SUM(abs(NVL(amount,0))) FROM GENTRANSLOGBKP WHERE MODEOFTRAN = 1 AND CASHPAIDYN = 'Y' AND ACCNO ='" +
+                                                        Conversions.ToString(rows.ItemArray[1]) + "' AND GLCODE = '" + Conversions.ToString(rows.ItemArray[0]) +
+                                                        "' AND BRANCHCODE ='" + Conversions.ToString(rows.ItemArray[2]) + "' AND APPLICATIONDATE >= '" + tempstartdate +
+                                                        "' AND APPLICATIONDATE <= '" + tempenddate + "') a ";
+                                                else
+                                                    sqlStr = "SELECT SUM(a.amount) FROM ( SELECT SUM(abs(NVL(amount,0))) amount FROM GENTRANSLOG WHERE MODEOFTRAN = 1 AND " +
+                                                        "ACCNO ='" + Conversions.ToString(rows.ItemArray[1]) + "' AND GLCODE = '" + Conversions.ToString(rows.ItemArray[0]) +
+                                                        "' AND BRANCHCODE ='" + Conversions.ToString(rows.ItemArray[2]) + "' AND  APPLICATIONDATE >= '" + tempstartdate +
+                                                        "' AND  APPLICATIONDATE <= '" + tempenddate + "' UNION ALL SELECT SUM(abs(NVL(amount,0))) FROM GENTRANSLOGBKP WHERE " +
+                                                        "MODEOFTRAN = 1 AND CASHPAIDYN = 'Y' AND ACCNO ='" + Conversions.ToString(rows.ItemArray[1]) + "' AND GLCODE = '" +
+                                                        Conversions.ToString(rows.ItemArray[0]) + "' AND BRANCHCODE ='" + Conversions.ToString(rows.ItemArray[2]) +
+                                                        "' AND APPLICATIONDATE >= '" + tempstartdate + "' AND APPLICATIONDATE <= '" + tempenddate + "') a ";
+
+                                                DataTable rs2 = await _databaseFactory.ProcessQueryAsync(sqlStr);
+                                                if (rs2.Rows.Count > 0)
+                                                {
+                                                    foreach (DataRow rowss in rs2.Rows)
+                                                    {
+                                                        decimal amt = 0;
+                                                        if (rowss.IsNull(0))
+                                                            amt = 0;
+                                                        else
+                                                            amt = Convert.ToDecimal(rowss.ItemArray[0]);
+                                                        strRest = strRest + amt + "|";
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        if (strRest != "")
+                            return strRest.Substring(0, strRest.Length - 1);
+                        else
+                            return "No Amount";
                     }
-                        break;
                 case "DISPBATCH":
                     {
                         //           recDisp = server.CreateObject("adodb.recordset")
@@ -15439,24 +15568,16 @@ namespace Banking.Services
                         break;
                 case "EXCPAMT":
                     {
-                        //        excpWhr = "upper(currencycode)='" & cstr(ucase(trim(strVal(1)))) & _
-                        //                "' and upper(moduleid)='" & cstr(ucase(trim(strVal(2)))) & _
-                        //                "' and upper(glcode)='" & cstr(ucase(trim(strVal(3)))) & _
-                        //                "' and modeoftran=" & trim(strVal(4))
+                        string excpWhr = "upper(currencycode)='" + Conversions.ToString(strVal[1]).ToUpper() + "' and upper(moduleid)='" +
+                            Conversions.ToString(strVal[2]).ToUpper() + "' and upper(glcode)='" + Conversions.ToString(strVal[3]).ToUpper() + 
+                            "' and modeoftran=" + strVal[4];
 
+                        dataTable = await _databaseFactory.SingleRecordSet("GENEXCEPTIONALAMTMST", "amount", excpWhr);
 
-                        //          recExcp = server.CreateObject("adodb.recordset")
-
-                        //          objExcp = server.CreateObject("queryrecordsets.fetchrecordsets")
-
-                        //          recExcp = objExcp.SingleRecordSet("GENEXCEPTIONALAMTMST", "amount", cstr(excpWhr))
-
-
-                        //        if recExcp.RecordCount > 0 then
-                        //           excpAmt = recExcp(0).value
-                        //        else
-                        //                                                                excpAmt = "NODATA"
-                        //        end if
+                        if (dataTable.Rows.Count > 0)
+                            return Conversions.ToString(dataTable.Rows[0].ItemArray[0]);
+                        else
+                            return "NODATA";
                     }
                         break;
                 case "CREDITACCNO":
@@ -15474,19 +15595,11 @@ namespace Banking.Services
                         break;
                 case "MASTTAB":
                     {
-                        //       mstWhr = "upper(moduleid)='" & cstr(ucase(trim(strVal(1)))) & "'"
-                        //         recMst = server.CreateObject("adodb.recordset")
-                        //         objmst = server.CreateObject("queryrecordsets.fetchrecordsets")
+                        string mstWhr = "upper(moduleid)='" + Conversions.ToString(strVal[1]).ToUpper() + "'";
+                        dataTable = await _databaseFactory.SingleRecordSet("GENMODULEMST", "nvl(ACCNOREQUIREDYN,'N')", mstWhr);
 
-
-                        //         recMst = objmst.SingleRecordSet("GENMODULEMST", _
-
-                        //            "nvl(ACCNOREQUIREDYN,'N')", cstr(mstWhr))
-
-
-                        //       if recMst.RecordCount > 0 then
-                        //          mstTab = recMst(0).value
-                        //       end if
+                        if (dataTable.Rows.Count > 0)
+                            return Conversions.ToString(dataTable.Rows[0].ItemArray[0]);
                     }
                     break;
                 case "SIGLCODE":
@@ -17870,72 +17983,7 @@ namespace Banking.Services
 //        end if
 
 //    dataTable = nothing
-//elseif strArr(0)= "GETRDAMOUNTCHECK" then
-//strResult = ""
 
-//    dim strMONINSTAMOUNT, strMATURITYDATE, strDEPPRDMONS, strappdate
-
-//    dim dblcuramt
-
-//    dim arrval
-
-//    dim strmessage
-
-//    strappdate = Session("applicationdate")
-
-//    obj = server.CreateObject("ReportPurposeOnly.Reportonly")
-
-
-//    obj1 = Server.CreateObject("accountdetails.accdetails")
-
-//            strResult = obj1.accountdetail(cstr(strArr(1)), cstr(strArr(2)), cstr(strArr(3)), cstr(strArr(4)), cstr(strArr(5)))
-
-//            arrval = split(strResult, "|")
-
-//            dblcuramt = arrval(0)
-
-//         sqlStr = "SELECT MONINSTAMOUNT, MATURITYDATE, DEPPRDMONS noofinstall  FROM depmst WHERE branchcode = '" & strArr(1) & "' AND glcode = '" & strArr(4) & "' and accno = '" & strArr(5) & "' AND status = 'R'"
-
-
-//        dataTable = obj.SingleSelectStat(sqlStr)
-
-
-//        if obj.ConnError = "Connected" then
-
-//            if not dataTable.BOF and not dataTable.EOF then
-
-
-//                strMONINSTAMOUNT = dataTable(0).value
-
-//                strMATURITYDATE = dataTable(1).value
-
-//                strDEPPRDMONS = dataTable(2).value
-
-
-
-//                    if (cdbl(strArr(6)) + cdbl(dblcuramt))  > (cdbl(strMONINSTAMOUNT) * cdbl(strDEPPRDMONS)) then
-//                        strmessage = "NO"
-
-//                        else
-//                strmessage = "YES"
-
-
-//                        if cdate(strappdate) > cdate(strMATURITYDATE) then
-//                            strmessage = "GREATER"
-
-//                        end if
-
-//                    end if
-
-
-
-//            end if
-
-//        end if
-
-//        strResult = strmessage
-
-//    dataTable = nothing
 //elseif strArr(0)= "LCKRENTPAIDTLS" then
 //    strResult = ""
 
@@ -18604,401 +18652,6 @@ namespace Banking.Services
 //            else
 //                strResult = "0" & "|"
 //        end if
-
-
-
-//                elseif strArr(0)= "Check194N" then
-//                dim strPAN206AAYN,strPAN206ABYN
-//                dim dblFrmAmt
-//                dim dbltdsrate
-//                dim dblCurTdAmt
-//                dim dblExistingTdsAmt
-//                dim dblBalance
-//                dim dblFinalTdAmt
-//                dim frmfinyr,tofinyr,frmyear,toyear,strmon,strAppdate1,dblAmount,dblTranAmt,dblThresHoldLmt
-//                    dim assyear
-//                    dim dblcummamt
-//                    dblcummamt = 0
-//dim strPanno
-//dim frm3finyr
-//dim strreturnfileyn
-//dim strcategorycode
-//dim blncheckpanno
-//dim dblamtpaid
-//dim arrtdsrates(2)
-//dim arrfrmamt(2)
-//dim arrtoamt(2)
-//dim dblCurTdAmtTot
-//dim dblcummamtTemp
-//dim strcustomertype
-//dblamtpaid = 0
-//blncheckpanno = "YES"
-//strPanno = ""
-
-//    strAppdate1 = strArr(6)
-
-//    dblAmount = strArr(7)
-
-
-//    strmon = Month(cdate(strAppdate1))
-
-
-//    if cint(strmon) <= 3  then
-//    frmyear = cint(Year(cdate(strAppdate1))) - 1
-//    toyear = Year(cdate(strAppdate1))
-//    else
-//                frmyear = Year(cdate(strAppdate1))
-//    toyear = cint(Year(cdate(strAppdate1))) + 1
-
-//    end if
-
-//    frmfinyr = "01-Apr-" & frmyear
-
-//    tofinyr = "31-Mar-" & toyear
-
-//    assyear = toyear & cint(Mid(toyear, 3, 2)) + 1
-
-//    dblTranAmt = 0
-
-//    strResult = ""
-
-//    '' trans amount
-
-//    rspan = Server.CreateObject("adodb.recordset")
-
-//    rscust = Server.CreateObject("adodb.recordset")
-
-//    rsmstall = Server.CreateObject("adodb.recordset")
-
-
-//        obj = server.CreateObject("ReportPurposeOnly.Reportonly")
-
-//        sqlStr = "select panno,PAN206AAYN,PAN206ABYN,customertype from gencustinfomst where customerid = (select customerid from " & strArr(5) & "mst where branchcode = '" & strArr(1) & "' AND currencycode = '" & strArr(2) & "' and  glcode = '" & strArr(3) & "' AND accno = '" & strArr(4) & "')"
-
-//        rspan = obj.SingleSelectStat(sqlStr)
-
-//        if obj.ConnError = "Connected" then
-
-//        if not rspan.BOF and not rspan.EOF then
-
-//            strPanno = iif(isdbnull(rspan(0).value), "", rspan(0).value)
-
-//            strPAN206AAYN = iif(isdbnull(rspan(1).value), "N", rspan(1).value)
-
-//            strPAN206ABYN = iif(isdbnull(rspan(2).value), "N", rspan(2).value)
-
-//            strcustomertype = iif(isdbnull(rspan(3).value), "1", rspan(3).value)
-
-//        if strPanno = "" then
-//        sqlStr = "select customerid from " & strArr(5) & "mst where branchcode = '" & strArr(1) & "' AND currencycode = '" & strArr(2) & "' and  glcode = '" & strArr(3) & "' AND accno = '" & strArr(4) & "'"
-
-//        else
-//                sqlStr = "select customerid from gencustinfomst where panno ='" & strPanno & "'"
-
-//        end if
-
-//        rscust = obj.SingleSelectStat(sqlStr)
-
-//        if obj.ConnError = "Connected" then
-
-//            if not rscust.BOF and not rscust.EOF then
-
-//            do until rscust.EOF
-
-
-//        sqlStr = " select branchcode,currencycode,'SB' moduleid,glcode,accno from sbmst where customerid = '" & rscust(0).value & "' union all  " & _
-
-//        " select branchcode,currencycode,'CA' moduleid,glcode,accno from camst where customerid =  '" & rscust(0).value & "' union all " & _
-
-//        " select branchcode,currencycode,'CC' moduleid,glcode,accno from ccmst where customerid =  '" & rscust(0).value & "' union all " & _
-
-//        " select branchcode,currencycode,'DEP' moduleid,glcode,accno from depmst where customerid =  '" & rscust(0).value & "' union all " & _
-
-//        " select branchcode,currencycode,'LOAN' moduleid,glcode,accno from loanmst where customerid =  '" & rscust(0).value & "'"
-
-
-//        rsmstall = obj.SingleSelectStat(sqlStr)
-
-//        if obj.ConnError = "Connected" then
-
-//            if not rsmstall.BOF and not rsmstall.EOF then
-
-//            do until rsmstall.EOF
-
-
-//        sqlStr = "SELECT SUM(amount) FROM ( SELECT nvl(SUM(nvl(amount,0)),0)  amount FROM  " & rsmstall(2).value & "tranday WHERE modeoftran = 1 AND branchcode = '" & rsmstall(0).value & "' AND glcode = '" & rsmstall(3).value & "' AND accno = '" & rsmstall(4).value & "' AND applicationdate BETWEEN '" & frmfinyr & "' AND '" & tofinyr & "' UNION ALL SELECT nvl(SUM(nvl(amount,0)),0) amount FROM  " & rsmstall(2).value & "tran WHERE  modeoftran = 1 AND branchcode = '" & rsmstall(0).value & "' AND glcode = '" & rsmstall(3).value & "' AND accno = '" & rsmstall(4).value & "' AND applicationdate BETWEEN '" & frmfinyr & "' AND '" & tofinyr & "') a"
-
-
-//        dataTable = obj.SingleSelectStat(sqlStr)
-
-//        if obj.ConnError = "Connected" then
-
-//            if not dataTable.BOF and not dataTable.EOF then
-
-//                dblTranAmt = dblTranAmt + iif(isdbnull(dataTable(0).value), 0, dataTable(0).value)
-
-//            end if
-
-//        end if
-
-//    rsmstall.moveNext()
-
-//    loop
-//end if ''rsmstall
-//end if ''
-
-//if rsmstall.state = 1 then
-//rsmstall.close
-//rsmstall = nothing
-//end if
-
-
-//    rscust.moveNext()
-
-//    loop
-//end if ''rscust
-//end if
-
-//if rscust.state = 1 then
-//rscust.close
-//rscust = nothing
-//end if
-
-//end if ''rspan
-//end if ''
-//if rspan.state = 1 then
-//rspan.close
-//rspan = nothing
-//end if
-
-//dblFrmAmt = 0
-//dbltdsrate = 0
-//'' cummulative amount
-//dblcummamt = Math.Abs(cdbl(dblTranAmt)) + cdbl(dblAmount)
-
-
-//frm3finyr = DateAdd("yyyy", -3, cdate(frmfinyr))
-//strreturnfileyn = "D"
-//if strPanno<> "" then
-//sqlStr = "select RTNFILE  from TDSRETURNFILEDTLS where TRANSTATUS = 'A' and panno =  '" & strPanno & "'   AND fromdate >= '" & format(cdate(frm3finyr), "dd-MMM-yyyy") & "' AND todate <= '" & tofinyr & "'"
-// dataTable = obj.SingleSelectStat(sqlStr)
-
-//        if obj.ConnError = "Connected" then
-
-//            if not dataTable.BOF and not dataTable.EOF then
-
-//            strreturnfileyn = iif(isdbnull(dataTable(0).value), "N", dataTable(0).value)
-
-//            end if
-
-//        end if
-
-
-//    if dataTable.state = 1 then
-
-//    dataTable.close
-//    dataTable = nothing
-
-//    end if
-//end if ''strPanno<> ""
-
-//sqlStr = "SELECT RATE, nonpanrate FROM TDSPARM t where status = 'R'   and ( category = '" & strcustomertype & "' or category = '99') AND EFFECTIVEDATE = (SELECT MAX(EFFECTIVEDATE) FROM TDSPARM where status = 'R'   and category = t.category AND effectivedate <= '" & frmfinyr & "')"
-//dataTable = obj.SingleSelectStat(sqlStr)
-
-//        if obj.ConnError = "Connected" then
-
-//            if not dataTable.BOF and not dataTable.EOF then
-
-//            strnonpanrate = iif(isdbnull(dataTable(1).value), "0", dataTable(1).value)
-
-//            end if
-
-//        end if
-
-//if dataTable.state = 1 then
-//dataTable.close
-//dataTable = nothing
-//end if
-
-//strcategorycode = "A"
-//if strreturnfileyn = "Y" then
-//    strcategorycode = "B"
-
-//    else
-//                    strcategorycode = "A"
-//end if
-
-//''tds rate, toamount
-//sqlStr = "SELECT tdsrate,fromamt,toamt FROM gentdsdedslab WHERE CATEGORYCODE = '" & strcategorycode & "' and fromamt <= " & dblcummamt & "  AND EFFECTIVEDATE = (SELECT MAX(EFFECTIVEDATE) FROM gentdsdedslab WHERE CATEGORYCODE = '" & strcategorycode & "' and fromamt <= " & dblcummamt & " AND effectivedate <= '" & frmfinyr & "')"
-//i = 0
-//dataTable = obj.SingleSelectStat(sqlStr)
-
-//        if obj.ConnError = "Connected" then
-
-//            if not dataTable.BOF and not dataTable.EOF then
-
-//            while not dataTable.eof
-
-//            arrtdsrates(i) = iif(isdbnull(dataTable(0).value), 0, dataTable(0).value)
-
-//            arrfrmamt(i) = iif(isdbnull(dataTable(1).value), 0, dataTable(1).value)
-
-//            arrtoamt(i) = iif(isdbnull(dataTable(2).value), 0, dataTable(2).value)
-
-//            i = i + 1
-
-//            dataTable.movenext()
-
-//            end while
-
-//            else
-//                    dbltdsrate = 0
-
-//            dblFrmAmt = 0
-
-//            end if
-
-//        end if
-
-//if dataTable.state = 1 then
-//dataTable.close
-//dataTable = nothing
-//end if
-//if  Math.Abs(cdbl(dblTranAmt)) > dblFrmAmt then
-//dblamtpaid = dblAmount
-//else
-//                    dblamtpaid = dblcummamt
-//end if
-
-//''if strPanno = "" and strcategorycode = "A" and cdbl(dblcummamt) > 2000000 then
-//''blncheckpanno = "NO"
-//''  goto end1
-//''end if
-//'' existing tds amount
-//dblExistingTdsAmt = 0
-//if strPanno<> "" then
-//sqlStr = "SELECT nvl(SUM(nvl(amount,0)),0) amount FROM tdsdtls WHERE ITFORM = '194N' and panno = '" & strPanno & "' AND fromdate >= '" & frmfinyr & "' AND todate <= '" & tofinyr & "'"
-//else ''strPanno = ""
-
-//sqlStr = "SELECT nvl(SUM(nvl(amount,0)),0) amount FROM tdsdtls WHERE ITFORM = '194N'  AND fromdate >= '" & frmfinyr & "' AND todate <= '" & tofinyr & "' and customerid in (select customerid from " & strArr(5) & "mst where branchcode = '" & strArr(1) & "' AND currencycode = '" & strArr(2) & "' and  glcode = '" & strArr(3) & "' AND accno = '" & strArr(4) & "')"
-
-//end if
-//dataTable = obj.SingleSelectStat(sqlStr)
-
-//        if obj.ConnError = "Connected" then
-
-//            if not dataTable.BOF and not dataTable.EOF then
-
-//            dblExistingTdsAmt = iif(isdbnull(dataTable(0).value), 0, dataTable(0).value)
-
-//            else
-//                dblExistingTdsAmt = 0
-
-//            end if
-
-//        end if
-
-//if dataTable.state = 1 then
-//dataTable.close
-//dataTable = nothing
-//end if
-
-
-
-//'' balance
-//dblBalance = 0
-//sqlStr = "SELECT GETANYDAYBAL('" & strArr(1) & "','" & strArr(2) & "','" & strArr(5) & "','" & strArr(3) & "','" & strArr(4) & "','" & strAppdate1 & "') FROM DUAL"
-
-//    dataTable = obj.SingleSelectStat(sqlStr)
-
-//    if obj.ConnError = "Connected" then
-
-//        if not dataTable.BOF and not dataTable.EOF then
-
-//            dblBalance = iif(isdbnull(dataTable(0).value), 0, dataTable(0).value)
-
-//            dblBalance = Math.Abs(cdbl(dblBalance))
-
-//        else
-//                dblBalance = 0
-
-//        end if
-
-//    end if
-
-//if dataTable.state = 1 then
-//dataTable.close
-//dataTable = nothing
-//end if
-//'' current tds
-//i = 0
-//dblCurTdAmt = 0
-
-//dblCurTdAmtTot = 0
-//dblcummamtTemp = 0
-//dblcummamtTemp = dblcummamt
-//dblcummamtTemp1 = 0
-
-//for i = 0 to ubound(arrtdsrates)
-//if CDbl(arrtoamt(i)) > 0 then
-//    If CDbl(dblcummamtTemp) > CDbl(arrtoamt(i)) Then
-//        dblcummamtTemp1 = CDbl(arrtoamt(i)) - dblcummamtTemp1
-
-//    Else
-//        dblcummamtTemp1 = dblcummamtTemp - (CDbl(arrfrmamt(i)) - 1)
-
-//    End If
-
-//if strPAN206AAYN = "Y" then
-
-
-//    if cdbl(dblcummamtTemp1) > 0 then
-//        dblCurTdAmtTot = dblCurTdAmtTot + Math.Round(((dblcummamtTemp1 * cdbl(arrtdsrates(i))) / 100))
-
-//        dblFrmAmt = cdbl(arrfrmamt(i)) - 1
-
-//        dbltdsrate = cdbl(arrtdsrates(i))
-
-//    end if
-//else
-//    if cdbl(dblcummamtTemp1) > 0 then
-
-//    if cdbl(arrtdsrates(i)) > 0 then
-//        dblCurTdAmtTot = dblCurTdAmtTot + Math.Round(((dblcummamtTemp1 * cdbl(strnonpanrate)) / 100))
-
-//        dblFrmAmt = cdbl(arrfrmamt(i)) - 1
-
-//        dbltdsrate = cdbl(strnonpanrate)
-
-//    else
-//                dblCurTdAmtTot = dblCurTdAmtTot + Math.Round(((dblcummamtTemp1 * cdbl(arrtdsrates(i))) / 100))
-
-//        dblFrmAmt = cdbl(arrfrmamt(i)) - 1
-
-//        dbltdsrate = cdbl(arrtdsrates(i))
-
-//    end if
-
-//    end if
-//end if  ''strPAN206AAYN
-//end if
-//next i
-
-//dblCurTdAmt = dblCurTdAmtTot
-
-//dblFinalTdAmt = 0
-//dblFinalTdAmt = Math.Round(cdbl(dblCurTdAmt) - Math.Abs(cdbl(dblExistingTdsAmt)))
-//if dblFinalTdAmt <= 0 then
-//dblFinalTdAmt = 0
-//end if
-
-//end1:
-//if blncheckpanno = "NO" then
-//strResult = "No Panno|||||||||"
-//else
-//                strResult = dblBalance & "|" & dblFinalTdAmt & "|" & dblFrmAmt & "|" & dbltdsrate & "|" & dblTranAmt & "|" & frmfinyr & "|" & tofinyr & "|" & assyear & "|" & strPanno & "|" & dblamtpaid & "|" & strPAN206AAYN & "|" & strPAN206ABYN
-//end if
-
 
 //    elseif strArr(0) = "FRMANUALACC" then
 //    strResult = ""
@@ -20355,9 +20008,6 @@ namespace Banking.Services
             //    else if (type == "LCKRENTPAIDTLS")
             //        window.attachEvent(window.parent.popLCKRENTPAIDTLS(strResult))
 
-            //    else if (type == "GETRDAMOUNTCHECK")
-            //        window.attachEvent(window.parent.popGETRDAMOUNTCHECK(strResult))
-
             //    else if (type == "loanopeningdate")
             //        window.attachEvent(window.parent.popGETloanopeningdate(strResult))
 
@@ -21001,23 +20651,30 @@ namespace Banking.Services
 //            }
         }
 
-        public void GetList()
+        public async Task<List<SelectListItem>> GetList(string searchString = "", string hidsearch = "")
         {
-            //dim strsql10, strDEPCERTIFICATE as string
-            //strNftsYn = "N"
-            //dim rsNFTS, objNFTS
-            //rsNFTS = server.CreateObject("adodb.recordset")
-            //objNFTS = server.CreateObject("ReportPurposeOnly.Reportonly")
-            //strsql10 = "SELECT DEPCERTIFICATE FROM GENBANKPARM"
-            //rsNFTS = objNFTS.SingleSelectStat(strsql10)
-            //if objNFTS.ConnError = "Connected" then
+            string strDEPCERTIFICATE = "", strNftsYn = "N";
+            string strsql10 = "SELECT DEPCERTIFICATE FROM GENBANKPARM";
 
-            //    if not rsNFTS.bof and not rsNFTS.eof then
+            DataTable dataTable = await _databaseFactory.ProcessQueryAsync(strsql10);
 
-            //        strDEPCERTIFICATE = rsNFTS(0).value
+            if (dataTable.Rows.Count > 0)
+                strDEPCERTIFICATE = Conversions.ToString(dataTable.Rows[0].ItemArray[0]);
 
-            //    end if
-            //end if
+            if (searchString.Substring(0, 2).ToUpper() == "GL")
+            {
+                // Loan on deposityn condition is removed said by damodar sir
+                string brCode = searchString.Substring(3);
+                if (strDEPCERTIFICATE == "SALUR")
+                    dataTable = await _databaseFactory.SingleRecordSet("genglsheetmst", "glcode,NARRATION",
+                        "upper(trim(branchcode))='" + brCode.Trim().ToUpper() + "' and upper(trim(moduleid))='DEP' and glcode in(select glcode from deptypemst where " +
+                        "depsubnature IN ('FST','MIS','FCD') and (instsyn= 'N' or instsyn is null) and OVERDUEGLCODE is not null and status='R')");
+                else
+                    dataTable = await _databaseFactory.SingleRecordSet("genglsheetmst", "glcode,NARRATION",
+                        "upper(trim(branchcode))='" + brCode.Trim().ToUpper() + "' and upper(trim(moduleid))='DEP' and glcode in(select glcode from deptypemst where " +
+                        "(instsyn= 'N' or instsyn is null) and OVERDUEGLCODE is not null and status='R')");
+            }
+
             // strType = Request.QueryString("st")
             // userid = session("userid")
             // appldate = session("applicationdate")
@@ -21027,8 +20684,6 @@ namespace Banking.Services
             // status = "Y"
             // on error resume next
             // hidsearch = request.form("hidsearch")
-
-
 
             //dim obj, dataTable, r, strCond
             //dim strsql
@@ -21535,34 +21190,6 @@ namespace Banking.Services
             //    dataTable = obj.singlerecordset("depmst", "accno,name", str)
 
 
-            //elseif left(strType,2)= "Gl" then
-            //   ' swetha  dataTable=obj.singlerecordset("genbanklevelmst","branchtype","hierarchy='1'")
-
-            //        'if dataTable.RecordCount>0 then
-
-            //            'dim brType
-
-            //           ' brType=dataTable(0).value
-
-            //        'dataTable=obj.singlerecordset("genbankbranchmst","branchcode","upper(trim(branchtype))='" & ucase(trim(brType)) & "'")
-
-            //            'if dataTable.RecordCount>0 then
-
-
-            //            dim brCode
-
-            //            brCode = mid(strType, 4)
-
-            //            'loan on deposityn condition is removed said by damodar sir
-
-            //            if strDEPCERTIFICATE = "SALUR" then
-            //            dataTable = obj.singlerecordset("genglsheetmst", "glcode,NARRATION", "upper(trim(branchcode))='" & ucase(trim(brCode)) & "' and upper(trim(moduleid))='DEP' and glcode in(select glcode from deptypemst where  depsubnature   IN ('FST','MIS','FCD') and  (instsyn= 'N' or instsyn is null) and OVERDUEGLCODE is not null and status='R')")
-
-            //            else
-
-            //                dataTable = obj.singlerecordset("genglsheetmst", "glcode,NARRATION", "upper(trim(branchcode))='" & ucase(trim(brCode)) & "' and upper(trim(moduleid))='DEP' and glcode in(select glcode from deptypemst where (instsyn= 'N' or instsyn is null) and OVERDUEGLCODE is not null and status='R')")
-
-            //            end if
             //elseif left(strType, 9) = "autorengl" then
             //   ' swetha  dataTable=obj.singlerecordset("genbanklevelmst","branchtype","hierarchy='1'")
 
@@ -21795,6 +21422,8 @@ namespace Banking.Services
 
 
             //end if
+
+            return BankingExtensions.ReturnKeyValuePair(dataTable, "GLCode", true);
         }
 
         public void GetListFunction()

@@ -76,7 +76,7 @@ namespace Banking.Interfaces
         Task<string> GetCCDrCrLienYN(string strBrCode, string strCurcode, string strModId, string strGlcode, string strAccno);
 
         Task<string> GetSBCADrCrLienYN(string strMode, string strBrCode, string strCurcode, string strModId, string strGlcode, string strAccno,
-            double TransAmt, DateTime TranDate);
+            double TransAmt, string TranDate);
 
         Task<object> GetMaturityvalue(string Period, string EffDate, string MatDate, double Amount, string CompoundTerm, 
             string InstalmentsYN, double ROI, string strpremat = "0");

@@ -19,5 +19,19 @@ namespace Banking.Frontend.Controllers
 
             return View(model);
         }
+
+        public async Task<IActionResult> GetBatchNoGenRemCan(string searchString = "")
+        {
+            var item = await _transferTransactionService.GetBatchNoGenRemCan(searchString);
+
+            return Json(item);
+        }
+
+        public async Task<IActionResult> GetBatchNoGen(string searchString = "")
+        {
+            var item = await _transferTransactionService.GetBatchNoGen(searchString);
+
+            return Json(item);
+        }
     }
 }
