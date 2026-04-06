@@ -775,6 +775,12 @@ function logoutUser() {
   window.close();
 }
 
+function timeOut(waitTime) {
+  setTimeout(function () {
+    console.log("Done waiting for: " + waitTime);
+  }, waitTime);
+}
+
 
 /************* Ajax Calls *************/
 

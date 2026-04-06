@@ -17391,10 +17391,7 @@ namespace Banking.Services
 
         public void GetDetailsFunction()
         {
-            //    function Details()
-            //    {
-            //        var type = "<%=strArr(0)%>"
-
+            //    var type = "<%=strArr(0)%>"
             //    var strResult = "<%=strResult%>"
 
             //    if (type == "GETSERVICETAX")
@@ -17449,23 +17446,15 @@ namespace Banking.Services
             //            window.attachEvent(window.parent.GetThreshHoldLimit(strResult))
 
             //    else if (type == "GETCCDRCRLIENYN")
-            //        {
             //            window.attachEvent(window.parent.GETCCDRCRLIENYN1(strResult))
 
-            //    }
-            //        else if (type == "GETDRCRLIENYN")
-            //        {
-            //            //alert(strResult)
+            //    else if (type == "GETDRCRLIENYN")
             //            window.attachEvent(window.parent.GETDRCRLIENYN1(strResult))
 
-            //    }
-            //        else if (type == "GETDRCRLIENAMT")
-            //        {
-            //            //alert(strResult)
+            //    else if (type == "GETDRCRLIENAMT")
             //            window.attachEvent(window.parent.GETDRCRLIENAMT1(strResult))
 
-            //    }
-            //        else if (type == "GETNEXTGL")
+            //    else if (type == "GETNEXTGL")
             //            window.attachEvent(window.parent.popNextGl(strResult))
 
             //    else if (type == "GETMATDATE")
@@ -17884,10 +17873,6 @@ namespace Banking.Services
 
             //    else if (type == "StmntOfAccChrgs")
             //            window.attachEvent(window.parent.DispTranMsg(strResult))
-
-            //    window.close()
-
-            //}
         }
 
         public void GetDetails1()

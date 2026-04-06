@@ -53,7 +53,7 @@ namespace Banking.Services
         public async Task<TransferTransactionModel> GetDetails(ISession session, TransferTransactionModel model, string queryString = "")
         {
             string strcts, DayLmt, strDepCertificate, cmod, cgl, cacc, cgldes, caccnam, smod, sgl, sacc, sgldes, saccnm, csmod,
-                csgl, csacc, csgldes, csaccnm, strcgstmoddesc, strsgstmoddesc, strcessmoddesc, srpos, pBr, pBrCode, srgtp, srgst, CshType, Rfldnms,
+                csgl, csacc, csgldes, csaccnm, strcgstmoddesc, strsgstmoddesc, strcessmoddesc, pBr, pBrCode, srgst, CshType, Rfldnms,
                 RwhrCond, RecYN, TPayYN, TRecYN, cntrStatus, vModDir;
 
             //vUserid, vAppDate, vCounterNo, vCashierid, vBranchCode, vBrnarration, vCurCode, vCurnarration, vMachineId
@@ -160,7 +160,7 @@ namespace Banking.Services
 
             if (dataTable.Rows.Count > 0)
             {
-                model.Hidden_impClgYN = Conversions.ToString(dataTable.Rows[0].ItemArray[0]);
+                model.ImpClgYN = Conversions.ToString(dataTable.Rows[0].ItemArray[0]);
             }
 
             BankingExtensions.ReleaseMemory(dataTable);
@@ -310,7 +310,7 @@ namespace Banking.Services
 
             if (dataTable.Rows.Count > 0)
             {
-                srpos = Conversions.ToString(dataTable.Rows[0].ItemArray[0]);
+                model.SRPOS = Conversions.ToString(dataTable.Rows[0].ItemArray[0]);
             }
 
             BankingExtensions.ReleaseMemory(dataTable);
@@ -332,7 +332,7 @@ namespace Banking.Services
 
             if (dataTable.Rows.Count > 0)
             {
-                srgtp = Conversions.ToString(dataTable.Rows[0].ItemArray[0]);
+                model.SRGTP = Conversions.ToString(dataTable.Rows[0].ItemArray[0]);
             }
 
             BankingExtensions.ReleaseMemory(dataTable);

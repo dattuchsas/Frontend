@@ -128,7 +128,6 @@ namespace Banking.Models
         public string? Hidden_RemCanCESSYN { get; set; } = "N";
         public string? Hidden_RemCanGSTYN { get; set; } = "N";
         public string? Hidden_OlimpYN { get; set; } = "Y";
-        public string? Hidden_impClgYN { get; set; } = "N";
         public string? Hidden_AutoRetChrgsYN { get; set; } = "N";
         public string? Hidden_CommRetChrgsYN { get; set; } = "N";
         public string? Hidden_RemCanAutoChrgsYN { get; set; } = "N";
@@ -168,7 +167,10 @@ namespace Banking.Models
         public string? ImpYnWek { get; set; }
         public string? ImpYnDay { get; set; }
         public string? WekLmt { get; set; }
-
+        public string? ImpClgYN { get; set; } = "N";
+        public string? SRGTP { get; set; }
+        public string? SRPOS { get; set; }
+        
         #endregion
     }
 
