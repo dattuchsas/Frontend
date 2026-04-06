@@ -345,17 +345,67 @@
                         <th>Application Date</th>
                         <th>Cust ID</th>
                         <th>Mode of Tran</th>
+                        <th>Mode of Tran Desc</th>
+                        <th>ABB Application Date</th>
                         <th>Tran Status</th>
                         <th>Currency Code</th>
                         <th>Entered By</th>
-                        <th>Entered M / C</th>
-                        <th>ABB Branch Code</th>
-                        <th>Branch Desc</th>
+                        <th>Entered M/C</th>
                         <th>Module ID</th>
                         <th>Branch Code</th>
                         <th>Token No</th>
                         <th>Remarks</th>
-                        <th>Disposals</th>
+                        <th>Cheque Series</th>
+                        <th>Cheque No</th>
+                        <th>Cheque Date</th>
+                        <th>Cheque Favouring</th>
+                        <th>Sys Gen YN</th>
+                        <th>Module Description</th>
+                        <th>Effective Date</th>
+                        <th>CLG Rate Type</th>
+                        <th>Rate</th>
+                        <th>F Currency Code</th>
+                        <th>F Amount</th>
+                        <th>Link Module ID</th>
+                        <th>Link Module Desc</th>
+                        <th>Link GL Code</th>
+                        <th>Link GL Desc</th>
+                        <th>Link Account Type</th>
+                        <th>Link Account No</th>
+                        <th>Link Acc Name</th>
+                        <th>Service ID</th>
+                        <th>Service Desc</th>
+                        <th>Resp Branch Code</th>
+                        <th>Resp Branch Desc</th>
+                        <th>Resp Section Code</th>
+                        <th>Resp Section Desc</th>
+                        <th>ABB Branch Code</th>
+                        <th>Branch Desc</th>
+                        <th>Disposal Batch No</th>
+                        <th>Disposal Tran No</th>
+                        <th>Acc Chk YN</th>
+                        <th>Exception YN</th>
+                        <th>Exception Codes</th>
+                        <th>Resp Bank Code</th>
+                        <th>Resp Bank Desc</th>
+                        <th>SI YN</th>
+                        <th>Counter No.</th>
+                        <th>Cashier Id</th>
+                        <th>Scroll No.</th>
+                        <th>Rate Ref Code</th>
+                        <th>Rate Ref Desc</th>
+                        <th>ABB YN</th>
+
+                        @* <th>Issued by Branch Code</th>
+                        <th>Issued by Branch Desc</th>
+                        <th>Favouring</th>
+                        <th>Instrument No</th>
+                        <th>Advice Recceived</th>
+                        <th>Advice No.</th>
+                        <th>Advice Rec Date</th>
+                        <th>Instrument Date</th>
+                        <th>Instrument Type</th>
+                        <th>Native Y/N</th> *@
                     </tr>
                 </thead>
             </table>
@@ -364,23 +414,23 @@
         <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 row-cols-xl-5 gx-3 gy-2">
             <div class="col DebitTransactions">
                 <label asp-for="DebitTransactions" class="form-label">Dr. Transactions</label>
-                <div>0</div>
+                <input asp-for="DebitTransactions" class="form-control border-0 shadow-none ps-0" placeholder="0" readonly />
             </div>
             <div class="col CreditTransactions">
                 <label asp-for="CreditTransactions" class="form-label">Cr. Transactions</label>
-                <div>0</div>
+                <input asp-for="CreditTransactions" class="form-control border-0 shadow-none ps-0" placeholder="0" readonly />
             </div>
             <div class="col DebitTotal">
                 <label asp-for="DebitTotal" class="form-label">Dr. Total</label>
-                <div>0.00</div>
+                <input asp-for="DebitTotal" class="form-control border-0 shadow-none ps-0" placeholder="0.00" readonly />
             </div>
             <div class="col CreditTotal">
                 <label asp-for="CreditTotal" class="form-label">Cr. Total</label>
-                <div>0.00</div>
+                <input asp-for="CreditTotal" class="form-control border-0 shadow-none ps-0" placeholder="0.00" readonly />
             </div>
             <div class="col Difference">
                 <label asp-for="Difference" class="form-label">Difference</label>
-                <div>0.00</div>
+                <input asp-for="Difference" class="form-control border-0 shadow-none ps-0" placeholder="0.00" readonly />
             </div>
         </div>
         <hr class="my-3">
@@ -428,14 +478,22 @@
 <input type="hidden" asp-for="ImpYnWek" />
 <input type="hidden" asp-for="ImpYnDay" />
 <input type="hidden" asp-for="WekLmt" />
+<input type="hidden" asp-for="ImpClgYN" />
+<input type="hidden" asp-for="SRGTP" />
+<input type="hidden" asp-for="SRPOS" />
 
 <input type="hidden" id="hidCCDrYN" />
 <input type="hidden" id="hidCCDrAmt" />
 <input type="hidden" id="hidCCCrYN" />
 <input type="hidden" id="hidCCCrAmt" />
+<input type="hidden" id="hidSCR" />
 
 <input type="hidden" id="hdnblnCloseLoan" />
 <input type="hidden" id="hdnCloseLoan" />
+<input type="hidden" id="hdnCheck194N" />
+<input type="hidden" id="hdn194NFinalTDS" />
+<input type="hidden" id="hdnThresLimitCRS" />
+<input type="hidden" id="hdnSBCAAccClose" />
 
 <!-- Customer List Modal -->
 <div class="modal fade" id="GLCodeListPopup" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-hidden="true">
