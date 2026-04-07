@@ -33,5 +33,12 @@ namespace Banking.Frontend.Controllers
 
             return Json(item);
         }
+
+        public async Task<IActionResult> InsertTempTransaction(string insertString = "")
+        {
+            var item = await _transferTransactionService.InsertTempTransaction(insertString);
+
+            return Json(item);
+        }
     }
 }
