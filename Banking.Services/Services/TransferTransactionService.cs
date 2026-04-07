@@ -52,9 +52,9 @@ namespace Banking.Services
 
         public async Task<TransferTransactionModel> GetDetails(ISession session, TransferTransactionModel model, string queryString = "")
         {
-            string strcts, impYnDay, impYnWek, DayLmt, WekLmt, strDepCertificate, cmod, cgl, cacc, cgldes, caccnam, smod, sgl, sacc, sgldes, saccnm, csmod,
-                csgl, csacc, csgldes, csaccnm, strcgstmoddesc, strsgstmoddesc, strcessmoddesc, srpos, pBr, pBrCode, srgtp, srgst, ovrdrft, CshType, Rfldnms,
-                RwhrCond, RecYN, TPayYN, TRecYN, vPrec, cntrStatus, vTotAmt, vModDir;
+            string strcts, DayLmt, strDepCertificate, cmod, cgl, cacc, cgldes, caccnam, smod, sgl, sacc, sgldes, saccnm, csmod,
+                csgl, csacc, csgldes, csaccnm, strcgstmoddesc, strsgstmoddesc, strcessmoddesc, pBr, pBrCode, srgst, CshType, Rfldnms,
+                RwhrCond, RecYN, TPayYN, TRecYN, cntrStatus, vModDir;
 
             //vUserid, vAppDate, vCounterNo, vCashierid, vBranchCode, vBrnarration, vCurCode, vCurnarration, vMachineId
 
@@ -150,7 +150,7 @@ namespace Banking.Services
 
             if (dataTable.Rows.Count > 0)
             {
-                impYnDay = Conversions.ToString(dataTable.Rows[0].ItemArray[0]);
+                model.ImpYnDay = Conversions.ToString(dataTable.Rows[0].ItemArray[0]);
                 DayLmt = Conversions.ToString(dataTable.Rows[0].ItemArray[1]);
             }
 
@@ -160,7 +160,7 @@ namespace Banking.Services
 
             if (dataTable.Rows.Count > 0)
             {
-                model.Hidden_impClgYN = Conversions.ToString(dataTable.Rows[0].ItemArray[0]);
+                model.ImpClgYN = Conversions.ToString(dataTable.Rows[0].ItemArray[0]);
             }
 
             BankingExtensions.ReleaseMemory(dataTable);
@@ -169,8 +169,8 @@ namespace Banking.Services
 
             if (dataTable.Rows.Count > 0)
             {
-                impYnWek = Conversions.ToString(dataTable.Rows[0].ItemArray[0]);
-                WekLmt = Conversions.ToString(dataTable.Rows[0].ItemArray[1]);
+                model.ImpYnWek = Conversions.ToString(dataTable.Rows[0].ItemArray[0]);
+                model.WekLmt = Conversions.ToString(dataTable.Rows[0].ItemArray[1]);
             }
 
             BankingExtensions.ReleaseMemory(dataTable);
@@ -310,7 +310,7 @@ namespace Banking.Services
 
             if (dataTable.Rows.Count > 0)
             {
-                srpos = Conversions.ToString(dataTable.Rows[0].ItemArray[0]);
+                model.SRPOS = Conversions.ToString(dataTable.Rows[0].ItemArray[0]);
             }
 
             BankingExtensions.ReleaseMemory(dataTable);
@@ -332,7 +332,7 @@ namespace Banking.Services
 
             if (dataTable.Rows.Count > 0)
             {
-                srgtp = Conversions.ToString(dataTable.Rows[0].ItemArray[0]);
+                model.SRGTP = Conversions.ToString(dataTable.Rows[0].ItemArray[0]);
             }
 
             BankingExtensions.ReleaseMemory(dataTable);
@@ -383,7 +383,7 @@ namespace Banking.Services
 
             if (dataTable.Rows.Count > 0)
             {
-                ovrdrft = Conversions.ToString(dataTable.Rows[0].ItemArray[0]);
+                model.Overdraft = Conversions.ToString(dataTable.Rows[0].ItemArray[0]);
             }
 
             BankingExtensions.ReleaseMemory(dataTable);
@@ -453,7 +453,7 @@ namespace Banking.Services
 
                         if (dataTable.Rows.Count > 0)
                         {
-                            vTotAmt = Conversions.ToString(dataTable.Rows[0]["TotAmt"]);
+                            model.VTotalAmount = Conversions.ToString(dataTable.Rows[0]["TotAmt"]);
                             model.Hidden_TotalNarration = "Curr. Balance : ";
                         }
                     }
@@ -538,42 +538,39 @@ namespace Banking.Services
             return model;
         }
 
-        public async Task GetBatchNoGenRemCan(string searchString = "")
+        public async Task<string> GetBatchNoGenRemCan(string searchString = "")
         {
-            string brCode = "", batchNo = "";
-            string tranNo, clgmodid, clgglcode;
-            string strbatchno, strtranno;
-
-            DataTable rsAuto = null!;
+            string strResult = "";
 
             if (searchString.Length > 0)
             {
                 string[] mode = searchString.Split("~*~");
                 string[] strVal = mode[1].Split("~");
-                brCode = strVal[0];
-                batchNo = strVal[1];
-                tranNo = strVal[2];
+                string brCode = strVal[0];
+                string batchNo = strVal[1];
+                string tranNo = strVal[2];
+                string strbatchno, strtranno = "";
 
                 // For general batch, tran no generation
                 switch (mode[0].ToUpper())
                 {
                     case "GEN":
-                        tranNo = strVal[3];
+                        string tranNos = strVal[3];
                         if (string.IsNullOrWhiteSpace(batchNo) && string.IsNullOrWhiteSpace(tranNo))
                         {
-                            if (tranNo == "1")
+                            if (tranNos == "1")
                             {
                                 strbatchno = await _databaseFactory.GetBatchNo(brCode);
                                 strtranno = await _databaseFactory.GetTranNo(brCode);
                             }
-                            else if (tranNo == "2")
+                            else if (tranNos == "2")
                             {
                                 strbatchno = await _databaseFactory.GetBatchNo(brCode);
                                 string strtranno1 = await _databaseFactory.GetTranNo(brCode);
                                 string strtranno2 = await _databaseFactory.GetTranNo(brCode);
                                 strtranno = strtranno1 + "~" + strtranno2;
                             }
-                            else if (tranNo == "5")
+                            else if (tranNos == "5")
                             {
                                 strbatchno = await _databaseFactory.GetBatchNo(brCode);
                                 string strtranno1 = await _databaseFactory.GetTranNo(brCode);
@@ -618,7 +615,168 @@ namespace Banking.Services
                     strcommmoddesc = Convert.IsDBNull(resDtls.Rows[0].ItemArray[0]) ? "" : Conversions.ToString(resDtls.Rows[0].ItemArray[0]);
 
                 string counterno = strcommaccno + "*" + strcommaccname + "*" + strcommglcode + "*" + strcommgldesc + "*" + strcommmodid + "*" + strcommmoddesc;
+
+                strResult = strtranno + "~" + counterno;
             }
+
+            return strResult;
+        }
+
+        public async Task<string> GetBatchNoGen(string searchString = "")
+        {
+            string brCode = "", batchNo = "", tranNos, strbatchno = "", strtranno = "";
+
+            if (searchString.Length > 0)
+            {
+                string[] mode = searchString.Split("~*~");
+                string[] strVal = mode[1].Split("~");
+
+                brCode = strVal[0];
+                batchNo = strVal[1];
+                string tranNo = strVal[2];
+
+                // For general batch, tran no generation
+                switch (mode[0])
+                {
+                    case "GEN":
+                        tranNos = strVal[3];
+                        if (string.IsNullOrWhiteSpace(batchNo) && string.IsNullOrWhiteSpace(tranNo))
+                        {
+                            if (tranNos == "1")
+                            {
+                                strbatchno = await _databaseFactory.GetBatchNo(brCode);
+                                strtranno = await _databaseFactory.GetTranNo(brCode);
+                            }
+                            else if (tranNos == "2")
+                            {
+                                strbatchno = await _databaseFactory.GetBatchNo(brCode);
+                                string strtranno1 = await _databaseFactory.GetTranNo(brCode);
+                                string strtranno2 = await _databaseFactory.GetTranNo(brCode);
+                                strtranno = strtranno1 + "~" + strtranno2;
+                            }
+                            else if (tranNos == "3")
+                            {
+                                strbatchno = await _databaseFactory.GetBatchNo(brCode);
+                                string strtranno1 = await _databaseFactory.GetTranNo(brCode);
+                                string strtranno2 = await _databaseFactory.GetTranNo(brCode);
+                                string strtranno3 = await _databaseFactory.GetTranNo(brCode);
+                                strtranno = strtranno1 + "~" + strtranno2 + "~" + strtranno3;
+                            }
+                            else if (tranNos == "4")
+                            {
+                                strbatchno = await _databaseFactory.GetBatchNo(brCode);
+                                string strtranno1 = await _databaseFactory.GetTranNo(brCode);
+                                string strtranno2 = await _databaseFactory.GetTranNo(brCode);
+                                string strtranno3 = await _databaseFactory.GetTranNo(brCode);
+                                string strtranno4 = await _databaseFactory.GetTranNo(brCode);
+                                strtranno = strtranno1 + "~" + strtranno2 + "~" + strtranno3 + "~" + strtranno4;
+                            }
+                            else if (tranNos == "5")
+                            {
+                                strbatchno = await _databaseFactory.GetBatchNo(brCode);
+                                string strtranno1 = await _databaseFactory.GetTranNo(brCode);
+                                string strtranno2 = await _databaseFactory.GetTranNo(brCode);
+                                string strtranno3 = await _databaseFactory.GetTranNo(brCode);
+                                string strtranno4 = await _databaseFactory.GetTranNo(brCode);
+                                string strtranno5 = await _databaseFactory.GetTranNo(brCode);
+                                strtranno = strtranno1 + "~" + strtranno2 + "~" + strtranno3 + "~" + strtranno4 + "~" + strtranno5;
+                            }
+                            else if (tranNos == "6")
+                            {
+                                strbatchno = await _databaseFactory.GetBatchNo(brCode);
+                                string strtranno1 = await _databaseFactory.GetTranNo(brCode);
+                                string strtranno2 = await _databaseFactory.GetTranNo(brCode);
+                                string strtranno3 = await _databaseFactory.GetTranNo(brCode);
+                                string strtranno4 = await _databaseFactory.GetTranNo(brCode);
+                                string strtranno5 = await _databaseFactory.GetTranNo(brCode);
+                                string strtranno6 = await _databaseFactory.GetTranNo(brCode);
+                                strtranno = strtranno1 + "~" + strtranno2 + "~" + strtranno3 + "~" + strtranno4 + "~" + strtranno5 + "~" + strtranno6;
+                            }
+                        }
+                        else if (!string.IsNullOrWhiteSpace(batchNo) && string.IsNullOrWhiteSpace(tranNo))
+                        {
+                            if (tranNos == "1")
+                            {
+                                strbatchno = batchNo;
+                                strtranno = await _databaseFactory.GetTranNo(brCode);
+                            }
+                            else if (tranNos == "2")
+                            {
+                                strbatchno = batchNo;
+                                string strtranno1 = await _databaseFactory.GetTranNo(brCode);
+                                string strtranno2 = await _databaseFactory.GetTranNo(brCode);
+                                strtranno = strtranno1 + "~" + strtranno2;
+                            }
+                            else if (tranNos == "2")
+                            {
+                                strbatchno = batchNo;
+                                string strtranno1 = await _databaseFactory.GetTranNo(brCode);
+                                string strtranno2 = await _databaseFactory.GetTranNo(brCode);
+                                string strtranno3 = await _databaseFactory.GetTranNo(brCode);
+                                strtranno = strtranno1 + "~" + strtranno2 + "~" + strtranno3;
+                            }
+                            else if (tranNos == "2")
+                            {
+                                strbatchno = batchNo;
+                                string strtranno1 = await _databaseFactory.GetTranNo(brCode);
+                                string strtranno2 = await _databaseFactory.GetTranNo(brCode);
+                                string strtranno3 = await _databaseFactory.GetTranNo(brCode);
+                                string strtranno4 = await _databaseFactory.GetTranNo(brCode);
+                                strtranno = strtranno1 + "~" + strtranno2 + "~" + strtranno3 + "~" + strtranno4;
+                            }
+                            else if (tranNos == "2")
+                            {
+                                strbatchno = batchNo;
+                                string strtranno1 = await _databaseFactory.GetTranNo(brCode);
+                                string strtranno2 = await _databaseFactory.GetTranNo(brCode);
+                                string strtranno3 = await _databaseFactory.GetTranNo(brCode);
+                                string strtranno4 = await _databaseFactory.GetTranNo(brCode);
+                                string strtranno5 = await _databaseFactory.GetTranNo(brCode);
+                                strtranno = strtranno1 + "~" + strtranno2 + "~" + strtranno3 + "~" + strtranno4 + "~" + strtranno5;
+                            }
+                            else if (tranNos == "2")
+                            {
+                                strbatchno = batchNo;
+                                string strtranno1 = await _databaseFactory.GetTranNo(brCode);
+                                string strtranno2 = await _databaseFactory.GetTranNo(brCode);
+                                string strtranno3 = await _databaseFactory.GetTranNo(brCode);
+                                string strtranno4 = await _databaseFactory.GetTranNo(brCode);
+                                string strtranno5 = await _databaseFactory.GetTranNo(brCode);
+                                string strtranno6 = await _databaseFactory.GetTranNo(brCode);
+                                strtranno = strtranno1 + "~" + strtranno2 + "~" + strtranno3 + "~" + strtranno4 + "~" + strtranno5 + "~" + strtranno6;
+                            }
+                        }
+                        return strbatchno + "~" + strtranno;
+
+                    // For clearing batch,tran no generation
+                    case "CLG":
+                        strVal = mode[1].Split("~");
+                        brCode = strVal[7];
+                        if (string.IsNullOrWhiteSpace(batchNo) && string.IsNullOrWhiteSpace(tranNo))
+                        {
+                            tranNos = strVal[6];
+                            DataTable RecBatchNO = await _databaseFactory.SingleRecordSet("CLGINWARDINSTRUMENTDTLS", "BATCHNO", "upper(trim(branchcode))='" +
+                                strVal[0] + "' and upper(trim(currencycode))='" + strVal[3] + "' and APPLICATIONDATE =to_date('" + strVal[5] + "','dd-mm-yyyy') and " +
+                                "upper(trim(CLEARINGTYPE))='" + strVal[4] + "'");
+
+                            if (RecBatchNO.Rows.Count > 0)
+                                strbatchno = Conversions.ToString(RecBatchNO.Rows[0].ItemArray[0]) + "";
+                            else
+                                strtranno = await _databaseFactory.GetTranNo(brCode);
+                        }
+                        else if (string.IsNullOrWhiteSpace(batchNo) && string.IsNullOrWhiteSpace(tranNo))
+                        {
+                            strbatchno = batchNo;
+                            strtranno = await _databaseFactory.GetTranNo(brCode);
+                        }
+
+                        return strbatchno + "~" + strtranno;
+                }
+
+                return string.Empty;
+            }
+
+            return string.Empty;
         }
     }
 }

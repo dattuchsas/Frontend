@@ -92,7 +92,7 @@ namespace Banking.Frontend.Controllers
 
         public async Task<IActionResult> GetDetails(string searchString = "")
         {
-            var item = await _getDetailsService.GetDetails(searchString);
+            var item = await _getDetailsService.GetDetails(searchString, Conversions.ToString(session.GetString(SessionConstants.ApplicationDate)));
 
             return Content(item, "text/plain");
         }

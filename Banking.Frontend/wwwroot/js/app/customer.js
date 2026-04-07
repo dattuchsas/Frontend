@@ -18,15 +18,38 @@ $(function () {
 
   $("#MembershipNumber, #memberNoLabel").prop('readonly', true);
   $("#MembershipName, #memberNameLabel").hide();
+  // IsMemberField();
+
+  function getQueryParam(name) {
+    var results = new RegExp('[?&]' + name + '=([^&#]*)')
+      .exec(window.location.search);
+    return results ? decodeURIComponent(results[1]) : null;
+  }
+
+  var custId = getQueryParam("custId");
+
+  if (custId) {
+    // If you encoded twice (EncodeInput + encodeURIComponent), decode once more if needed
+    // custId = DecodeInput(custId); // only if you have this function
+
+    console.log("CustId:", custId);
+
+    // ✅ Use the value (example)
+    $("#hiddenCustId").val(custId);
+
+    // 👉 IMPORTANT: remove query param so refresh won't reuse it
+    window.history.replaceState({}, document.title, window.location.pathname);
+  }
 
   $("#CustomerId").on('change', function () {
+    debugger;
     var stcond = " and status='R'";
     var st = $(this).val();
     if (st != "") {
       st = st + "|Main" + "|" + stcond
     }
     $("#hiddenCustId").val(st);
-    window.location.href = '/TransferTransaction/Index?accountNumber=' + encodeURIComponent(EncodeInput(st));
+    window.location.href = '/Customer/Index?custId=' + encodeURIComponent(EncodeInput(st));
   });
 
   $("#Personal_PANNo").on('blur', function () {
@@ -147,6 +170,7 @@ $(function () {
         var result = response.split("|");
         if (result[1] != "")
           $("#MembershipName").val(result[1]);
+          $("#MembershipName, #memberNameLabel").show();
       },
       error: function (err) {
         console.log(err);
@@ -276,7 +300,52 @@ $(function () {
     });
   });
 
+  // Account / Name / PAN
+  HandleRadioToggle('search_type', 'search-section', 'search_');
+
+  $("#ModuleCode").on('change', function () {
+    GLCode();
+  });
 });
+
+function GLCode() {
+  debugger;
+  if ($("#Branch").val() == "" || $("#ModuleCode").val() == "") {
+    return;
+  }
+
+  var kstr = "TellGlaccno|" + $("#ModuleCode").val() + "|" + $("#Branch").val();
+
+  $.ajax({
+    url: '/List/ListGLQuery',
+    type: 'GET',
+    data: {
+      searchString: kstr
+    },
+    success: function (response) {
+      debugger;
+      BindDropdown($('#GLCode'), response);
+    },
+    error: function (err) {
+      HandleAjaxError(err);
+    }
+  });
+}
+
+function HandleRadioToggle(radioName, sectionClass, idPrefix) {
+  document.querySelectorAll(`input[name="${radioName}"]`)
+    .forEach(radio => {
+      radio.addEventListener('change', () => {
+
+        document.querySelectorAll(`.${sectionClass}`)
+          .forEach(sec => sec.classList.add('d-none'));
+
+        document.getElementById(`${idPrefix}${radio.value}`)
+          ?.classList.remove('d-none');
+
+      });
+    });
+}
 
 function PANCheck() {
   var panNum = $("#Personal_PANNo").val().toUpperCase();

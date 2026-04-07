@@ -73,19 +73,18 @@
                         <label asp-for="CategoryCode" class="form-label">Category Code</label>
                         <select asp-for="CategoryCode" asp-items="@Model.CategoryList" class="form-select"></select>
                     </div>
-                    <div class="col-md-4 col-lg-3 col-xl-3">
+                    <div class="col-md-6 col-lg-3 col-xl-3">
                         <label asp-for="AccountNumber" class="form-label">Account Number<span class="text-danger">*</span></label>
                         <div class="input-group">
                             <input asp-for="AccountNumber" type="text" class="form-control" />
                             <button class="btn btn-sm btn-primary" type="button" id="accountNumberSearch"><i class="bi bi-search"></i></button>
                         </div>
                     </div>
-                    <div class="col-md-6 col-lg-4 col-xl-4">
+                    <div class="col-md-6 col-lg-3 col-xl-3">
                         <label class="form-label">Name</label>
                         <div class="input-group">
                             <input asp-for="CustomerName" type="text" class="form-control" readonly />
-                            <a href="Account-Details.html" target="_blank" class="btn btn-sm btn-primary"
-                               type="button">D</a>
+                            <a href="Account-Details.html" target="_blank" class="btn btn-sm btn-primary" type="button">D</a>
                         </div>
                     </div>
                     <div class="col-md-6 col-lg-3 col-xl-3">
@@ -155,178 +154,184 @@
             <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3  row-cols-lg-4 row-cols-xl-5 gx-3 gy-2">
                 <div class="col d-none ClearBalance">
                     <label class="form-label">Clear Balance</label>
-                    <div id="ClearBalance">0.00</div>
+                    <input asp-for="ClearBalance" class="form-control border-0 shadow-none ps-0" placeholder="0.00" readonly />
                 </div>
                 <div class="col d-none UnclearBalance">
                     <label class="form-label">Unclear Balance</label>
-                    <div id="UnclearBalance">0.00</div>
+                    <input asp-for="UnclearBalance" class="form-control border-0 shadow-none ps-0" placeholder="0.00" readonly />
                 </div>
                 <div class="col d-none AccountBalance">
                     <label class="form-label">Account Balance</label>
-                    <div id="AccountBalance">0.00</div>
+                    <input asp-for="AccountBalance" class="form-control border-0 shadow-none ps-0" placeholder="0.00" readonly />
                 </div>
                 <div class="col d-none OperationInstruction">
                     <label class="form-label">Oper. Instr.</label>
-                    <div id="OperationInstruction">--</div>
+                    <input asp-for="OperationInstruction" class="form-control border-0 shadow-none ps-0" placeholder="--" readonly />
                 </div>
                 <div class="col d-none OperatedBy">
                     <label class="form-label">Oper. By</label>
-                    <div id="OperatedBy">--</div>
+                    <input asp-for="OperatedBy" class="form-control border-0 shadow-none ps-0" placeholder="--" readonly />
                 </div>
                 <div class="col d-none PendingBalance">
                     <label class="form-label">Pending Balance</label>
-                    <div id="PendingBalance">0.00</div>
+                    <input asp-for="PendingBalance" class="form-control border-0 shadow-none ps-0" placeholder="0.00" readonly />
                 </div>
                 <div class="col d-none CustomerId">
                     <label class="form-label">Customer Id</label>
-                    <div id="CustomerId">--</div>
+                    <input asp-for="CustomerId" class="form-control border-0 shadow-none ps-0" placeholder="--" readonly />
                 </div>
                 <div class="col d-none LimitAmount">
                     <label class="form-label">Limit Amount</label>
-                    <div id="LimitAmount">0.00</div>
+                    <input asp-for="LimitAmount" class="form-control border-0 shadow-none ps-0" placeholder="0.00" readonly />
                 </div>
                 <div class="col d-none TotalCashDebited">
                     <label class="form-label">Total Cash Dr.</label>
-                    <div id="TotalCashDebited">0.00</div>
+                    <input asp-for="TotalCashDebited" class="form-control border-0 shadow-none ps-0" placeholder="0.00" readonly />
                 </div>
                 <div class="col d-none TotalCashCredited">
                     <label class="form-label">Total Cash Cr.</label>
-                    <div id="TotalCashCredited">0.00</div>
+                    <input asp-for="TotalCashCredited" class="form-control border-0 shadow-none ps-0" placeholder="0.00" readonly />
                 </div>
                 <div class="col d-none LimitExpiryDate">
                     <label class="form-label">Limit Exp. Dt.</label>
-                    <div id="LimitExpiryDate">--</div>
+                    <input asp-for="LimitExpiryDate" class="form-control border-0 shadow-none ps-0" placeholder="--" readonly />
                 </div>
                 <div class="col d-none GSTIN">
                     <label class="form-label">GSTIN</label>
-                    <div id="GSTIN">--</div>
+                    <input asp-for="GSTIN" class="form-control border-0 shadow-none ps-0" placeholder="--" readonly />
                 </div>
                 <div class="col d-none TODLimit">
                     <label class="form-label">TOD Limit</label>
-                    <div id="TODLimit">0.00</div>
+                    <input asp-for="TODLimit" class="form-control border-0 shadow-none ps-0" placeholder="0.00" readonly />
                 </div>
                 <div class="col d-none AvailableLimit">
                     <label class="form-label">Avail. Limit</label>
-                    <div id="AvailableLimit">0.00</div>
+                    <input asp-for="AvailableLimit" class="form-control border-0 shadow-none ps-0" placeholder="0.00" readonly />
                 </div>
                 <div class="col d-none PendingIntAmount">
                     <label class="form-label">Pend. Amount</label>
-                    <div id="PendingIntAmount">0.00</div>
+                    <input asp-for="PendingIntAmount" class="form-control border-0 shadow-none ps-0" placeholder="0.00" readonly />
                 </div>
                 <div class="col d-none InterestAmount">
                     <label class="form-label">Int. Amount</label>
-                    <div id="InterestAmount">0.00</div>
+                    <input asp-for="InterestAmount" class="form-control border-0 shadow-none ps-0" placeholder="0.00" readonly />
                 </div>
                 <div class="col d-none PendingInstallments">
                     <label class="form-label">Pend. Installments</label>
-                    <div id="PendingInstallments">0</div>
+                    <input asp-for="PendingInstallments" class="form-control border-0 shadow-none ps-0" placeholder="0" readonly />
                 </div>
                 <div class="col d-none SanctionAmount">
                     <label class="form-label">Sanc. Amount</label>
-                    <div id="SanctionAmount">0.00</div>
+                    <input asp-for="SanctionAmount" class="form-control border-0 shadow-none ps-0" placeholder="0.00" readonly />
                 </div>
                 <div class="col d-none DisbursementAmount">
                     <label class="form-label">Disb. Amount</label>
-                    <div id="DisbursementAmount">0.00</div>
+                    <input asp-for="DisbursementAmount" class="form-control border-0 shadow-none ps-0" placeholder="0.00" readonly />
                 </div>
                 <div class="col d-none NPAIntAmount">
                     <label class="form-label">NPA Int. Amount</label>
-                    <div id="NPAIntAmount">0.00</div>
+                    <input asp-for="NPAIntAmount" class="form-control border-0 shadow-none ps-0" placeholder="0.00" readonly />
                 </div>
                 <div class="col d-none RD_OpAmount">
                     <label class="form-label">Op. Amount</label>
-                    <div id="RD_OpAmount">0.00</div>
+                    <input asp-for="RD_OpAmount" class="form-control border-0 shadow-none ps-0" placeholder="0.00" readonly />
                 </div>
                 <div class="col d-none RD_OpDate">
                     <label class="form-label">Op. Date</label>
-                    <div id="RD_OpDate">--</div>
+                    <input asp-for="RD_OpDate" class="form-control border-0 shadow-none ps-0" placeholder="--" readonly />
                 </div>
                 <div class="col d-none RD_ROI">
                     <label class="form-label">ROI</label>
-                    <div id="RD_ROI">0.00</div>
+                    <input asp-for="RD_ROI" class="form-control border-0 shadow-none ps-0" placeholder="0.00" readonly />
                 </div>
                 <div class="col d-none RD_IntAccr">
                     <label class="form-label">Int. Accr.</label>
-                    <div id="RD_IntAccr">0.00</div>
+                    <input asp-for="RD_IntAccr" class="form-control border-0 shadow-none ps-0" placeholder="0.00" readonly />
                 </div>
                 <div class="col d-none RD_IntPaidUpto">
                     <label class="form-label">Int. Paid Upto</label>
-                    <div id="RD_IntPaidUpto">--</div>
+                    <input asp-for="RD_IntPaidUpto" class="form-control border-0 shadow-none ps-0" placeholder="--" readonly />
                 </div>
                 <div class="col d-none RD_MaturityAmount">
                     <label class="form-label">Maturity Amount</label>
-                    <div id="RD_MaturityAmount">0.00</div>
+                    <input asp-for="RD_MaturityAmount" class="form-control border-0 shadow-none ps-0" placeholder="0.00" readonly />
                 </div>
                 <div class="col d-none RD_MaturityDate">
                     <label class="form-label">Maturity Date</label>
-                    <div id="RD_MaturityDate">--</div>
+                    <input asp-for="RD_MaturityDate" class="form-control border-0 shadow-none ps-0" placeholder="--" readonly />
                 </div>
                 <div class="col d-none RD_EffectiveDate">
                     <label class="form-label">Effective Date</label>
-                    <div id="RD_EffectiveDate">--</div>
+                    <input asp-for="RD_EffectiveDate" class="form-control border-0 shadow-none ps-0" placeholder="--" readonly />
                 </div>
                 <div class="col d-none RD_CurrAmount">
                     <label class="form-label">Curr. Amount</label>
-                    <div id="RD_CurrAmount">0.00</div>
+                    <input asp-for="RD_CurrAmount" class="form-control border-0 shadow-none ps-0" placeholder="0.00" readonly />
                 </div>
             </div>
         </div>
         <!--Remittence Selections Details-->
-        <div class="service-box d-none" id="rem">
+        <div class="service-box">
             <div class="row align-items-end gx-3 gy-2">
-                <div class="col-sm-6 col-lg-3 col-xl-2 d-none Remm_IssuedOnBank">
+                <div class="col-sm-6 col-lg-3 col-xl-2 d-none REMBank">
                     <label asp-for="REMBank" class="form-label">Issued on Bank</label>
                     <select asp-for="REMBank" asp-items="@Model.REMBankList" class="form-select"></select>
                 </div>
-                <div class="col-sm-6  col-lg-3 col-xl-2 d-none Remm_IssuedOnBranch">
+                <div class="col-sm-6 col-lg-3 col-xl-2 d-none REMBranch">
                     <label asp-for="REMBranch" class="form-label">Issued on Branch</label>
                     <select asp-for="REMBranch" asp-items="@Model.REMBranchList" class="form-select"></select>
                 </div>
-                <div class="col-sm-6 col-md-4 col-lg-3 col-xl-2 d-none Remm_Favouring">
+                <div class="col-sm-6 col-md-4 col-lg-3 col-xl-2 d-none REMFavouring">
                     <label asp-for="REMFavouring" class="form-label">Favouring.</label>
                     <input asp-for="REMFavouring" type="text" class="form-control">
                 </div>
-                <div class="col-sm-6 col-md-4 col-lg-3 col-xl-2 d-none Remm_Commission">
-                    <label asp-for="REMCommission" class="form-label">Comm.</label>
+                <div class="col-sm-6 col-md-4 col-lg-3 col-xl-2 d-none REMCommission">
+                    <label asp-for="REMCommission" class="form-label">Commission</label>
                     <input asp-for="REMCommission" type="text" class="form-control">
                 </div>
-                <div class="col-sm-6 col-md-4 col-lg-3 col-xl-2 d-none Remm_RecipientName">
+                <div class="col-sm-6 col-md-4 col-lg-3 col-xl-2 d-none REMRecipientName">
                     <label asp-for="REMRecipientName" class="form-label">GL Code</label>
                     <select asp-for="REMRecipientName" asp-items="@Model.REMRecipientList" class="form-select"></select>
                 </div>
-                <div class="col-sm-6 col-md-4 col-lg-3 col-xl-2 d-none Remm_GST">
+                <div class="col-sm-6 col-md-4 col-lg-3 col-xl-2 d-none REMGST">
                     <label asp-for="REMGST" class="form-label">GST</label>
                     <input asp-for="REMGST" type="text" class="form-control">
                 </div>
-                <div class="col-sm-6 col-md-4 col-lg-3 col-xl-2 d-none Remm_CESS">
+                <div class="col-sm-6 col-md-4 col-lg-3 col-xl-2 d-none REMCESS">
                     <label asp-for="REMCESS" class="form-label">CESS</label>
                     <input asp-for="REMCESS" type="text" class="form-control">
                 </div>
-                <div class="col-sm-6 col-md-4 col-lg-3 col-xl-2 d-none Remm_PAN">
-                    <label asp-for="REMPAN" class="form-label">Pan No</label>
+                <div class="col-sm-6 col-md-4 col-lg-3 col-xl-2 d-none REMPAN">
+                    <label asp-for="REMPAN" class="form-label">PAN No</label>
                     <input asp-for="REMPAN" type="text" class="form-control">
                 </div>
-                <div class="col-sm-6 col-md-4 col-lg-3 col-xl-2 d-none Remm_Mobile">
+                <div class="col-sm-6 col-md-4 col-lg-3 col-xl-2 d-none REMMobile">
                     <label asp-for="REMMobile" class="form-label">Mobile</label>
                     <input asp-for="REMMobile" type="text" class="form-control">
                 </div>
-                <div class="col-sm-6 col-md-8 col-lg-3 col-xl-2 d-none Remm_Address1">
-                    <label asp-for="REMAddress1" class="form-label">Address1</label>
+                <div class="col-sm-6 col-md-8 col-lg-3 col-xl-2 d-none REMAddress1">
+                    <label asp-for="REMAddress1" class="form-label">Address 1</label>
                     <input asp-for="REMAddress1" type="text" class="form-control">
                 </div>
-                <div class="col-sm-6  col-lg-3 col-xl-2 d-none Remm_Address2">
-                    <label asp-for="REMAddress2" class="form-label">Addr.2</label>
+                <div class="col-sm-6  col-lg-3 col-xl-2 d-none REMAddress2">
+                    <label asp-for="REMAddress2" class="form-label">Address 2</label>
                     <input asp-for="REMAddress2" type="text" class="form-control">
                 </div>
-                <div class="col-sm-6  col-lg-3 col-xl-2 d-none Remm_Address3">
-                    <label asp-for="REMAddress3" class="form-label">Addr.3</label>
+                <div class="col-sm-6  col-lg-3 col-xl-2 d-none REMAddress3">
+                    <label asp-for="REMAddress3" class="form-label">Address 3</label>
                     <input asp-for="REMAddress3" type="text" class="form-control">
                 </div>
             </div>
         </div>
         <!--Batch Details-->
+        <PARAM NAME="TransLog_FormatString" VALUE="Batch No||Tran No||GL Code||GL Description||Acc No||Amount||Entered Time Bal||Applicatin Date||Cust ID||Mode of Tran||Status||Currency Code||Entered By||Entered M/C||Approved By||Approved M/C||Module ID||Branch Code||Token No||Remarks|Disposals">
+
+        <PARAM NAME="Disp_FormatString" VALUE="Disp Module ID||Module Description||Disp GL Code||GL Description||Disp Acc Type||Disp Acc No||Name||Amount||Disp Batch No||Disp Tran No||Link No||Disp Service ID||Service Description||Mode of Tran||Effective Date||Remarks||Tran Status||Branch Code||Currency Code||Module ID||Module Description||GL Code||GL Description||Account Type||Acc No||Customer ID||Name||Service ID||Transaction Type||Remittance Type||Cheque Series||Cheque No.||Cheque Date||Favouring||Modify||From Date||To Date">
+
+        <PARAM NAME="PayDt_FormatString" VALUE=">Batch No||Tran No||GL Code||GL Description||Acc No||Name||Amount||Entered Time Bal||Application Date||Cust ID||Mode of Tran||Mode of Tran Desc||ABB Application Date||Tran Status||Currency Code||Entered By||Entered M/C||Module ID||Branch Code||Token No||Remarks||Cheque Series||Cheque No||Cheque Date||Cheque Favouring||Sys Gen YN||Module Description||Effective Date||CLG Rate Type||Rate||F Currency Code||F Amount||Link Module ID||Link Module Desc||Link GL Code||Link GL Desc||Link Account Type||Link Account No||Link Acc Name||Service ID||Service Desc||Resp Branch Code||Resp Branch Desc||Resp Section Code||Resp Section Desc||ABB Branch Code||Branch Desc||Disposal Batch No||Disposal Tran No||Acc Chk YN||Exception YN||Exception Codes||Resp Bank Code||Resp Bank Desc||SI YN||Counter No.||Cashier Id||Scroll No.||Rate Ref Code||Rate Ref Desc||ABB YN">
+
         <div class="table-responsive mt-3">
-            <table class="table table-bordered">
+            <table id="transferTransactionTable" class="table table-bordered">
                 <thead>
                     <tr>
                         <th>Batch No</th>
@@ -336,41 +341,96 @@
                         <th>Acc No</th>
                         <th>Name</th>
                         <th>Amount</th>
+                        <th>Entered Time Bal</th>
+                        <th>Application Date</th>
+                        <th>Cust ID</th>
+                        <th>Mode of Tran</th>
+                        <th>Mode of Tran Desc</th>
+                        <th>ABB Application Date</th>
+                        <th>Tran Status</th>
+                        <th>Currency Code</th>
+                        <th>Entered By</th>
+                        <th>Entered M/C</th>
+                        <th>Module ID</th>
+                        <th>Branch Code</th>
+                        <th>Token No</th>
+                        <th>Remarks</th>
+                        <th>Cheque Series</th>
+                        <th>Cheque No</th>
+                        <th>Cheque Date</th>
+                        <th>Cheque Favouring</th>
+                        <th>Sys Gen YN</th>
+                        <th>Module Description</th>
+                        <th>Effective Date</th>
+                        <th>CLG Rate Type</th>
+                        <th>Rate</th>
+                        <th>F Currency Code</th>
+                        <th>F Amount</th>
+                        <th>Link Module ID</th>
+                        <th>Link Module Desc</th>
+                        <th>Link GL Code</th>
+                        <th>Link GL Desc</th>
+                        <th>Link Account Type</th>
+                        <th>Link Account No</th>
+                        <th>Link Acc Name</th>
+                        <th>Service ID</th>
+                        <th>Service Desc</th>
+                        <th>Resp Branch Code</th>
+                        <th>Resp Branch Desc</th>
+                        <th>Resp Section Code</th>
+                        <th>Resp Section Desc</th>
+                        <th>ABB Branch Code</th>
+                        <th>Branch Desc</th>
+                        <th>Disposal Batch No</th>
+                        <th>Disposal Tran No</th>
+                        <th>Acc Chk YN</th>
+                        <th>Exception YN</th>
+                        <th>Exception Codes</th>
+                        <th>Resp Bank Code</th>
+                        <th>Resp Bank Desc</th>
+                        <th>SI YN</th>
+                        <th>Counter No.</th>
+                        <th>Cashier Id</th>
+                        <th>Scroll No.</th>
+                        <th>Rate Ref Code</th>
+                        <th>Rate Ref Desc</th>
+                        <th>ABB YN</th>
+
+                        @* <th>Issued by Branch Code</th>
+                        <th>Issued by Branch Desc</th>
+                        <th>Favouring</th>
+                        <th>Instrument No</th>
+                        <th>Advice Recceived</th>
+                        <th>Advice No.</th>
+                        <th>Advice Rec Date</th>
+                        <th>Instrument Date</th>
+                        <th>Instrument Type</th>
+                        <th>Native Y/N</th> *@
                     </tr>
                 </thead>
-                <tbody>
-                    <tr>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                    </tr>
-                </tbody>
             </table>
         </div>
+        <hr />
         <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 row-cols-xl-5 gx-3 gy-2">
-            <div class="col d-none DebitTransactions">
+            <div class="col DebitTransactions">
                 <label asp-for="DebitTransactions" class="form-label">Dr. Transactions</label>
-                <div>--</div>
+                <input asp-for="DebitTransactions" class="form-control border-0 shadow-none ps-0" placeholder="0" readonly />
             </div>
-            <div class="col d-none CreditTransactions">
+            <div class="col CreditTransactions">
                 <label asp-for="CreditTransactions" class="form-label">Cr. Transactions</label>
-                <div>--</div>
+                <input asp-for="CreditTransactions" class="form-control border-0 shadow-none ps-0" placeholder="0" readonly />
             </div>
-            <div class="col d-none DebitTotal">
+            <div class="col DebitTotal">
                 <label asp-for="DebitTotal" class="form-label">Dr. Total</label>
-                <div>0.00</div>
+                <input asp-for="DebitTotal" class="form-control border-0 shadow-none ps-0" placeholder="0.00" readonly />
             </div>
-            <div class="col d-none CreditTotal">
+            <div class="col CreditTotal">
                 <label asp-for="CreditTotal" class="form-label">Cr. Total</label>
-                <div>0.00</div>
+                <input asp-for="CreditTotal" class="form-control border-0 shadow-none ps-0" placeholder="0.00" readonly />
             </div>
-            <div class="col d-none Difference">
+            <div class="col Difference">
                 <label asp-for="Difference" class="form-label">Difference</label>
-                <div>0.00</div>
+                <input asp-for="Difference" class="form-control border-0 shadow-none ps-0" placeholder="0.00" readonly />
             </div>
         </div>
         <hr class="my-3">
@@ -407,9 +467,33 @@
 <input type="hidden" asp-for="Hidden_TellerVerifyReqYN" />
 <input type="hidden" asp-for="Hidden_RemCanAutoChrgsYN" />
 <input type="hidden" asp-for="Hidden_RemCanCommYN" />
+<input type="hidden" asp-for="Hidden_194NYN" />
+<input type="hidden" asp-for="Hidden_OlimpYN" />
+<input type="hidden" asp-for="Hidden_CheckThresholdLimit" />
+<input type="hidden" asp-for="Hidden_Title" />
+
+<input type="hidden" asp-for="Overdraft" />
+<input type="hidden" asp-for="VTotalAmount" />
+<input type="hidden" asp-for="VTotalAmount" />
+<input type="hidden" asp-for="ImpYnWek" />
+<input type="hidden" asp-for="ImpYnDay" />
+<input type="hidden" asp-for="WekLmt" />
+<input type="hidden" asp-for="ImpClgYN" />
+<input type="hidden" asp-for="SRGTP" />
+<input type="hidden" asp-for="SRPOS" />
+
+<input type="hidden" id="hidCCDrYN" />
+<input type="hidden" id="hidCCDrAmt" />
+<input type="hidden" id="hidCCCrYN" />
+<input type="hidden" id="hidCCCrAmt" />
+<input type="hidden" id="hidSCR" />
 
 <input type="hidden" id="hdnblnCloseLoan" />
 <input type="hidden" id="hdnCloseLoan" />
+<input type="hidden" id="hdnCheck194N" />
+<input type="hidden" id="hdn194NFinalTDS" />
+<input type="hidden" id="hdnThresLimitCRS" />
+<input type="hidden" id="hdnSBCAAccClose" />
 
 <!-- Customer List Modal -->
 <div class="modal fade" id="GLCodeListPopup" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-hidden="true">
