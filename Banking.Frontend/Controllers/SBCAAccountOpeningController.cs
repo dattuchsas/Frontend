@@ -29,15 +29,30 @@ namespace Banking.Frontend.Controllers
 
             //  return View(accountopeningmodel);
 
-
         }       
 
         public async Task<IActionResult> SBCAAccountOpening(string brcode = "", string moduleid = "", string glcode = "", string accno = "")
         {
-          
-           // brcode = "";  moduleid = "";  glcode = "";  accno = "";-
             var sBCAAccountOpeningmodel = await _sbcaaccountopeningService.GetSBCAAccountOpeningDetails(session, brcode, moduleid, glcode, accno);
             return View(sBCAAccountOpeningmodel);
         }
+
+        [HttpGet]
+        public async Task<IActionResult> GetSBCACustomerDetails(string pCustomerid)
+        {
+            var result =  await _sbcaaccountopeningService.GetSBCAAccOpenDetails(pCustomerid);
+            return Content(result, "text/plain");
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetSBCAModifyAccountDetails(string pCustomerid)
+        {
+            var result = await _sbcaaccountopeningService.GetSBCAAccModifyDetails(pCustomerid);
+            return Content(result, "text/plain");
+        }
+        
+
+
+
     }
 }

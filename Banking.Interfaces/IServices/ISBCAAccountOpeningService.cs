@@ -8,5 +8,10 @@ namespace Banking.Interfaces
         Task<string> SBCAAccountOpening(ISession session, SBCAAccountOpeningModel accountopeningmodel);
         Task<SBCAAccountOpeningModel> GetSBCAAccountOpeningDetails(ISession session,string brcode = "", string moduleid = "", string glcode = "", string accno = "");
         Task<string> SaveSBCAAccountOpeningDetails(ISession session, SBCAAccountOpeningModel accountopeningmodel, List<JntAcc> jntAccs, List<Guardian> guardians, List<Nominee> nominees);
+
+        Task<string> GetSBCAAccOpenDetails(string searchString);
+
+        Task<string> GetSBCAAccModifyDetails(string searchString);
+        
     }
 }

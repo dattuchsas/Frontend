@@ -5,10 +5,10 @@ namespace Banking.Models
 {
     public  class SBCAAccountOpeningModel : BaseModel 
     {
-
+        public string? ModeOptions { get; set; }
         public List<SelectListItem>? BranchList { get; set; }
         public string? AccountNumber { get; set; }
-
+        public List<SelectListItem>? AccountNumberList { get; set; }
         public string? CustomerId { get; set; }
         public string? CustomerName { get; set; }
         public string? Module { get; set; }
@@ -16,6 +16,7 @@ namespace Banking.Models
         public string? AccountType { get; set; }
         public List<SelectListItem>? AccountTypeList { get; set; }
         public Int32? Tranno { get; set; }
+        public List<SelectListItem>? TrannoList { get; set; }
         public string? Salutation { get; set; }
         public List<SelectListItem>? SalutationList { get; set; }
         public string? CategoryType { get; set; }
@@ -34,6 +35,8 @@ namespace Banking.Models
 
         public string? Status { get; set; }
 
+        public string? Status1 { get; set; }
+        
         public string? Remarks { get; set; }
 
         public string? TDSOptions { get; set; }
@@ -67,6 +70,9 @@ namespace Banking.Models
         public string? Jnt_RelationName { get; set; }
         public string? Jnt_MinorDOB { get; set; }
 
+
+      
+
         // Guardian Details
         public string? GuardCustId { get; set; }
         public string? GuardCustName { get; set; }
@@ -92,6 +98,8 @@ namespace Banking.Models
         public List<Introducer>? Introducerdtls { get; set; }
         public List<JntAcc>? JntAccdtls { get; set; }
 
+        
+
         public List<Guardian>? Guardiandtls { get; set; }
         public List<Nominee>? Nomineedtls { get; set; }
        
@@ -116,6 +124,7 @@ namespace Banking.Models
     }
 
 
+  
     public class Guardian
     {
         public string? GuardCustId { get; set; }

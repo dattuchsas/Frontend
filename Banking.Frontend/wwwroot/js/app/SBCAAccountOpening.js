@@ -1,54 +1,14 @@
 ﻿$(function () {
 
-    let IntroMembers = [];
-    $("#IntroClear").on('click', function () {
-        $("#IntroCustId").val('');
-        $("#IntroCustName").val('');
-        $("#Intro_Relation").val('');
-        $("#CheckIntroMinor").val('N');
-    });
-
-    $("#IntroAddToGrid").on("click", function () {
-        debugger;
-        let introid = $("#IntroCustId").val();
-        let introname = $("#IntroCustName").val();
-        let relationType = $("#Intro_Relation").val();
-        let relationText = $("#Intro_Relation option:selected").text();
-        let introminordob = $("#Intro_MinorDOB").val();
-        let introchkminor = $("#CheckIntroMinor").is(":checked");
-        let serialNumber = $("#IntroDetails tr").length + 1;
-
-        let member = {
-            serialNo: serialNumber,
-            introid: introid,
-            introname: introname,
-            introchkminor: introchkminor,
-            introminordob: introminordob,
-            relationType: relationType
-        };
-
-        IntroMembers.push(member);
-
-        $("#IntroDetails").append(`
-        <tr>
-            <td>${serialNumber}</td>
-            <td>${introid}</td>
-            <td>${introname}</td>
-            <td>${introchkminor}</td>
-            <td>${introminordob}</td>
-             <td>${relationText}</td>
-        </tr>
-    `);
-
-        $("#HiddenIntroMemField").val(IntroMembers);
-
-        $("#IntroCustId").val('');
-        $("#IntroCustName").val('');
-        $("#Intro_Relation").val('');
-        $("#Intro_MinorDOB").val('');
-        $("#CheckIntroMinor").prop('checked', false);
-            
-    });
+    $("#CustomerId").on('blur', function () {
+        var radioValue = $("input[name='ModeOptions']:checked").val();
+        if (radioValue == "Modify") {
+            GetSBCAAccModDtls();
+        }
+        else if (radioValue == "New") {
+            GetCustomerDetails();
+        }
+     });
 
 
     let JntMembers = [];
@@ -66,7 +26,12 @@
         let relationType = $("#Jnt_Relation").val();
         let relationText = $("#Jnt_Relation option:selected").text();
         let Jntminordob = $("#Jnt_MinorDOB").val();
-        let Jntchkminor = $("#CheckJntMinor").is(":checked");
+        let Jntchkminor;
+        if ($("#CheckJntMinor").is(":checked")) {
+            Jntchkminor = "Y";
+        }
+        else { Jntchkminor = "N"; }
+       
         let serialNumber = $("#JntDetails tr").length + 1;
 
         let member = {
@@ -82,7 +47,7 @@
 
         $("#JntDetails").append(`
      <tr>
-         <td>${serialNumber}</td>
+         <td scope = "row">${serialNumber}</td>
          <td>${Jntid}</td>
          <td>${Jntname}</td>
          <td>${Jntchkminor}</td>
@@ -201,4 +166,139 @@
 
     });
 
+    $("#Panno").on('blur', function () {
+        PANCheck();
+    });
 });
+
+function PANCheck() {
+    var panNum = $("#Panno").val().toUpperCase();
+
+    if (panNum == "") {
+        bankingAlert("Please enter PAN Number");
+        return;
+    }
+    else {
+        if ((panNum.length == "10") && (panNum.substring(0, 10)).match("[(/).]+")) {
+            bankingAlert("Not a valid PAN Number");
+            $("#Panno").val('');
+        }
+        else {
+            if (panNum.length == "10") {
+                if ((panNum.substring(0, 5)).match(/^[a-zA-Z]+$/) && (panNum.substring(5, 9)).match(/^[0-9]+$/) && (panNum.substring(9, 10)).match(/^[a-zA-Z]+$/)) {
+                    var st = "GETMODCUSTPANDTLS" + "|" + panNum.toUpperCase() + "|" + $("#CustomerId").val();
+
+                    $.ajax({
+                        url: '/GetDetails/GetModifiedCustomerPANDetails?searchString=' + encodeURIComponent(st),
+                        type: 'GET',
+                        success: function (response) {
+                            debugger;
+                            if (response != "") {
+                                if (response != "0") {
+                                    var stVal = str.split("|");
+                                    var stCus = stVal[0].split("~");
+                                    bankingAlert("This Pan card have already Customerid :" + stCus[0] + " and Name :" + stCus[1]);
+                                    $("#Panno").val('');
+                                    return;
+                                }
+                            }
+                        },
+                        error: function (err) {
+                            console.log(err);
+                        }
+                    });
+                }
+                else {
+                    bankingAlert("Not a valid PAN Number")
+                    $("#Panno").val('');
+                    return;
+                }
+            }
+            else {
+                bankingAlert("Not a valid PAN Number")
+                $("#Panno").val('');
+                return;
+            }
+        }
+    }
+}
+
+function GetCustomerDetails() {
+ 
+    var st = $("#CustomerId").val();
+ 
+    $.ajax({
+        url: '/SBCAAccountOpening/GetSBCACustomerDetails?pCustomerid=' + encodeURIComponent(st),
+        type: 'GET',
+        success: function (response) {
+            debugger;
+            if (response != "") {
+              
+                var stVal = response.split("|");
+
+                $("#CategoryType").val(stVal[0]);
+                if (stVal[2] == "N") {
+                    $('#CheckMinor').prop('checked', false);
+                }
+                else {
+                    $('#CheckMinor').prop('checked', true);
+                };
+                $("#Panno").val(stVal[3]);
+                $("#Status1").val('Active');
+                
+                return;
+               
+            }
+        },
+        error: function (err) {
+            console.log(err);
+        }
+    });
+
+
+   
+}
+
+
+function GetSBCAAccModDtls() {
+
+    var st;
+    var brcode = $("#Branch").val();
+    var modcode = $("#Module").val();
+    var glcode = $("#AccountType").val();
+    var accno = $("#AccountNumber").val();
+    
+
+    st = brcode + "|" + modcode + "|" + glcode + "|" + accno;
+
+    $.ajax({
+        url: '/SBCAAccountOpening/GetSBCAModifyAccountDetails?searchString=' + encodeURIComponent(st),
+        type: 'GET',
+        success: function (response) {
+            debugger;
+            if (response != "") {
+
+                var stVal = response.split("|");
+
+                $("#CategoryType").val(stVal[0]);
+                if (stVal[2] == "N") {
+                    $('#CheckMinor').prop('checked', false);
+                }
+                else {
+                    $('#CheckMinor').prop('checked', true);
+                };
+                $("#Panno").val(stVal[3]);
+                $("#Status1").val('Active');
+
+                return;
+
+            }
+        },
+        error: function (err) {
+            console.log(err);
+        }
+    });
+
+
+
+}

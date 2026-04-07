@@ -12,11 +12,30 @@
             <h3 class="mb-0 section-title me-auto">Saving Account Opening </h3>
             <div class="ms-auto">
                 <!-- Button trigger modal -->
-                <div class="btn-group" role="group" aria-label="Basic outlined example">
-                    <a href="#" target="_self" class="btn btn-outline-primary">New</a>
-                    <a href="#" target="_self" class="btn btn-outline-primary">Modify</a>
-                    <button type="button" class="btn btn-outline-primary">View</button>
-                </div>
+             @*    <div class="btn-group" role="group" aria-label="Basic outlined example">
+                        <a href="#" target="_self" class="btn btn-sm btn-outline-primary" id="newsbcaaccount">New</a>
+                        <a href="#" target="_self" class="btn btn-sm btn-outline-primary" id="modifysbcaaccount">Modify</a>
+                        <a href="#" target="_self" class="btn btn-sm btn-outline-primary" id="viewsbcaaccount">View</a>
+
+                </div> *@
+                    <div>
+                        <div class="form-check form-check-inline">
+
+                            <input asp-for="ModeOptions" class="form-check-input module-checkbox" type="radio" value="New" checked >
+                            <label asp-for="ModeOptions" class="form-check-label">New</label>
+                        </div>
+                        <div class="form-check form-check-inline">
+
+                            <input asp-for="ModeOptions" class="form-check-input module-checkbox" type="radio" value="Modify">
+                            <label asp-for="ModeOptions" class="form-check-label">Modify</label>
+                        </div>
+                        <div class="form-check form-check-inline">
+
+                            <input asp-for="ModeOptions" class="form-check-input module-checkbox" type="radio" value="View">
+                            <label asp-for="ModeOptions" class="form-check-label">View</label>
+                        </div>
+
+                    </div>
             </div>
         </div>
     </div>
@@ -38,14 +57,13 @@
                             <select asp-for="AccountType" asp-items="@Model.AccountTypeList" class="form-select"></select>
                     </div>
                     <div class="col-sm-6 col-lg-4 col-xl-3">
-                        <label class="form-label">Acc. No</label>
-                        <input type="text" class="form-control" readonly="">
+                            <label asp-for="AccountNumber" class="form-label">Acc. No</label>
+                            <select asp-for="AccountNumber" asp-items="@Model.AccountNumberList" class="form-select"></select>
+                              
                     </div>
                     <div class="col-sm-6 col-lg-4 col-xl-3">
-                        <label class="form-label">Tran No</label>
-                        <select class="form-select" id="serviceSelect">
-                            <option value="saving">Select</option>
-                        </select>
+                            <label asp-for="Tranno" class="form-label">Tran No</label>
+                            <select asp-for="Tranno" asp-items="@Model.TrannoList" class="form-select"></select>
                     </div>
                 </div>
             </div>
@@ -57,7 +75,7 @@
                             <label asp-for="CustomerId" class="form-label">Cust. ID</label>
                      
                             <div class="input-group">
-                                <input asp-for="CustomerId" type="text" class="form-control">
+                                <input asp-for="CustomerId" type="text" class="form-control" >
                                 <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#CustomerListBackdrop">Search</button>
                             </div>
                     </div>
@@ -142,7 +160,7 @@
                             </div>
                             <div class="form-radio form-check-inline">
                              
-                                    <input asp-for="TDSOptions" class="form-check-input module-checkbox" type="radio" value="NONTDS">
+                                    <input asp-for="TDSOptions" class="form-check-input module-checkbox" type="radio" value="NONTDS" checked >
                                     <label asp-for="TDSOptions" class="form-check-label">NONTDS</label>
                             </div>
                         </div>
@@ -152,11 +170,11 @@
                             <label asp-for="Panno" class="form-label">Pan No</label>
                             <input asp-for="Panno" type="text" class="form-control">
                     </div>
-                   @*  <div class="col-sm-6 col-lg-3 col-xl-2">
-                        <label class="form-label">Status</label>
-                        <input type="text" class="form-control" value="Active">
+                    <div class="col-sm-6 col-lg-3 col-xl-2">
+                                                 
+                            <input asp-for="Status1" type="text" class="form-control">
                           
-                    </div> *@
+                    </div> 
                     <div class="col-sm-6 col-lg-3 col-xl-2">
                        
                             <label asp-for="Regno" class="form-label">Reg. No</label>
@@ -190,6 +208,7 @@
                         Holder
                     </button>
                 </li>
+                  
                 <li class="nav-item" role="presentation">
                     <button class="nav-link" id="Guardian-tab" data-bs-toggle="tab" data-bs-target="#Guardian-tab-pane" type="button" role="tab" aria-controls="Guardian-tab-pane" aria-selected="false" tabindex="-1">Guardian</button>
                 </li>
@@ -221,66 +240,13 @@
                                 <a href="Customer-Details.html" target="_blank" class="btn btn-primary">D</a>
                             </div>
                         </div>
-                        <div class="col-md-6 col-lg-3 col-xl-3">
+                       
+                       
+                        </div>
                            
-                                <label asp-for="Intro_Relation" class="form-label">Relation</label>
-                                <select asp-for="Intro_Relation" asp-items="@Model.Intro_RelationList" class="form-select"></select>
-                        </div>
-                        <div class="col-md-12">
-                            <div class="form-check mb-2">
-                               
-
-                                    <input asp-for="CheckIntroMinor" class="form-check-input" type="checkbox">
-                                    <label asp-for="CheckIntroMinor" class="form-check-label">
-                                        Minor (Y/N)
-                                    </label>
-                            </div>
-                        </div>
-                            <div class="col-md-4 col-lg-3 col-xl-2 col-xxl-2">
-                                <label asp-for="Intro_MinorDOB" class="form-label">DOB</label>
-                                <div class="input-group date" data-provide="datepicker">
-                                    <input asp-for="Intro_MinorDOB" type="text" class="form-control">
-                                    <div class="input-group-addon input-group-text">
-                                        <img src="~/images/datepicker_icon.svg" width="24">
-                                    </div>
-                                </div>
-                            </div>
-                        <div class="col-md-12 pb-3 text-center">
-                                <button type="button" class="btn btn-primary" id="IntroAddToGrid">Add</button>
-                                <button type="button" class="btn btn-primary" id="IntroClear">Clear</button>
-                        </div>
+                   
                     </div>
-                    <div class="table-responsive">
-                        <table class="table table-bordered">
-                            <thead>
-                                <tr>
-                                    <th>Sno</th>
-                                    <th>Customer Id</th>
-                                    <th>Name</th>
-                                    <th>Minor Y/N</th>
-                                    <th>Minor DOB</th>
-                                    <th>Relation Id</th>
-                                </tr>
-                            </thead>
-                                <tbody id="IntroDetails">
-                                    @if (Model.Introducerdtls  != null)
-                                    {
-                                        int i = 1;
-                                        foreach (var item in Model.Introducerdtls)
-                                        {
-                                            <tr>
-                                                <th scope="row">@(i++)</th>
-                                                <td>@item.IntCustId</td>
-                                                <td>@item.IntCustName </td>
-                                                <td>@item.CheckIntMinor </td>
-                                                <td>@item.Int_MinorDOB </td>
-                                                <td>@item.Int_Relation </td>
-                                            </tr>
-                                        }
-                                    }
-                                </tbody>
-                        </table>
-                    </div>
+                   
                 </div>
                 <div class="tab-pane fade active show" id="JointHolder-tab-pane" role="tabpanel" aria-labelledby="JointHolder-tab" tabindex="0">
                     <div class="row align-items-end g-3">
@@ -342,7 +308,7 @@
                                     <th>Relation Id</th>
                                 </tr>
                             </thead>
-                            <tbody id="jntdetails">
+                                <tbody id="JntDetails">
                                     @if (Model.JntAccdtls != null)
                                     {
                                         int i = 1;
@@ -362,6 +328,7 @@
                         </table>
                     </div>
                 </div>
+               
                 <div class="tab-pane fade" id="Guardian-tab-pane" role="tabpanel" aria-labelledby="Guardian-tab" tabindex="0">
                     <div class="row align-items-end g-3">
                         <div class="col-md-6 col-lg-4 col-xl-4">
@@ -423,7 +390,7 @@
                                     <th>Relation Id</th>
                                 </tr>
                             </thead>
-                                <tbody id="guardiandetails">
+                                <tbody id="GuardDetails">
                                     @if (Model.Guardiandtls  != null)
                                     {
                                         int i = 1;
@@ -505,7 +472,7 @@
                                     <th>Relation Id</th>
                                 </tr>
                             </thead>
-                            <tbody id="nomineedetails">
+                                <tbody id="NomineeDetails">
                                     @if (Model.Nomineedtls != null)
                                     {
                                         int i = 1;

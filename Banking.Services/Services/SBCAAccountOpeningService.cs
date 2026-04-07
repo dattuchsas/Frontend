@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
 using System;
 using System.Data;
+using System.Reflection.Emit;
 using System.Reflection.PortableExecutable;
 
 namespace Banking.Services
@@ -159,7 +160,7 @@ namespace Banking.Services
         }
 
 
-        public async Task<string> SaveSBCAAccountOpeningDetails(ISession session, SBCAAccountOpeningModel sbcaaccountopeningmodel,List<JntAcc> jntAccs,List<Guardian> guardians,List<Nominee> nominees)
+        public async Task<string> SaveSBCAAccountOpeningDetails(ISession session, SBCAAccountOpeningModel sbcaaccountopeningmodel,  List<JntAcc> jntAccs,List<Guardian> guardians,List<Nominee> nominees)
         {
             string[,] arrtrans = new string[20,5 ];
             string newaccno;
@@ -178,8 +179,28 @@ namespace Banking.Services
                 string operatinginstr = sbcaaccountopeningmodel.OperatingInstrs!;
                 string categorycode = sbcaaccountopeningmodel.CategoryType!;
                 string salutation = sbcaaccountopeningmodel.Salutation!;
+                string tdsoptions = sbcaaccountopeningmodel.TDSOptions!;
+                string strtdsyn , strexmpformsrecyn, strforms15g, strnontds;
+                strtdsyn = "N"; strexmpformsrecyn = "N"; strforms15g = "N"; strnontds = "N";
+                if (tdsoptions == "TDS")
+                {
+                    strtdsyn = "Y";
+                }
+                else if (tdsoptions == "FORM15H")
+                {
+                    strexmpformsrecyn = "Y";
+                }
+                else if (tdsoptions == "Form15G")
+                {
+                    strforms15g = "Y";
+                }
+                else if (tdsoptions == "NonTDS")
+                {
+                    strnontds = "Y";
+                }
+               
                 string name = sbcaaccountopeningmodel.CustomerName!;
-                string tdsyn = sbcaaccountopeningmodel.TDSOptions!;
+               
                 string chequebook = sbcaaccountopeningmodel.CheckChequeBook ? "Y" : "N";
                 string bankstaffyn = sbcaaccountopeningmodel.CheckBankStaff ? "Y" : "N";
                 string minoryn = sbcaaccountopeningmodel.CheckMinor ? "Y" : "N";
@@ -208,8 +229,8 @@ namespace Banking.Services
                 // for sbmst
                 string sbfields, sbvalues;
                 sbfields = "branchcode,currencycode,glcode,customerid,name,chequebook,opdate,transtatus,operatedby,operatinginstr,categorycode,bankstaffyn,REGNO,REGDATE, REGPLACE,TDSYN,EXMPFORMSRECYN,FORMS15G,NONTDS,status,introduceryn,jointholderyn,nomineeyn,GUARDIANYN,signatureyn,narration,applicationdate,systemdate,userid,machineid,lastintcalcdate,opplastintcalcdate,accno";
-                sbvalues = "'" + brcode + "','INR','" + glcode + "','" + customerid + "','" + name + "','" + chequebook + "',to_Date('" + openingdate + "','dd-Mon-yyyy'),'P','" + operatedby + "','" + operatinginstr + "','" + categorycode + "','" + bankstaffyn + "','" + regno + "',to_Date('" + regdate + "', 'dd-Mon-yyyy'),'" + regplace + "','" + tdsyn + "','N','N','N','N','N','" + narration + "',TO_DATE('" + appdate + "', 'dd-Mon-yyyy'),sysdate,'" + userid + "','" + machineid + "',TO_DATE('" + lastopppdate + "', 'dd-Mon-yyyy'),TO_DATE('" + lastopppdate + "', 'dd-Mon-yyyy')";
-
+                sbvalues = "'" + brcode + "','INR','" + glcode + "','" + customerid + "','" + name + "','" + chequebook + "',to_Date('" + openingdate + "','dd-Mon-yyyy'),'P','" + operatedby + "','" + operatinginstr + "','" + categorycode + "','" + bankstaffyn + "','" + regno + "',to_Date('" + regdate + "', 'dd-Mon-yyyy'),'" + regplace + "','" + strtdsyn + "','" + strexmpformsrecyn + "','" + strforms15g + "','" + strnontds + "','R','N','N','N','N','N','" + narration + "',TO_DATE('" + appdate + "', 'dd-Mon-yyyy'),sysdate,'" + userid + "','" + machineid + "',TO_DATE('" + lastopppdate + "', 'dd-Mon-yyyy'),TO_DATE('" + lastopppdate + "', 'dd-Mon-yyyy')";
+            
                 arrtrans[arrcnt, 0] = "I";
                 arrtrans[arrcnt, 1] = moduleid + "MST";
                 arrtrans[arrcnt, 2] = sbfields;
@@ -229,6 +250,7 @@ namespace Banking.Services
                 arrtrans[arrcnt, 3] = intvalues;
                 arrtrans[arrcnt, 4] = "";
                 arrcnt++;
+               
                 string jointfields = string.Empty;
                 if (jntAccs.Count > 0)
                 {
@@ -348,5 +370,108 @@ namespace Banking.Services
                 throw new Exception("An error occurred while saving the SBCA Account Opening  details.", ex);
             }
         }
+
+
+
+
+
+
+        public async Task<string> GetSBCAAccOpenDetails(string pcustomerid)
+        {
+            string strResult = "";
+            string strcustomertype = "";
+            string strcustminoryn = "";
+            string strpanno = "";
+            string strpan206aayn = "";
+            string strpan206abyn = "";
+            string strnarration = "";   
+
+
+            string sqlQuery = "select a.customerid,a.customertype,(SELECT b.narration FROM GENCATEGORYMST b WHERE b.categorycode = a.customertype) narration, a.custminoryn,(SELECT c.panno FROM GENCUSTINFOMST c WHERE KYCID = '2' AND c.customerid = a.customerid) PANNO,PAN206AAYN, PAN206ABYN from GENCUSTINFOMST a where a.customerid = '" + pcustomerid + "' AND a.status = 'R'";
+
+            DataTable dataTable = await _databaseFactory.ProcessQueryAsync(sqlQuery);
+
+            if (dataTable.Rows.Count > 0)
+            {
+                strcustomertype = Conversions.ToString(dataTable.Rows[0]["customertype"]);
+                strcustminoryn= Conversions.ToString(dataTable.Rows[0]["custminoryn"]);
+                strpanno = Conversions.ToString(dataTable.Rows[0]["PANNO"]);
+                strnarration = Conversions.ToString(dataTable.Rows[0]["narration"]);
+                strpan206aayn = Conversions.ToString(dataTable.Rows[0]["PAN206AAYN"]);
+                strpan206abyn = Conversions.ToString(dataTable.Rows[0]["PAN206ABYN"]);
+               strResult = strcustomertype + "|" + strnarration + "|" + strcustminoryn + "|" + strpanno + "|" + strpan206aayn + "|" + strpan206abyn;
+
+            }
+
+            return strResult;
+        }
+
+
+        public async Task<string> GetSBCAAccModifyDetails(string searchstring)
+        {
+            String strcustomerid = "";String strchequebook = "";String strtdsyn = "";String strEXMPFORMSRECYN = "";String strFORMS15G = "";String strNONTDS = "";String stropdate = "";String stroperatedby = "";String strbankstaffyn = "";String strCATEGORYCODE = "";String strNARRATION = "";String strnarration1 = "";String strMINORYN = "";String strTRANSTATUS = "";String stroperatinginstr = "";String strname = "";String strREGNO = "";String strREGDATE = "";String strREGPLACE = "";String strPANNO = "";
+
+            string strbrcode,strmodcode,strglcode,straccno;
+            string strResult = "";
+            string strSql = "";
+            strbrcode = searchstring.Split("|")[0];
+            strmodcode = searchstring.Split("|")[1];
+            strglcode = searchstring.Split("|")[2];
+            straccno = searchstring.Split("|")[3];
+         
+
+            strSql = "select a.customerid,a.name,a.chequebook,a.tdsyn,a.EXMPFORMSRECYN,a.FORMS15G,a.NONTDS,to_char(a.opdate,'dd-Mon-yyyy'),c.narration,a.operatedby,a.bankstaffyn,a.CATEGORYCODE,a.NARRATION,b.narration narration1,a.MINORYN,a.TRANSTATUS,a.operatinginstr, A.REGNO, TO_CHAR(A.REGDATE,'DD-Mon-YYYY') REGDATE,REGPLACE,(SELECT d.panno FROM GENCUSTINFOMST d WHERE KYCID='2' AND d.customerid=a.customerid) PANNO from " + strmodcode + "mst a,gencategorymst b,GenOperInstMst c where upper(trim(a.branchcode))='"+ strbrcode + "' and upper(trim(a.currencycode))='INR' and upper(trim(a.glcode))='"+ strglcode + "' and upper(trim(a.accno))='"+ straccno + "' and status='R' and  TRANSTATUS='P' and a.CATEGORYCODE=b.CATEGORYCODE and trim(a.operatinginstr)=trim(c.opercode)";
+            DataTable dataTable = await _databaseFactory.ProcessQueryAsync(strSql);
+
+            if (dataTable.Rows.Count > 0)
+            {
+strcustomerid = Conversions.ToString(dataTable.Rows[0]["customerid"]);
+strname = Conversions.ToString(dataTable.Rows[0]["name"]);
+strchequebook = Conversions.ToString(dataTable.Rows[0]["chequebook"]);
+strtdsyn = Conversions.ToString(dataTable.Rows[0]["tdsyn"]);
+strEXMPFORMSRECYN = Conversions.ToString(dataTable.Rows[0]["EXMPFORMSRECYN"]);
+strFORMS15G = Conversions.ToString(dataTable.Rows[0]["FORMS15G"]);
+strNONTDS = Conversions.ToString(dataTable.Rows[0]["NONTDS"]);
+stropdate = Conversions.ToString(dataTable.Rows[0]["opdate"]);
+stroperatedby = Conversions.ToString(dataTable.Rows[0]["operatedby"]);
+strbankstaffyn = Conversions.ToString(dataTable.Rows[0]["bankstaffyn"]);
+strCATEGORYCODE = Conversions.ToString(dataTable.Rows[0]["CATEGORYCODE"]);
+strNARRATION = Conversions.ToString(dataTable.Rows[0]["NARRATION"]);
+strnarration1 = Conversions.ToString(dataTable.Rows[0]["narration1"]);
+strMINORYN = Conversions.ToString(dataTable.Rows[0]["MINORYN"]);
+strTRANSTATUS = Conversions.ToString(dataTable.Rows[0]["TRANSTATUS"]);
+stroperatinginstr = Conversions.ToString(dataTable.Rows[0]["operatinginstr"]);
+strREGNO = Conversions.ToString(dataTable.Rows[0]["REGNO"]);
+strREGDATE = Conversions.ToString(dataTable.Rows[0]["REGDATE"]);
+strREGPLACE = Conversions.ToString(dataTable.Rows[0]["REGPLACE"]);
+strPANNO = Conversions.ToString(dataTable.Rows[0]["PANNO"]);
+            }
+
+            strResult = strcustomerid + "|" + strname + "|" + strchequebook + "|" +      strtdsyn + "|" + strEXMPFORMSRECYN + "|" + strFORMS15G + "|" +      strNONTDS + "|" + stropdate  + "|" + stroperatedby + "|" + strbankstaffyn + "|" +      strCATEGORYCODE + "|" + strNARRATION + "|" +
+      strnarration1 + "|" + strMINORYN + "|" +      strTRANSTATUS + "|" + stroperatinginstr  + "|" +      strREGNO + "|" + strREGDATE + "|" + strREGPLACE + "|" +      strPANNO;
+
+            string strINTRCUSTOMERID = ""; string strINTRNAME = "";
+
+            strSql = "select INTRCUSTOMERID,INTRNAME from GENCUSTINTRODUCERMST where upper(trim(a.branchcode))='"+ strbrcode + "' and upper(trim(a.currencycode))='INR' and upper(trim(a.glcode))='"+ strglcode + "' and upper(trim(a.accno))='"+ straccno + "' and moduleid = '" + strmodcode + "'";
+            DataTable dataTableintro = await _databaseFactory.ProcessQueryAsync(strSql);
+
+            if (dataTableintro.Rows.Count > 0)
+            {
+                strINTRCUSTOMERID = Conversions.ToString(dataTableintro.Rows[0]["INTRCUSTOMERID"]);
+                strINTRNAME = Conversions.ToString(dataTableintro.Rows[0]["INTRNAME"]);
+            }
+
+            strSql = "select SNO,JHCUSTOMERID,jointholdername,to_char(MINORDOB,'dd-Mon-yyyy'),MINORYN,RELATIONID from GENCUSTJOINTHOLDERMST where upper(trim(a.branchcode))='" + strbrcode + "' and upper(trim(a.currencycode))='INR' and upper(trim(a.glcode))='" + strglcode + "' and upper(trim(a.accno))='" + straccno + "' and moduleid = '" + strmodcode + "' and CUSTOMERID='"+ strcustomerid + "'";
+            DataTable dataTablejnt = await _databaseFactory.ProcessQueryAsync(strSql);
+
+            if (dataTablejnt.Rows.Count > 0)
+            {
+
+               
+            }
+            return strResult;
+        }
+
+            
     }
 }
