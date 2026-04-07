@@ -21,6 +21,7 @@ var vPrecision = $("#Hidden_Precision").val();
 var trnMode = "", trnDesc = "", mstTab = "NO", chkNull = true, Amount = 0, mode = '', fxTransYN = "", blnCloseLoan, abbYN;
 var transTable, npaIntYN, strNPARemarks = "", strLoanBatchNo, flexInsrtYN = "", depIntacccond = true, abbApplDt, scts, blnFlagAutoClose, blnBatchLoancheck;
 var excpAmt = 0, excpParmAmt = 0, excpChq, excpChqSrs, excpChqNo, excpEffDt, excpYN, excpOverDraft, excpLmtAmt, excpCodes = "";
+var clgretchgsautoyn1, clgCommRetChrgsYN1;
 
 // strsessionflds[0] - vUserId
 // strsessionflds[1] - vAppdate
@@ -5402,19 +5403,19 @@ function SumDrCr(flxRowCnt1, AddorDel1) {
 
 
 //This function is used to insert row into gentemptranslog that was populated in the flexgrid.
-function flexRowInsert(table, intRow, moreThanOneRowYN) {
-  var ColCnt = "", RowCnt = "", ColStr = "", DispYN = "";
-  var strCnt = intRow;
+function flexRowInsert(intRow, moreThanOneRowYN) {
+  debugger;
+  var ColStr = "";
 
-  if (table.rows().count() >= 1) {
-    ColCnt = table.columns().count();
-    RowCnt = table.rows().count() - 1;
+  var ColCnt = transTable.columns().count();
+  var RowCnt = transTable.rows().count() - 1;
 
+  if (transTable.rows().count() >= 1) {
     //forming string of values to insert into gentemptranslog
     if (moreThanOneRowYN == "Y") {
       for (var RCnt = intRow; RCnt <= RowCnt; RCnt++) {
         for (var i = 0; i <= ColCnt - 1; i++) {
-          ColStr = ColStr + "'" + Mfgpaydt.TextMatrix(intRow, i) + "',";
+          ColStr = ColStr + "'" + GetValueFromRow(transTable, intRow, i) + "',";
         }
         intRow = intRow + 1;
         ColStr = ColStr.substring(0, ColStr.length - 1);
@@ -5423,17 +5424,17 @@ function flexRowInsert(table, intRow, moreThanOneRowYN) {
     }
     else {
       for (var i = 0; i <= ColCnt - 1; i++) {
-        ColStr = ColStr + "'" + Mfgpaydt.TextMatrix(intRow, i) + "',";
+        var value = GetValueFromRow(transTable, RowCnt, i);
+        ColStr = ColStr + "'" + value + "',";
       }
     }
 
     //If Transaction is not Disposal one  
-    if (window.document.frmTrans.chkDispAccNo.checked == false) {
-      dispVals = "";
-      ColStr = "GEN" + "~*~" + intRow + "~*~" + dispVals + "~*~" + ColStr.substring(0, ColStr.length - 1) + "~*~" + tranNos;
-    }
+    var dispVals = "";
+    ColStr = "GEN" + "~*~" + intRow + "~*~" + dispVals + "~*~" + ColStr.substring(0, ColStr.length - 1) + "~*~" + tranNos;1
+
     ////If Transaction is Disposal one
-    //else if (window.document.frmTrans.chkDispAccNo.checked == true) {
+    //if (window.document.frmTrans.chkDispAccNo.checked == true) {
     //  if (window.document.frmTrans.mfgDisp.TextMatrix(
     //    window.document.frmTrans.mfgDisp.row, 38) != "SI") {
     //    if ((vMode == "REC") && ((window.document.frmTrans.txtModId.value == "PL") || (window.document.frmTrans.txtModId.value == "MISC"))) {
@@ -5448,6 +5449,21 @@ function flexRowInsert(table, intRow, moreThanOneRowYN) {
     //  }
     //  ColStr = "GEN" + "~*~" + intRow + "~*~" + dispVals + "~*~" + ColStr.substring(0, ColStr.length - 1) + "~*~" + tranNos;
     //}
+
+    $.ajax({
+      url: '/TransferTransaction/InsertTempTransaction',
+      type: 'GET',
+      data: {
+        insertString: ColStr
+      },
+      success: function (response) {
+        debugger;
+        alert(response);
+      },
+      error: function (err) {
+        HandleAjaxError(err);
+      }
+    });
 
     //window.document.all['iOk'].src = "temptraninsrt.aspx";
     //window.document.frames['iOk'].frmTempTran.hdnFlexVal.value = ColStr;
@@ -5491,6 +5507,7 @@ function RecLimit(vRLmt) {
 
 // This function is used to populate main flex grid based on different modules and conditions with batchno and tranno.
 function FlexPopulate(BatchNo) {
+  debugger;
   flexInsrtYN = "";
   depIntacccond = true;
   if (eval($("#Amount").val()) == 0) {
@@ -5806,7 +5823,8 @@ function FlexPopulate(BatchNo) {
     }
   }
   else if (vMode == "TRANS") {
-    if ((window.document.frmTrans.tranmode[2].checked == true) && (eval(window.document.frmTrans.txtServiceId.value) == "8")) {
+    debugger;
+    if ((GetRadioButton() == "Clearing") && (eval($("#ServiceCode").val()) == "8")) {
       if ((clgretchgsautoyn1 == 'Y') && (clgCommRetChrgsYN1 == 'Y')) {
         var confrmclg
         confrmclg = confirm("Do U Want To Post Clearing Return Charges Now  Y/N ? ")
@@ -6078,14 +6096,17 @@ function PrecDrCr() {
 
   var Prec = eval($("#Hidden_Precision").val());
 
-  var v1 = eval($("#CreditTotal").val());
-  $("#CreditTotal").val(v1.toFixed(Prec));
+  var v1 = $("#CreditTotal").val();
+  if (v1 != "" && v1 != null && v1 != undefined)
+    $("#CreditTotal").val(v1.toFixed(Prec));
 
-  v1 = eval($("#DebitTotal").val());
-  $("#DebitTotal").val(v1.toFixed(Prec));
+  v1 = $("#DebitTotal").val();
+  if (v1 != "" && v1 != null && v1 != undefined)
+    $("#DebitTotal").val(v1.toFixed(Prec));
 
-  v1 = eval($("#Difference").val());
-  $("#Difference").val(v1.toFixed(Prec));
+  v1 = Number($("#Difference").val());
+  if (v1 != "" && v1 != null && v1 != undefined)
+    $("#Difference").val(v1.toFixed(Prec));
 
   precision($("#DebitTotal").val(), $("#Hidden_Precision").val());
   precision($("#CreditTotal").val(), $("#Hidden_Precision").val());
@@ -6701,6 +6722,53 @@ function FlexPopulateCessCharge(BatchNo) {
 
 }
 
+//This is the return function form server page after inserting row in gentemptranslog if it fails to insert row into gentemptranslog because of any reasons it will remove that row from the flex grid.
+function TempTranInsrt(strRslt, flxRow, NoOfRows) {
+  // var dbtAmt = 0, cdtAmt = 0, cdtAmtTemp = 0, dbtAmtTemp = 0;
+  if (strRslt != "Transaction Sucessful.") {
+    if (NoOfRows == 1) {
+      if (window.document.frmTrans.Mfgpaydt.Rows > 2) {
+        SumDrCr(flxRow, "DEL");
+        window.document.frmTrans.Mfgpaydt.RemoveItem(flxRow);
+      }
+      else {
+        SumDrCr(1, "DELALL");
+        window.document.frmTrans.Mfgpaydt.Rows = 1;
+      }
+      return;
+    }
+    else {
+      var rowCnt = flxRow - 1;
+      for (var i = rowCnt; i > 0; i--) {
+        if (window.document.frmTrans.Mfgpaydt.Rows > 2) {
+          sumDrCr(i, "DEL");
+          window.document.frmTrans.Mfgpaydt.RemoveItem(rowCnt);
+        }
+        else {
+          sumDrCr(1, "DELALL");
+          window.document.frmTrans.Mfgpaydt.Rows = 1;
+        }
+      }
+    }
+    PrecDrCr();
+  }
+
+  if ((window.document.frmTrans.tranmode[2].checked == true) && (eval(window.document.frmTrans.txtServiceId.value) == "8")) {
+    OkClear();
+    mode = "ADD";
+    ChequeDetClear();
+  }
+}
+
+//this function is used to clear the cheque related textboxes
+function ChequeDetClear() {
+  window.document.frmTrans.txtChqNo.value = "";
+  window.document.frmTrans.txtChqDt.value = '<%=session("Applicationdate")%>';
+  window.document.frmTrans.txtChqFVG.value = "";
+}
+
+
+
 
 /****************** Assign Value Functions ********************/
 
@@ -6721,7 +6789,7 @@ function AssignNewRow(table) {
 }
 
 function GetValueFromRow(table, row, col) {
-  table.cell(row, col).data();
+  return table.cell(row, col).data();
 }
 
 

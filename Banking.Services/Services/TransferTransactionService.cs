@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
 using System;
 using System.Data;
+using System.Reflection;
 
 namespace Banking.Services
 {
@@ -774,6 +775,74 @@ namespace Banking.Services
                 }
 
                 return string.Empty;
+            }
+
+            return string.Empty;
+        }
+
+        public async Task<string> InsertTempTransaction(string insertString = "")
+        {
+            string[,] ArrTrans = new string[1, 5];
+
+            //ObjIns = server.CreateObject("GeneralTransactions.DBTransactions")
+
+            if (insertString.Length > 0)
+            {
+                string[] strValue = insertString.Split("~*~");
+
+                string mode = strValue[0];
+                string FlxRowNo = strValue[1];
+
+                switch (mode)
+                {
+                    case "GEN":
+                        string strFldNms = "BATCHNO,TRANNO,GLCODE,GLDESC,ACCNO,NAME,AMOUNT,ENTEREDTIMEBAL,APPLICATIONDATE,CUSTOMERID,MODEOFTRAN,MODEOFTRANDESC,ABBAPPLICATIONDATE," +
+                            "TRANSTATUS,CURRENCYCODE,USERID,MACHINEID,MODULEID,BRANCHCODE,TOKENNO,REMARKS,CHQSERIESNO,CHQNO,CHQDATE,CHQFVG,SYSTEMGENERATEDYN,MODULEDESC,EFFECTIVEDATE," +
+                            "CLGRATETYPE,RATE,FCURRENCYCODE,FAMOUNT,LINKMODULEID,LINKMODULEDESC,LINKGLCODE,LINKGLDESC,LINKACCTYPE,LINKACCNO,LINKACCNAME,SERVICEID,SERVICEDESC," +
+                            "RESPONDINGBRANCHCODE,RESPONDINGBRANCHDESC,RESPONDINGSECTIONCODE,RESPONDINGSECTIONDESC,ABBBRANCHCODE,BRANCHNARRATION,DISPOSALBATCHNO,DISPOSALTRANNO," +
+                            "ACCOUNTCHECKYN,EXCEPTIONYN,EXCEPTIONCODES,respondingbankcode,respondingbankdesc,STANDINSTRYN,COUNTERNO,CASHIERID,SCROLLNO,RATEREFCODE,RATEREFDESC,C61,C62," +
+                            "C63,C64,C65,C66,C67,C68,C69,C70,C71,C72,C73,C74,C75,C76,C77,C78,C79,C80,C81,C82,C83,C84,C85,C86,C87,C88,C89,C90,C91,C92,C93,C94,C95,C96,C97,C98,C99,C100,abbyn";
+
+                        string strValues = strValue[3];
+                        string NoOfRows = strValue[4];
+                        ArrTrans[0, 0] = "I";
+                        ArrTrans[0, 1] = "GENTEMPTRANSLOG";  // Passing the table name
+                        ArrTrans[0, 2] = strFldNms;          // Passing Columns
+                        ArrTrans[0, 3] = strValues;          // Passing Values
+                        ArrTrans[0, 4] = "";
+
+                        // If the transaction belongs to disposal
+                        string dispValues = strValue[2];
+                        if (dispValues != "")
+                        {
+                            string[] strvalueD = dispValues.Split("~");
+                            string batchNo = strvalueD[0];
+                            string tranNo = strvalueD[1];
+                            string brCode = strvalueD[2];
+                            string crCode = strvalueD[3];
+                            string dispBatchNo = strvalueD[4];
+                            string dispTranNo = strvalueD[5];
+                            string Moduleid = strvalueD[6];
+
+                            string strfldnmsD = "batchno,tranno";
+                            string strvaluesD = "'" + batchNo!.Trim() + "'~'" + tranNo!.Trim() + "'";
+                            string strWhrCondD = "upper(branchcode)='" + brCode + "' and upper(currencycode)='" + crCode + "' and upper(disposalBatchno)='" + dispBatchNo + 
+                                "' and upper(disposaltranNo)='" + dispTranNo + "'";
+
+                            ArrTrans[1, 0] = "U";
+
+                            if (Moduleid != "SI")
+                                ArrTrans[1, 1] = "GENDISPOSALDTLSTEMP";  // Passing the table name
+                            else
+                                ArrTrans[1, 1] = "SIDISPOSALDTLS";  // Passing the table name
+
+                            ArrTrans[1, 2] = strfldnmsD;             // Passing columns
+                            ArrTrans[1, 3] = strvaluesD;             // Passing values
+                            ArrTrans[1, 4] = strWhrCondD;            // Passing where condition
+                        }
+                        
+                        return await _databaseFactory.ProcessDataTransactions(ArrTrans);
+                }
             }
 
             return string.Empty;

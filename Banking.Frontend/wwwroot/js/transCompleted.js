@@ -6085,3 +6085,127 @@
 //  }
 //  MaxLimitAmt = RecPayAmt[4]
 //}
+
+////this function is used to clear the cheque related textboxes
+//function ChequeDetClear() {
+//  window.document.frmTrans.txtChqNo.value = "";
+//  window.document.frmTrans.txtChqDt.value = '<%=session("Applicationdate")%>';
+//  window.document.frmTrans.txtChqFVG.value = "";
+//}
+
+
+////This function was written to form denomination values,no of pieces,available amount, exchange amount array values.
+//function denomStrForm() {
+
+//  var DValStr = ""
+//  var DVal = ""
+//  var DExamtStr = ""
+//  var DExamt = ""
+//  var DTypStr = ""
+//  var DTyp = ""
+//  var DPayamtStr = ""
+//  var DPayamt = ""
+//  var DPayRecAmt = ""
+//  //to form denom value string
+
+//  for (i = 1; i < window.document.frames("idenom").frmDenom.mfgDenom.Rows; i++) {
+
+//    DVal = window.document.frames("idenom").frmDenom.mfgDenom.TextMatrix(i, 3)
+//    DValStr = DValStr + DVal + "~"
+
+//    DTyp = window.document.frames("idenom").frmDenom.mfgDenom.TextMatrix(i, 1)
+//    DTypStr = DTypStr + DTyp + "~";
+
+//    DPayRecAmt = window.document.frames("idenom").frmDenom.mfgDenom.TextMatrix(i, 5)
+//    DPayamt = window.document.frames("idenom").frmDenom.mfgDenom.TextMatrix(i, 4)
+
+//    if (eval(DPayRecAmt) >= 0) {
+//      DPayamtStr = DPayamtStr + DPayamt + "~";
+//    }
+//    else {
+//      DPayamt = ""
+//      DPayamtStr = DPayamtStr + DPayamt + "~";
+//    }
+
+//    DExamt = window.document.frames("idenom").frmDenom.mfgDenom.TextMatrix(i, 4)
+//    if (eval(DPayRecAmt) < 0) {
+//      DExamtStr = DExamtStr + DExamt + "~"
+//    }
+//    else {
+//      DExamt = ""
+//      DExamtStr = DExamtStr + DExamt + "~"
+//    }
+
+//  }
+
+//  strDenom = DValStr + "|" + DPayamtStr + "|" + DExamtStr + "|" + DTypStr;
+//}
+
+
+//function branchCurrCode() {
+//  curCode = window.document.frmTrans.txtcurrencycode.value.toUpperCase()
+//  curDesc = window.document.frmTrans.txtcurrencydesc.value
+//  brCode = window.document.frmTrans.txtbranchcode.value.toUpperCase()
+//  brDesc = window.document.frmTrans.txtbranchdesc.value
+//}
+
+
+////This is the return function form server page after inserting row in gentemptranslog if it fails to insert row into gentemptranslog because of any reasons it will remove that row from the flex grid.
+//function TempTranInsrt(strRslt, flxRow, NoOfRows) {
+
+//  //alert(strRslt + " " + flxRow + " " + NoOfRows)
+//  var rowCnt = ""
+//  var dbtAmt = 0
+//  var cdtAmt = 0
+//  var cdtAmtTemp = 0
+//  var dbtAmtTemp = 0
+//  var i
+
+//  if (strRslt != "Transaction Sucessful.") {
+//    alert(strRslt)
+//    if (NoOfRows == 1) {
+
+//      if (window.document.frmTrans.Mfgpaydt.Rows > 2) {
+//        sumDrCr(flxRow, "DEL")
+//        window.document.frmTrans.Mfgpaydt.RemoveItem(flxRow)
+//      }
+//      else {
+//        sumDrCr(1, "DELALL")
+//        window.document.frmTrans.Mfgpaydt.Rows = 1
+//      }
+
+//      return
+
+//    }
+//    else {
+
+//      rowCnt = flxRow - 1
+//      for (i = rowCnt; i > 0; i--) {
+
+//        if (window.document.frmTrans.Mfgpaydt.Rows > 2) {
+
+//          sumDrCr(i, "DEL")
+//          window.document.frmTrans.Mfgpaydt.RemoveItem(rowCnt)
+//        }
+//        else {
+//          sumDrCr(1, "DELALL")
+//          window.document.frmTrans.Mfgpaydt.Rows = 1
+
+//        }
+//      }
+
+//    }
+
+//    PrecDrCr()
+
+
+//  }
+
+//  if ((window.document.frmTrans.tranmode[2].checked == true) && (eval(window.document.frmTrans.txtServiceId.value) == "8")) {
+
+//    OkClear()
+//    mode = "ADD"
+//    ChequeDetClear()
+//  }
+
+//}
